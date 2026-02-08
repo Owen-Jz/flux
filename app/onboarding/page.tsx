@@ -54,9 +54,9 @@ export default function OnboardingPage() {
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-                        className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--brand-primary)] text-white mb-4"
+                        className="inline-flex items-center justify-center mb-4"
                     >
-                        <Sparkles className="w-8 h-8" />
+                        <img src="/icon.svg" alt="Flux Logo" className="w-16 h-16 rounded-2xl" />
                     </motion.div>
                     <h1 className="text-3xl font-bold text-[var(--foreground)]">
                         Create your workspace

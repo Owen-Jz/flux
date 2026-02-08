@@ -7,10 +7,8 @@ export default function HomePage() {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[var(--background)]/80 backdrop-blur-lg border-b border-[var(--border-subtle)]">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[var(--brand-primary)] flex items-center justify-center">
-              <Zap className="w-4 h-4 text-white" />
-            </div>
+          <div className="flex items-center gap-3">
+            <img src="/icon.svg" alt="Flux Logo" className="w-8 h-8 rounded-lg" />
             <span className="font-bold text-lg">Flux</span>
           </div>
           <div className="flex items-center gap-4">
@@ -118,9 +116,7 @@ export default function HomePage() {
       <footer className="border-t border-[var(--border-subtle)] py-8 px-6">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[var(--brand-primary)] flex items-center justify-center">
-              <Zap className="w-3 h-3 text-white" />
-            </div>
+            <img src="/icon.svg" alt="Flux Logo" className="w-6 h-6 rounded" />
             <span className="text-sm text-[var(--text-secondary)]">
               © 2026 Flux. All rights reserved.
             </span>

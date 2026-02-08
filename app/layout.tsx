@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Flux | Modern Project Management",
   description: "A cutting-edge project management SaaS with real-time collaboration.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

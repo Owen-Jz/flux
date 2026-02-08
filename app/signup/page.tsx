@@ -63,6 +63,9 @@ export default function SignupPage() {
             >
                 {/* Logo */}
                 <div className="text-center mb-8">
+                    <div className="flex justify-center mb-4">
+                        <img src="/icon.svg" alt="Flux Logo" className="w-12 h-12 rounded-xl" />
+                    </div>
                     <h1 className="text-3xl font-bold text-[var(--foreground)]">Flux</h1>
                     <p className="text-[var(--text-secondary)] mt-2">Create your account</p>
                 </div>
