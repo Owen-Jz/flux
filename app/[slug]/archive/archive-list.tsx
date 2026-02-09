@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateTask, deleteTask } from '@/actions/task';
 import { TaskPriority, TaskStatus } from '@/models/Task';
@@ -32,6 +32,11 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
     const router = useRouter();
     const [tasks, setTasks] = useState<ArchivedTask[]>(initialTasks);
     const [actioningIds, setActioningIds] = useState<Set<string>>(new Set());
+
+    // Update local state when initialTasks changes (after revalidation)
+    useEffect(() => {
+        setTasks(initialTasks);
+    }, [initialTasks]);
 
     const handleRestore = async (task: ArchivedTask) => {
         setActioningIds(prev => new Set(prev).add(task.id));

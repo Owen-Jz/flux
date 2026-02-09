@@ -7,12 +7,14 @@ import { Types } from 'mongoose';
 import { Workspace } from '@/models/Workspace';
 import { Board } from '@/models/Board';
 import { revalidatePath } from 'next/cache';
+import { logActivity } from './activity';
 
 interface CreateTaskData {
     title: string;
     description?: string;
     priority?: TaskPriority;
     status?: TaskStatus;
+    categoryId?: string;
 }
 
 export async function createTask(workspaceSlug: string, boardSlug: string, data: CreateTaskData) {
@@ -58,9 +60,23 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
         description: data.description,
         priority: data.priority || 'MEDIUM',
         status: data.status || 'BACKLOG',
+        categoryId: data.categoryId ? new Types.ObjectId(data.categoryId) : undefined,
         order: newOrder,
         assignees: [session.user.id],
         subtasks: [],
+    });
+
+    // Log activity
+    await logActivity({
+        workspaceSlug,
+        boardSlug,
+        taskId: task._id.toString(),
+        type: 'TASK_CREATED',
+        title: 'Task Created',
+        description: `Created task "${data.title}"`,
+        metadata: {
+            taskTitle: data.title,
+        },
     });
 
     revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
@@ -92,6 +108,7 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
         description: task.description,
         status: task.status,
         priority: task.priority,
+        categoryId: task.categoryId?.toString(),
         order: task.order,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         assignees: (task.assignees as any[]).map((a) => ({
@@ -208,6 +225,8 @@ export async function updateTaskPosition(
         throw new Error('Workspace not found');
     }
 
+    const board = await Board.findById(task.boardId);
+
     // Check role - ADMIN, EDITOR, or ASSIGNEE can update task positions
     const member = workspace.members.find(
         (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
@@ -220,9 +239,27 @@ export async function updateTaskPosition(
         throw new Error('You do not have permission to update tasks');
     }
 
+    const previousStatus = task.status;
     task.status = newStatus;
     task.order = newOrder;
     await task.save();
+
+    // Log activity if status changed (task moved to different column)
+    if (previousStatus !== newStatus && board) {
+        await logActivity({
+            workspaceSlug: workspace.slug,
+            boardSlug: board.slug,
+            taskId: task._id.toString(),
+            type: 'TASK_MOVED',
+            title: 'Task Moved',
+            description: `Moved "${task.title}" from ${previousStatus} to ${newStatus}`,
+            metadata: {
+                taskTitle: task.title,
+                previousStatus,
+                newStatus,
+            },
+        });
+    }
 
     revalidatePath(`/${workspace.slug}`);
     return { success: true };
@@ -237,6 +274,7 @@ export async function updateTask(
         status?: TaskStatus;
         assignees?: string[];
         subtasks?: { id?: string; title: string; completed: boolean }[];
+        categoryId?: string | null;
     }
 ) {
     const session = await auth();
@@ -268,6 +306,10 @@ export async function updateTask(
         throw new Error('You do not have permission to update tasks');
     }
 
+    // Track if significant changes happened
+    const previousStatus = task.status;
+    const previousTitle = task.title;
+
     if (data.title !== undefined) task.title = data.title;
     if (data.description !== undefined) task.description = data.description;
     if (data.priority !== undefined) task.priority = data.priority;
@@ -282,8 +324,47 @@ export async function updateTask(
             completed: s.completed,
         }));
     }
+    if (data.categoryId !== undefined) {
+        task.categoryId = data.categoryId ? new Types.ObjectId(data.categoryId) : undefined;
+    }
 
     await task.save();
+
+    // Log activity for significant updates
+    const board = await Board.findById(task.boardId);
+    if (board) {
+        // Log status change
+        if (data.status && previousStatus !== data.status) {
+            await logActivity({
+                workspaceSlug: workspace.slug,
+                boardSlug: board.slug,
+                taskId: task._id.toString(),
+                type: 'TASK_MOVED',
+                title: 'Task Status Changed',
+                description: `Changed "${task.title}" from ${previousStatus} to ${data.status}`,
+                metadata: {
+                    taskTitle: task.title,
+                    previousStatus,
+                    newStatus: data.status,
+                },
+            });
+        }
+
+        // Log general update (title changes, etc)
+        if (data.title && previousTitle !== data.title) {
+            await logActivity({
+                workspaceSlug: workspace.slug,
+                boardSlug: board.slug,
+                taskId: task._id.toString(),
+                type: 'TASK_UPDATED',
+                title: 'Task Updated',
+                description: `Renamed "${previousTitle}" to "${data.title}"`,
+                metadata: {
+                    taskTitle: data.title,
+                },
+            });
+        }
+    }
 
     revalidatePath(`/${workspace.slug}`);
     revalidatePath(`/${workspace.slug}/archive`);
@@ -314,6 +395,22 @@ export async function deleteTask(taskId: string) {
     );
     if (!member || !['ADMIN', 'EDITOR'].includes(member.role)) {
         throw new Error('You do not have permission to delete tasks');
+    }
+
+    // Log activity before deleting
+    const board = await Board.findById(task.boardId);
+    if (board) {
+        await logActivity({
+            workspaceSlug: workspace.slug,
+            boardSlug: board.slug,
+            taskId: task._id.toString(),
+            type: 'TASK_DELETED',
+            title: 'Task Deleted',
+            description: `Deleted task "${task.title}"`,
+            metadata: {
+                taskTitle: task.title,
+            },
+        });
     }
 
     await Task.findByIdAndDelete(taskId);
@@ -349,6 +446,10 @@ export async function addComment(taskId: string, content: string) {
         throw new Error('You do not have permission to comment');
     }
 
+    if (!task.comments) {
+        task.comments = [];
+    }
+
     task.comments.push({
         content,
         userId: new Types.ObjectId(session.user.id),
@@ -360,6 +461,23 @@ export async function addComment(taskId: string, content: string) {
     const updatedTask = await Task.findById(taskId).populate('comments.userId', 'name email image');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const newComment = (updatedTask?.comments as any[]).pop();
+
+    // Log activity for comment
+    const board = await Board.findById(task.boardId);
+    if (board) {
+        await logActivity({
+            workspaceSlug: workspace.slug,
+            boardSlug: board.slug,
+            taskId: task._id.toString(),
+            type: 'COMMENT_ADDED',
+            title: 'New Comment',
+            description: `Commented on "${task.title}"`,
+            metadata: {
+                taskTitle: task.title,
+                commentContent: content.length > 100 ? content.substring(0, 100) + '...' : content,
+            },
+        });
+    }
 
     revalidatePath(`/${workspace.slug}`);
 
@@ -393,6 +511,10 @@ export async function deleteComment(taskId: string, commentId: string) {
     const workspace = await Workspace.findById(task.workspaceId);
     if (!workspace) {
         throw new Error('Workspace not found');
+    }
+
+    if (!task.comments) {
+        throw new Error('Comment not found');
     }
 
     // Find comment to check ownership

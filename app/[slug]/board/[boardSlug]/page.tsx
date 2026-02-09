@@ -5,6 +5,9 @@ import { getTasks } from '@/actions/task';
 import { getUserRole } from '@/actions/access-control';
 import { Board } from '@/components/board';
 
+// Prevent caching to ensure fresh category data
+export const dynamic = 'force-dynamic';
+
 export default async function BoardPage({
     params,
 }: {
@@ -61,6 +64,7 @@ export default async function BoardPage({
                     boardName={board.name}
                     boardDescription={board.description}
                     boardColor={board.color}
+                    categories={board.categories}
                     currentUserId={session?.user?.id}
                 />
             </div>

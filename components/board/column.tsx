@@ -1,10 +1,8 @@
 'use client';
 
 import { useDroppable } from '@dnd-kit/core';
-import {
-    SortableContext,
-    verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { TaskCard, TaskData, Member } from './task-card';
 
@@ -19,6 +17,7 @@ interface ColumnProps {
     onDeleteTask?: (taskId: string) => void;
     members?: Member[];
     onTaskClick?: (task: TaskData) => void;
+    categories?: { id: string; name: string; color: string }[];
 }
 
 const columnColors: Record<string, string> = {
@@ -39,6 +38,7 @@ export function Column({
     onDeleteTask,
     members = [],
     onTaskClick,
+    categories = [],
 }: ColumnProps) {
     const { setNodeRef, isOver } = useDroppable({ id });
 
@@ -68,25 +68,28 @@ export function Column({
             {/* Task List */}
             <div
                 ref={setNodeRef}
-                className={`flex-1 space-y-3 p-2 rounded-xl transition-colors min-h-[200px] ${isOver ? 'bg-[var(--brand-primary)]/5 ring-2 ring-[var(--brand-primary)]/20' : 'bg-[var(--surface)]/50'
+                className={`flex-1 flex flex-col gap-3 relative p-2 rounded-xl transition-colors min-h-[200px] ${isOver ? 'bg-[var(--brand-primary)]/5 ring-2 ring-[var(--brand-primary)]/20' : 'bg-[var(--surface)]/50'
                     }`}
             >
                 <SortableContext
                     items={tasks.map((t) => t.id)}
                     strategy={verticalListSortingStrategy}
                 >
-                    {tasks.map((task) => (
-                        <TaskCard
-                            key={task.id}
-                            task={task}
-                            isReadOnly={isReadOnly}
-                            isDragDisabled={isDragDisabled}
-                            onUpdate={onUpdateTask}
-                            onDelete={onDeleteTask}
-                            members={members}
-                            onClick={onTaskClick}
-                        />
-                    ))}
+                    <AnimatePresence mode="popLayout" initial={false}>
+                        {tasks.map((task) => (
+                            <TaskCard
+                                key={task.id}
+                                task={task}
+                                isReadOnly={isReadOnly}
+                                isDragDisabled={isDragDisabled}
+                                onUpdate={onUpdateTask}
+                                onDelete={onDeleteTask}
+                                members={members}
+                                onClick={onTaskClick}
+                                categories={categories}
+                            />
+                        ))}
+                    </AnimatePresence>
                 </SortableContext>
 
                 {tasks.length === 0 && (

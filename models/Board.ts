@@ -8,9 +8,19 @@ export interface IBoard extends Document {
     description?: string;
     color: string;
     icon?: string;
+    categories: {
+        _id: Types.ObjectId;
+        name: string;
+        color: string;
+    }[];
     createdAt: Date;
     updatedAt: Date;
 }
+
+const CategorySchema = new Schema({
+    name: { type: String, required: true },
+    color: { type: String, required: true },
+});
 
 const BoardSchema = new Schema<IBoard>(
     {
@@ -20,6 +30,7 @@ const BoardSchema = new Schema<IBoard>(
         description: { type: String },
         color: { type: String, default: '#6366f1' },
         icon: { type: String },
+        categories: { type: [CategorySchema], default: [] },
     },
     { timestamps: true }
 );

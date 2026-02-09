@@ -4,7 +4,8 @@ import { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GripVertical, MoreHorizontal, Trash2, Pencil, Check, Calendar, UserPlus, Archive } from 'lucide-react';
+import { GripVertical, MoreHorizontal, Trash2, Pencil, Check, Calendar, UserPlus, Archive, MessageSquareText } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import type { TaskPriority } from '@/models/Task';
 
 export interface Member {
@@ -20,6 +21,7 @@ export interface TaskData {
     description?: string;
     status: string;
     priority: TaskPriority;
+    categoryId?: string | null;
     order: number;
     assignees: Member[];
     subtasks?: {
@@ -45,6 +47,8 @@ interface TaskCardProps {
     onDelete?: (taskId: string) => void;
     members?: Member[];
     onClick?: (task: TaskData) => void;
+    isOverlay?: boolean;
+    categories?: { id: string; name: string; color: string }[];
 }
 
 const priorityConfig = {
@@ -71,10 +75,16 @@ const priorityLabels = {
     LOW: 'Low',
 };
 
-export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onUpdate, onDelete, members = [], onClick }: TaskCardProps) {
+export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onUpdate, onDelete, members = [], onClick, isOverlay, categories = [] }: TaskCardProps) {
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(task.title);
+    const { data: session } = useSession();
+
+    // Heuristic for unread comments: if there are comments and the last one is not by the current user
+    const hasUnreadComments = task.comments && task.comments.length > 0 &&
+        (!session?.user?.id || task.comments[task.comments.length - 1].userId !== session.user.id);
 
     const handleToggleAssignee = (memberId: string) => {
         const isAssigned = task.assignees.some(a => a.id === memberId);
@@ -141,11 +151,16 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
 
     return (
         <motion.div
+            layout={!isDragging}
             ref={setNodeRef}
             style={style}
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            initial={isOverlay ? false : { opacity: 0, scale: 0.9, y: 20 }}
+            animate={isOverlay ? false : { opacity: 1, scale: 1, y: 0 }}
+            exit={{
+                opacity: 0,
+                scale: 0.9,
+                transition: { duration: 0.2 }
+            }}
             onClick={(e) => {
                 // Only trigger if not editing and not menu open
                 if (!isEditing && !isMenuOpen) {
@@ -164,9 +179,15 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                         : 'shadow-sm hover:shadow-md transition-all duration-200'
                 }
                 ${isDone ? 'opacity-60 grayscale hover:opacity-80 hover:grayscale-0' : ''}
-                p-4 flex flex-col gap-2
+                p-4 flex flex-col gap-2 origin-center
             `}
         >
+            {/* Unread Comments Icon */}
+            {hasUnreadComments && !isEditing && (
+                <div className="absolute -top-1.5 -right-1.5 z-30 bg-red-500 text-white p-1 rounded-bl-lg rounded-tr-lg shadow-md flex items-center justify-center">
+                    <MessageSquareText className="w-3.5 h-3.5" />
+                </div>
+            )}
             {/* Action Menu Button */}
             {!isReadOnly && !isEditing && (
                 <div className="absolute top-2 right-2 z-20 task-menu-container">
@@ -207,7 +228,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
 
                                     {/* Priority Section */}
                                     <div className="px-3 py-2">
-                                        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-2">Priority</p>
+                                        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-2">Priority</p>
                                         <div className="flex gap-2">
                                             {(['LOW', 'MEDIUM', 'HIGH'] as const).map((p) => (
                                                 <button
@@ -232,7 +253,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
 
                                     {/* Assignees Section */}
                                     <div className="px-3 py-2">
-                                        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-2 flex items-center gap-2">
+                                        <p className="text-[10px] uppercase tracking-wider text-gray-400 font-semibold mb-2 flex items-center gap-2">
                                             <UserPlus className="w-3 h-3" />
                                             Assignees
                                         </p>
@@ -249,7 +270,12 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center text-[9px] font-bold overflow-hidden">
                                                                 {member.image ? (
-                                                                    <img src={member.image} alt={member.name} className="w-full h-full object-cover" />
+                                                                    <img
+                                                                        src={member.image}
+                                                                        alt={member.name}
+                                                                        className="w-full h-full object-cover"
+                                                                        referrerPolicy="no-referrer"
+                                                                    />
                                                                 ) : (
                                                                     member.name.charAt(0)
                                                                 )}
@@ -296,6 +322,27 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
 
             {/* Content Container */}
             <div className="flex flex-col gap-2">
+                {/* Category Badge - Moved to Top */}
+                {!isEditing && task.categoryId && categories && (
+                    (() => {
+                        const cat = categories.find(c => c.id === task.categoryId);
+                        if (!cat) return null;
+                        return (
+                            <div className="flex mb-1">
+                                <div
+                                    style={{
+                                        color: cat.color,
+                                        borderColor: cat.color
+                                    }}
+                                    className="text-[10px] font-semibold px-2 py-0.5 rounded-full border bg-white"
+                                >
+                                    {cat.name}
+                                </div>
+                            </div>
+                        );
+                    })()
+                )}
+
                 {/* Title */}
                 {isEditing ? (
                     <div className="mb-3" onClick={(e) => e.stopPropagation()}>
@@ -325,7 +372,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                     </div>
                 ) : (
                     <h3
-                        className="font-bold text-[15px] text-gray-900 break-words leading-tight tracking-tight pr-6"
+                        className="font-semibold text-[15px] text-gray-900 break-words leading-tight tracking-tight pr-6"
                         style={{ wordBreak: 'break-word' }}
                     >
                         {task.title}
@@ -342,7 +389,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 {/* Subtasks Badge */}
                 {subtaskCount > 0 && !isEditing && (
                     <div className="flex">
-                        <span className="bg-gray-100 text-gray-600 text-[10px] font-semibold px-2 py-1 rounded-md">
+                        <span className="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-md">
                             +{subtaskCount} subtasks
                         </span>
                     </div>
@@ -360,11 +407,16 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                         task.assignees.slice(0, 2).map((assignee) => (
                             <div
                                 key={assignee.id}
-                                className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-100 text-[10px] font-semibold text-gray-600"
+                                className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gray-100 text-[10px] font-bold text-gray-600"
                             >
                                 <div className="w-3.5 h-3.5 rounded-full bg-gray-200 overflow-hidden flex-shrink-0">
                                     {assignee.image ? (
-                                        <img src={assignee.image} alt="" className="w-full h-full object-cover" />
+                                        <img
+                                            src={assignee.image}
+                                            alt=""
+                                            className="w-full h-full object-cover"
+                                            referrerPolicy="no-referrer"
+                                        />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-indigo-100 text-indigo-700 font-bold text-[8px]">
                                             {assignee.name.charAt(0)}
@@ -385,9 +437,11 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 </div>
 
                 {/* Priority Badge */}
-                <div className={`text-[10px] font-bold px-2.5 py-1 rounded-md ${config.badge}`}>
+                <div className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${config.badge}`}>
                     {priorityLabels[task.priority]}
                 </div>
+
+
             </div>
         </motion.div>
     );

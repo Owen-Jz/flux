@@ -81,6 +81,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 const dbUser = await User.findOne({ email: user.email });
                 if (dbUser) {
                     token.id = dbUser._id.toString();
+                    // Ensure image is persisted from DB if available
+                    if (dbUser.image) {
+                        token.picture = dbUser.image;
+                    }
                 }
             }
             return token;
@@ -88,6 +92,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         async session({ session, token }) {
             if (token && session.user) {
                 session.user.id = token.id as string;
+                if (token.picture) {
+                    session.user.image = token.picture;
+                }
             }
             return session;
         },

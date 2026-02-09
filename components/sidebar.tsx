@@ -183,6 +183,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                             src={user.image}
                             alt={user.name || ''}
                             className="w-8 h-8 rounded-full"
+                            referrerPolicy="no-referrer"
                         />
                     ) : (
                         <div className="w-8 h-8 rounded-full bg-[var(--border-subtle)] flex items-center justify-center text-sm font-medium">

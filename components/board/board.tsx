@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useOptimistic, useTransition } from 'react';
+import { useState, useOptimistic, useTransition, useEffect } from 'react';
 import {
     DndContext,
     DragEndEvent,
@@ -18,8 +18,9 @@ import { TaskCard, TaskData, Member } from './task-card';
 import { TaskDetailModal } from './task-detail-modal';
 import { updateTaskPosition, createTask, updateTask, deleteTask } from '@/actions/task';
 import type { TaskStatus, TaskPriority } from '@/models/Task';
-import { Plus, X, Loader2, Search, Filter, User } from 'lucide-react';
+import { Plus, X, Loader2, Search, Filter, User, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import EditBoardModal from '../EditBoardModal';
 
 interface BoardProps {
     initialTasks: TaskData[];
@@ -30,6 +31,7 @@ interface BoardProps {
     boardName?: string;
     boardDescription?: string;
     boardColor?: string;
+    categories?: { id: string; name: string; color: string }[];
     currentUserId?: string;
 }
 
@@ -51,13 +53,26 @@ export function Board({
     boardName = 'Board',
     boardDescription = '',
     boardColor = '#3b82f6',
+    categories = [],
     currentUserId,
 }: BoardProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterMyTasks, setFilterMyTasks] = useState(false);
     const [filterPriority, setFilterPriority] = useState<TaskPriority | 'ALL'>('ALL');
     const [filterMemberId, setFilterMemberId] = useState<string | 'ALL'>('ALL');
+    const [filterCategoryId, setFilterCategoryId] = useState<string | 'ALL'>('ALL');
+    const [isEditingBoard, setIsEditingBoard] = useState(false);
     const [tasks, setTasks] = useState<TaskData[]>(initialTasks);
+    const [localCategories, setLocalCategories] = useState(categories);
+
+    // Sync state with props when initialTasks or categories changes
+    useEffect(() => {
+        setTasks(initialTasks);
+    }, [initialTasks]);
+
+    useEffect(() => {
+        setLocalCategories(categories);
+    }, [categories]);
     const [activeTask, setActiveTask] = useState<TaskData | null>(null);
     const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
     const [isAddingTask, setIsAddingTask] = useState<ColumnId | null>(null);
@@ -113,7 +128,9 @@ export function Board({
 
         const matchesMember = filterMemberId === 'ALL' || task.assignees.some(a => a.id === filterMemberId);
 
-        return matchesSearch && matchesMyTasks && matchesPriority && matchesMember;
+        const matchesCategory = filterCategoryId === 'ALL' || task.categoryId === filterCategoryId;
+
+        return matchesSearch && matchesMyTasks && matchesPriority && matchesMember && matchesCategory;
     });
 
     const getTasksByColumn = (columnId: string) => {
@@ -304,6 +321,8 @@ export function Board({
                         title: s.title,
                         completed: s.completed
                     })),
+                    categoryId: data.categoryId,
+                    status: data.status as TaskStatus,
                 });
             } catch (error) {
                 console.error('Failed to update task:', error);
@@ -336,26 +355,37 @@ export function Board({
     return (
         <div className="h-full p-6 overflow-x-auto">
             {/* Board Header */}
-            <div id="board-header" className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                    <div
-                        className="w-4 h-4 rounded-full"
-                        style={{ backgroundColor: boardColor }}
-                    />
-                    <h1 className="text-3xl font-extrabold text-[var(--foreground)] tracking-tight">
-                        {boardName}
-                    </h1>
+            <div id="board-header" className="mb-8 flex items-start justify-between">
+                <div>
+                    <div className="flex items-center gap-3 mb-2">
+                        <div
+                            className="w-4 h-4 rounded-full"
+                            style={{ backgroundColor: boardColor }}
+                        />
+                        <h1 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">
+                            {boardName}
+                        </h1>
+                    </div>
+                    {boardDescription && (
+                        <p className="text-[var(--text-secondary)] text-lg max-w-2xl font-normal ml-7">
+                            {boardDescription}
+                        </p>
+                    )}
                 </div>
-                {boardDescription && (
-                    <p className="text-[var(--text-secondary)] text-lg max-w-2xl font-normal ml-7">
-                        {boardDescription}
-                    </p>
+                {!isReadOnly && (
+                    <button
+                        onClick={() => setIsEditingBoard(true)}
+                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
+                        title="Board Settings"
+                    >
+                        <Settings className="w-5 h-5" />
+                    </button>
                 )}
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
                 {/* Filters */}
-                <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
                     <div className="relative flex-1 sm:flex-initial">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                         <input
@@ -403,6 +433,21 @@ export function Board({
                             </option>
                         ))}
                     </select>
+
+                    {localCategories.length > 0 && (
+                        <select
+                            value={filterCategoryId}
+                            onChange={(e) => setFilterCategoryId(e.target.value)}
+                            className="px-3 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] bg-white text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                        >
+                            <option value="ALL">All Categories</option>
+                            {localCategories.map(cat => (
+                                <option key={cat.id} value={cat.id}>
+                                    {cat.name}
+                                </option>
+                            ))}
+                        </select>
+                    )}
                 </div>
 
                 {/* Loader */}
@@ -437,6 +482,7 @@ export function Board({
                                 onDeleteTask={handleDeleteTask}
                                 members={members}
                                 onTaskClick={(task) => setSelectedTask(task)}
+                                categories={categories}
                             />
 
                             {/* Add Task Form */}
@@ -503,7 +549,7 @@ export function Board({
                 <DragOverlay>
                     {activeTask && (
                         <div className="rotate-3">
-                            <TaskCard task={activeTask} isReadOnly />
+                            <TaskCard task={activeTask} isReadOnly isOverlay categories={localCategories} />
                         </div>
                     )}
                 </DragOverlay>
@@ -518,9 +564,26 @@ export function Board({
                         onUpdate={handleUpdateTask}
                         members={members}
                         isReadOnly={isReadOnly}
+                        categories={localCategories}
                     />
                 )}
             </AnimatePresence>
+
+            {isEditingBoard && (
+                <EditBoardModal
+                    workspaceSlug={workspaceSlug}
+                    board={{
+                        id: 'board-id',
+                        name: boardName,
+                        slug: boardSlug || '',
+                        description: boardDescription,
+                        color: boardColor,
+                        categories: localCategories,
+                    }}
+                    onClose={() => setIsEditingBoard(false)}
+                    onCategoriesChange={(updatedCategories) => setLocalCategories(updatedCategories)}
+                />
+            )}
         </div>
     );
 }

@@ -6,6 +6,7 @@ import { getUserRole } from '@/actions/access-control';
 import { Sidebar } from '@/components/sidebar';
 import { MobileNav } from '@/components/mobile-nav';
 import { TutorialProvider } from '@/components/tutorial/tutorial-provider';
+import { WorkspaceHeader } from '@/components/workspace-header';
 import type { MemberRole } from '@/models/Workspace';
 import Link from 'next/link';
 
@@ -84,6 +85,13 @@ export default async function WorkspaceLayout({
 
             {/* Main Content */}
             <main className="flex-1 overflow-hidden flex flex-col relative">
+                {/* Header with notifications and comments - only for authenticated users */}
+                {session?.user && (
+                    <div className="absolute top-4 right-6 z-30">
+                        <WorkspaceHeader />
+                    </div>
+                )}
+
                 {/* Public viewer banner */}
                 {isPublicViewer && (
                     <div className="bg-gradient-to-r from-[var(--brand-primary)] to-indigo-600 text-white shadow-md z-50">
