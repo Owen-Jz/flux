@@ -12,6 +12,7 @@ import {
     Check,
     LogOut,
     Archive,
+    AlertCircle,
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import BoardList from './BoardList';
@@ -50,6 +51,12 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
     const isAdmin = userRole === 'ADMIN';
 
     const navItems = [
+        {
+            href: currentWorkspace ? `/${currentWorkspace.slug}/issues` : '/dashboard',
+            label: 'Issues',
+            icon: AlertCircle,
+            show: true,
+        },
         {
             href: currentWorkspace ? `/${currentWorkspace.slug}/team` : '/dashboard',
             label: 'Team',
