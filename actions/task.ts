@@ -11,6 +11,8 @@ import { revalidatePath } from 'next/cache';
 import { logActivity } from './activity';
 import { sendEmail } from '@/lib/email/resend';
 import { TaskAssignedEmail } from '@/components/emails/task-assigned';
+import { TaskMovedEmail } from '@/components/emails/task-moved';
+import { NewCommentEmail } from '@/components/emails/new-comment';
 import { render } from '@react-email/components';
 
 interface CreateTaskData {
@@ -263,6 +265,34 @@ export async function updateTaskPosition(
                 newStatus,
             },
         });
+
+        // EMAIL NOTIFICATION: Task Moved
+        // Notify all assignees (except the mover)
+        const assigneeIds = task.assignees.map((id: Types.ObjectId) => id.toString());
+        const notifyIds = assigneeIds.filter((id: string) => id !== session.user.id);
+
+        if (notifyIds.length > 0) {
+            const users = await User.find({ _id: { $in: notifyIds } });
+            await Promise.all(users.map(async (user) => {
+                if (user.email) {
+                    const html = await render(
+                        TaskMovedEmail({
+                            taskTitle: task.title,
+                            moverName: session.user.name || 'A teammate',
+                            fromStatus: previousStatus,
+                            toStatus: newStatus,
+                            workspaceName: workspace.name,
+                            taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/board/${board.slug}`,
+                        })
+                    );
+                    await sendEmail({
+                        to: user.email,
+                        subject: `Task Update: ${task.title} moved to ${newStatus}`,
+                        html,
+                    });
+                }
+            }));
+        }
     }
 
     revalidatePath(`/${workspace.slug}`);
@@ -335,7 +365,7 @@ export async function updateTask(
 
     await task.save();
 
-    // EMAIL NOTIFICATION LOGIC
+    // EMAIL NOTIFICATION: New Assignment
     // Check for NEW assignees
     if (data.assignees) {
         const newAssignees = data.assignees.filter(id => !previousAssignees.includes(id));
@@ -344,6 +374,10 @@ export async function updateTask(
             // Find users
             const users = await User.find({ _id: { $in: newAssignees } });
             
+            // Get board for URL
+            const board = await Board.findById(task.boardId);
+            const boardSlug = board?.slug || 'main';
+
             // Send emails in parallel
             await Promise.all(users.map(async (user) => {
                 if (user.email) {
@@ -352,7 +386,7 @@ export async function updateTask(
                             assigneeName: user.name,
                             taskTitle: task.title,
                             workspaceName: workspace.name,
-                            taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}`,
+                            taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/board/${boardSlug}`,
                             assignerName: session.user.name || 'A teammate',
                         })
                     );
@@ -385,6 +419,33 @@ export async function updateTask(
                     newStatus: data.status,
                 },
             });
+            
+            // EMAIL: Status Change via Edit Modal (duplicate logic from updateTaskPosition, could be refactored)
+            const assigneeIds = task.assignees.map((id: Types.ObjectId) => id.toString());
+            const notifyIds = assigneeIds.filter((id: string) => id !== session.user.id);
+
+            if (notifyIds.length > 0) {
+                const users = await User.find({ _id: { $in: notifyIds } });
+                await Promise.all(users.map(async (user) => {
+                    if (user.email) {
+                        const html = await render(
+                            TaskMovedEmail({
+                                taskTitle: task.title,
+                                moverName: session.user.name || 'A teammate',
+                                fromStatus: previousStatus,
+                                toStatus: data.status!,
+                                workspaceName: workspace.name,
+                                taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/board/${board.slug}`,
+                            })
+                        );
+                        await sendEmail({
+                            to: user.email,
+                            subject: `Task Update: ${task.title} moved to ${data.status}`,
+                            html,
+                        });
+                    }
+                }));
+            }
         }
 
         // Log general update (title changes, etc)
@@ -514,6 +575,34 @@ export async function addComment(taskId: string, content: string) {
                 commentContent: content.length > 100 ? content.substring(0, 100) + '...' : content,
             },
         });
+
+        // EMAIL NOTIFICATION: New Comment
+        // Notify all assignees (except the commenter)
+        const assigneeIds = task.assignees.map((id: Types.ObjectId) => id.toString());
+        const notifyIds = assigneeIds.filter((id: string) => id !== session.user.id);
+        
+        // Also notify creator? (For now just assignees)
+        
+        if (notifyIds.length > 0) {
+            const users = await User.find({ _id: { $in: notifyIds } });
+            await Promise.all(users.map(async (user) => {
+                if (user.email) {
+                    const html = await render(
+                        NewCommentEmail({
+                            taskTitle: task.title,
+                            commenterName: session.user.name || 'A teammate',
+                            commentContent: content,
+                            taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/board/${board.slug}`,
+                        })
+                    );
+                    await sendEmail({
+                        to: user.email,
+                        subject: `New Comment on: ${task.title}`,
+                        html,
+                    });
+                }
+            }));
+        }
     }
 
     revalidatePath(`/${workspace.slug}`);
