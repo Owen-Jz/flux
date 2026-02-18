@@ -3,11 +3,15 @@
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Task, TaskStatus, TaskPriority } from '@/models/Task';
+import { User } from '@/models/User';
 import { Types } from 'mongoose';
 import { Workspace } from '@/models/Workspace';
 import { Board } from '@/models/Board';
 import { revalidatePath } from 'next/cache';
 import { logActivity } from './activity';
+import { sendEmail } from '@/lib/email/resend';
+import { TaskAssignedEmail } from '@/components/emails/task-assigned';
+import { render } from '@react-email/components';
 
 interface CreateTaskData {
     title: string;
@@ -62,7 +66,7 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
         status: data.status || 'BACKLOG',
         categoryId: data.categoryId ? new Types.ObjectId(data.categoryId) : undefined,
         order: newOrder,
-        assignees: [session.user.id],
+        assignees: [session.user.id], // Default to creator
         subtasks: [],
     });
 
@@ -309,6 +313,7 @@ export async function updateTask(
     // Track if significant changes happened
     const previousStatus = task.status;
     const previousTitle = task.title;
+    const previousAssignees = task.assignees.map(id => id.toString());
 
     if (data.title !== undefined) task.title = data.title;
     if (data.description !== undefined) task.description = data.description;
@@ -329,6 +334,38 @@ export async function updateTask(
     }
 
     await task.save();
+
+    // EMAIL NOTIFICATION LOGIC
+    // Check for NEW assignees
+    if (data.assignees) {
+        const newAssignees = data.assignees.filter(id => !previousAssignees.includes(id));
+        
+        if (newAssignees.length > 0) {
+            // Find users
+            const users = await User.find({ _id: { $in: newAssignees } });
+            
+            // Send emails in parallel
+            await Promise.all(users.map(async (user) => {
+                if (user.email) {
+                    const html = await render(
+                        TaskAssignedEmail({
+                            assigneeName: user.name,
+                            taskTitle: task.title,
+                            workspaceName: workspace.name,
+                            taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}`,
+                            assignerName: session.user.name || 'A teammate',
+                        })
+                    );
+                    
+                    await sendEmail({
+                        to: user.email,
+                        subject: `New Assignment: ${task.title}`,
+                        html,
+                    });
+                }
+            }));
+        }
+    }
 
     // Log activity for significant updates
     const board = await Board.findById(task.boardId);

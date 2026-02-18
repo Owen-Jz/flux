@@ -4,8 +4,12 @@ import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Issue, IssueStatus, IssuePriority, IssueType } from '@/models/Issue';
 import { Workspace } from '@/models/Workspace';
+import { User } from '@/models/User';
 import { revalidatePath } from 'next/cache';
 import { logActivity } from './activity';
+import { sendEmail } from '@/lib/email/resend';
+import { IssueCreatedEmail } from '@/components/emails/issue-created';
+import { render } from '@react-email/components';
 
 interface CreateIssueData {
     title: string;
@@ -43,6 +47,36 @@ export async function createIssue(workspaceSlug: string, data: CreateIssueData) 
         title: 'Issue Reported',
         description: `Reported issue: ${data.title}`,
     });
+
+    // EMAIL NOTIFICATION LOGIC
+    // Notify all workspace members about the new issue
+    // In a large workspace, we might want to limit this to admins or just the assignee
+    // But for now, "everyone gets an email" per requirement.
+    
+    // Get all member user IDs
+    const memberIds = workspace.members.map((m: any) => m.userId);
+    const users = await User.find({ _id: { $in: memberIds } });
+
+    // Send emails in parallel
+    await Promise.all(users.map(async (user) => {
+        if (user.email && user._id.toString() !== session.user.id) { // Don't email the reporter
+            const html = await render(
+                IssueCreatedEmail({
+                    workspaceName: workspace.name,
+                    issueTitle: issue.title,
+                    issueType: issue.type,
+                    reporterName: session.user.name || 'A teammate',
+                    issueUrl: `${process.env.NEXTAUTH_URL}/${workspaceSlug}/issues`,
+                })
+            );
+            
+            await sendEmail({
+                to: user.email,
+                subject: `New Issue in ${workspace.name}: ${issue.title}`,
+                html,
+            });
+        }
+    }));
 
     revalidatePath(`/${workspaceSlug}/issues`);
     return { id: issue._id.toString() };
