@@ -76,7 +76,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     };
 
     return (
-        <div className="p-8 max-w-3xl mx-auto">
+        <div className="p-8 pt-16 max-w-3xl mx-auto">
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-[var(--foreground)]">Settings</h1>
                 <p className="text-[var(--text-secondary)]">Configure your workspace preferences</p>

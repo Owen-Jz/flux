@@ -87,23 +87,31 @@ export function WorkspaceHeader() {
 
     const unreadCount = activities.filter(a => !a.read).length;
 
-    // Fetch activities when dropdown opens
+    // Fetch activities on mount and when workspaceSlug changes
     useEffect(() => {
-        if (showNotifications && workspaceSlug) {
+        if (workspaceSlug) {
             setIsLoadingActivities(true);
             getActivities(workspaceSlug, 20)
                 .then(setActivities)
                 .finally(() => setIsLoadingActivities(false));
-        }
-    }, [showNotifications, workspaceSlug]);
 
-    // Fetch comments when dropdown opens
-    useEffect(() => {
-        if (showComments && workspaceSlug) {
-            setIsLoadingComments(true);
             getCommentActivities(workspaceSlug, 20)
                 .then(setComments)
                 .finally(() => setIsLoadingComments(false));
+        }
+    }, [workspaceSlug]);
+
+    // Refetch activities when dropdown opens to get latest
+    useEffect(() => {
+        if (showNotifications && workspaceSlug) {
+            getActivities(workspaceSlug, 20).then(setActivities);
+        }
+    }, [showNotifications, workspaceSlug]);
+
+    // Refetch comments when dropdown opens to get latest
+    useEffect(() => {
+        if (showComments && workspaceSlug) {
+            getCommentActivities(workspaceSlug, 20).then(setComments);
         }
     }, [showComments, workspaceSlug]);
 

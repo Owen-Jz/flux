@@ -355,7 +355,7 @@ export function Board({
     return (
         <div className="h-full p-6 overflow-x-auto">
             {/* Board Header */}
-            <div id="board-header" className="mb-8 flex items-start justify-between">
+            <div id="board-header" className="mb-8 flex items-start justify-between pr-40">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
                         <div

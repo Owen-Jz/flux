@@ -164,7 +164,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
     return (
         <div className="h-full flex flex-col bg-[var(--background)]">
             {/* Header */}
-            <header className="px-6 py-4 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface)]">
+            <header className="px-6 py-4 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface)] pr-32">
                 <div>
                     <h1 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
                         <AlertCircle className="w-5 h-5 text-[var(--brand-primary)]" />
@@ -199,8 +199,8 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                             key={status}
                             onClick={() => setFilterStatus(status)}
                             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filterStatus === status
-                                    ? 'bg-[var(--surface)] text-[var(--brand-primary)] ring-1 ring-[var(--border-subtle)]'
-                                    : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
+                                ? 'bg-[var(--surface)] text-[var(--brand-primary)] ring-1 ring-[var(--border-subtle)]'
+                                : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                                 }`}
                         >
                             {status === 'ALL' ? 'All Issues' : status.replace('_', ' ')}
