@@ -6,15 +6,6 @@ import { User } from '@/models/User';
 import { authConfig } from '@/lib/auth.config';
 import bcrypt from 'bcryptjs';
 
-console.log('Auth Initialization:', {
-    hasGoogleId: !!process.env.GOOGLE_CLIENT_ID,
-    hasGoogleSecret: !!process.env.GOOGLE_CLIENT_SECRET,
-    hasAuthSecret: !!process.env.AUTH_SECRET,
-    hasAuthUrl: !!process.env.AUTH_URL,
-    env: process.env.NODE_ENV,
-    authUrl: process.env.AUTH_URL,
-});
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig,
     providers: [
@@ -58,18 +49,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             },
         }),
     ],
-    debug: true,
-    logger: {
-        error: (error) => {
-            console.error('AUTH_ERROR:', error);
-        },
-        warn: (code) => {
-            console.warn('AUTH_WARN:', code);
-        },
-        debug: (code, metadata) => {
-            console.log('AUTH_DEBUG:', code, metadata);
-        },
-    },
     callbacks: {
         async signIn({ user, account }) {
             try {
@@ -85,14 +64,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 emailVerified: new Date(),
                             });
                         } catch (creationError) {
-                            console.error('Error creating user:', creationError);
+                            console.error('[Auth] Error creating user from Google:', creationError);
                             return false;
                         }
                     }
                 }
                 return true;
             } catch (error) {
-                console.error('SignIn error:', error);
+                console.error('[Auth] SignIn callback error:', error);
                 return false;
             }
         },
