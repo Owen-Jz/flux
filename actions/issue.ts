@@ -95,16 +95,26 @@ export async function getIssues(workspaceSlug: string) {
         .sort({ createdAt: -1 })
         .lean();
 
+    const serializeUser = (user: any) => {
+        if (!user || typeof user !== 'object' || !('_id' in user)) return null;
+        return {
+            name: user.name as string,
+            image: (user.image as string | undefined) ?? null,
+        };
+    };
+
     return issues.map(issue => ({
-        ...issue,
         _id: issue._id.toString(),
         workspaceId: issue.workspaceId.toString(),
-        reporterId: issue.reporterId?._id?.toString() || issue.reporterId?.toString(),
-        // @ts-ignore
-        reporter: issue.reporterId,
-        assigneeId: issue.assigneeId?._id?.toString() || issue.assigneeId?.toString(),
-        // @ts-ignore
-        assignee: issue.assigneeId,
+        title: issue.title,
+        description: issue.description ?? null,
+        status: issue.status,
+        priority: issue.priority,
+        type: issue.type,
+        reporterId: (issue.reporterId as any)?._id?.toString() ?? (issue.reporterId as any)?.toString() ?? null,
+        reporter: serializeUser(issue.reporterId),
+        assigneeId: (issue.assigneeId as any)?._id?.toString() ?? (issue.assigneeId as any)?.toString() ?? null,
+        assignee: serializeUser(issue.assigneeId),
         createdAt: issue.createdAt.toISOString(),
         updatedAt: issue.updatedAt.toISOString(),
     }));

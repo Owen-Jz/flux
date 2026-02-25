@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Settings as SettingsIcon, Globe, Shield, Trash2, Loader2 } from 'lucide-react';
+import { Settings as SettingsIcon, Globe, Shield, Trash2, Loader2, Palette, Check } from 'lucide-react';
 import { updateWorkspaceSettings } from '@/actions/workspace';
 import { deleteWorkspace } from '@/actions/access-control';
 
@@ -11,12 +11,25 @@ interface SettingsClientProps {
         name: string;
         slug: string;
         publicAccess: boolean;
+        accentColor?: string;
     };
 }
+
+const BRAND_COLORS = [
+    { label: 'Default', value: '#6366f1' }, // Indigo
+    { label: 'Rose', value: '#f43f5e' },
+    { label: 'Amber', value: '#f59e0b' },
+    { label: 'Emerald', value: '#10b981' },
+    { label: 'Sky', value: '#0ea5e9' },
+    { label: 'Violet', value: '#8b5cf6' },
+    { label: 'Fuchsia', value: '#d946ef' },
+    { label: 'Slate', value: '#475569' },
+];
 
 export function SettingsClient({ workspace }: SettingsClientProps) {
     const router = useRouter();
     const [publicAccess, setPublicAccess] = useState(workspace.publicAccess);
+    const [accentColor, setAccentColor] = useState(workspace.accentColor || '#6366f1');
     const [isPending, startTransition] = useTransition();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
@@ -31,6 +44,19 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
             } catch (error) {
                 console.error('Failed to update settings:', error);
                 setPublicAccess(!newValue); // Revert on error
+            }
+        });
+    };
+
+    const handleUpdateAccentColor = async (color: string) => {
+        setAccentColor(color);
+        startTransition(async () => {
+            try {
+                await updateWorkspaceSettings(workspace.slug, { accentColor: color });
+                router.refresh();
+            } catch (error) {
+                console.error('Failed to update accent color:', error);
+                setAccentColor(workspace.accentColor || '#6366f1');
             }
         });
     };
@@ -102,6 +128,45 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                                     }`}
                             />
                         </button>
+                    </div>
+                </div>
+
+                {/* Brand Appearance */}
+                <div className="card p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Palette className="w-4 h-4 text-[var(--brand-primary)]" />
+                        <h2 className="font-semibold">Appearance</h2>
+                    </div>
+                    <div className="space-y-4">
+                        <div>
+                            <p className="text-sm font-medium">Brand Color</p>
+                            <p className="text-xs text-[var(--text-secondary)] mt-1 mb-4">
+                                Choose a primary color for this workspace's dashboard and interface.
+                            </p>
+                            <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                                {BRAND_COLORS.map((color) => (
+                                    <button
+                                        key={color.value}
+                                        onClick={() => handleUpdateAccentColor(color.value)}
+                                        disabled={isPending}
+                                        className={`group relative w-10 h-10 rounded-xl border-2 transition-all flex items-center justify-center ${accentColor === color.value
+                                            ? 'border-[var(--brand-primary)] scale-110 shadow-lg'
+                                            : 'border-transparent hover:scale-105 hover:border-gray-200'}`}
+                                        title={color.label}
+                                    >
+                                        <div
+                                            className="w-7 h-7 rounded-lg shadow-inner"
+                                            style={{ backgroundColor: color.value }}
+                                        />
+                                        {accentColor === color.value && (
+                                            <div className="absolute -top-1 -right-1 bg-[var(--brand-primary)] text-white p-0.5 rounded-full ring-2 ring-white">
+                                                <Check className="w-2 h-2" />
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </div>
 

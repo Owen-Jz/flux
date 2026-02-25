@@ -82,6 +82,7 @@ export async function getWorkspaceBySlug(slug: string) {
         slug: workspace.slug,
         ownerId: workspace.ownerId.toString(),
         publicAccess: workspace.settings?.publicAccess || false,
+        accentColor: workspace.settings?.accentColor,
         members: workspace.members.map((m: {
             userId: { _id: { toString: () => string }; name: string; email: string; image?: string } | { toString: () => string };
             role: string;
@@ -100,7 +101,7 @@ export async function getWorkspaceBySlug(slug: string) {
 
 export async function updateWorkspaceSettings(
     slug: string,
-    settings: { publicAccess?: boolean }
+    settings: { publicAccess?: boolean; accentColor?: string }
 ) {
     const session = await auth();
     if (!session?.user?.id) {
@@ -124,6 +125,9 @@ export async function updateWorkspaceSettings(
 
     if (settings.publicAccess !== undefined) {
         workspace.settings.publicAccess = settings.publicAccess;
+    }
+    if (settings.accentColor !== undefined) {
+        workspace.settings.accentColor = settings.accentColor;
     }
 
     await workspace.save();

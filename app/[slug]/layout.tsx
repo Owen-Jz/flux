@@ -60,6 +60,16 @@ export default async function WorkspaceLayout({
 
     return (
         <div className="flex flex-col md:flex-row h-screen bg-[var(--background)]">
+            {workspace.accentColor && (
+                <style dangerouslySetInnerHTML={{
+                    __html: `
+                        :root {
+                            --brand-primary: ${workspace.accentColor};
+                            --brand-primary-rgb: ${hexToRgb(workspace.accentColor)};
+                        }
+                    `
+                }} />
+            )}
             <TutorialProvider />
             {/* Only show sidebar for authenticated users */}
             {session?.user && (
@@ -122,4 +132,11 @@ export default async function WorkspaceLayout({
             </main>
         </div>
     );
+}
+
+function hexToRgb(hex: string) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ?
+        `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` :
+        '99, 102, 241';
 }

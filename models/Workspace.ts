@@ -16,6 +16,7 @@ export interface IWorkspace extends Document {
     inviteCode: string;
     settings: {
         publicAccess: boolean;
+        accentColor?: string;
     };
     members: IMember[];
     createdAt: Date;
@@ -39,10 +40,11 @@ const WorkspaceSchema = new Schema<IWorkspace>(
         inviteCode: { type: String, unique: true },
         settings: {
             publicAccess: { type: Boolean, default: false },
+            accentColor: { type: String },
         },
         members: [
             {
-                userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+                userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
                 role: { type: String, enum: ['ADMIN', 'EDITOR', 'VIEWER'], default: 'VIEWER' },
                 joinedAt: { type: Date, default: Date.now },
             },
