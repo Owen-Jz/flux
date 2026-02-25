@@ -5,6 +5,8 @@ import { connectDB } from '@/lib/db';
 import { Issue, IssueStatus, IssuePriority, IssueType } from '@/models/Issue';
 import { Workspace } from '@/models/Workspace';
 import { User } from '@/models/User';
+import { Task } from '@/models/Task';
+import { Board } from '@/models/Board';
 import { revalidatePath } from 'next/cache';
 import { logActivity } from './activity';
 import { sendEmail } from '@/lib/email/resend';
@@ -52,7 +54,7 @@ export async function createIssue(workspaceSlug: string, data: CreateIssueData) 
     // Notify all workspace members about the new issue
     // In a large workspace, we might want to limit this to admins or just the assignee
     // But for now, "everyone gets an email" per requirement.
-    
+
     // Get all member user IDs
     const memberIds = workspace.members.map((m: any) => m.userId);
     const users = await User.find({ _id: { $in: memberIds } });
@@ -69,7 +71,7 @@ export async function createIssue(workspaceSlug: string, data: CreateIssueData) 
                     issueUrl: `${process.env.NEXTAUTH_URL}/${workspaceSlug}/issues`,
                 })
             );
-            
+
             await sendEmail({
                 to: user.email,
                 subject: `New Issue in ${workspace.name}: ${issue.title}`,
@@ -113,8 +115,53 @@ export async function updateIssueStatus(workspaceSlug: string, issueId: string, 
     if (!session?.user?.id) throw new Error('Unauthorized');
 
     await connectDB();
-    
+
     await Issue.findByIdAndUpdate(issueId, { status });
     revalidatePath(`/${workspaceSlug}/issues`);
+    return { success: true };
+}
+
+export async function moveIssueToBoard(workspaceSlug: string, issueId: string, boardId: string) {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error('Unauthorized');
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) throw new Error('Workspace not found');
+
+    const issue = await Issue.findOne({ _id: issueId, workspaceId: workspace._id });
+    if (!issue) throw new Error('Issue not found');
+
+    const board = await Board.findOne({ _id: boardId, workspaceId: workspace._id });
+    if (!board) throw new Error('Board not found');
+
+    // Get the highest order in BACKLOG column for this board
+    const highestOrder = await Task.findOne({
+        boardId: board._id,
+        status: 'BACKLOG',
+    }).sort({ order: -1 }).select('order');
+
+    const newOrder = (highestOrder?.order ?? 0) + 1000;
+
+    // Create the task
+    await Task.create({
+        workspaceId: workspace._id,
+        boardId: board._id,
+        title: issue.title,
+        description: issue.description,
+        priority: issue.priority === 'CRITICAL' ? 'HIGH' : issue.priority,
+        status: 'BACKLOG',
+        order: newOrder,
+        assignees: issue.assigneeId ? [issue.assigneeId] : [],
+        subtasks: [],
+    });
+
+    // Delete the issue
+    await Issue.findByIdAndDelete(issueId);
+
+    revalidatePath(`/${workspaceSlug}/issues`);
+    revalidatePath(`/${workspaceSlug}/board/${board.slug}`);
+
     return { success: true };
 }

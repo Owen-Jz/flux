@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getIssues } from '@/actions/issue';
+import { getBoards } from '@/actions/board';
 import { IssuesClient } from './issues-client';
 
 interface IssuesPageProps {
@@ -18,13 +19,15 @@ export default async function IssuesPage({ params }: IssuesPageProps) {
     }
 
     const issues = await getIssues(slug);
+    const boards = await getBoards(slug);
 
     return (
-        <IssuesClient 
-            workspaceSlug={slug} 
-            initialIssues={issues} 
+        <IssuesClient
+            workspaceSlug={slug}
+            initialIssues={issues}
             workspaceName={workspace.name}
             workspaceMembers={workspace.members} // Need to pass members for assignment
+            boards={boards}
         />
     );
 }

@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-    Plus, 
-    AlertCircle, 
-    CheckCircle2, 
-    Circle, 
-    Clock, 
+import {
+    Plus,
+    AlertCircle,
+    CheckCircle2,
+    Circle,
+    Clock,
     Filter,
     Search,
     Bug,
@@ -16,8 +16,14 @@ import {
     User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createIssue, updateIssueStatus } from '@/actions/issue';
+import { createIssue, updateIssueStatus, moveIssueToBoard } from '@/actions/issue';
 import { useRouter } from 'next/navigation';
+
+interface BoardData {
+    id: string;
+    name: string;
+    slug: string;
+}
 
 interface Issue {
     _id: string;
@@ -45,9 +51,10 @@ interface IssuesClientProps {
     initialIssues: any[]; // Using any to bypass some strict typing issues with serializable data
     workspaceName: string;
     workspaceMembers: WorkspaceMember[];
+    boards: BoardData[];
 }
 
-export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, workspaceMembers }: IssuesClientProps) {
+export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, workspaceMembers, boards }: IssuesClientProps) {
     const [issues, setIssues] = useState<Issue[]>(initialIssues);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filterStatus, setFilterStatus] = useState<string>('ALL');
@@ -64,8 +71,8 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
 
     const filteredIssues = issues.filter(issue => {
         const matchesStatus = filterStatus === 'ALL' || issue.status === filterStatus;
-        const matchesSearch = issue.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                              issue.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesSearch = issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            issue.description?.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesStatus && matchesSearch;
     });
 
@@ -82,7 +89,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                 type: newType,
                 assigneeId: newAssignee || undefined
             });
-            
+
             // Refresh logic - ideally we'd get the new issue back or revalidate
             // Simple approach: close modal and refresh router
             setIsCreateModalOpen(false);
@@ -109,8 +116,24 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
         }
     };
 
+    const handleMoveToBoard = async (issueId: string, boardId: string, boardName: string) => {
+        if (!confirm(`Are you sure you want to move this issue to the ${boardName} board? It will be converted into a backlog task.`)) {
+            return;
+        }
+
+        // Optimistic update
+        setIssues(issues.filter(i => i._id !== issueId));
+        try {
+            await moveIssueToBoard(workspaceSlug, issueId, boardId);
+            router.refresh();
+        } catch (error) {
+            console.error('Failed to move issue to board', error);
+            alert('Failed to move issue to board');
+        }
+    };
+
     const getStatusIcon = (status: string) => {
-        switch(status) {
+        switch (status) {
             case 'OPEN': return <Circle className="w-4 h-4 text-gray-400" />;
             case 'IN_PROGRESS': return <Clock className="w-4 h-4 text-blue-500" />;
             case 'RESOLVED': return <CheckCircle2 className="w-4 h-4 text-green-500" />;
@@ -120,7 +143,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
     };
 
     const getTypeIcon = (type: string) => {
-        switch(type) {
+        switch (type) {
             case 'BUG': return <Bug className="w-4 h-4 text-red-500" />;
             case 'FEATURE': return <Lightbulb className="w-4 h-4 text-yellow-500" />;
             case 'IMPROVEMENT': return <Zap className="w-4 h-4 text-blue-500" />;
@@ -129,7 +152,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
     };
 
     const getPriorityColor = (priority: string) => {
-        switch(priority) {
+        switch (priority) {
             case 'LOW': return 'bg-gray-100 text-gray-600 border-gray-200';
             case 'MEDIUM': return 'bg-blue-50 text-blue-600 border-blue-200';
             case 'HIGH': return 'bg-orange-50 text-orange-600 border-orange-200';
@@ -161,9 +184,9 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
             <div className="px-6 py-3 border-b border-[var(--border-subtle)] flex gap-4 items-center bg-[var(--background)]">
                 <div className="relative flex-1 max-w-sm">
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input 
-                        type="text" 
-                        placeholder="Search issues..." 
+                    <input
+                        type="text"
+                        placeholder="Search issues..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="input pl-9 h-9 text-sm"
@@ -175,11 +198,10 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                                filterStatus === status 
-                                    ? 'bg-[var(--surface)] text-[var(--brand-primary)] ring-1 ring-[var(--border-subtle)]' 
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filterStatus === status
+                                    ? 'bg-[var(--surface)] text-[var(--brand-primary)] ring-1 ring-[var(--border-subtle)]'
                                     : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
-                            }`}
+                                }`}
                         >
                             {status === 'ALL' ? 'All Issues' : status.replace('_', ' ')}
                         </button>
@@ -200,7 +222,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                         </div>
                     ) : (
                         filteredIssues.map(issue => (
-                            <motion.div 
+                            <motion.div
                                 key={issue._id}
                                 layout
                                 className="group flex items-center gap-4 p-4 bg-[var(--background)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--brand-primary)]/50 hover:shadow-md transition-all cursor-pointer"
@@ -232,7 +254,22 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                     </div>
                                 </div>
                                 <div className="shrink-0 flex items-center gap-3">
-                                    <select 
+                                    <select
+                                        value=""
+                                        onChange={(e) => {
+                                            if (e.target.value) {
+                                                const board = boards.find(b => b.id === e.target.value);
+                                                if (board) handleMoveToBoard(issue._id, board.id, board.name);
+                                            }
+                                        }}
+                                        className="bg-[var(--surface)] border border-[var(--border-subtle)] text-xs font-medium rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors"
+                                    >
+                                        <option value="" disabled>Move to...</option>
+                                        {boards.map(b => (
+                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                        ))}
+                                    </select>
+                                    <select
                                         value={issue.status}
                                         onChange={(e) => handleStatusChange(issue._id, e.target.value)}
                                         className="bg-[var(--surface)] border border-[var(--border-subtle)] text-xs font-medium rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors"
@@ -253,7 +290,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
             <AnimatePresence>
                 {isCreateModalOpen && (
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                        <motion.div 
+                        <motion.div
                             initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.95, opacity: 0 }}
@@ -268,9 +305,9 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                             <form onSubmit={handleCreateIssue} className="p-6 space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Title</label>
-                                    <input 
+                                    <input
                                         autoFocus
-                                        type="text" 
+                                        type="text"
                                         value={newTitle}
                                         onChange={e => setNewTitle(e.target.value)}
                                         className="input"
@@ -281,7 +318,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Type</label>
-                                        <select 
+                                        <select
                                             value={newType}
                                             onChange={e => setNewType(e.target.value as any)}
                                             className="input"
@@ -293,7 +330,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Priority</label>
-                                        <select 
+                                        <select
                                             value={newPriority}
                                             onChange={e => setNewPriority(e.target.value as any)}
                                             className="input"
@@ -307,7 +344,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Assignee</label>
-                                    <select 
+                                    <select
                                         value={newAssignee}
                                         onChange={e => setNewAssignee(e.target.value)}
                                         className="input"
@@ -322,7 +359,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Description</label>
-                                    <textarea 
+                                    <textarea
                                         value={newDesc}
                                         onChange={e => setNewDesc(e.target.value)}
                                         className="input min-h-[100px] resize-none"
@@ -330,15 +367,15 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                     />
                                 </div>
                                 <div className="pt-2 flex justify-end gap-3">
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         onClick={() => setIsCreateModalOpen(false)}
                                         className="btn btn-secondary"
                                     >
                                         Cancel
                                     </button>
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         disabled={isSubmitting}
                                         className="btn btn-primary"
                                     >
