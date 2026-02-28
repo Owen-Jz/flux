@@ -22,7 +22,11 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
         setSuccess(false);
 
         try {
-            await inviteMemberToWorkspace(slug, email);
+            const res = await inviteMemberToWorkspace(slug, email);
+            if (res?.error) {
+                setError(res.error);
+                return;
+            }
             setSuccess(true);
             setTimeout(onClose, 2000);
         } catch (err: any) {

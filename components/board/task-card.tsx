@@ -182,10 +182,11 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 p-4 flex flex-col gap-2 origin-center
             `}
         >
-            {/* Unread Comments Icon */}
-            {hasUnreadComments && !isEditing && (
-                <div className="absolute -top-1.5 -right-1.5 z-30 bg-red-500 text-white p-1 rounded-bl-lg rounded-tr-lg shadow-md flex items-center justify-center">
-                    <MessageSquareText className="w-3.5 h-3.5" />
+            {/* Comments Icon (Hovering) */}
+            {task.comments && task.comments.length > 0 && !isEditing && (
+                <div className={`absolute -top-1.5 -right-1.5 z-30 ${hasUnreadComments ? 'bg-red-500' : 'bg-gray-600'} text-white px-1.5 py-0.5 text-[10px] font-bold rounded-bl-lg rounded-tr-lg shadow-md flex items-center gap-1 justify-center`}>
+                    <MessageSquareText className="w-3 h-3" />
+                    <span>{task.comments.length}</span>
                 </div>
             )}
             {/* Action Menu Button */}

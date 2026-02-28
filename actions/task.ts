@@ -10,6 +10,7 @@ import { Board } from '@/models/Board';
 import { revalidatePath } from 'next/cache';
 import { logActivity } from './activity';
 import { sendEmail } from '@/lib/email/resend';
+import { TaskCreatedEmail } from '@/components/emails/task-created';
 import { TaskAssignedEmail } from '@/components/emails/task-assigned';
 import { TaskMovedEmail } from '@/components/emails/task-moved';
 import { NewCommentEmail } from '@/components/emails/new-comment';
@@ -84,6 +85,31 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
             taskTitle: data.title,
         },
     });
+
+    // EMAIL NOTIFICATION: Task Created
+    const memberIds = workspace.members.map((m: any) => m.userId.toString());
+    const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
+
+    if (notifyIds.length > 0) {
+        const users = await User.find({ _id: { $in: notifyIds } });
+        await Promise.all(users.map(async (user) => {
+            if (user.email) {
+                const html = await render(
+                    TaskCreatedEmail({
+                        taskTitle: data.title,
+                        creatorName: session.user.name || 'A teammate',
+                        workspaceName: workspace.name,
+                        taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/board/${boardSlug}`,
+                    })
+                );
+                await sendEmail({
+                    to: user.email,
+                    subject: `New Task in ${workspace.name}: ${data.title}`,
+                    html,
+                });
+            }
+        }));
+    }
 
     revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
     return { id: task._id.toString() };
@@ -267,9 +293,9 @@ export async function updateTaskPosition(
         });
 
         // EMAIL NOTIFICATION: Task Moved
-        // Notify all assignees (except the mover)
-        const assigneeIds = task.assignees.map((id: Types.ObjectId) => id.toString());
-        const notifyIds = assigneeIds.filter((id: string) => id !== session.user.id);
+        // Notify all members (except the mover)
+        const memberIds = workspace.members.map((m: any) => m.userId.toString());
+        const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
 
         if (notifyIds.length > 0) {
             const users = await User.find({ _id: { $in: notifyIds } });
@@ -369,31 +395,37 @@ export async function updateTask(
     // Check for NEW assignees
     if (data.assignees) {
         const newAssignees = data.assignees.filter(id => !previousAssignees.includes(id));
-        
+
         if (newAssignees.length > 0) {
-            // Find users
-            const users = await User.find({ _id: { $in: newAssignees } });
-            
+            const newAssigneeUsers = await User.find({ _id: { $in: newAssignees } });
+            const newAssigneeNames = newAssigneeUsers.map(u => u.name || 'Someone').join(', ');
+
+            // Find users to notify (all members except the assigner)
+            const memberIds = workspace.members.map((m: any) => m.userId.toString());
+            const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
+            const usersToNotify = await User.find({ _id: { $in: notifyIds } });
+
             // Get board for URL
             const board = await Board.findById(task.boardId);
             const boardSlug = board?.slug || 'main';
 
             // Send emails in parallel
-            await Promise.all(users.map(async (user) => {
+            await Promise.all(usersToNotify.map(async (user) => {
                 if (user.email) {
                     const html = await render(
                         TaskAssignedEmail({
-                            assigneeName: user.name,
+                            recipientName: user.name || 'Teammate',
+                            assigneeNames: newAssigneeNames,
                             taskTitle: task.title,
                             workspaceName: workspace.name,
                             taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/board/${boardSlug}`,
                             assignerName: session.user.name || 'A teammate',
                         })
                     );
-                    
+
                     await sendEmail({
                         to: user.email,
-                        subject: `New Assignment: ${task.title}`,
+                        subject: `New Assignment in ${workspace.name}: ${task.title}`,
                         html,
                     });
                 }
@@ -419,10 +451,10 @@ export async function updateTask(
                     newStatus: data.status,
                 },
             });
-            
+
             // EMAIL: Status Change via Edit Modal (duplicate logic from updateTaskPosition, could be refactored)
-            const assigneeIds = task.assignees.map((id: Types.ObjectId) => id.toString());
-            const notifyIds = assigneeIds.filter((id: string) => id !== session.user.id);
+            const memberIds = workspace.members.map((m: any) => m.userId.toString());
+            const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
 
             if (notifyIds.length > 0) {
                 const users = await User.find({ _id: { $in: notifyIds } });
@@ -577,12 +609,10 @@ export async function addComment(taskId: string, content: string) {
         });
 
         // EMAIL NOTIFICATION: New Comment
-        // Notify all assignees (except the commenter)
-        const assigneeIds = task.assignees.map((id: Types.ObjectId) => id.toString());
-        const notifyIds = assigneeIds.filter((id: string) => id !== session.user.id);
-        
-        // Also notify creator? (For now just assignees)
-        
+        // Notify all members (except the commenter)
+        const memberIds = workspace.members.map((m: any) => m.userId.toString());
+        const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
+
         if (notifyIds.length > 0) {
             const users = await User.find({ _id: { $in: notifyIds } });
             await Promise.all(users.map(async (user) => {

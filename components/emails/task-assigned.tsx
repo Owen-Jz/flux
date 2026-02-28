@@ -6,8 +6,6 @@ import {
   Heading,
   Hr,
   Html,
-  Img,
-  Link,
   Preview,
   Section,
   Text,
@@ -16,7 +14,8 @@ import {
 import * as React from "react";
 
 interface TaskAssignedEmailProps {
-  assigneeName: string;
+  recipientName: string;
+  assigneeNames: string;
   taskTitle: string;
   workspaceName: string;
   taskUrl: string;
@@ -24,7 +23,8 @@ interface TaskAssignedEmailProps {
 }
 
 export const TaskAssignedEmail = ({
-  assigneeName,
+  recipientName,
+  assigneeNames,
   taskTitle,
   workspaceName,
   taskUrl,
@@ -33,7 +33,7 @@ export const TaskAssignedEmail = ({
   return (
     <Html>
       <Head />
-      <Preview>New Task: {taskTitle}</Preview>
+      <Preview>New Task Assignment: {taskTitle}</Preview>
       <Tailwind
         config={{
           theme: {
@@ -55,14 +55,14 @@ export const TaskAssignedEmail = ({
               </Heading>
             </Section>
             <Text className="text-black text-[14px] leading-[24px]">
-              Hello <strong>{assigneeName}</strong>,
+              Hello <strong>{recipientName}</strong>,
             </Text>
             <Text className="text-black text-[14px] leading-[24px]">
-              <strong>{assignerName}</strong> has assigned you to a new task in <strong>{workspaceName}</strong>.
+              <strong>{assignerName}</strong> has assigned <strong>{assigneeNames}</strong> to a task in <strong>{workspaceName}</strong>.
             </Text>
-            
+
             <Section className="bg-surface p-4 rounded-lg border border-solid border-[#e2e8f0] my-4">
-               <Text className="m-0 font-bold text-lg">{taskTitle}</Text>
+              <Text className="m-0 font-bold text-lg">{taskTitle}</Text>
             </Section>
 
             <Section className="text-center mt-[32px] mb-[32px]">
