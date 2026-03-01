@@ -6,7 +6,7 @@ const getResendClient = () => {
   return new Resend(key);
 };
 
-const FROM_EMAIL = 'Flux Board <updates@owendigitals.work>';
+const FROM_EMAIL = 'Flux Board <updates@mail.fluxboard.site>';
 
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   const resend = getResendClient();
@@ -18,6 +18,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
   try {
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
+      replyTo: 'updates@fluxboard.site',
       to,
       subject,
       html,

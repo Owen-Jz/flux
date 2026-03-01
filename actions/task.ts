@@ -15,6 +15,7 @@ import { TaskAssignedEmail } from '@/components/emails/task-assigned';
 import { TaskMovedEmail } from '@/components/emails/task-moved';
 import { NewCommentEmail } from '@/components/emails/new-comment';
 import { render } from '@react-email/components';
+import React from 'react';
 
 interface CreateTaskData {
     title: string;
@@ -95,7 +96,7 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
         await Promise.all(users.map(async (user) => {
             if (user.email) {
                 const html = await render(
-                    TaskCreatedEmail({
+                    React.createElement(TaskCreatedEmail, {
                         taskTitle: data.title,
                         creatorName: session.user.name || 'A teammate',
                         workspaceName: workspace.name,
@@ -302,7 +303,7 @@ export async function updateTaskPosition(
             await Promise.all(users.map(async (user) => {
                 if (user.email) {
                     const html = await render(
-                        TaskMovedEmail({
+                        React.createElement(TaskMovedEmail, {
                             taskTitle: task.title,
                             moverName: session.user.name || 'A teammate',
                             fromStatus: previousStatus,
@@ -413,7 +414,7 @@ export async function updateTask(
             await Promise.all(usersToNotify.map(async (user) => {
                 if (user.email) {
                     const html = await render(
-                        TaskAssignedEmail({
+                        React.createElement(TaskAssignedEmail, {
                             recipientName: user.name || 'Teammate',
                             assigneeNames: newAssigneeNames,
                             taskTitle: task.title,
@@ -461,7 +462,7 @@ export async function updateTask(
                 await Promise.all(users.map(async (user) => {
                     if (user.email) {
                         const html = await render(
-                            TaskMovedEmail({
+                            React.createElement(TaskMovedEmail, {
                                 taskTitle: task.title,
                                 moverName: session.user.name || 'A teammate',
                                 fromStatus: previousStatus,
@@ -618,7 +619,7 @@ export async function addComment(taskId: string, content: string) {
             await Promise.all(users.map(async (user) => {
                 if (user.email) {
                     const html = await render(
-                        NewCommentEmail({
+                        React.createElement(NewCommentEmail, {
                             taskTitle: task.title,
                             commenterName: session.user.name || 'A teammate',
                             commentContent: content,

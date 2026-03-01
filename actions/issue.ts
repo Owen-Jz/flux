@@ -12,6 +12,7 @@ import { logActivity } from './activity';
 import { sendEmail } from '@/lib/email/resend';
 import { IssueCreatedEmail } from '@/components/emails/issue-created';
 import { render } from '@react-email/components';
+import React from 'react';
 
 interface CreateIssueData {
     title: string;
@@ -63,7 +64,7 @@ export async function createIssue(workspaceSlug: string, data: CreateIssueData) 
     await Promise.all(users.map(async (user) => {
         if (user.email && user._id.toString() !== session.user.id) { // Don't email the reporter
             const html = await render(
-                IssueCreatedEmail({
+                React.createElement(IssueCreatedEmail, {
                     workspaceName: workspace.name,
                     issueTitle: issue.title,
                     issueType: issue.type,

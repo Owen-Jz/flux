@@ -1,11 +1,7 @@
-import { sendEmail } from '../lib/email/resend';
 import { TaskMovedEmail } from '../components/emails/task-moved';
 import { render } from '@react-email/components';
-import dotenv from 'dotenv';
-dotenv.config({ path: '.env.production' });
 
 async function main() {
-    console.log('Testing TaskMovedEmail rendering...');
     try {
         const html = await render(
             TaskMovedEmail({
@@ -18,17 +14,8 @@ async function main() {
             })
         );
         console.log('Successfully rendered HTML (length):', html.length);
-
-        console.log('Sending test email to hello@brinovamedia.com...');
-        await sendEmail({
-            to: 'hello@brinovamedia.com',
-            subject: 'Test Task Moved',
-            html,
-        });
-        console.log('Done!');
     } catch (err) {
-        console.error('Error:', err);
+        console.error('FAILED TO RENDER: ', err);
     }
 }
-
 main();
