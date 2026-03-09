@@ -16,8 +16,9 @@ import {
     User
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { createIssue, updateIssueStatus, moveIssueToBoard } from '@/actions/issue';
+import { createIssue, updateIssueStatus, moveIssueToBoard, updateIssue } from '@/actions/issue';
 import { useRouter } from 'next/navigation';
+import { IssueDetailModal } from './issue-detail-modal';
 
 interface BoardData {
     id: string;
@@ -59,6 +60,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filterStatus, setFilterStatus] = useState<string>('ALL');
     const [searchQuery, setSearchQuery] = useState('');
+    const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
     const router = useRouter();
 
     // Form State
@@ -113,6 +115,42 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
         } catch (error) {
             console.error('Failed to update status', error);
             // Revert would go here
+        }
+    };
+
+    const handleUpdateIssue = async (issueId: string, data: any) => {
+        let assigneeObj: any = undefined;
+        let setAssignee = false;
+        if ('assigneeId' in data) {
+            setAssignee = true;
+            if (data.assigneeId === null) {
+                assigneeObj = undefined;
+            } else {
+                const member = workspaceMembers.find(m => m.userId === data.assigneeId);
+                if (member && member.user) assigneeObj = { name: member.user.name, image: member.user.image || undefined };
+            }
+        }
+
+        setIssues(issues.map(i => {
+            if (i._id === issueId) {
+                const updated = { ...i, ...data };
+                if (setAssignee) updated.assignee = assigneeObj;
+                return updated;
+            }
+            return i;
+        }));
+
+        if (selectedIssue && selectedIssue._id === issueId) {
+            const updated = { ...selectedIssue, ...data };
+            if (setAssignee) updated.assignee = assigneeObj;
+            setSelectedIssue(updated as Issue);
+        }
+
+        try {
+            await updateIssue(workspaceSlug, issueId, data);
+            router.refresh();
+        } catch (error) {
+            console.error('Failed to update issue', error);
         }
     };
 
@@ -225,6 +263,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                             <motion.div
                                 key={issue._id}
                                 layout
+                                onClick={() => setSelectedIssue(issue)}
                                 className="group flex items-center gap-4 p-4 bg-[var(--background)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--brand-primary)]/50 hover:shadow-md transition-all cursor-pointer"
                             >
                                 <div className="shrink-0 pt-1 self-start">
@@ -256,6 +295,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                 <div className="shrink-0 flex items-center gap-3">
                                     <select
                                         value=""
+                                        onClick={(e) => e.stopPropagation()}
                                         onChange={(e) => {
                                             if (e.target.value) {
                                                 const board = boards.find(b => b.id === e.target.value);
@@ -271,6 +311,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                     </select>
                                     <select
                                         value={issue.status}
+                                        onClick={(e) => e.stopPropagation()}
                                         onChange={(e) => handleStatusChange(issue._id, e.target.value)}
                                         className="bg-[var(--surface)] border border-[var(--border-subtle)] text-xs font-medium rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors"
                                     >
@@ -385,6 +426,19 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                             </form>
                         </motion.div>
                     </div>
+                )}
+            </AnimatePresence>
+
+            {/* View Modal */}
+            <AnimatePresence>
+                {selectedIssue && (
+                    <IssueDetailModal
+                        issue={selectedIssue}
+                        isOpen={!!selectedIssue}
+                        onClose={() => setSelectedIssue(null)}
+                        onUpdate={handleUpdateIssue}
+                        members={workspaceMembers}
+                    />
                 )}
             </AnimatePresence>
         </div>

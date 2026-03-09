@@ -132,6 +132,17 @@ export async function updateIssueStatus(workspaceSlug: string, issueId: string, 
     return { success: true };
 }
 
+export async function updateIssue(workspaceSlug: string, issueId: string, data: Partial<{ title: string; description: string; priority: IssuePriority; type: IssueType; status: IssueStatus; assigneeId: string | null }>) {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error('Unauthorized');
+
+    await connectDB();
+
+    await Issue.findByIdAndUpdate(issueId, data);
+    revalidatePath(`/${workspaceSlug}/issues`);
+    return { success: true };
+}
+
 export async function moveIssueToBoard(workspaceSlug: string, issueId: string, boardId: string) {
     const session = await auth();
     if (!session?.user?.id) throw new Error('Unauthorized');
