@@ -35,11 +35,16 @@ export default function SignupPage() {
             }
 
             // Auto sign in after signup
-            await signIn('credentials', {
+            const signInResult = await signIn('credentials', {
                 email,
                 password,
                 redirect: false,
             });
+
+            if (signInResult?.error) {
+                setError('Failed to sign in after registration. Please try logging in.');
+                return;
+            }
 
             router.push('/onboarding');
         } catch {

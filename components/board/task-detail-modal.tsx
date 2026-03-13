@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Check, UserPlus, AlignLeft, Tag, Clock, CheckSquare, Plus, Trash2, MessageSquare, Send, Loader2 } from 'lucide-react';
+import { X, Calendar, Check, UserPlus, AlignLeft, Tag, Clock, CheckSquare, Plus, Trash2, MessageSquare, Send, Loader2, AlertCircle } from 'lucide-react';
 import { TaskData, Member } from './task-card';
 import { addComment, deleteComment } from '@/actions/task';
 import { useSession } from 'next-auth/react';
@@ -38,6 +38,7 @@ export function TaskDetailModal({
     const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
     const [newComment, setNewComment] = useState('');
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setTitle(task.title);
@@ -97,15 +98,15 @@ export function TaskDetailModal({
         if (!newComment.trim() || isSubmittingComment) return;
 
         setIsSubmittingComment(true);
+        setError(null);
         try {
             const comment = await addComment(task.id, newComment);
             onUpdate(task.id, {
                 comments: [...(task.comments || []), comment]
             });
             setNewComment('');
-        } catch (error) {
-            console.error('Failed to add comment:', error);
-            alert('Failed to add comment');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to add comment');
         } finally {
             setIsSubmittingComment(false);
         }
@@ -114,14 +115,14 @@ export function TaskDetailModal({
     const handleDeleteComment = async (commentId: string) => {
         if (!confirm('Delete this comment?')) return;
 
+        setError(null);
         try {
             await deleteComment(task.id, commentId);
             onUpdate(task.id, {
                 comments: (task.comments || []).filter(c => c.id !== commentId)
             });
-        } catch (error) {
-            console.error('Failed to delete comment:', error);
-            alert('Failed to delete comment');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete comment');
         }
     };
 
@@ -151,6 +152,15 @@ export function TaskDetailModal({
                         >
                             {/* Header */}
                             <div className="flex items-start justify-between p-8 border-b border-gray-100 bg-white">
+                                {error && (
+                                    <div className="w-full mb-4 bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-3">
+                                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                                        <p className="text-sm font-medium text-red-800">{error}</p>
+                                        <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
                                 <div className="flex-1 mr-4">
                                     <div className="flex items-center gap-3 mb-2">
                                         <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] tracking-wider uppercase border border-slate-200">

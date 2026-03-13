@@ -18,9 +18,10 @@ interface MemberRowProps {
     member: Member;
     slug: string;
     isAdmin: boolean;
+    onError?: (error: string) => void;
 }
 
-export function MemberRow({ member, slug, isAdmin }: MemberRowProps) {
+export function MemberRow({ member, slug, isAdmin, onError }: MemberRowProps) {
     const [isEditing, setIsEditing] = useState(false);
     const [selectedRole, setSelectedRole] = useState<'EDITOR' | 'VIEWER'>(
         (member.role === 'EDITOR' || member.role === 'VIEWER') ? member.role : 'VIEWER'
@@ -32,9 +33,11 @@ export function MemberRow({ member, slug, isAdmin }: MemberRowProps) {
             try {
                 await updateMemberRole(slug, member.userId, selectedRole);
                 setIsEditing(false);
-            } catch (error) {
-                console.error('Failed to update role:', error);
-                alert('Failed to update role');
+            } catch (err) {
+                const errorMessage = err instanceof Error ? err.message : 'Failed to update role';
+                if (onError) {
+                    onError(errorMessage);
+                }
             }
         });
     };
@@ -45,9 +48,11 @@ export function MemberRow({ member, slug, isAdmin }: MemberRowProps) {
         startTransition(async () => {
             try {
                 await removeMember(slug, member.userId);
-            } catch (error) {
-                console.error('Failed to remove member:', error);
-                alert('Failed to remove member');
+            } catch (err) {
+                const errorMessage = err instanceof Error ? err.message : 'Failed to remove member';
+                if (onError) {
+                    onError(errorMessage);
+                }
             }
         });
     };

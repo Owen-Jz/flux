@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Settings as SettingsIcon, Globe, Shield, Trash2, Loader2, Palette, Check } from 'lucide-react';
+import { Settings as SettingsIcon, Globe, Shield, Trash2, Loader2, Palette, Check, AlertCircle, X } from 'lucide-react';
 import { updateWorkspaceSettings } from '@/actions/workspace';
 import { deleteWorkspace } from '@/actions/access-control';
 
@@ -33,50 +33,63 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     const [isPending, startTransition] = useTransition();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [error, setError] = useState<string | null>(null);
 
     const handleTogglePublicAccess = async () => {
         const newValue = !publicAccess;
         setPublicAccess(newValue);
+        setError(null);
 
         startTransition(async () => {
             try {
                 await updateWorkspaceSettings(workspace.slug, { publicAccess: newValue });
-            } catch (error) {
-                console.error('Failed to update settings:', error);
+            } catch (err) {
                 setPublicAccess(!newValue); // Revert on error
+                setError(err instanceof Error ? err.message : 'Failed to update settings');
             }
         });
     };
 
     const handleUpdateAccentColor = async (color: string) => {
         setAccentColor(color);
+        setError(null);
+
         startTransition(async () => {
             try {
                 await updateWorkspaceSettings(workspace.slug, { accentColor: color });
                 router.refresh();
-            } catch (error) {
-                console.error('Failed to update accent color:', error);
+            } catch (err) {
                 setAccentColor(workspace.accentColor || '#6366f1');
+                setError(err instanceof Error ? err.message : 'Failed to update accent color');
             }
         });
     };
 
     const handleDeleteWorkspace = async () => {
         if (deleteConfirmText !== workspace.name) return;
+        setError(null);
 
         startTransition(async () => {
             try {
                 await deleteWorkspace(workspace.slug);
                 router.push('/dashboard');
-            } catch (error) {
-                console.error('Failed to delete workspace:', error);
-                alert('Failed to delete workspace');
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to delete workspace');
             }
         });
     };
 
     return (
         <div className="p-8 pt-16 max-w-3xl mx-auto">
+            {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                    <p className="text-sm font-medium text-red-800">{error}</p>
+                    <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
             <div className="mb-8">
                 <h1 className="text-2xl font-bold text-[var(--foreground)]">Settings</h1>
                 <p className="text-[var(--text-secondary)]">Configure your workspace preferences</p>

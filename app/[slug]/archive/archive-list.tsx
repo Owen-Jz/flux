@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateTask, deleteTask } from '@/actions/task';
 import { TaskPriority, TaskStatus } from '@/models/Task';
-import { Loader2, RotateCcw, Trash2, Calendar, Layout } from 'lucide-react';
+import { Loader2, RotateCcw, Trash2, Calendar, Layout, AlertCircle, X } from 'lucide-react';
 
 interface ArchivedTask {
     id: string;
@@ -32,6 +32,7 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
     const router = useRouter();
     const [tasks, setTasks] = useState<ArchivedTask[]>(initialTasks);
     const [actioningIds, setActioningIds] = useState<Set<string>>(new Set());
+    const [error, setError] = useState<string | null>(null);
 
     // Update local state when initialTasks changes (after revalidation)
     useEffect(() => {
@@ -40,14 +41,14 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
 
     const handleRestore = async (task: ArchivedTask) => {
         setActioningIds(prev => new Set(prev).add(task.id));
+        setError(null);
         try {
             // Restore to DONE
             await updateTask(task.id, { status: 'DONE' as TaskStatus });
             setTasks(prev => prev.filter(t => t.id !== task.id));
             router.refresh();
-        } catch (error) {
-            console.error('Failed to restore task:', error);
-            alert('Failed to restore task');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to restore task');
         } finally {
             setActioningIds(prev => {
                 const next = new Set(prev);
@@ -61,13 +62,13 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
         if (!confirm('Are you sure you want to permanently delete this task?')) return;
 
         setActioningIds(prev => new Set(prev).add(taskId));
+        setError(null);
         try {
             await deleteTask(taskId);
             setTasks(prev => prev.filter(t => t.id !== taskId));
             router.refresh();
-        } catch (error) {
-            console.error('Failed to delete task:', error);
-            alert('Failed to delete task');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete task');
         } finally {
             setActioningIds(prev => {
                 const next = new Set(prev);
@@ -89,6 +90,15 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-4 flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                    <p className="text-sm font-medium text-red-800">{error}</p>
+                    <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
             <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                     <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Check, X, Loader2, Clock } from 'lucide-react';
+import { Check, X, Loader2, Clock, AlertCircle } from 'lucide-react';
 import { handleAccessRequest } from '@/actions/access-control';
 
 interface AccessRequest {
@@ -25,15 +25,16 @@ interface TeamClientProps {
 export function TeamClient({ accessRequests, slug }: TeamClientProps) {
     const [isPending, startTransition] = useTransition();
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     const handleAction = async (requestId: string, action: 'approve' | 'deny') => {
         setProcessingId(requestId);
+        setError(null);
         startTransition(async () => {
             try {
                 await handleAccessRequest(requestId, action);
-            } catch (error) {
-                console.error('Failed to handle request:', error);
-                alert('Failed to process request');
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to process request');
             } finally {
                 setProcessingId(null);
             }
@@ -56,6 +57,15 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
 
     return (
         <div className="space-y-3">
+            {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                    <p className="text-sm font-medium text-red-800">{error}</p>
+                    <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
+                        <X className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
             {accessRequests.map((request) => (
                 <div
                     key={request.id}

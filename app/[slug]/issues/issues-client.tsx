@@ -61,6 +61,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
     const [filterStatus, setFilterStatus] = useState<string>('ALL');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+    const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
     // Form State
@@ -98,9 +99,8 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
             setNewTitle('');
             setNewDesc('');
             router.refresh();
-        } catch (error) {
-            console.error('Failed to create issue', error);
-            alert('Failed to create issue');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to create issue');
         } finally {
             setIsSubmitting(false);
         }
@@ -112,9 +112,10 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
         try {
             await updateIssueStatus(workspaceSlug, issueId, newStatus);
             router.refresh();
-        } catch (error) {
-            console.error('Failed to update status', error);
-            // Revert would go here
+        } catch (err) {
+            // Revert the optimistic update
+            setIssues(issues);
+            setError(err instanceof Error ? err.message : 'Failed to update status');
         }
     };
 
@@ -149,8 +150,8 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
         try {
             await updateIssue(workspaceSlug, issueId, data);
             router.refresh();
-        } catch (error) {
-            console.error('Failed to update issue', error);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to update issue');
         }
     };
 
@@ -164,9 +165,10 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
         try {
             await moveIssueToBoard(workspaceSlug, issueId, boardId);
             router.refresh();
-        } catch (error) {
-            console.error('Failed to move issue to board', error);
-            alert('Failed to move issue to board');
+        } catch (err) {
+            // Restore the issue on error
+            router.refresh();
+            setError(err instanceof Error ? err.message : 'Failed to move issue to board');
         }
     };
 
@@ -201,6 +203,24 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
 
     return (
         <div className="h-full flex flex-col bg-[var(--background)]">
+            {/* Error Toast */}
+            {error && (
+                <div className="fixed top-4 right-4 z-50 max-w-md">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg flex items-start gap-3 animate-in slide-in-from-top-2">
+                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                            <p className="text-sm font-medium text-red-800">{error}</p>
+                        </div>
+                        <button
+                            onClick={() => setError(null)}
+                            className="text-red-400 hover:text-red-600"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <header className="px-6 py-4 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface)] pr-32">
                 <div>
