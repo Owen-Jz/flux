@@ -149,6 +149,15 @@ export default function LoginPage() {
                                 </>
                             )}
                         </button>
+
+                        <div className="text-center mt-4">
+                            <Link
+                                href="/reset-password"
+                                className="text-sm text-[var(--text-secondary)] hover:text-[var(--brand-primary)]"
+                            >
+                                Forgot password?
+                            </Link>
+                        </div>
                     </form>
 
                     {/* Footer */}

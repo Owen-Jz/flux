@@ -7,6 +7,8 @@ export interface IUser extends Document {
     image?: string;
     password?: string;
     emailVerified?: Date;
+    passwordResetToken?: string;
+    passwordResetExpires?: Date;
     createdAt: Date;
     updatedAt: Date;
     tutorialProgress?: {
@@ -24,6 +26,8 @@ const UserSchema = new Schema<IUser>(
         image: { type: String },
         password: { type: String, select: false },
         emailVerified: { type: Date },
+        passwordResetToken: { type: String },
+        passwordResetExpires: { type: Date },
         tutorialProgress: {
             hasSeenWelcome: { type: Boolean, default: false },
             hasSeenDashboard: { type: Boolean, default: false },

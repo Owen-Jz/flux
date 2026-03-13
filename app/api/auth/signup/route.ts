@@ -2,14 +2,35 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import bcrypt from 'bcryptjs';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
 export async function POST(request: NextRequest) {
+    // Apply rate limiting - 5 signup attempts per 15 minutes per IP
+    const ip = getClientIp(request);
+    const rateLimitResult = rateLimit(ip, 5, 15 * 60);
+
+    if (!rateLimitResult.success) {
+        return NextResponse.json(
+            { error: `Too many signup attempts. Please try again in ${rateLimitResult.resetIn} seconds` },
+            { status: 429 }
+        );
+    }
+
     try {
         const { name, email, password } = await request.json();
 
         if (!name || !email || !password) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
+                { status: 400 }
+            );
+        }
+
+        // Email format validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return NextResponse.json(
+                { error: 'Invalid email format' },
                 { status: 400 }
             );
         }

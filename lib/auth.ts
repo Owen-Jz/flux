@@ -5,6 +5,10 @@ import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { authConfig } from '@/lib/auth.config';
 import bcrypt from 'bcryptjs';
+import { rateLimit } from '@/lib/rate-limit';
+
+// Track failed login attempts in memory
+const failedLoginAttempts = new Map<string, { count: number; lockoutUntil?: number }>();
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig,
@@ -24,28 +28,61 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return null;
                 }
 
-                await connectDB();
-                const user = await User.findOne({ email: credentials.email }).select('+password');
+                const email = credentials.email as string;
+                const now = Date.now();
 
-                if (!user || !user.password) {
+                // Check for account lockout due to failed attempts
+                const attempts = failedLoginAttempts.get(email);
+                if (attempts && attempts.lockoutUntil && attempts.lockoutUntil > now) {
+                    console.warn(`[Auth] Login attempt on locked account: ${email}`);
                     return null;
                 }
 
-                const isValidPassword = await bcrypt.compare(
-                    credentials.password as string,
-                    user.password
-                );
+                try {
+                    await connectDB();
+                    const user = await User.findOne({ email }).select('+password');
 
-                if (!isValidPassword) {
+                    if (!user || !user.password) {
+                        // Increment failed attempts even if user doesn't exist
+                        // This prevents enumeration attacks
+                        const currentAttempts = failedLoginAttempts.get(email) || { count: 0 };
+                        currentAttempts.count += 1;
+                        if (currentAttempts.count >= 5) {
+                            currentAttempts.lockoutUntil = now + 15 * 60 * 1000; // 15 min lockout
+                        }
+                        failedLoginAttempts.set(email, currentAttempts);
+                        return null;
+                    }
+
+                    const isValidPassword = await bcrypt.compare(
+                        credentials.password as string,
+                        user.password
+                    );
+
+                    if (!isValidPassword) {
+                        // Increment failed attempts
+                        const currentAttempts = failedLoginAttempts.get(email) || { count: 0 };
+                        currentAttempts.count += 1;
+                        if (currentAttempts.count >= 5) {
+                            currentAttempts.lockoutUntil = now + 15 * 60 * 1000; // 15 min lockout
+                        }
+                        failedLoginAttempts.set(email, currentAttempts);
+                        return null;
+                    }
+
+                    // Successful login - reset failed attempts
+                    failedLoginAttempts.delete(email);
+
+                    return {
+                        id: user._id.toString(),
+                        email: user.email,
+                        name: user.name,
+                        image: user.image,
+                    };
+                } catch (error) {
+                    console.error('[Auth] Credentials authorize error:', error);
                     return null;
                 }
-
-                return {
-                    id: user._id.toString(),
-                    email: user.email,
-                    name: user.name,
-                    image: user.image,
-                };
             },
         }),
     ],
@@ -75,25 +112,74 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 return false;
             }
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger }) {
+            // Always preserve existing token values
+            if (token.id) {
+                // Token already has ID from previous callback, preserve it
+                // Only fetch fresh user data on sign in or if picture is missing
+                if (user || !token.picture) {
+                    try {
+                        await connectDB();
+                        const dbUser = await User.findOne({ email: token.email });
+                        if (dbUser) {
+                            if (!token.id) {
+                                token.id = dbUser._id.toString();
+                            }
+                            if (dbUser.image) {
+                                token.picture = dbUser.image;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('[Auth] JWT callback error:', error);
+                        // Keep existing token values if DB lookup fails
+                    }
+                }
+                return token;
+            }
+
+            // Initial sign in - user object is provided
             if (user) {
-                await connectDB();
-                const dbUser = await User.findOne({ email: user.email });
-                if (dbUser) {
-                    token.id = dbUser._id.toString();
-                    // Ensure image is persisted from DB if available
-                    if (dbUser.image) {
-                        token.picture = dbUser.image;
+                try {
+                    await connectDB();
+                    const dbUser = await User.findOne({ email: user.email });
+                    if (dbUser) {
+                        token.id = dbUser._id.toString();
+                        token.email = dbUser.email;
+                        // Ensure image is persisted from DB if available
+                        if (dbUser.image) {
+                            token.picture = dbUser.image;
+                        }
+                    } else {
+                        // Fallback: use info from user object
+                        token.id = user.id;
+                        if (user.email) {
+                            token.email = user.email;
+                        }
+                    }
+                } catch (error) {
+                    console.error('[Auth] JWT callback error during sign in:', error);
+                    // Fallback to user object data
+                    token.id = user.id;
+                    if (user.email) {
+                        token.email = user.email;
                     }
                 }
             }
+
             return token;
         },
         async session({ session, token }) {
             if (token && session.user) {
-                session.user.id = token.id as string;
+                // Ensure user ID is always set from token
+                if (token.id) {
+                    session.user.id = token.id;
+                }
                 if (token.picture) {
                     session.user.image = token.picture;
+                }
+                // Also copy email to session for reference
+                if (token.email) {
+                    session.user.email = token.email;
                 }
             }
             return session;

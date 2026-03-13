@@ -14,9 +14,10 @@ export const authConfig = {
             const isPublicRoute =
                 request.nextUrl.pathname === '/' ||
                 request.nextUrl.pathname === '/login' ||
-                request.nextUrl.pathname === '/signup';
+                request.nextUrl.pathname === '/signup' ||
+                request.nextUrl.pathname === '/reset-password';
 
-            const isAuthRoute = request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup';
+            const isAuthRoute = request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup' || request.nextUrl.pathname === '/reset-password';
 
             // Allow public routes
             if (isPublicRoute && !isAuthRoute) {
