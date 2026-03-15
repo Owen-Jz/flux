@@ -17,6 +17,14 @@ export interface IUser extends Document {
         hasSeenBoard: boolean;
         hasSeenSettings: boolean;
     };
+    onboardingProgress?: {
+        createdFirstBoard: boolean;
+        addedFirstTeamMember: boolean;
+        createdFirstTask: boolean;
+        completedFirstDragDrop: boolean;
+        completedTutorial: boolean;
+        dismissedAt?: Date;
+    };
 }
 
 const UserSchema = new Schema<IUser>(
@@ -33,6 +41,14 @@ const UserSchema = new Schema<IUser>(
             hasSeenDashboard: { type: Boolean, default: false },
             hasSeenBoard: { type: Boolean, default: false },
             hasSeenSettings: { type: Boolean, default: false },
+        },
+        onboardingProgress: {
+            createdFirstBoard: { type: Boolean, default: false },
+            addedFirstTeamMember: { type: Boolean, default: false },
+            createdFirstTask: { type: Boolean, default: false },
+            completedFirstDragDrop: { type: Boolean, default: false },
+            completedTutorial: { type: Boolean, default: false },
+            dismissedAt: { type: Date },
         },
     },
     { timestamps: true }

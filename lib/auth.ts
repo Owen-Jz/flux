@@ -8,7 +8,23 @@ import bcrypt from 'bcryptjs';
 import { rateLimit } from '@/lib/rate-limit';
 
 // Track failed login attempts in memory
-const failedLoginAttempts = new Map<string, { count: number; lockoutUntil?: number }>();
+const failedLoginAttempts = new Map<string, { count: number; lockoutUntil?: number; lastAttempt: number }>();
+
+// Cleanup old lockout entries every 15 minutes
+const LOCKOUT_CLEANUP_INTERVAL = 15 * 60 * 1000;
+setInterval(() => {
+    const now = Date.now();
+    for (const [email, data] of failedLoginAttempts.entries()) {
+        // Remove entries that have expired lockout (older than 15 minutes)
+        if (data.lockoutUntil && data.lockoutUntil < now) {
+            failedLoginAttempts.delete(email);
+        }
+        // Also clean up entries with too many failed attempts but no recent activity (older than 1 hour)
+        if (data.lastAttempt && now - data.lastAttempt > 60 * 60 * 1000) {
+            failedLoginAttempts.delete(email);
+        }
+    }
+}, LOCKOUT_CLEANUP_INTERVAL);
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig,
@@ -45,8 +61,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     if (!user || !user.password) {
                         // Increment failed attempts even if user doesn't exist
                         // This prevents enumeration attacks
-                        const currentAttempts = failedLoginAttempts.get(email) || { count: 0 };
+                        const currentAttempts = failedLoginAttempts.get(email) || { count: 0, lastAttempt: now };
                         currentAttempts.count += 1;
+                        currentAttempts.lastAttempt = now;
                         if (currentAttempts.count >= 5) {
                             currentAttempts.lockoutUntil = now + 15 * 60 * 1000; // 15 min lockout
                         }
@@ -61,8 +78,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                     if (!isValidPassword) {
                         // Increment failed attempts
-                        const currentAttempts = failedLoginAttempts.get(email) || { count: 0 };
+                        const currentAttempts = failedLoginAttempts.get(email) || { count: 0, lastAttempt: now };
                         currentAttempts.count += 1;
+                        currentAttempts.lastAttempt = now;
                         if (currentAttempts.count >= 5) {
                             currentAttempts.lockoutUntil = now + 15 * 60 * 1000; // 15 min lockout
                         }
@@ -134,6 +152,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         // Keep existing token values if DB lookup fails
                     }
                 }
+                // Preserve access token
                 return token;
             }
 
@@ -181,6 +200,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 if (token.email) {
                     session.user.email = token.email;
                 }
+                // Pass the access token for socket.io authentication
+                session.accessToken = token.accessToken as string | undefined;
             }
             return session;
         },

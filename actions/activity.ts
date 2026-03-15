@@ -161,13 +161,28 @@ export async function getCommentActivities(workspaceSlug: string, limit: number 
     });
 }
 
-export async function markActivityAsRead(activityId: string) {
+export async function markActivityAsRead(activityId: string, workspaceSlug?: string) {
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false };
     }
 
     await connectDB();
+
+    // If workspaceSlug is provided, verify membership
+    if (workspaceSlug) {
+        const workspace = await Workspace.findOne({ slug: workspaceSlug });
+        if (!workspace) {
+            return { success: false };
+        }
+
+        const isMember = workspace.members.some(
+            (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+        );
+        if (!isMember) {
+            return { success: false };
+        }
+    }
 
     await ActivityLog.findByIdAndUpdate(activityId, { read: true });
     return { success: true };
@@ -183,6 +198,12 @@ export async function markAllActivitiesAsRead(workspaceSlug: string) {
 
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) return { success: false };
+
+    // Verify user is a member
+    const isMember = workspace.members.some(
+        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+    );
+    if (!isMember) return { success: false };
 
     await ActivityLog.updateMany(
         { workspaceId: workspace._id, read: false },

@@ -4,6 +4,7 @@ import { getBoardBySlug } from '@/actions/board';
 import { getTasks } from '@/actions/task';
 import { getUserRole } from '@/actions/access-control';
 import { Board } from '@/components/board';
+import { SocketProvider } from '@/contexts/socket-context';
 
 // Prevent caching to ensure fresh category data
 export const dynamic = 'force-dynamic';
@@ -49,24 +50,27 @@ export default async function BoardPage({
         <div className="h-full flex flex-col">
             {/* Kanban Board */}
             <div className="flex-1 overflow-hidden">
-                <Board
-                    initialTasks={tasks}
-                    workspaceSlug={slug}
-                    boardSlug={boardSlug}
-                    isReadOnly={isReadOnly}
-                    members={workspace.members.map((m: any) => ({
-                        id: m.userId,
-                        name: m.user?.name || 'Unknown User',
-                        email: m.user?.email || '',
-                        image: m.user?.image,
-                        role: m.role,
-                    }))}
-                    boardName={board.name}
-                    boardDescription={board.description}
-                    boardColor={board.color}
-                    categories={board.categories}
-                    currentUserId={session?.user?.id}
-                />
+                <SocketProvider boardId={board.id}>
+                    <Board
+                        initialTasks={tasks}
+                        workspaceSlug={slug}
+                        boardSlug={boardSlug}
+                        boardId={board.id}
+                        isReadOnly={isReadOnly}
+                        members={workspace.members.map((m: any) => ({
+                            id: m.userId,
+                            name: m.user?.name || 'Unknown User',
+                            email: m.user?.email || '',
+                            image: m.user?.image,
+                            role: m.role,
+                        }))}
+                        boardName={board.name}
+                        boardDescription={board.description}
+                        boardColor={board.color}
+                        categories={board.categories}
+                        currentUserId={session?.user?.id}
+                    />
+                </SocketProvider>
             </div>
         </div>
     );

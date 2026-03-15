@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function ResetPasswordPage() {
     const router = useRouter();
@@ -123,6 +124,11 @@ export default function ResetPasswordPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
+            {/* Theme Toggle - Positioned top right */}
+            <div className="fixed top-6 right-6">
+                <ThemeToggle />
+            </div>
+
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

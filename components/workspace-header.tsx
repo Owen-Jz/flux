@@ -5,6 +5,7 @@ import { Bell, MessageSquare, X, Check, Clock, User, AlertCircle, ArrowRight, Lo
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { getActivities, getCommentActivities, markActivityAsRead, markAllActivitiesAsRead } from '@/actions/activity';
+import { ThemeToggle } from './theme-toggle';
 
 interface Activity {
     id: string;
@@ -69,7 +70,7 @@ function getActivityIcon(type: string) {
         case 'TASK_DELETED':
             return <X className="w-4 h-4 text-red-500" />;
         default:
-            return <Bell className="w-4 h-4 text-gray-500" />;
+            return <Bell className="w-4 h-4 text-[var(--text-secondary)]" />;
     }
 }
 
@@ -122,7 +123,7 @@ export function WorkspaceHeader() {
     };
 
     const handleMarkAsRead = async (id: string) => {
-        await markActivityAsRead(id);
+        await markActivityAsRead(id, workspaceSlug);
         setActivities(activities.map(a =>
             a.id === id ? { ...a, read: true } : a
         ));
@@ -148,6 +149,9 @@ export function WorkspaceHeader() {
 
     return (
         <div className="hidden md:flex items-center gap-2">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* Comments Button */}
             <div className="relative">
                 <button
@@ -155,10 +159,10 @@ export function WorkspaceHeader() {
                         setShowComments(!showComments);
                         setShowNotifications(false);
                     }}
-                    className="relative p-2.5 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all group"
+                    className="relative p-2.5 rounded-xl bg-surface border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group"
                     title="Recent Comments"
                 >
-                    <MessageSquare className="w-5 h-5 text-gray-500 group-hover:text-[var(--brand-primary)] transition-colors" />
+                    <MessageSquare className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
                 </button>
 
                 <AnimatePresence>
@@ -173,35 +177,35 @@ export function WorkspaceHeader() {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute right-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
+                                className="absolute right-0 top-full mt-2 w-96 bg-surface rounded-2xl shadow-2xl border border-[var(--border-subtle)] z-50 overflow-hidden"
                             >
-                                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                                    <h3 className="font-bold text-gray-900">Recent Comments</h3>
+                                <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
+                                    <h3 className="font-bold text-[var(--text-primary)]">Recent Comments</h3>
                                     <button
                                         onClick={() => setShowComments(false)}
-                                        className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                                        className="p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
                                     >
-                                        <X className="w-4 h-4 text-gray-400" />
+                                        <X className="w-4 h-4 text-[var(--text-tertiary)]" />
                                     </button>
                                 </div>
                                 <div className="max-h-[400px] overflow-y-auto">
                                     {isLoadingComments ? (
                                         <div className="p-8 text-center">
-                                            <Loader2 className="w-6 h-6 animate-spin mx-auto text-gray-400" />
-                                            <p className="text-sm text-gray-400 mt-2">Loading comments...</p>
+                                            <Loader2 className="w-6 h-6 animate-spin mx-auto text-[var(--text-tertiary)]" />
+                                            <p className="text-sm text-[var(--text-tertiary)] mt-2">Loading comments...</p>
                                         </div>
                                     ) : comments.length === 0 ? (
                                         <div className="p-8 text-center">
-                                            <MessageSquare className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                                            <p className="text-sm text-gray-400">No comments yet</p>
-                                            <p className="text-xs text-gray-300 mt-1">Comments will appear here when team members add them</p>
+                                            <MessageSquare className="w-10 h-10 text-[var(--text-tertiary)] mx-auto mb-3" />
+                                            <p className="text-sm text-[var(--text-tertiary)]">No comments yet</p>
+                                            <p className="text-xs text-[var(--text-tertiary)] mt-1">Comments will appear here when team members add them</p>
                                         </div>
                                     ) : (
                                         comments.map((comment) => (
                                             <div
                                                 key={comment.id}
                                                 onClick={() => handleCommentClick(comment)}
-                                                className="p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer"
+                                                className="p-4 border-b border-[var(--border-subtle)] hover:bg-[var(--background-subtle)] transition-colors cursor-pointer"
                                             >
                                                 <div className="flex items-start gap-3">
                                                     <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--brand-primary)] to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
@@ -209,18 +213,18 @@ export function WorkspaceHeader() {
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2 mb-1">
-                                                            <span className="text-sm font-semibold text-gray-900">
+                                                            <span className="text-sm font-semibold text-[var(--text-primary)]">
                                                                 {comment.user?.name || 'Unknown'}
                                                             </span>
-                                                            <span className="text-xs text-gray-400">
+                                                            <span className="text-xs text-[var(--text-tertiary)]">
                                                                 {formatTimeAgo(comment.createdAt)}
                                                             </span>
                                                         </div>
-                                                        <p className="text-sm text-gray-600 line-clamp-2">
+                                                        <p className="text-sm text-[var(--text-secondary)] line-clamp-2">
                                                             {comment.content}
                                                         </p>
-                                                        <p className="text-xs text-gray-400 mt-1">
-                                                            on <span className="font-medium text-gray-500">{comment.taskTitle}</span>
+                                                        <p className="text-xs text-[var(--text-tertiary)] mt-1">
+                                                            on <span className="font-medium text-[var(--text-secondary)]">{comment.taskTitle}</span>
                                                         </p>
                                                     </div>
                                                 </div>
@@ -241,10 +245,10 @@ export function WorkspaceHeader() {
                         setShowNotifications(!showNotifications);
                         setShowComments(false);
                     }}
-                    className="relative p-2.5 rounded-xl bg-white border border-gray-100 shadow-sm hover:shadow-md hover:border-gray-200 transition-all group"
+                    className="relative p-2.5 rounded-xl bg-surface border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group"
                     title="Notifications"
                 >
-                    <Bell className="w-5 h-5 text-gray-500 group-hover:text-[var(--brand-primary)] transition-colors" />
+                    <Bell className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
                     {unreadCount > 0 && (
                         <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm animate-pulse">
                             {unreadCount}
@@ -264,10 +268,10 @@ export function WorkspaceHeader() {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute right-0 top-full mt-2 w-96 bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden"
+                                className="absolute right-0 top-full mt-2 w-96 bg-surface rounded-2xl shadow-2xl border border-[var(--border-subtle)] z-50 overflow-hidden"
                             >
-                                <div className="p-4 border-b border-gray-100 flex items-center justify-between">
-                                    <h3 className="font-bold text-gray-900">Activity Log</h3>
+                                <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
+                                    <h3 className="font-bold text-[var(--text-primary)]">Activity Log</h3>
                                     <div className="flex items-center gap-2">
                                         {unreadCount > 0 && (
                                             <button
@@ -279,40 +283,40 @@ export function WorkspaceHeader() {
                                         )}
                                         <button
                                             onClick={() => setShowNotifications(false)}
-                                            className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+                                            className="p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
                                         >
-                                            <X className="w-4 h-4 text-gray-400" />
+                                            <X className="w-4 h-4 text-[var(--text-tertiary)]" />
                                         </button>
                                     </div>
                                 </div>
                                 <div className="max-h-[400px] overflow-y-auto">
                                     {isLoadingActivities ? (
                                         <div className="p-8 text-center">
-                                            <Loader2 className="w-6 h-6 animate-spin mx-auto text-gray-400" />
-                                            <p className="text-sm text-gray-400 mt-2">Loading activities...</p>
+                                            <Loader2 className="w-6 h-6 animate-spin mx-auto text-[var(--text-tertiary)]" />
+                                            <p className="text-sm text-[var(--text-tertiary)] mt-2">Loading activities...</p>
                                         </div>
                                     ) : activities.length === 0 ? (
                                         <div className="p-8 text-center">
-                                            <Bell className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                                            <p className="text-sm text-gray-400">No activities yet</p>
-                                            <p className="text-xs text-gray-300 mt-1">Activities will appear here as changes are made</p>
+                                            <Bell className="w-10 h-10 text-[var(--text-tertiary)] mx-auto mb-3" />
+                                            <p className="text-sm text-[var(--text-tertiary)]">No activities yet</p>
+                                            <p className="text-xs text-[var(--text-tertiary)] mt-1">Activities will appear here as changes are made</p>
                                         </div>
                                     ) : (
                                         activities.map((activity) => (
                                             <div
                                                 key={activity.id}
                                                 onClick={() => handleActivityClick(activity)}
-                                                className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors cursor-pointer ${!activity.read ? 'bg-blue-50/50' : ''
+                                                className={`p-4 border-b border-[var(--border-subtle)] hover:bg-[var(--background-subtle)] transition-colors cursor-pointer ${!activity.read ? 'bg-info-bg/50' : ''
                                                     }`}
                                             >
                                                 <div className="flex items-start gap-3">
-                                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${!activity.read ? 'bg-white shadow-sm' : 'bg-gray-100'
+                                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${!activity.read ? 'bg-surface shadow-sm' : 'bg-[var(--background-subtle)]'
                                                         }`}>
                                                         {getActivityIcon(activity.type)}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2 mb-0.5">
-                                                            <span className={`text-sm font-semibold ${!activity.read ? 'text-gray-900' : 'text-gray-600'
+                                                            <span className={`text-sm font-semibold ${!activity.read ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'
                                                                 }`}>
                                                                 {activity.title}
                                                             </span>
@@ -320,16 +324,16 @@ export function WorkspaceHeader() {
                                                                 <span className="w-2 h-2 rounded-full bg-[var(--brand-primary)]" />
                                                             )}
                                                         </div>
-                                                        <p className="text-sm text-gray-500 line-clamp-2">
+                                                        <p className="text-sm text-[var(--text-secondary)] line-clamp-2">
                                                             {activity.description}
                                                         </p>
                                                         <div className="flex items-center gap-2 mt-1">
                                                             {activity.user && (
-                                                                <span className="text-xs text-gray-400">
+                                                                <span className="text-xs text-[var(--text-tertiary)]">
                                                                     by {activity.user.name}
                                                                 </span>
                                                             )}
-                                                            <span className="text-xs text-gray-400">
+                                                            <span className="text-xs text-[var(--text-tertiary)]">
                                                                 • {formatTimeAgo(activity.createdAt)}
                                                             </span>
                                                         </div>

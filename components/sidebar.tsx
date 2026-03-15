@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import BoardList from './BoardList';
+import { OnboardingChecklist } from './onboarding/onboarding-checklist';
 
 interface Workspace {
     id: string;
@@ -141,6 +142,11 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Onboarding Checklist */}
+            {currentWorkspace && (
+                <OnboardingChecklist workspaceSlug={currentWorkspace.slug} />
+            )}
 
             {/* Boards */}
             {currentWorkspace && (

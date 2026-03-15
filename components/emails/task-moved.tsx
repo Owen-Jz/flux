@@ -34,6 +34,7 @@ export const TaskMovedEmail = ({
     const s = status.toUpperCase();
     if (s.includes('DONE')) return 'text-green-600';
     if (s.includes('PROGRESS')) return 'text-blue-600';
+    if (s.includes('REVIEW')) return 'text-purple-600';
     return 'text-gray-600';
   };
 

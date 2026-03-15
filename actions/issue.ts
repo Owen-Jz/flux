@@ -86,9 +86,18 @@ export async function createIssue(workspaceSlug: string, data: CreateIssueData) 
 }
 
 export async function getIssues(workspaceSlug: string) {
+    const session = await auth();
+    if (!session?.user?.id) return [];
+
     await connectDB();
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) return [];
+
+    // Verify user is a member
+    const isMember = workspace.members.some(
+        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+    );
+    if (!isMember) return [];
 
     const issues = await Issue.find({ workspaceId: workspace._id })
         .populate('reporterId', 'name image')

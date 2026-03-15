@@ -32,9 +32,9 @@ export default async function WorkspaceLayout({
         redirect('/login');
     }
 
-    // If logged in, check membership
+    // If logged in, check membership (compare strings since userId from DB is ObjectId)
     const isMember = session?.user
-        ? workspace.members.some((m) => m.userId === session.user.id)
+        ? workspace.members.some((m) => m.userId === session.user.id || m.userId.toString() === session.user.id)
         : false;
 
     // Determine if user is a public viewer (logged out OR not a member)

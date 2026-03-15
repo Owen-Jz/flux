@@ -4,6 +4,10 @@ import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Workspace, MemberRole } from '@/models/Workspace';
 import { AccessRequest } from '@/models/AccessRequest';
+import { Board } from '@/models/Board';
+import { Task } from '@/models/Task';
+import { Issue } from '@/models/Issue';
+import { ActivityLog } from '@/models/ActivityLog';
 import { revalidatePath } from 'next/cache';
 import { Types } from 'mongoose';
 
@@ -287,6 +291,27 @@ export async function deleteWorkspace(workspaceSlug: string) {
 
     // Delete all access requests for this workspace
     await AccessRequest.deleteMany({ workspaceId: workspace._id });
+
+    // Delete all boards in this workspace
+    const boards = await Board.find({ workspaceId: workspace._id });
+    const boardIds = boards.map(b => b._id);
+
+    // Delete all tasks in these boards
+    if (boardIds.length > 0) {
+        await Task.deleteMany({ boardId: { $in: boardIds } });
+    }
+
+    // Delete all tasks directly in the workspace (if any)
+    await Task.deleteMany({ workspaceId: workspace._id });
+
+    // Delete all issues in this workspace
+    await Issue.deleteMany({ workspaceId: workspace._id });
+
+    // Delete all activity logs for this workspace
+    await ActivityLog.deleteMany({ workspaceId: workspace._id });
+
+    // Delete all boards
+    await Board.deleteMany({ workspaceId: workspace._id });
 
     // Delete the workspace
     await Workspace.deleteOne({ _id: workspace._id });

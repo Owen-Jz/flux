@@ -117,10 +117,23 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
 }
 
 export async function getTasks(workspaceSlug: string, boardSlug: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return [];
+    }
+
     await connectDB();
 
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) {
+        return [];
+    }
+
+    // Verify user is a member
+    const isMember = workspace.members.some(
+        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+    );
+    if (!isMember) {
         return [];
     }
 

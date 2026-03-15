@@ -11,7 +11,7 @@ interface ColumnProps {
     title: string;
     tasks: TaskData[];
     isReadOnly?: boolean;
-    isDragDisabled?: boolean; // New prop
+    isDragDisabled?: boolean;
     onAddTask?: () => void;
     onUpdateTask?: (taskId: string, data: Partial<TaskData>) => void;
     onDeleteTask?: (taskId: string) => void;
@@ -21,9 +21,10 @@ interface ColumnProps {
 }
 
 const columnColors: Record<string, string> = {
-    BACKLOG: 'bg-slate-400',
+    BACKLOG: 'bg-[var(--text-tertiary)]',
     TODO: 'bg-blue-500',
     IN_PROGRESS: 'bg-amber-500',
+    REVIEW: 'bg-purple-500',
     DONE: 'bg-emerald-500',
 };
 
@@ -47,18 +48,18 @@ export function Column({
             {/* Header */}
             <div className="flex items-center justify-between mb-4 px-1">
                 <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${columnColors[id] || 'bg-gray-400'}`} />
-                    <h2 className="font-semibold text-sm text-[var(--foreground)]">
+                    <div className={`w-2 h-2 rounded-full ${columnColors[id] || 'bg-[var(--text-tertiary)]'}`} />
+                    <h2 className="font-semibold text-sm text-[var(--text-primary)]">
                         {title}
                     </h2>
-                    <span className="text-xs text-[var(--text-secondary)] bg-[var(--surface)] px-2 py-0.5 rounded-full">
+                    <span className="text-xs text-[var(--text-secondary)] bg-[var(--background-subtle)] px-2 py-0.5 rounded-full">
                         {tasks.length}
                     </span>
                 </div>
                 {!isReadOnly && (
                     <button
                         onClick={onAddTask}
-                        className="add-task-btn p-1.5 rounded-lg hover:bg-[var(--surface)] transition-colors"
+                        className="add-task-btn p-1.5 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
                     >
                         <Plus className="w-4 h-4 text-[var(--text-secondary)]" />
                     </button>
@@ -68,8 +69,11 @@ export function Column({
             {/* Task List */}
             <div
                 ref={setNodeRef}
-                className={`flex-1 flex flex-col gap-3 relative p-2 rounded-xl transition-colors min-h-[200px] ${isOver ? 'bg-[var(--brand-primary)]/5 ring-2 ring-[var(--brand-primary)]/20' : 'bg-[var(--surface)]/50'
-                    }`}
+                className={`flex-1 flex flex-col gap-3 relative p-2 rounded-xl transition-colors min-h-[200px] ${
+                    isOver
+                        ? 'bg-[var(--flux-info-bg)] ring-2 ring-[var(--flux-info-border)]'
+                        : 'bg-[var(--background-subtle)]/50'
+                }`}
             >
                 <SortableContext
                     items={tasks.map((t) => t.id)}

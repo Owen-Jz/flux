@@ -3,6 +3,7 @@
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Board } from '@/models/Board';
+import { Task } from '@/models/Task';
 import { Workspace } from '@/models/Workspace';
 import { revalidatePath } from 'next/cache';
 import { Types } from 'mongoose';
@@ -35,7 +36,7 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
         throw new Error('You do not have permission to create boards');
     }
 
-    // Generate slug from name
+    // Generate slug from name (consistent with workspace slug normalization)
     const slug = data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
     // Check if board with this slug exists in this workspace
@@ -57,10 +58,23 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
 }
 
 export async function getBoards(workspaceSlug: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return [];
+    }
+
     await connectDB();
 
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) {
+        return [];
+    }
+
+    // Verify user is a member
+    const isMember = workspace.members.some(
+        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+    );
+    if (!isMember) {
         return [];
     }
 
@@ -78,10 +92,23 @@ export async function getBoards(workspaceSlug: string) {
 }
 
 export async function getBoardCategories(workspaceSlug: string, boardSlug: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return [];
+    }
+
     await connectDB();
 
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) {
+        return [];
+    }
+
+    // Verify user is a member
+    const isMember = workspace.members.some(
+        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+    );
+    if (!isMember) {
         return [];
     }
 
@@ -98,10 +125,23 @@ export async function getBoardCategories(workspaceSlug: string, boardSlug: strin
 }
 
 export async function getBoardBySlug(workspaceSlug: string, boardSlug: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return null;
+    }
+
     await connectDB();
 
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) {
+        return null;
+    }
+
+    // Verify user is a member
+    const isMember = workspace.members.some(
+        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+    );
+    if (!isMember) {
         return null;
     }
 
@@ -191,7 +231,9 @@ export async function deleteBoard(workspaceSlug: string, boardSlug: string) {
         throw new Error('Board not found');
     }
 
-    // Note: You may want to also delete or archive tasks associated with this board
+    // Delete all tasks associated with this board
+    await Task.deleteMany({ boardId: board._id });
+
     await Board.findByIdAndDelete(board._id);
 
     revalidatePath(`/${workspaceSlug}`);

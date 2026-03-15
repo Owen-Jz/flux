@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useOptimistic, useTransition, useEffect } from 'react';
+import { useState, useOptimistic, useTransition, useEffect, useMemo, useCallback } from 'react';
 import {
     DndContext,
     DragEndEvent,
@@ -17,15 +17,18 @@ import { Column } from './column';
 import { TaskCard, TaskData, Member } from './task-card';
 import { TaskDetailModal } from './task-detail-modal';
 import { updateTaskPosition, createTask, updateTask, deleteTask } from '@/actions/task';
+import { updateOnboardingProgress } from '@/actions/onboarding';
 import type { TaskStatus, TaskPriority } from '@/models/Task';
-import { Plus, X, Loader2, Search, Filter, User, Settings } from 'lucide-react';
+import { Plus, X, Loader2, Search, User, Settings, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EditBoardModal from '../EditBoardModal';
+import { useSocket } from '@/contexts/socket-context';
 
 interface BoardProps {
     initialTasks: TaskData[];
     workspaceSlug: string;
     boardSlug?: string;
+    boardId?: string;
     isReadOnly?: boolean;
     members?: Member[];
     boardName?: string;
@@ -35,12 +38,13 @@ interface BoardProps {
     currentUserId?: string;
 }
 
-type ColumnId = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'DONE';
+type ColumnId = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
 
 const columns: { id: ColumnId; title: string }[] = [
     { id: 'BACKLOG', title: 'Backlog' },
     { id: 'TODO', title: 'To Do' },
     { id: 'IN_PROGRESS', title: 'In Progress' },
+    { id: 'REVIEW', title: 'Review' },
     { id: 'DONE', title: 'Done' },
 ];
 
@@ -48,6 +52,7 @@ export function Board({
     initialTasks,
     workspaceSlug,
     boardSlug,
+    boardId,
     isReadOnly = false,
     members = [],
     boardName = 'Board',
@@ -73,6 +78,89 @@ export function Board({
     useEffect(() => {
         setLocalCategories(categories);
     }, [categories]);
+
+    // Socket real-time handling
+    const {
+        isConnected,
+        onlineUsers,
+        emitTaskMoved,
+        emitTaskUpdated,
+        emitTaskCreated,
+        emitTaskDeleted,
+        onTaskMoved,
+        onTaskUpdated,
+        onTaskCreated,
+        onTaskDeleted,
+    } = useSocket();
+
+    // Listen for remote task moves
+    useEffect(() => {
+        if (!boardId || isReadOnly) return;
+
+        const unsubscribe = onTaskMoved((data) => {
+            // Don't process our own moves
+            if (data.movedBy?.id === currentUserId) return;
+
+            setTasks((prev) =>
+                prev.map((t) =>
+                    t.id === data.taskId
+                        ? { ...t, status: data.toColumn as TaskStatus, order: data.newIndex }
+                        : t
+                )
+            );
+        });
+
+        return unsubscribe;
+    }, [boardId, isReadOnly, currentUserId, onTaskMoved]);
+
+    // Listen for remote task updates
+    useEffect(() => {
+        if (!boardId || isReadOnly) return;
+
+        const unsubscribe = onTaskUpdated((data) => {
+            // Don't process our own updates
+            if (data.updatedBy?.id === currentUserId) return;
+
+            setTasks((prev) =>
+                prev.map((t) =>
+                    t.id === data.taskId ? { ...t, ...data.updates } : t
+                )
+            );
+        });
+
+        return unsubscribe;
+    }, [boardId, isReadOnly, currentUserId, onTaskUpdated]);
+
+    // Listen for remote task creation
+    useEffect(() => {
+        if (!boardId || isReadOnly) return;
+
+        const unsubscribe = onTaskCreated((data) => {
+            // Don't process our own creates
+            if (data.createdBy?.id === currentUserId) return;
+
+            if (data.task) {
+                setTasks((prev) => [...prev, data.task as unknown as TaskData]);
+            }
+        });
+
+        return unsubscribe;
+    }, [boardId, isReadOnly, currentUserId, onTaskCreated]);
+
+    // Listen for remote task deletion
+    useEffect(() => {
+        if (!boardId || isReadOnly) return;
+
+        const unsubscribe = onTaskDeleted((data) => {
+            // Don't process our own deletes
+            if (data.deletedBy?.id === currentUserId) return;
+
+            setTasks((prev) => prev.filter((t) => t.id !== data.taskId));
+        });
+
+        return unsubscribe;
+    }, [boardId, isReadOnly, currentUserId, onTaskDeleted]);
+
     const [activeTask, setActiveTask] = useState<TaskData | null>(null);
     const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
     const [isAddingTask, setIsAddingTask] = useState<ColumnId | null>(null);
@@ -116,28 +204,31 @@ export function Board({
         })
     );
 
-    const filteredTasks = optimisticTasks.filter(task => {
-        const matchesSearch = !searchQuery ||
-            task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            task.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const filteredTasks = useMemo(() => {
+        const lowerSearchQuery = searchQuery.toLowerCase();
+        return optimisticTasks.filter(task => {
+            const matchesSearch = !searchQuery ||
+                task.title.toLowerCase().includes(lowerSearchQuery) ||
+                task.description?.toLowerCase().includes(lowerSearchQuery);
 
-        const matchesMyTasks = !filterMyTasks ||
-            (currentUserId && task.assignees.some(a => a.id === currentUserId));
+            const matchesMyTasks = !filterMyTasks ||
+                (currentUserId && task.assignees.some(a => a.id === currentUserId));
 
-        const matchesPriority = filterPriority === 'ALL' || task.priority === filterPriority;
+            const matchesPriority = filterPriority === 'ALL' || task.priority === filterPriority;
 
-        const matchesMember = filterMemberId === 'ALL' || task.assignees.some(a => a.id === filterMemberId);
+            const matchesMember = filterMemberId === 'ALL' || task.assignees.some(a => a.id === filterMemberId);
 
-        const matchesCategory = filterCategoryId === 'ALL' || task.categoryId === filterCategoryId;
+            const matchesCategory = filterCategoryId === 'ALL' || task.categoryId === filterCategoryId;
 
-        return matchesSearch && matchesMyTasks && matchesPriority && matchesMember && matchesCategory;
-    });
+            return matchesSearch && matchesMyTasks && matchesPriority && matchesMember && matchesCategory;
+        });
+    }, [optimisticTasks, searchQuery, filterMyTasks, filterPriority, filterMemberId, filterCategoryId, currentUserId]);
 
-    const getTasksByColumn = (columnId: string) => {
+    const getTasksByColumn = useCallback((columnId: string) => {
         return filteredTasks
             .filter((task) => task.status === columnId)
             .sort((a, b) => a.order - b.order);
-    };
+    }, [filteredTasks]);
 
     const handleDragStart = (event: DragStartEvent) => {
         const task = tasks.find((t) => t.id === event.active.id);
@@ -243,6 +334,19 @@ export function Board({
         startTransition(async () => {
             try {
                 await updateTaskPosition(activeId, targetColumn as TaskStatus, newOrder);
+
+                // Emit socket event for real-time sync
+                if (boardId) {
+                    emitTaskMoved({
+                        taskId: activeId,
+                        fromColumn: activeTask.status,
+                        toColumn: targetColumn,
+                        newIndex: newOrder,
+                    });
+                }
+
+                // Track onboarding progress - drag and drop
+                await updateOnboardingProgress('completedFirstDragDrop');
             } catch (error) {
                 console.error('Failed to update task position:', error);
                 // Revert on error
@@ -288,6 +392,16 @@ export function Board({
                     ...prev.filter((t) => t.id !== tempId),
                     { ...newTask, id: result.id },
                 ]);
+
+                // Emit socket event for real-time sync
+                if (boardId) {
+                    emitTaskCreated({
+                        task: { ...newTask, id: result.id },
+                    });
+                }
+
+                // Track onboarding progress
+                await updateOnboardingProgress('createdFirstTask');
             } catch (error) {
                 console.error('Failed to create task:', error);
                 setTasks((prev) => prev.filter((t) => t.id !== tempId));
@@ -324,6 +438,14 @@ export function Board({
                     categoryId: data.categoryId,
                     status: data.status as TaskStatus,
                 });
+
+                // Emit socket event for real-time sync
+                if (boardId) {
+                    emitTaskUpdated({
+                        taskId,
+                        updates: data,
+                    });
+                }
             } catch (error) {
                 console.error('Failed to update task:', error);
                 setTasks((prev) => prev.map((t) => (t.id === taskId ? task : t)));
@@ -345,6 +467,11 @@ export function Board({
 
             try {
                 await deleteTask(taskId);
+
+                // Emit socket event for real-time sync
+                if (boardId) {
+                    emitTaskDeleted({ taskId });
+                }
             } catch (error) {
                 console.error('Failed to delete task:', error);
                 setTasks((prev) => [...prev, task]);
@@ -353,7 +480,7 @@ export function Board({
     };
 
     return (
-        <div className="h-full p-6 overflow-x-auto">
+        <div className="h-full p-6 overflow-x-auto relative">
             {/* Board Header */}
             <div id="board-header" className="mb-8 flex items-start justify-between pr-40">
                 <div>
@@ -381,6 +508,42 @@ export function Board({
                         <Settings className="w-5 h-5" />
                     </button>
                 )}
+
+                {/* Presence Indicators */}
+                {onlineUsers.length > 0 && (
+                    <div className="absolute right-6 top-6 flex items-center -space-x-2">
+                        <div className="flex items-center gap-1 text-sm text-[var(--text-secondary)] mr-2">
+                            <Users className="w-4 h-4" />
+                            <span>{onlineUsers.length}</span>
+                        </div>
+                        {onlineUsers.slice(0, 5).map((user) => (
+                            <div
+                                key={user.socketId}
+                                className="relative group"
+                            >
+                                {user.image ? (
+                                    <img
+                                        src={user.image}
+                                        alt={user.name}
+                                        className="w-8 h-8 rounded-full border-2 border-[var(--background)]"
+                                    />
+                                ) : (
+                                    <div className="w-8 h-8 rounded-full border-2 border-[var(--background)] bg-[var(--brand-primary)] flex items-center justify-center text-white text-xs font-medium">
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                                <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-[var(--text-secondary)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {user.name}
+                                </span>
+                            </div>
+                        ))}
+                        {onlineUsers.length > 5 && (
+                            <div className="w-8 h-8 rounded-full border-2 border-[var(--background)] bg-[var(--surface)] flex items-center justify-center text-xs text-[var(--text-secondary)]">
+                                +{onlineUsers.length - 5}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
@@ -402,7 +565,7 @@ export function Board({
                             onClick={() => setFilterMyTasks(!filterMyTasks)}
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${filterMyTasks
                                 ? 'bg-[var(--brand-primary)] text-white border-[var(--brand-primary)]'
-                                : 'bg-white text-[var(--text-secondary)] border-[var(--border-subtle)] hover:bg-gray-50'
+                                : 'bg-[var(--surface)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:bg-[var(--background-subtle)]'
                                 }`}
                         >
                             <User className="w-4 h-4" />
@@ -413,7 +576,7 @@ export function Board({
                     <select
                         value={filterPriority}
                         onChange={(e) => setFilterPriority(e.target.value as any)}
-                        className="px-3 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] bg-white text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                        className="px-3 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
                     >
                         <option value="ALL">All Priorities</option>
                         <option value="HIGH">High Priority</option>
@@ -424,7 +587,7 @@ export function Board({
                     <select
                         value={filterMemberId}
                         onChange={(e) => setFilterMemberId(e.target.value)}
-                        className="px-3 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] bg-white text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                        className="px-3 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
                     >
                         <option value="ALL">All Members</option>
                         {members.map(member => (
@@ -438,7 +601,7 @@ export function Board({
                         <select
                             value={filterCategoryId}
                             onChange={(e) => setFilterCategoryId(e.target.value)}
-                            className="px-3 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] bg-white text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                            className="px-3 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
                         >
                             <option value="ALL">All Categories</option>
                             {localCategories.map(cat => (

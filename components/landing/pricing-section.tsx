@@ -2,6 +2,7 @@
 
 import { Check } from "lucide-react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 const plans = [
     {
@@ -60,73 +61,90 @@ const plans = [
 
 export const PricingSection = () => {
     return (
-        <section id="pricing" className="py-24 px-6 relative overflow-hidden">
-            <div className="max-w-7xl mx-auto">
-                <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-sm font-bold text-[var(--brand-primary)] uppercase tracking-widest mb-4">Pricing</h2>
-                    <h3 className="text-4xl md:text-5xl font-bold text-[var(--foreground)] mb-6">
+        <section id="pricing" className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-slate-50 bg-slate-900/50 relative overflow-hidden" aria-labelledby="pricing-heading">
+            {/* Background effects */}
+            <div className="absolute inset-0" aria-hidden="true">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-100 bg-indigo-900/20 rounded-full blur-[100px]" />
+            </div>
+
+            <div className="max-w-7xl mx-auto relative z-10">
+                <div className="text-center max-w-3xl mx-auto mb-12 lg:mb-16">
+                    <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 bg-indigo-900/30 text-indigo-700 text-indigo-300 text-xs font-bold uppercase tracking-widest mb-4">
+                        Pricing
+                    </span>
+                    <h2 id="pricing-heading" className="text-4xl lg:text-5xl font-black text-slate-900 text-white mb-6 tracking-tight">
                         Simple, transparent pricing
-                    </h3>
-                    <p className="text-xl text-[var(--text-secondary)]">
+                    </h2>
+                    <p className="text-lg text-slate-600 text-slate-300">
                         Choose the plan that's right for your team. All plans include a 14-day free trial.
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-3 gap-8 items-start">
-                    {plans.map((plan) => (
-                        <div
+                <div className="grid md:grid-cols-3 gap-6 lg:gap-8 items-start">
+                    {plans.map((plan, index) => (
+                        <motion.div
                             key={plan.name}
-                            className={`relative rounded-[24px] p-8 transition-all duration-500 overflow-hidden ${plan.popular
-                                    ? 'bg-slate-900 text-white shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] scale-105 z-10'
-                                    : 'bg-white border border-[var(--border-subtle)] text-[var(--foreground)] hover:shadow-premium'
-                                }`}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: index * 0.1 }}
+                            className={`relative rounded-2xl p-6 lg:p-8 transition-all duration-300 ${
+                                plan.popular
+                                    ? 'bg-slate-900 bg-slate-800 text-white shadow-2xl scale-105 z-10 ring-2 ring-indigo-500'
+                                    : 'bg-white bg-slate-800 border border-slate-200 border-slate-700 text-slate-900 text-white hover:shadow-xl'
+                            }`}
                         >
                             {plan.popular && (
-                                <>
-                                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" />
-                                    <div className="noise opacity-10" />
-                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/20">
-                                        Best Value
-                                    </div>
-                                </>
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-lg">
+                                    Most Popular
+                                </div>
                             )}
 
-                            <div className="mb-10">
-                                <h4 className={`text-sm font-bold uppercase tracking-[0.2em] mb-4 ${plan.popular ? 'text-indigo-400' : 'text-[var(--text-secondary)]'}`}>
+                            <div className="mb-6 lg:mb-8">
+                                <h3 className={`text-sm font-bold uppercase tracking-wider mb-3 ${
+                                    plan.popular ? 'text-indigo-400' : 'text-slate-500 text-slate-400'
+                                }`}>
                                     {plan.name}
-                                </h4>
-                                <div className="flex items-baseline gap-1 mb-6">
-                                    <span className="text-5xl font-bold tracking-tight">{plan.price}</span>
-                                    <span className={`text-sm font-medium ${plan.popular ? 'text-slate-400' : 'text-[var(--text-secondary)]'}`}>{plan.period}</span>
+                                </h3>
+                                <div className="flex items-baseline gap-1 mb-4">
+                                    <span className="text-4xl lg:text-5xl font-black tracking-tight">{plan.price}</span>
+                                    <span className={`text-sm font-medium ${plan.popular ? 'text-slate-400' : 'text-slate-500 text-slate-400'}`}>
+                                        {plan.period}
+                                    </span>
                                 </div>
-                                <p className={`text-sm leading-relaxed ${plan.popular ? 'text-slate-400' : 'text-[var(--text-secondary)]'}`}>
+                                <p className={`text-sm leading-relaxed ${plan.popular ? 'text-slate-400' : 'text-slate-600 text-slate-300'}`}>
                                     {plan.description}
                                 </p>
                             </div>
 
-                            <div className="flex-1 mb-10">
-                                <ul className="space-y-4">
-                                    {plan.features.map((feature) => (
-                                        <li key={feature} className="flex items-start gap-3 text-sm">
-                                            <div className={`mt-0.5 p-0.5 rounded-full ${plan.popular ? 'bg-indigo-500/20 text-indigo-400' : 'bg-indigo-50 text-indigo-500'}`}>
-                                                <Check className="w-3.5 h-3.5" />
-                                            </div>
-                                            <span className={plan.popular ? 'text-slate-300' : 'text-[var(--text-secondary)]'}>{feature}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
+                            <ul className="space-y-3 mb-6 lg:mb-8">
+                                {plan.features.map((feature) => (
+                                    <li key={feature} className="flex items-start gap-3 text-sm">
+                                        <div className={`mt-0.5 p-0.5 rounded-full ${
+                                            plan.popular
+                                                ? 'bg-indigo-500/20 text-indigo-400'
+                                                : 'bg-indigo-100 bg-indigo-900/50 text-indigo-600 text-indigo-400'
+                                        }`}>
+                                            <Check className="w-3 h-3" />
+                                        </div>
+                                        <span className={plan.popular ? 'text-slate-300' : 'text-slate-600 text-slate-300'}>
+                                            {feature}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
 
                             <Link
                                 href={plan.href}
-                                className={`w-full h-14 rounded-xl flex items-center justify-center font-bold transition-all duration-300 ${plan.popular
-                                        ? 'bg-white text-slate-900 hover:bg-slate-100 shadow-xl shadow-white/5'
-                                        : 'bg-slate-900 text-white hover:bg-slate-800'
-                                    }`}
+                                className={`w-full h-12 lg:h-14 rounded-xl flex items-center justify-center font-bold text-sm transition-all duration-200 ${
+                                    plan.popular
+                                        ? 'bg-white text-slate-900 hover:bg-slate-100'
+                                        : 'bg-slate-900 bg-slate-700 text-white hover:bg-slate-800 hover:bg-slate-600'
+                                }`}
                             >
                                 {plan.cta}
                             </Link>
-                        </div>
+                        </motion.div>
                     ))}
                 </div>
             </div>

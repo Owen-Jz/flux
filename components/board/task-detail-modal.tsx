@@ -18,9 +18,9 @@ interface TaskDetailModalProps {
 }
 
 const priorityColors = {
-    HIGH: 'bg-red-100 text-red-800 border-red-200',
-    MEDIUM: 'bg-amber-100 text-amber-800 border-amber-200',
-    LOW: 'bg-blue-100 text-blue-800 border-blue-200',
+    HIGH: 'bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800',
+    MEDIUM: 'bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+    LOW: 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
 };
 
 export function TaskDetailModal({
@@ -148,14 +148,14 @@ export function TaskDetailModal({
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-gray-100"
+                            className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)]"
                         >
                             {/* Header */}
-                            <div className="flex items-start justify-between p-8 border-b border-gray-100 bg-white">
+                            <div className="flex items-start justify-between p-8 border-b border-[var(--border-subtle)] bg-[var(--surface)]">
                                 {error && (
-                                    <div className="w-full mb-4 bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-3">
-                                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
-                                        <p className="text-sm font-medium text-red-800">{error}</p>
+                                    <div className="w-full mb-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-3">
+                                        <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 flex-shrink-0" />
+                                        <p className="text-sm font-medium text-red-800 dark:text-red-300">{error}</p>
                                         <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
                                             <X className="w-4 h-4" />
                                         </button>
@@ -163,7 +163,7 @@ export function TaskDetailModal({
                                 )}
                                 <div className="flex-1 mr-4">
                                     <div className="flex items-center gap-3 mb-2">
-                                        <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] tracking-wider uppercase border border-slate-200">
+                                        <span className="px-2.5 py-1 rounded-md bg-[var(--background-subtle)] text-[var(--text-secondary)] font-bold text-[10px] tracking-wider uppercase border border-[var(--border-subtle)]">
                                             {task.status.replace('_', ' ')}
                                         </span>
                                     </div>
@@ -173,27 +173,27 @@ export function TaskDetailModal({
                                         readOnly={isReadOnly}
                                         onChange={(e) => setTitle(e.target.value)}
                                         onBlur={handleSaveTitle}
-                                        className="w-full text-2xl font-bold bg-transparent border-none focus:ring-0 p-0 text-gray-900 placeholder-gray-300"
+                                        className="w-full text-2xl font-bold bg-transparent border-none focus:ring-0 p-0 text-[var(--text-primary)] placeholder-[var(--text-tertiary)]"
                                         placeholder="Task Title"
                                     />
                                 </div>
                                 <button
                                     onClick={onClose}
-                                    className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-900"
+                                    className="p-2 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                                 >
                                     <X className="w-6 h-6" />
                                 </button>
                             </div>
 
                             {/* Body */}
-                            <div className="flex-1 overflow-y-auto p-8 bg-[#fdfdfd]">
+                            <div className="flex-1 overflow-y-auto p-8 bg-[var(--background)]">
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
                                     {/* Main Content */}
                                     <div className="md:col-span-8 space-y-10">
                                         {/* Description */}
                                         <div className="group">
-                                            <div className="flex items-center gap-2.5 text-sm font-semibold text-gray-900 mb-3">
-                                                <AlignLeft className="w-4 h-4 text-gray-400" />
+                                            <div className="flex items-center gap-2.5 text-sm font-semibold text-[var(--text-primary)] mb-3">
+                                                <AlignLeft className="w-4 h-4 text-[var(--text-tertiary)]" />
                                                 Description
                                             </div>
                                             <textarea
@@ -202,15 +202,15 @@ export function TaskDetailModal({
                                                 onChange={(e) => setDescription(e.target.value)}
                                                 onBlur={handleSaveDescription}
                                                 placeholder={isReadOnly ? "No description provided." : "Add a more detailed description..."}
-                                                className="w-full min-h-[160px] text-[15px] text-gray-700 leading-relaxed bg-white border border-gray-200 rounded-xl p-4 focus:ring-4 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none shadow-sm"
+                                                className="w-full min-h-[160px] text-[15px] text-[var(--text-primary)] leading-relaxed bg-[var(--surface)] border border-[var(--border-default)] rounded-xl p-4 focus:ring-4 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none shadow-sm"
                                             />
                                         </div>
 
                                         {/* Subtasks */}
                                         <div>
                                             <div className="flex items-center justify-between mb-4">
-                                                <div className="flex items-center gap-2.5 text-sm font-semibold text-gray-900">
-                                                    <CheckSquare className="w-4 h-4 text-gray-400" />
+                                                <div className="flex items-center gap-2.5 text-sm font-semibold text-[var(--text-primary)]">
+                                                    <CheckSquare className="w-4 h-4 text-[var(--text-tertiary)]" />
                                                     Subtasks
                                                 </div>
                                                 {totalSubtasks > 0 && (
@@ -221,7 +221,7 @@ export function TaskDetailModal({
                                             </div>
 
                                             {totalSubtasks > 0 && (
-                                                <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden mb-5">
+                                                <div className="h-2 w-full bg-[var(--background-subtle)] rounded-full overflow-hidden mb-5">
                                                     <motion.div
                                                         initial={{ width: 0 }}
                                                         animate={{ width: `${progress}%` }}
@@ -234,7 +234,7 @@ export function TaskDetailModal({
                                                 {(task.subtasks || []).map((subtask) => (
                                                     <div
                                                         key={subtask.id}
-                                                        className="group flex items-center gap-3 p-2 rounded-xl hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-100 transition-all"
+                                                        className="group flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--surface)] hover:shadow-sm border border-transparent hover:border-[var(--border-subtle)] transition-all"
                                                     >
                                                         <button
                                                             disabled={isReadOnly}
@@ -243,14 +243,14 @@ export function TaskDetailModal({
                                                                 flex-shrink-0 w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center
                                                                 ${subtask.completed
                                                                     ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-lg shadow-[var(--brand-primary)]/20'
-                                                                    : 'bg-white border-gray-200 text-transparent hover:border-[var(--brand-primary)]'
+                                                                    : 'bg-[var(--surface)] border-[var(--border-default)] text-transparent hover:border-[var(--brand-primary)]'
                                                                 }
                                                             `}
                                                         >
                                                             <Check className="w-3.5 h-3.5 stroke-[3]" />
                                                         </button>
                                                         <span
-                                                            className={`flex-1 text-[14px] font-medium transition-all ${subtask.completed ? 'text-gray-400 line-through' : 'text-gray-700'
+                                                            className={`flex-1 text-[14px] font-medium transition-all ${subtask.completed ? 'text-[var(--text-tertiary)] line-through' : 'text-[var(--text-primary)]'
                                                                 }`}
                                                         >
                                                             {subtask.title}
@@ -258,7 +258,7 @@ export function TaskDetailModal({
                                                         {!isReadOnly && (
                                                             <button
                                                                 onClick={() => handleDeleteSubtask(subtask.id)}
-                                                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                                                                className="opacity-0 group-hover:opacity-100 p-2 text-[var(--text-tertiary)] hover:text-[var(--flux-error-primary)] hover:bg-[var(--flux-error-bg)] rounded-lg transition-all"
                                                             >
                                                                 <Trash2 className="w-4 h-4" />
                                                             </button>
@@ -269,7 +269,7 @@ export function TaskDetailModal({
                                                 {!isReadOnly && (
                                                     <div className="flex items-center gap-3 p-2 group/input relative">
                                                         <div className="w-5 h-5 flex items-center justify-center">
-                                                            <Plus className="w-4 h-4 text-gray-300 group-hover/input:text-[var(--brand-primary)] transition-colors" />
+                                                            <Plus className="w-4 h-4 text-[var(--text-tertiary)] group-hover/input:text-[var(--brand-primary)] transition-colors" />
                                                         </div>
                                                         <input
                                                             type="text"
@@ -279,7 +279,7 @@ export function TaskDetailModal({
                                                                 if (e.key === 'Enter') handleAddSubtask();
                                                             }}
                                                             placeholder="Add a subtask..."
-                                                            className="flex-1 bg-transparent text-[14px] border-none focus:ring-0 p-0 text-gray-700 placeholder-gray-400 font-medium"
+                                                            className="flex-1 bg-transparent text-[14px] border-none focus:ring-0 p-0 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] font-medium"
                                                         />
                                                         {newSubtaskTitle.trim() && (
                                                             <button
@@ -295,16 +295,16 @@ export function TaskDetailModal({
                                         </div>
 
                                         {/* Activity */}
-                                        <div className="pt-8 border-t border-gray-100">
-                                            <div className="flex items-center gap-2.5 text-sm font-semibold text-gray-900 mb-6">
-                                                <Clock className="w-4 h-4 text-gray-400" />
+                                        <div className="pt-8 border-t border-[var(--border-subtle)]">
+                                            <div className="flex items-center gap-2.5 text-sm font-semibold text-[var(--text-primary)] mb-6">
+                                                <Clock className="w-4 h-4 text-[var(--text-tertiary)]" />
                                                 Activity
                                             </div>
 
-                                            <div className="pl-6 border-l-2 border-gray-50 ml-2 space-y-8">
+                                            <div className="pl-6 border-l-2 border-[var(--border-subtle)] ml-2 space-y-8">
                                                 <div className="relative">
-                                                    <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-gray-200 border-2 border-white" />
-                                                    <p className="text-xs text-gray-500 font-medium">
+                                                    <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-[var(--background-subtle)] border-2 border-[var(--surface)]" />
+                                                    <p className="text-xs text-[var(--text-secondary)] font-medium">
                                                         Created on {new Date(task.createdAt).toLocaleString(undefined, {
                                                             dateStyle: 'medium',
                                                             timeStyle: 'short'
@@ -316,8 +316,8 @@ export function TaskDetailModal({
                                                 <div className="space-y-6">
                                                     {(task.comments || []).map((comment) => (
                                                         <div key={comment.id} className="flex gap-4 group/comment relative">
-                                                            <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-[var(--brand-primary)] border-2 border-white" />
-                                                            <div className="w-9 h-9 rounded-full bg-indigo-50 border border-indigo-100 flex-shrink-0 overflow-hidden shadow-sm">
+                                                            <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-[var(--brand-primary)] border-2 border-white dark:border-neutral-800" />
+                                                            <div className="w-9 h-9 rounded-full bg-[var(--flux-info-bg)] border border-[var(--flux-info-border)] flex-shrink-0 overflow-hidden shadow-sm">
                                                                 {comment.user?.image ? (
                                                                     <img
                                                                         src={comment.user.image}
@@ -326,29 +326,29 @@ export function TaskDetailModal({
                                                                         referrerPolicy="no-referrer"
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center text-[11px] font-bold text-indigo-500 uppercase">
+                                                                    <div className="w-full h-full flex items-center justify-center text-[11px] font-bold text-[var(--flux-info-text-strong)] uppercase">
                                                                         {comment.user?.name?.charAt(0) || '?'}
                                                                     </div>
                                                                 )}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex items-center gap-2 mb-1.5 min-h-[1.25rem]">
-                                                                    <span className="text-[13px] font-semibold text-gray-900 truncate">
+                                                                    <span className="text-[13px] font-semibold text-[var(--text-primary)] truncate">
                                                                         {comment.user?.name || 'Unknown User'}
                                                                     </span>
-                                                                    <span className="text-[11px] font-medium text-gray-400 whitespace-nowrap">
+                                                                    <span className="text-[11px] font-medium text-[var(--text-tertiary)] whitespace-nowrap">
                                                                         {new Date(comment.createdAt).toLocaleDateString()}
                                                                     </span>
                                                                     {(session?.user?.id === comment.userId || !isReadOnly) && (
                                                                         <button
                                                                             onClick={() => handleDeleteComment(comment.id)}
-                                                                            className="opacity-0 group-hover/comment:opacity-100 ml-auto p-1.5 text-gray-400 hover:text-red-500 transition-all"
+                                                                            className="opacity-0 group-hover/comment:opacity-100 ml-auto p-1.5 text-[var(--text-tertiary)] hover:text-[var(--flux-error-primary)] transition-all"
                                                                         >
                                                                             <Trash2 className="w-3.5 h-3.5" />
                                                                         </button>
                                                                     )}
                                                                 </div>
-                                                                <div className="text-[14px] text-gray-700 bg-white rounded-2xl p-4 border border-gray-100 shadow-sm leading-relaxed">
+                                                                <div className="text-[14px] text-[var(--text-primary)] bg-[var(--surface)] rounded-2xl p-4 border border-[var(--border-subtle)] shadow-sm leading-relaxed">
                                                                     {comment.content}
                                                                 </div>
                                                             </div>
@@ -357,7 +357,7 @@ export function TaskDetailModal({
 
                                                     {!isReadOnly && (
                                                         <div className="flex gap-4 pt-2">
-                                                            <div className="w-10 h-10 rounded-full bg-slate-50 border border-slate-100 flex-shrink-0 overflow-hidden shadow-sm">
+                                                            <div className="w-10 h-10 rounded-full bg-[var(--background-subtle)] border border-[var(--border-subtle)] flex-shrink-0 overflow-hidden shadow-sm">
                                                                 {session?.user?.image ? (
                                                                     <img
                                                                         src={session.user.image}
@@ -366,7 +366,7 @@ export function TaskDetailModal({
                                                                         referrerPolicy="no-referrer"
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-slate-400 uppercase">
+                                                                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--text-tertiary)] uppercase">
                                                                         {session?.user?.name?.charAt(0) || '?'}
                                                                     </div>
                                                                 )}
@@ -376,7 +376,7 @@ export function TaskDetailModal({
                                                                     value={newComment}
                                                                     onChange={(e) => setNewComment(e.target.value)}
                                                                     placeholder="Write a comment..."
-                                                                    className="w-full text-[14px] bg-white border border-gray-100 rounded-2xl p-4 pr-12 focus:ring-4 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none min-h-[100px] shadow-sm font-medium"
+                                                                    className="w-full text-[14px] bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl p-4 pr-12 focus:ring-4 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none min-h-[100px] shadow-sm font-medium text-[var(--text-primary)] placeholder-[var(--text-tertiary)]"
                                                                 />
                                                                 <button
                                                                     disabled={!newComment.trim() || isSubmittingComment}
@@ -401,7 +401,7 @@ export function TaskDetailModal({
                                     <div className="md:col-span-4 space-y-10">
                                         {/* Categories */}
                                         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
-                                            <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                                            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-4">
                                                 <Tag className="w-3.5 h-3.5" />
                                                 Category
                                             </div>
@@ -412,8 +412,8 @@ export function TaskDetailModal({
                                                     className={`
                                                         px-4 py-2 text-[12px] font-semibold rounded-xl border transition-all
                                                         ${!task.categoryId
-                                                            ? 'bg-slate-900 text-white border-slate-900 shadow-lg shadow-slate-900/10'
-                                                            : 'bg-white text-slate-600 border-slate-100 hover:border-slate-300'
+                                                            ? 'bg-[var(--text-primary)] text-[var(--text-inverse)] border-[var(--text-primary)] shadow-lg'
+                                                            : 'bg-[var(--surface)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-[var(--border-default)]'
                                                         }
                                                     `}
                                                 >
@@ -428,7 +428,7 @@ export function TaskDetailModal({
                                                             px-4 py-2 text-[12px] font-semibold rounded-xl border transition-all flex items-center gap-2
                                                             ${task.categoryId === cat.id
                                                                 ? 'shadow-lg ring-2 ring-offset-2 tracking-tight'
-                                                                : 'bg-white opacity-60 hover:opacity-100 border-gray-100 shadow-sm'
+                                                                : 'bg-[var(--surface)] opacity-60 hover:opacity-100 border-[var(--border-subtle)] shadow-sm'
                                                             }
                                                         `}
                                                         style={{
@@ -451,7 +451,7 @@ export function TaskDetailModal({
 
                                         {/* Priority */}
                                         <div className="animate-in fade-in slide-in-from-right-4 duration-500">
-                                            <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                                            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-4">
                                                 <AlignLeft className="w-3.5 h-3.5 rotate-90" />
                                                 Priority
                                             </div>
@@ -464,8 +464,8 @@ export function TaskDetailModal({
                                                         className={`
                                                             w-full flex items-center justify-between px-4 py-3 rounded-2xl text-[14px] font-semibold transition-all border
                                                             ${task.priority === p
-                                                                ? priorityColors[p] + ' border-transparent shadow-lg shadow-indigo-500/5'
-                                                                : 'bg-white text-gray-600 border-gray-100 hover:border-gray-200'
+                                                                ? priorityColors[p] + ' border-transparent shadow-lg'
+                                                                : 'bg-[var(--surface)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:border-[var(--border-default)]'
                                                             }
                                                         `}
                                                     >
@@ -478,12 +478,12 @@ export function TaskDetailModal({
 
                                         {/* Assignees */}
                                         <div className="animate-in fade-in slide-in-from-right-4 duration-700">
-                                            <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
+                                            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-4">
                                                 <UserPlus className="w-3.5 h-3.5" />
                                                 Assignees
                                             </div>
-                                            <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
-                                                <div className="divide-y divide-gray-50 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                            <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-3xl overflow-hidden shadow-sm">
+                                                <div className="divide-y divide-[var(--border-subtle)] max-h-[300px] overflow-y-auto custom-scrollbar">
                                                     {members.map((member) => {
                                                         const isAssigned = task.assignees.some((a) => a.id === member.id);
                                                         return (
@@ -493,10 +493,10 @@ export function TaskDetailModal({
                                                                 onClick={() => handleToggleAssignee(member.id)}
                                                                 className={`
                                                                     w-full flex items-center gap-3 px-4 py-3.5 transition-all text-left
-                                                                    ${isAssigned ? 'bg-indigo-50/50' : 'hover:bg-gray-50'}
+                                                                    ${isAssigned ? 'bg-[var(--flux-info-bg)]' : 'hover:bg-[var(--background-subtle)]'}
                                                                 `}
                                                             >
-                                                                <div className="w-8 h-8 rounded-full bg-slate-200 flex-shrink-0 overflow-hidden shadow-sm border border-white">
+                                                                <div className="w-8 h-8 rounded-full bg-[var(--background-subtle)] flex-shrink-0 overflow-hidden shadow-sm border border-[var(--surface)]">
                                                                     {member.image ? (
                                                                         <img
                                                                             src={member.image}
@@ -505,21 +505,21 @@ export function TaskDetailModal({
                                                                             referrerPolicy="no-referrer"
                                                                         />
                                                                     ) : (
-                                                                        <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-slate-500 uppercase">
+                                                                        <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-[var(--text-secondary)] uppercase">
                                                                             {member.name.charAt(0)}
                                                                         </div>
                                                                     )}
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
-                                                                    <p className={`text-[13px] font-semibold truncate ${isAssigned ? 'text-indigo-900' : 'text-gray-700'}`}>
+                                                                    <p className={`text-[13px] font-semibold truncate ${isAssigned ? 'text-[var(--flux-info-text-strong)]' : 'text-[var(--text-primary)]'}`}>
                                                                         {member.name}
                                                                     </p>
                                                                 </div>
                                                                 <div className={`
                                                                     w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
                                                                     ${isAssigned
-                                                                        ? 'bg-indigo-600 border-indigo-600 text-white'
-                                                                        : 'border-slate-100 bg-white group-hover:border-slate-300'
+                                                                        ? 'bg-[var(--flux-info-primary)] border-[var(--flux-info-primary)] text-white'
+                                                                        : 'border-[var(--border-subtle)] bg-[var(--surface)] group-hover:border-[var(--border-default)]'
                                                                     }
                                                                 `}>
                                                                     {isAssigned && <Check className="w-3 h-3 stroke-[3]" />}
@@ -529,7 +529,7 @@ export function TaskDetailModal({
                                                     })}
                                                     {members.length === 0 && (
                                                         <div className="px-4 py-8 text-center">
-                                                            <p className="text-xs text-gray-400 font-medium italic">No members available</p>
+                                                            <p className="text-xs text-[var(--text-tertiary)] font-medium italic">No members available</p>
                                                         </div>
                                                     )}
                                                 </div>

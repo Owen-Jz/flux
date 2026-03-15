@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(ls -la \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" | grep -E \"\\\\.\\(ts|js|json\\)$\")",
+      "Bash(npm install:*)",
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && timeout 10 npx tsx server.ts 2>&1 || true)",
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npm list express)"
     ]
   }
 }

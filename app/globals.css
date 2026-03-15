@@ -1,52 +1,408 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --surface: #f8fafc;
-  --border-subtle: #e2e8f0;
-  --text-secondary: #64748b;
-  --brand-primary: #4f46e5;
-  --brand-primary-hover: #4338ca;
-  --priority-high: #ef4444;
-  --priority-medium: #f59e0b;
-  --priority-low: #3b82f6;
-  --shadow-soft: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
-  --shadow-medium: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
-  --radius: 16px;
-  --radius-sm: 8px;
+/* ============================================
+   FLUX DESIGN SYSTEM - ISOLATED THEMES
+   ============================================
+   This CSS uses theme-prefixed CSS custom properties
+   to ensure complete visual separation between
+   light and dark modes.
+   ============================================ */
+
+/* Configure Tailwind to recognize our theme attributes */
+@custom-variant flux-dark (.flux-dark);
+@custom-variant light (&[data-flux-theme="light"]);
+@custom-variant dark (&[data-flux-theme="dark"]);
+
+/* ============================================
+   THEME SCOPED CSS CUSTOM PROPERTIES
+   ============================================ */
+
+/* Light Theme Variables */
+[data-flux-theme="light"],
+.light-theme {
+  /* Brand */
+  --flux-brand-primary: var(--flux-light-brand-primary);
+  --flux-brand-primary-hover: var(--flux-light-brand-primary-hover);
+  --flux-brand-primary-active: var(--flux-light-brand-primary-active);
+  --flux-brand-secondary: var(--flux-light-brand-secondary);
+  --flux-brand-accent: var(--flux-light-brand-accent);
+
+  /* Backgrounds */
+  --flux-bg: var(--flux-light-bg);
+  --flux-bg-subtle: var(--flux-light-bg-subtle);
+  --flux-surface: var(--flux-light-surface);
+  --flux-surface-elevated: var(--flux-light-surface-elevated);
+
+  /* Foreground */
+  --flux-fg: var(--flux-light-fg);
+  --flux-fg-muted: var(--flux-light-fg-muted);
+  --flux-text-primary: var(--flux-light-text-primary);
+  --flux-text-secondary: var(--flux-light-text-secondary);
+  --flux-text-tertiary: var(--flux-light-text-tertiary);
+  --flux-text-inverse: var(--flux-light-text-inverse);
+
+  /* Borders */
+  --flux-border-subtle: var(--flux-light-border-subtle);
+  --flux-border-default: var(--flux-light-border-default);
+  --flux-border-strong: var(--flux-light-border-strong);
+
+  /* Semantic - Success */
+  --flux-success-bg: var(--flux-light-success-bg);
+  --flux-success-bg-subtle: var(--flux-light-success-bg-subtle);
+  --flux-success-border: var(--flux-light-success-border);
+  --flux-success-text: var(--flux-light-success-text);
+  --flux-success-text-strong: var(--flux-light-success-text-strong);
+  --flux-success-primary: var(--flux-light-success-primary);
+
+  /* Semantic - Warning */
+  --flux-warning-bg: var(--flux-light-warning-bg);
+  --flux-warning-bg-subtle: var(--flux-light-warning-bg-subtle);
+  --flux-warning-border: var(--flux-light-warning-border);
+  --flux-warning-text: var(--flux-light-warning-text);
+  --flux-warning-text-strong: var(--flux-light-warning-text-strong);
+  --flux-warning-primary: var(--flux-light-warning-primary);
+
+  /* Semantic - Error */
+  --flux-error-bg: var(--flux-light-error-bg);
+  --flux-error-bg-subtle: var(--flux-light-error-bg-subtle);
+  --flux-error-border: var(--flux-light-error-border);
+  --flux-error-text: var(--flux-light-error-text);
+  --flux-error-text-strong: var(--flux-light-error-text-strong);
+  --flux-error-primary: var(--flux-light-error-primary);
+
+  /* Semantic - Info */
+  --flux-info-bg: var(--flux-light-info-bg);
+  --flux-info-bg-subtle: var(--flux-light-info-bg-subtle);
+  --flux-info-border: var(--flux-light-info-border);
+  --flux-info-text: var(--flux-light-info-text);
+  --flux-info-text-strong: var(--flux-light-info-text-strong);
+  --flux-info-primary: var(--flux-light-info-primary);
+
+  /* Priority */
+  --flux-priority-high: var(--flux-light-priority-high);
+  --flux-priority-medium: var(--flux-light-priority-medium);
+  --flux-priority-low: var(--flux-light-priority-low);
+
+  /* Shadows */
+  --flux-shadow-xs: var(--flux-light-shadow-xs);
+  --flux-shadow-sm: var(--flux-light-shadow-sm);
+  --flux-shadow-md: var(--flux-light-shadow-md);
+  --flux-shadow-lg: var(--flux-light-shadow-lg);
+  --flux-shadow-xl: var(--flux-light-shadow-xl);
+  --flux-shadow-2xl: var(--flux-light-shadow-2xl);
+
+  /* Focus Ring */
+  --flux-focus-ring: var(--flux-light-focus-ring);
+  --flux-focus-ring-success: var(--flux-light-focus-ring-success);
+  --flux-focus-ring-error: var(--flux-light-focus-ring-error);
+
+  /* Glass */
+  --flux-glass-bg: var(--flux-light-glass-bg);
+  --flux-glass-border: var(--flux-light-glass-border);
+
+  /* Scrollbar */
+  --flux-scrollbar-track: var(--flux-light-scrollbar-track);
+  --flux-scrollbar-thumb: var(--flux-light-scrollbar-thumb);
+  --flux-scrollbar-thumb-hover: var(--flux-light-scrollbar-thumb-hover);
+
+  /* ============================================
+     BACKWARD COMPATIBILITY ALIASES
+     These map old variable names to new flux-* names
+     for existing components that use old syntax
+     ============================================ */
+  --background: var(--flux-light-bg);
+  --background-subtle: var(--flux-light-bg-subtle);
+  --surface: var(--flux-light-surface);
+  --surface-elevated: var(--flux-light-surface-elevated);
+  --foreground: var(--flux-light-fg);
+  --foreground-muted: var(--flux-light-fg-muted);
+  --text-primary: var(--flux-light-text-primary);
+  --text-secondary: var(--flux-light-text-secondary);
+  --text-tertiary: var(--flux-light-text-tertiary);
+  --text-inverse: var(--flux-light-text-inverse);
+  --border-subtle: var(--flux-light-border-subtle);
+  --border-default: var(--flux-light-border-default);
+  --border-strong: var(--flux-light-border-strong);
+  --brand-primary: var(--flux-light-brand-primary);
+  --brand-primary-hover: var(--flux-light-brand-primary-hover);
+  --brand-primary-active: var(--flux-light-brand-primary-active);
+  --brand-secondary: var(--flux-light-brand-secondary);
+  --brand-accent: var(--flux-light-brand-accent);
 }
 
-.perspective-2000 {
-  perspective: 2000px;
+/* Dark Theme Variables */
+[data-flux-theme="dark"],
+.flux-dark {
+  /* Brand */
+  --flux-brand-primary: var(--flux-dark-brand-primary);
+  --flux-brand-primary-hover: var(--flux-dark-brand-primary-hover);
+  --flux-brand-primary-active: var(--flux-dark-brand-primary-active);
+  --flux-brand-secondary: var(--flux-dark-brand-secondary);
+  --flux-brand-accent: var(--flux-dark-brand-accent);
+
+  /* Backgrounds */
+  --flux-bg: var(--flux-dark-bg);
+  --flux-bg-subtle: var(--flux-dark-bg-subtle);
+  --flux-surface: var(--flux-dark-surface);
+  --flux-surface-elevated: var(--flux-dark-surface-elevated);
+
+  /* Foreground */
+  --flux-fg: var(--flux-dark-fg);
+  --flux-fg-muted: var(--flux-dark-fg-muted);
+  --flux-text-primary: var(--flux-dark-text-primary);
+  --flux-text-secondary: var(--flux-dark-text-secondary);
+  --flux-text-tertiary: var(--flux-dark-text-tertiary);
+  --flux-text-inverse: var(--flux-dark-text-inverse);
+
+  /* Borders */
+  --flux-border-subtle: var(--flux-dark-border-subtle);
+  --flux-border-default: var(--flux-dark-border-default);
+  --flux-border-strong: var(--flux-dark-border-strong);
+
+  /* Semantic - Success */
+  --flux-success-bg: var(--flux-dark-success-bg);
+  --flux-success-bg-subtle: var(--flux-dark-success-bg-subtle);
+  --flux-success-border: var(--flux-dark-success-border);
+  --flux-success-text: var(--flux-dark-success-text);
+  --flux-success-text-strong: var(--flux-dark-success-text-strong);
+  --flux-success-primary: var(--flux-dark-success-primary);
+
+  /* Semantic - Warning */
+  --flux-warning-bg: var(--flux-dark-warning-bg);
+  --flux-warning-bg-subtle: var(--flux-dark-warning-bg-subtle);
+  --flux-warning-border: var(--flux-dark-warning-border);
+  --flux-warning-text: var(--flux-dark-warning-text);
+  --flux-warning-text-strong: var(--flux-dark-warning-text-strong);
+  --flux-warning-primary: var(--flux-dark-warning-primary);
+
+  /* Semantic - Error */
+  --flux-error-bg: var(--flux-dark-error-bg);
+  --flux-error-bg-subtle: var(--flux-dark-error-bg-subtle);
+  --flux-error-border: var(--flux-dark-error-border);
+  --flux-error-text: var(--flux-dark-error-text);
+  --flux-error-text-strong: var(--flux-dark-error-text-strong);
+  --flux-error-primary: var(--flux-dark-error-primary);
+
+  /* Semantic - Info */
+  --flux-info-bg: var(--flux-dark-info-bg);
+  --flux-info-bg-subtle: var(--flux-dark-info-bg-subtle);
+  --flux-info-border: var(--flux-dark-info-border);
+  --flux-info-text: var(--flux-dark-info-text);
+  --flux-info-text-strong: var(--flux-dark-info-text-strong);
+  --flux-info-primary: var(--flux-dark-info-primary);
+
+  /* Priority */
+  --flux-priority-high: var(--flux-dark-priority-high);
+  --flux-priority-medium: var(--flux-dark-priority-medium);
+  --flux-priority-low: var(--flux-dark-priority-low);
+
+  /* Shadows */
+  --flux-shadow-xs: var(--flux-dark-shadow-xs);
+  --flux-shadow-sm: var(--flux-dark-shadow-sm);
+  --flux-shadow-md: var(--flux-dark-shadow-md);
+  --flux-shadow-lg: var(--flux-dark-shadow-lg);
+  --flux-shadow-xl: var(--flux-dark-shadow-xl);
+  --flux-shadow-2xl: var(--flux-dark-shadow-2xl);
+
+  /* Focus Ring */
+  --flux-focus-ring: var(--flux-dark-focus-ring);
+  --flux-focus-ring-success: var(--flux-dark-focus-ring-success);
+  --flux-focus-ring-error: var(--flux-dark-focus-ring-error);
+
+  /* Glass */
+  --flux-glass-bg: var(--flux-dark-glass-bg);
+  --flux-glass-border: var(--flux-dark-glass-border);
+
+  /* Scrollbar */
+  --flux-scrollbar-track: var(--flux-dark-scrollbar-track);
+  --flux-scrollbar-thumb: var(--flux-dark-scrollbar-thumb);
+  --flux-scrollbar-thumb-hover: var(--flux-dark-scrollbar-thumb-hover);
+
+  /* Backward Compatibility Aliases for Dark Theme */
+  --background: var(--flux-dark-bg);
+  --background-subtle: var(--flux-dark-bg-subtle);
+  --surface: var(--flux-dark-surface);
+  --surface-elevated: var(--flux-dark-surface-elevated);
+  --foreground: var(--flux-dark-fg);
+  --foreground-muted: var(--flux-dark-fg-muted);
+  --text-primary: var(--flux-dark-text-primary);
+  --text-secondary: var(--flux-dark-text-secondary);
+  --text-tertiary: var(--flux-dark-text-tertiary);
+  --text-inverse: var(--flux-dark-text-inverse);
+  --border-subtle: var(--flux-dark-border-subtle);
+  --border-default: var(--flux-dark-border-default);
+  --border-strong: var(--flux-dark-border-strong);
+  --brand-primary: var(--flux-dark-brand-primary);
+  --brand-primary-hover: var(--flux-dark-brand-primary-hover);
+  --brand-primary-active: var(--flux-dark-brand-primary-active);
+  --brand-secondary: var(--flux-dark-brand-secondary);
+  --brand-accent: var(--flux-dark-brand-accent);
 }
+
+/* ============================================
+   TAILWIND THEME CONFIGURATION
+   ============================================ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-surface: var(--surface);
-  --color-border-subtle: var(--border-subtle);
-  --color-text-secondary: var(--text-secondary);
-  --color-brand-primary: var(--brand-primary);
-  --color-brand-primary-hover: var(--brand-primary-hover);
-  --color-priority-high: var(--priority-high);
-  --color-priority-medium: var(--priority-medium);
-  --color-priority-low: var(--priority-low);
-  --color-surface-secondary: var(--surface-secondary);
-  --color-brand-accent: var(--brand-accent);
-  --color-brand-accent-secondary: var(--brand-accent-secondary);
+  /* Colors - mapped to flux variables */
+  --color-background: var(--flux-bg);
+  --color-foreground: var(--flux-fg);
+  --color-surface: var(--flux-surface);
+  --color-surface-elevated: var(--flux-surface-elevated);
+  --color-background-subtle: var(--flux-bg-subtle);
+  --color-border-subtle: var(--flux-border-subtle);
+  --color-border-default: var(--flux-border-default);
+  --color-border-strong: var(--flux-border-strong);
+  --color-text-primary: var(--flux-text-primary);
+  --color-text-secondary: var(--flux-text-secondary);
+  --color-text-tertiary: var(--flux-text-tertiary);
+  --color-text-inverse: var(--flux-text-inverse);
+
+  /* Brand */
+  --color-brand-primary: var(--flux-brand-primary);
+  --color-brand-primary-hover: var(--flux-brand-primary-hover);
+  --color-brand-primary-active: var(--flux-brand-primary-active);
+  --color-brand-secondary: var(--flux-brand-secondary);
+  --color-brand-accent: var(--flux-brand-accent);
+
+  /* Semantic - Success */
+  --color-success-bg: var(--flux-success-bg);
+  --color-success-bg-subtle: var(--flux-success-bg-subtle);
+  --color-success-border: var(--flux-success-border);
+  --color-success-text: var(--flux-success-text);
+  --color-success-text-strong: var(--flux-success-text-strong);
+  --color-success-primary: var(--flux-success-primary);
+
+  /* Semantic - Warning */
+  --color-warning-bg: var(--flux-warning-bg);
+  --color-warning-bg-subtle: var(--flux-warning-bg-subtle);
+  --color-warning-border: var(--flux-warning-border);
+  --color-warning-text: var(--flux-warning-text);
+  --color-warning-text-strong: var(--flux-warning-text-strong);
+  --color-warning-primary: var(--flux-warning-primary);
+
+  /* Semantic - Error */
+  --color-error-bg: var(--flux-error-bg);
+  --color-error-bg-subtle: var(--flux-error-bg-subtle);
+  --color-error-border: var(--flux-error-border);
+  --color-error-text: var(--flux-error-text);
+  --color-error-text-strong: var(--flux-error-text-strong);
+  --color-error-primary: var(--flux-error-primary);
+
+  /* Semantic - Info */
+  --color-info-bg: var(--flux-info-bg);
+  --color-info-bg-subtle: var(--flux-info-bg-subtle);
+  --color-info-border: var(--flux-info-border);
+  --color-info-text: var(--flux-info-text);
+  --color-info-text-strong: var(--flux-info-text-strong);
+  --color-info-primary: var(--flux-info-primary);
+
+  /* Priority */
+  --color-priority-high: var(--flux-priority-high);
+  --color-priority-medium: var(--flux-priority-medium);
+  --color-priority-low: var(--flux-priority-low);
+
+  /* Shadows */
+  --shadow-xs: var(--flux-shadow-xs);
+  --shadow-sm: var(--flux-shadow-sm);
+  --shadow-md: var(--flux-shadow-md);
+  --shadow-lg: var(--flux-shadow-lg);
+  --shadow-xl: var(--flux-shadow-xl);
+  --shadow-2xl: var(--flux-shadow-2xl);
+
+  /* Border Radius */
+  --radius-none: var(--flux-radius-none);
+  --radius-xs: var(--flux-radius-xs);
+  --radius-sm: var(--flux-radius-sm);
+  --radius-md: var(--flux-radius-md);
+  --radius-lg: var(--flux-radius-lg);
+  --radius-xl: var(--flux-radius-xl);
+  --radius-2xl: var(--flux-radius-2xl);
+  --radius-full: var(--flux-radius-full);
+
+  /* Typography */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Transitions */
+  --transition-fast: var(--flux-transition-fast);
+  --transition-base: var(--flux-transition-base);
+  --transition-slow: var(--flux-transition-slow);
 }
 
+/* ============================================
+   BASE STYLES - THEME ISOLATED
+   ============================================ */
+
+/* Apply theme to html */
+html {
+  /* Default to light if no theme is set */
+  background: var(--flux-bg, #fafafa);
+  color: var(--flux-fg, #18181b);
+}
+
+/* Base body styles with instant theme transition */
+body {
+  background: var(--flux-bg);
+  color: var(--flux-fg);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Instant transition - no animation for theme switching */
+  transition: none;
+}
+
+/* Selection - theme isolated */
+[data-flux-theme="light"] ::selection,
+.light-theme ::selection {
+  background: var(--flux-light-brand-primary);
+  color: white;
+}
+
+[data-flux-theme="dark"] ::selection,
+.flux-dark ::selection {
+  background: var(--flux-dark-brand-primary);
+  color: #18181b;
+}
+
+/* Scrollbar - theme isolated */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--flux-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--flux-scrollbar-thumb);
+  border-radius: var(--flux-radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--flux-scrollbar-thumb-hover);
+}
+
+/* Focus visible - theme isolated */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--flux-focus-ring);
+}
+
+/* ============================================
+   COMPONENT STYLES - THEME ISOLATED
+   ============================================ */
+
+/* Glass Effect - theme scoped */
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--flux-glass-bg);
+  backdrop-filter: var(--flux-backdrop-blur) var(--flux-backdrop-saturate);
+  -webkit-backdrop-filter: var(--flux-backdrop-blur) var(--flux-backdrop-saturate);
+  border: 1px solid var(--flux-glass-border);
 }
 
+/* Noise Texture */
 .noise {
   position: absolute;
   inset: 0;
@@ -55,30 +411,28 @@
   pointer-events: none;
 }
 
+/* Grid Pattern - theme scoped */
 .grid-pattern {
-  background-image: radial-gradient(circle at 1px 1px, var(--border-subtle) 1px, transparent 0);
+  background-image: radial-gradient(circle at 1px 1px, var(--flux-border-subtle) 1px, transparent 0);
   background-size: 40px 40px;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Card Styling */
+/* Card - theme scoped */
 .card {
-  background: var(--background);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-soft);
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  background: var(--flux-surface);
+  border: 1px solid var(--flux-border-subtle);
+  border-radius: var(--flux-radius-xl);
+  box-shadow: var(--flux-shadow-sm);
+  transition: box-shadow var(--flux-transition-base), transform var(--flux-transition-base), border-color var(--flux-transition-base);
 }
 
 .card:hover {
-  box-shadow: var(--shadow-medium);
+  box-shadow: var(--flux-shadow-md);
+}
+
+.card-elevated {
+  background: var(--flux-surface-elevated);
+  box-shadow: var(--flux-shadow-lg);
 }
 
 /* Button Base */
@@ -86,72 +440,224 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: var(--flux-space-2);
   font-weight: 500;
-  border-radius: var(--radius-sm);
-  padding: 0.625rem 1.25rem;
-  transition: all 0.15s ease;
+  border-radius: var(--flux-radius-lg);
+  padding: 0.625rem var(--flux-space-5);
+  transition: all var(--flux-transition-fast);
   cursor: pointer;
   font-size: 0.875rem;
+  border: none;
+  position: relative;
+  overflow: hidden;
 }
 
+.btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);
+  opacity: 0;
+  transition: opacity var(--flux-transition-fast);
+}
+
+.btn:hover::before {
+  opacity: 1;
+}
+
+/* Primary Button */
 .btn-primary {
-  background: var(--brand-primary);
+  background: var(--flux-brand-primary);
   color: white;
-  border: none;
 }
 
 .btn-primary:hover {
-  background: var(--brand-primary-hover);
+  background: var(--flux-brand-primary-hover);
 }
 
+.btn-primary:active {
+  background: var(--flux-brand-primary-active);
+  transform: translateY(1px);
+}
+
+.btn-primary:disabled {
+  background: var(--flux-border-default);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Secondary Button */
 .btn-secondary {
-  background: transparent;
-  color: var(--foreground);
-  border: 1px solid var(--border-subtle);
+  background: var(--flux-surface);
+  color: var(--flux-text-primary);
+  border: 1px solid var(--flux-border-subtle);
 }
 
 .btn-secondary:hover {
-  background: var(--surface);
+  background: var(--flux-bg-subtle);
+  border-color: var(--flux-border-default);
 }
 
-/* Input Styling */
+.btn-secondary:active {
+  background: var(--flux-border-subtle);
+}
+
+/* Ghost Button */
+.btn-ghost {
+  background: transparent;
+  color: var(--flux-text-secondary);
+}
+
+.btn-ghost:hover {
+  background: var(--flux-bg-subtle);
+  color: var(--flux-text-primary);
+}
+
+/* Danger Button */
+.btn-danger {
+  background: var(--flux-error-primary);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: var(--flux-error-text-strong);
+}
+
+.btn-danger:active {
+  background: var(--flux-error-text);
+}
+
+/* Button Sizes */
+.btn-sm {
+  padding: 0.375rem var(--flux-space-3);
+  font-size: 0.8125rem;
+  border-radius: var(--flux-radius-md);
+}
+
+.btn-lg {
+  padding: 0.75rem var(--flux-space-6);
+  font-size: 1rem;
+  border-radius: var(--flux-radius-xl);
+}
+
+.btn-icon {
+  padding: var(--flux-space-2);
+  aspect-ratio: 1;
+}
+
+/* Input - theme scoped */
 .input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
-  background: var(--background);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  padding: 0.625rem var(--flux-space-4);
+  border: 1px solid var(--flux-border-subtle);
+  border-radius: var(--flux-radius-lg);
+  font-size: 0.9375rem;
+  background: var(--flux-surface);
+  color: var(--flux-text-primary);
+  transition: border-color var(--flux-transition-fast), box-shadow var(--flux-transition-fast), background-color var(--flux-transition-base);
+}
+
+.input::placeholder {
+  color: var(--flux-text-tertiary);
+}
+
+.input:hover {
+  border-color: var(--flux-border-default);
 }
 
 .input:focus {
   outline: none;
-  border-color: var(--brand-primary);
-  box-shadow: 0 0 0 3px rgb(79 70 229 / 0.1);
+  border-color: var(--flux-brand-primary);
+  box-shadow: var(--flux-focus-ring);
+}
+
+.input:disabled {
+  background: var(--flux-bg-subtle);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Input Icon */
+.input-icon {
+  position: relative;
+}
+
+.input-icon .input {
+  padding-left: calc(var(--flux-space-4) + 24px);
+}
+
+.input-icon svg {
+  position: absolute;
+  left: var(--flux-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--flux-text-tertiary);
+  pointer-events: none;
+}
+
+/* Badge Styles */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--flux-space-1);
+  padding: var(--flux-space-1) 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--flux-radius-full);
+  line-height: 1;
+}
+
+.badge-primary {
+  background: var(--flux-brand-primary);
+  color: white;
+}
+
+.badge-success {
+  background: var(--flux-success-bg);
+  color: var(--flux-success-text-strong);
+  border: 1px solid var(--flux-success-border);
+}
+
+.badge-warning {
+  background: var(--flux-warning-bg);
+  color: var(--flux-warning-text-strong);
+  border: 1px solid var(--flux-warning-border);
+}
+
+.badge-error {
+  background: var(--flux-error-bg);
+  color: var(--flux-error-text-strong);
+  border: 1px solid var(--flux-error-border);
+}
+
+.badge-info {
+  background: var(--flux-info-bg);
+  color: var(--flux-info-text-strong);
+  border: 1px solid var(--flux-info-border);
 }
 
 /* Priority Indicators */
 .priority-high {
-  background: var(--priority-high);
+  background: var(--flux-priority-high);
 }
 
 .priority-medium {
-  background: var(--priority-medium);
+  background: var(--flux-priority-medium);
 }
 
 .priority-low {
-  background: var(--priority-low);
+  background: var(--flux-priority-low);
 }
 
-/* Animations */
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(4px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -162,12 +668,40 @@ body {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Shimmer Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.3s ease-out;
+}
+
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
   }
-
   100% {
     background-position: 200% 0;
   }
@@ -175,34 +709,17 @@ body {
 
 .animate-shimmer {
   background: linear-gradient(90deg,
-      var(--surface) 25%,
-      var(--border-subtle) 37%,
-      var(--surface) 63%);
+    var(--flux-bg-subtle) 25%,
+    var(--flux-border-subtle) 37%,
+    var(--flux-bg-subtle) 63%);
   background-size: 400% 100%;
   animation: shimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes gradient-x {
-
-  0%,
-  100% {
-    background-size: 200% 200%;
-    background-position: left center;
-  }
-
-  50% {
-    background-size: 200% 200%;
-    background-position: right center;
-  }
-}
-
 @keyframes float {
-
-  0%,
-  100% {
+  0%, 100% {
     transform: translateY(0);
   }
-
   50% {
     transform: translateY(-10px);
   }
@@ -213,12 +730,9 @@ body {
 }
 
 @keyframes pulse-soft {
-
-  0%,
-  100% {
+  0%, 100% {
     opacity: 1;
   }
-
   50% {
     opacity: 0.7;
   }
@@ -226,4 +740,242 @@ body {
 
 .animate-pulse-soft {
   animation: pulse-soft 3s ease-in-out infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-5%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--flux-brand-primary), var(--flux-brand-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.perspective-2000 {
+  perspective: 2000px;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================
+   COMPONENT SPECIFIC - THEME ISOLATED
+   ============================================ */
+
+/* Sidebar */
+.sidebar {
+  background: var(--flux-surface);
+  border-right: 1px solid var(--flux-border-subtle);
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: var(--flux-space-3);
+  padding: 0.625rem var(--flux-space-3);
+  border-radius: var(--flux-radius-lg);
+  color: var(--flux-text-secondary);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: all var(--flux-transition-fast);
+}
+
+.sidebar-item:hover {
+  background: var(--flux-bg-subtle);
+  color: var(--flux-text-primary);
+}
+
+.sidebar-item.active {
+  background: var(--flux-brand-primary);
+  color: white;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: var(--flux-z-modal);
+}
+
+.modal-content {
+  background: var(--flux-surface);
+  border-radius: var(--flux-radius-2xl);
+  box-shadow: var(--flux-shadow-2xl);
+  border: 1px solid var(--flux-border-subtle);
+}
+
+/* Dropdown */
+.dropdown-content {
+  background: var(--flux-surface);
+  border: 1px solid var(--flux-border-subtle);
+  border-radius: var(--flux-radius-xl);
+  box-shadow: var(--flux-shadow-xl);
+  padding: var(--flux-space-2);
+  min-width: 180px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem var(--flux-space-3);
+  border-radius: var(--flux-radius-lg);
+  font-size: 0.875rem;
+  color: var(--flux-text-secondary);
+  cursor: pointer;
+  transition: all var(--flux-transition-fast);
+}
+
+.dropdown-item:hover {
+  background: var(--flux-bg-subtle);
+  color: var(--flux-text-primary);
+}
+
+.dropdown-item.danger {
+  color: var(--flux-error-primary);
+}
+
+.dropdown-item.danger:hover {
+  background: var(--flux-error-bg);
+}
+
+/* Tooltip */
+.tooltip {
+  background: var(--flux-surface-elevated);
+  border: 1px solid var(--flux-border-subtle);
+  border-radius: var(--flux-radius-md);
+  padding: var(--flux-space-2) var(--flux-space-3);
+  font-size: 0.8125rem;
+  color: var(--flux-text-primary);
+  box-shadow: var(--flux-shadow-lg);
+}
+
+/* Popover */
+.popover {
+  background: var(--flux-surface);
+  border: 1px solid var(--flux-border-subtle);
+  border-radius: var(--flux-radius-xl);
+  box-shadow: var(--flux-shadow-xl);
+}
+
+/* Avatar */
+.avatar {
+  border-radius: var(--flux-radius-full);
+  object-fit: cover;
+  background: var(--flux-bg-subtle);
+}
+
+.avatar-stack {
+  display: flex;
+}
+
+.avatar-stack .avatar {
+  border: 2px solid var(--flux-surface);
+  margin-left: -8px;
+}
+
+.avatar-stack .avatar:first-child {
+  margin-left: 0;
+}
+
+/* Skeleton */
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--flux-bg-subtle) 25%,
+    var(--flux-border-subtle) 37%,
+    var(--flux-bg-subtle) 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  border-radius: var(--flux-radius-md);
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+
+@media (max-width: 640px) {
+  .sm\:hidden {
+    display: none;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .md\:hidden {
+    display: none;
+  }
+}
+
+@media (min-width: 1025px) {
+  .lg\:hidden {
+    display: none;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
 }

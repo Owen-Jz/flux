@@ -19,10 +19,10 @@ export interface IAccessRequest extends Document {
 
 const AccessRequestSchema = new Schema<IAccessRequest>(
     {
-        workspaceId: { type: Schema.Types.ObjectId, ref: 'Workspace', required: true },
-        userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        workspaceId: { type: Schema.Types.ObjectId, ref: 'Workspace', required: true, index: true },
+        userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
         requestedRole: { type: String, enum: ['EDITOR'], default: 'EDITOR' },
-        status: { type: String, enum: ['PENDING', 'APPROVED', 'DENIED'], default: 'PENDING' },
+        status: { type: String, enum: ['PENDING', 'APPROVED', 'DENIED'], default: 'PENDING', index: true },
         message: { type: String },
         reviewedBy: { type: Schema.Types.ObjectId, ref: 'User' },
         reviewedAt: { type: Date },

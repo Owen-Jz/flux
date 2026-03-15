@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Mail, Loader2 } from 'lucide-react';
 import { inviteMemberToWorkspace } from '@/actions/workspace-invite';
+import { updateOnboardingProgress } from '@/actions/onboarding';
 
 interface InviteMemberModalProps {
     slug: string;
@@ -27,6 +28,8 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
                 setError(res.error);
                 return;
             }
+            // Track onboarding progress
+            await updateOnboardingProgress('addedFirstTeamMember');
             setSuccess(true);
             setTimeout(onClose, 2000);
         } catch (err: any) {

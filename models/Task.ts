@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
-export type TaskStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'DONE' | 'ARCHIVED';
+export type TaskStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE' | 'ARCHIVED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export interface ITask extends Document {
@@ -34,7 +34,7 @@ const TaskSchema = new Schema<ITask>(
         boardId: { type: Schema.Types.ObjectId, ref: 'Board', required: true, index: true },
         title: { type: String, required: true },
         description: { type: String },
-        status: { type: String, enum: ['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE', 'ARCHIVED'], default: 'BACKLOG' },
+        status: { type: String, enum: ['BACKLOG', 'TODO', 'IN_PROGRESS', 'REVIEW', 'DONE', 'ARCHIVED'], default: 'BACKLOG', index: true },
         priority: { type: String, enum: ['LOW', 'MEDIUM', 'HIGH'], default: 'MEDIUM' },
         categoryId: { type: Schema.Types.ObjectId },
         order: { type: Number, default: 0 },
@@ -59,5 +59,11 @@ const TaskSchema = new Schema<ITask>(
     },
     { timestamps: true }
 );
+
+// Compound index for common query: boardId + status (for filtering tasks by column)
+TaskSchema.index({ boardId: 1, status: 1 });
+
+// Compound index for ordering within a column
+TaskSchema.index({ boardId: 1, status: 1, order: 1 });
 
 export const Task: Model<ITask> = mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);

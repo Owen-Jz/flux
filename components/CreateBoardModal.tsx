@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Loader2, LayoutGrid } from 'lucide-react';
 import { createBoard } from '@/actions/board';
+import { updateOnboardingProgress } from '@/actions/onboarding';
 
 interface CreateBoardModalProps {
     workspaceSlug: string;
@@ -40,6 +41,8 @@ export default function CreateBoardModal({ workspaceSlug, onClose, onSuccess }: 
 
         try {
             const result = await createBoard(workspaceSlug, { name, description, color });
+            // Track onboarding progress
+            await updateOnboardingProgress('createdFirstBoard');
             onSuccess?.(result.slug);
             onClose();
         } catch (err: any) {

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { driver, DriveStep } from 'driver.js';
 import 'driver.js/dist/driver.css';
 import { updateTutorialProgress, getTutorialProgress } from '@/actions/tutorial';
+import { updateOnboardingProgress } from '@/actions/onboarding';
 
 interface TutorialState {
     hasSeenWelcome: boolean;
@@ -183,6 +184,8 @@ export function TutorialProvider() {
                     if (tourKey === 'hasSeenSettings') stepName = 'settings';
 
                     updateTutorialProgress(stepName);
+                    // Also track onboarding completion
+                    updateOnboardingProgress('completedTutorial');
                 },
             });
 
