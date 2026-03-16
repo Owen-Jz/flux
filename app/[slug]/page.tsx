@@ -117,9 +117,10 @@ export default async function WorkspacePage({
                         </Link>
                     ))}
                 </div>
-
-                {/* Analytics Section */}
-                {analytics && <AnalyticsSection analytics={analytics} />}
             )}
+
+            {/* Analytics Section - show when there are tasks */}
+            {analytics && analytics.totalTasks > 0 && <AnalyticsSection analytics={analytics} />}
+        </div>
     );
 }
