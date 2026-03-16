@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, Play, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 // Import new enhanced components
 import { HeroSection } from '@/components/landing/hero-section';
@@ -21,13 +21,6 @@ import { LiveMetrics } from '@/components/landing/live-metrics';
 import { SmoothScroll } from '@/components/landing/smooth-scroll';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useTheme } from '@/components/theme-provider';
-
-// Micro-interaction variants
-const microInteraction = {
-  whileHover: { scale: 1.05 },
-  whileTap: { scale: 0.95 },
-  transition: { type: "spring", stiffness: 400, damping: 17 }
-};
 
 // Navigation Component
 function Navigation() {
@@ -55,7 +48,6 @@ function Navigation() {
           ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50'
           : 'bg-transparent'
       }`}
-      role="navigation"
       aria-label="Main navigation"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
