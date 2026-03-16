@@ -2,9 +2,11 @@ import { auth } from '@/lib/auth';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoards } from '@/actions/board';
 import { getUserRole, hasPendingRequest } from '@/actions/access-control';
+import { getWorkspaceAnalytics } from '@/actions/analytics';
 import Link from 'next/link';
 import { LayoutGrid, Plus, ArrowRight, Eye } from 'lucide-react';
 import { RequestAccessButton } from '@/components/RequestAccessButton';
+import { AnalyticsSection } from '@/components/analytics/analytics-section';
 
 export default async function WorkspacePage({
     params,
@@ -26,6 +28,9 @@ export default async function WorkspacePage({
     const boards = await getBoards(slug);
     const userRole = await getUserRole(slug);
     const hasPending = session?.user ? await hasPendingRequest(slug) : false;
+
+    // Fetch analytics data
+    const analytics = await getWorkspaceAnalytics(workspace._id.toString());
 
     // Determine user's access level
     const canEdit = userRole === 'ADMIN' || userRole === 'EDITOR';
@@ -112,7 +117,9 @@ export default async function WorkspacePage({
                         </Link>
                     ))}
                 </div>
+
+                {/* Analytics Section */}
+                {analytics && <AnalyticsSection analytics={analytics} />}
             )}
-        </div>
     );
 }
