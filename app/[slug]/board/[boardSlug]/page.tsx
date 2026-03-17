@@ -47,9 +47,9 @@ export default async function BoardPage({
     const isReadOnly = !canEdit;
 
     return (
-        <div className="h-full flex flex-col">
+        <div className="min-h-full flex flex-col">
             {/* Kanban Board */}
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-auto">
                 <SocketProvider boardId={board.id}>
                     <Board
                         initialTasks={tasks}

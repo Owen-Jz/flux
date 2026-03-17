@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 export const HeroAnimation = () => {
     return (
@@ -11,7 +11,7 @@ export const HeroAnimation = () => {
                 initial={{ opacity: 0, x: -100, z: -100, rotateY: 10 }}
                 animate={{ opacity: 0.3, x: -50, z: -50, rotateY: 5 }}
                 transition={{ duration: 1.2, delay: 0.2 }}
-                className="absolute left-0 md:left-[5%] top-[15%] w-[280px] md:w-[450px] h-[350px] bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden pointer-events-none z-0 hidden md:block"
+                className="absolute left-0 md:left-[5%] top-[15%] w-[280px] md:w-[450px] h-[350px] bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden pointer-events-none z-0 hidden md:block"
                 style={{ transformStyle: "preserve-3d" }}
             >
                 <div className="h-10 border-b border-slate-100 bg-slate-50 flex items-center px-4 gap-2">
@@ -36,7 +36,7 @@ export const HeroAnimation = () => {
                 initial={{ opacity: 0, x: 100, z: -100, rotateY: -10 }}
                 animate={{ opacity: 0.3, x: 50, z: -50, rotateY: -5 }}
                 transition={{ duration: 1.2, delay: 0.4 }}
-                className="absolute right-0 md:right-[5%] top-[5%] w-[250px] md:w-[380px] h-[450px] bg-white rounded-xl border border-slate-200 shadow-xl overflow-hidden pointer-events-none z-0 hidden md:block"
+                className="absolute right-0 md:right-[5%] top-[5%] w-[250px] md:w-[380px] h-[450px] bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden pointer-events-none z-0 hidden md:block"
                 style={{ transformStyle: "preserve-3d" }}
             >
                 <div className="h-10 border-b border-slate-100 bg-slate-50 flex items-center px-4 gap-2">
@@ -65,50 +65,50 @@ export const HeroAnimation = () => {
                 initial={{ y: 50, opacity: 0, scale: 0.95 }}
                 animate={{ y: 0, opacity: 1, scale: 1 }}
                 transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
-                className="relative z-20 w-[320px] md:w-[700px] bg-white rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] border border-slate-200 backdrop-blur-xl"
+                className="relative z-20 w-[320px] md:w-[700px] bg-white dark:bg-slate-900 rounded-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 backdrop-blur-xl"
             >
                 {/* Header */}
-                <div className="h-14 border-b border-slate-100 flex items-center px-5 gap-4 bg-white/50 rounded-t-xl backdrop-blur-md">
+                <div className="h-14 border-b border-slate-100 dark:border-slate-800 flex items-center px-5 gap-4 bg-white/50 dark:bg-slate-900/50 rounded-t-xl backdrop-blur-md">
                     <div className="flex gap-2">
                         <div className="w-3 h-3 rounded-full bg-[#ff5f57] border border-[#e0443e]/50" />
                         <div className="w-3 h-3 rounded-full bg-[#febc2e] border border-[#d89e24]/50" />
                         <div className="w-3 h-3 rounded-full bg-[#28c840] border border-[#1aab29]/50" />
                     </div>
-                    <div className="h-6 w-px bg-slate-200 mx-2" />
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-md text-xs font-medium text-slate-500 border border-slate-200">
-                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2" />
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-md text-xs font-medium text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                        <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
                         Flux Board / Product Launch
                     </div>
                 </div>
 
                 {/* Dashboard Content */}
-                <div className="p-5 md:p-7 bg-gradient-to-b from-slate-50/50 to-white min-h-[380px] rounded-b-xl relative overflow-hidden">
+                <div className="p-5 md:p-7 bg-gradient-to-b from-slate-50/50 to-white dark:from-slate-800/50 dark:to-slate-900 min-h-[380px] rounded-b-xl relative overflow-hidden">
                     {/* Background Grid Pattern */}
-                    <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]" />
+                    <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03] dark:opacity-[0.05]" />
 
                     <div className="flex flex-col md:flex-row gap-6 relative z-10">
                         {/* Sidebar */}
                         <div className="w-44 hidden md:block space-y-5">
                             <div className="space-y-2">
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Favorites</div>
-                                <div className="h-8 w-full bg-blue-50 text-blue-600 rounded-md flex items-center px-3 text-sm border border-blue-100">
+                                <div className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Favorites</div>
+                                <div className="h-8 w-full bg-purple-50 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 rounded-md flex items-center px-3 text-sm border border-purple-100 dark:border-purple-500/30">
                                     <span className="mr-2">🚀</span> Launch
                                 </div>
-                                <div className="h-8 w-full hover:bg-slate-50 rounded-md flex items-center px-3 text-sm text-slate-500 transition-colors">
+                                <div className="h-8 w-full hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md flex items-center px-3 text-sm text-slate-500 dark:text-slate-400 transition-colors">
                                     <span className="mr-2">🐛</span> Bugs
                                 </div>
-                                <div className="h-8 w-full hover:bg-slate-50 rounded-md flex items-center px-3 text-sm text-slate-500 transition-colors">
+                                <div className="h-8 w-full hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md flex items-center px-3 text-sm text-slate-500 dark:text-slate-400 transition-colors">
                                     <span className="mr-2">🎨</span> Design
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Team</div>
+                                <div className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Team</div>
                                 <div className="flex -space-x-2 px-1">
                                     {[1, 2, 3, 4].map(i => (
-                                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 shadow-sm" />
+                                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-700 shadow-sm" />
                                     ))}
-                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-xs text-slate-500 shadow-sm">+3</div>
+                                    <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs text-slate-500 dark:text-slate-400 shadow-sm">+3</div>
                                 </div>
                             </div>
                         </div>
@@ -116,33 +116,33 @@ export const HeroAnimation = () => {
                         {/* Main Board */}
                         <div className="flex-1 space-y-5">
                             <div className="flex items-center justify-between">
-                                <div className="text-lg font-bold text-slate-800">Q3 Roadmap</div>
+                                <div className="text-lg font-bold text-slate-800 dark:text-white">Q3 Roadmap</div>
                                 <div className="flex gap-2">
-                                    <div className="h-8 px-3 rounded-md bg-white border border-slate-200 text-sm flex items-center text-slate-500 shadow-sm">Filter</div>
-                                    <div className="h-8 px-3 rounded-md bg-emerald-500 text-white text-sm flex items-center shadow-lg shadow-emerald-500/20 font-medium">New Task</div>
+                                    <div className="h-8 px-3 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm flex items-center text-slate-500 dark:text-slate-400 shadow-sm">Filter</div>
+                                    <div className="h-8 px-3 rounded-md bg-purple-500 text-white text-sm flex items-center shadow-lg shadow-purple-500/20 font-medium">New Task</div>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 {/* Column 1 */}
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase">
+                                    <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                         <span>To Do</span>
-                                        <span className="bg-slate-100 px-1.5 py-0.5 rounded">4</span>
+                                        <span className="bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded">4</span>
                                     </div>
-                                    <motion.div whileHover={{ y: -2 }} className="p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
+                                    <motion.div whileHover={{ y: -2 }} className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
                                         <div className="h-1.5 w-8 bg-orange-200 rounded-full mb-2" />
-                                        <div className="text-sm font-medium text-slate-700 mb-2">Research Competitors</div>
+                                        <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Research Competitors</div>
                                         <div className="flex items-center justify-between">
-                                            <div className="w-6 h-6 rounded-full bg-slate-100" />
+                                            <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700" />
                                             <div className="text-[10px] text-slate-400">Oct 24</div>
                                         </div>
                                     </motion.div>
-                                    <motion.div whileHover={{ y: -2 }} className="p-3 bg-white rounded-lg border border-slate-200 shadow-sm">
-                                        <div className="h-1.5 w-8 bg-blue-200 rounded-full mb-2" />
-                                        <div className="text-sm font-medium text-slate-700 mb-2">Draft Spec</div>
+                                    <motion.div whileHover={{ y: -2 }} className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                                        <div className="h-1.5 w-8 bg-purple-200 rounded-full mb-2" />
+                                        <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Draft Spec</div>
                                         <div className="flex items-center justify-between">
-                                            <div className="w-6 h-6 rounded-full bg-slate-100" />
+                                            <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700" />
                                             <div className="text-[10px] text-slate-400">Oct 25</div>
                                         </div>
                                     </motion.div>
@@ -150,30 +150,30 @@ export const HeroAnimation = () => {
 
                                 {/* Column 2 */}
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase">
+                                    <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                         <span>In Progress</span>
-                                        <span className="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">2</span>
+                                        <span className="bg-purple-50 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 px-1.5 py-0.5 rounded">2</span>
                                     </div>
-                                    <motion.div whileHover={{ y: -2 }} className="p-3 bg-white rounded-lg border border-blue-200 shadow-sm ring-1 ring-blue-500/10">
+                                    <motion.div whileHover={{ y: -2 }} className="p-3 bg-white dark:bg-slate-800 rounded-lg border border-purple-200 dark:border-purple-500/30 shadow-sm ring-1 ring-purple-500/10">
                                         <div className="h-1.5 w-8 bg-purple-200 rounded-full mb-2" />
-                                        <div className="text-sm font-medium text-slate-700 mb-2">Homepage Design</div>
-                                        <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                                            <div className="bg-blue-500 h-full w-2/3" />
+                                        <div className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Homepage Design</div>
+                                        <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-2 overflow-hidden">
+                                            <div className="bg-purple-500 h-full w-2/3" />
                                         </div>
                                     </motion.div>
                                 </div>
 
                                 {/* Column 3 */}
                                 <div className="space-y-3">
-                                    <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase">
+                                    <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                                         <span>Done</span>
-                                        <span className="bg-green-50 text-green-600 px-1.5 py-0.5 rounded">8</span>
+                                        <span className="bg-green-50 dark:bg-green-500/20 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded">8</span>
                                     </div>
-                                    <motion.div whileHover={{ y: -2 }} className="p-3 bg-slate-50 rounded-lg border border-slate-100 shadow-sm opacity-80">
+                                    <motion.div whileHover={{ y: -2 }} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700 shadow-sm opacity-80">
                                         <div className="h-1.5 w-8 bg-green-200 rounded-full mb-2" />
-                                        <div className="text-sm font-medium text-slate-500 line-through mb-2">User Interviews</div>
+                                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400 line-through mb-2">User Interviews</div>
                                         <div className="flex items-center justify-end">
-                                            <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-[10px]">✓</div>
+                                            <div className="w-4 h-4 rounded-full bg-green-100 dark:bg-green-500/20 flex items-center justify-center text-green-600 dark:text-green-400 text-[10px]">✓</div>
                                         </div>
                                     </motion.div>
                                 </div>
@@ -187,14 +187,14 @@ export const HeroAnimation = () => {
                     initial={{ x: 50, y: 20, opacity: 0 }}
                     animate={{ x: -20, y: -15, opacity: 1 }}
                     transition={{ delay: 1.2, duration: 0.8 }}
-                    className="absolute -right-6 top-28 bg-white p-3 rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 flex items-center gap-3 z-30"
+                    className="absolute -right-6 top-28 bg-white dark:bg-slate-800 p-3 rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-slate-100 dark:border-slate-700 flex items-center gap-3 z-30"
                 >
-                    <div className="p-2 bg-green-100 rounded-full text-green-600">
-                        <CheckCircle2 size={16} />
+                    <div className="p-2 bg-green-100 dark:bg-green-500/20 rounded-full text-green-600 dark:text-green-400">
+                        <CheckCircleIcon className="w-4 h-4" />
                     </div>
                     <div>
-                        <div className="text-xs font-bold text-slate-800">Deployed to Prod</div>
-                        <div className="text-[10px] text-slate-400">Just now</div>
+                        <div className="text-xs font-bold text-slate-800 dark:text-white">Deployed to Prod</div>
+                        <div className="text-[10px] text-slate-400 dark:text-slate-500">Just now</div>
                     </div>
                 </motion.div>
 
@@ -202,15 +202,15 @@ export const HeroAnimation = () => {
                     initial={{ x: -50, y: 50, opacity: 0 }}
                     animate={{ x: 20, y: -30, opacity: 1 }}
                     transition={{ delay: 1.5, duration: 0.8 }}
-                    className="absolute -left-8 bottom-20 bg-white p-3 rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 flex items-center gap-3 z-30"
+                    className="absolute -left-8 bottom-20 bg-white dark:bg-slate-800 p-3 rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] border border-slate-100 dark:border-slate-700 flex items-center gap-3 z-30"
                 >
                     <div className="relative">
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-emerald-500 flex items-center justify-center text-white font-bold text-xs">JD</div>
-                        <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-400 border-[3px] border-white rounded-full" />
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs">JD</div>
+                        <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-400 border-[3px] border-white dark:border-slate-900 rounded-full" />
                     </div>
                     <div>
-                        <div className="text-xs font-bold text-slate-800">Sarah commented</div>
-                        <div className="text-[10px] text-slate-500">"Looks fantastic! 🚀"</div>
+                        <div className="text-xs font-bold text-slate-800 dark:text-white">Sarah commented</div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400">"Looks fantastic! 🚀"</div>
                     </div>
                 </motion.div>
 

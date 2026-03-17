@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowLeft, Home } from 'lucide-react';
+import { ArrowLeftIcon, HomeIcon } from '@heroicons/react/24/outline';
 
 export default function NotFound() {
     return (
@@ -18,14 +18,14 @@ export default function NotFound() {
                             href="/dashboard"
                             className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--brand-primary)] text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
                         >
-                            <Home className="w-4 h-4" />
+                            <HomeIcon className="w-4 h-4" />
                             Dashboard
                         </Link>
                         <button
                             onClick={() => window.history.back()}
                             className="inline-flex items-center gap-2 px-4 py-2 border border-[var(--border-subtle)] rounded-lg hover:bg-[var(--surface)] transition-colors font-medium text-[var(--foreground)]"
                         >
-                            <ArrowLeft className="w-4 h-4" />
+                            <ArrowLeftIcon className="w-4 h-4" />
                             Go Back
                         </button>
                     </div>

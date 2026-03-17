@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Building2, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { BuildingOffice2Icon, ArrowRightIcon, ArrowPathIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { createWorkspace } from '@/actions/workspace';
 
 export default function OnboardingPage() {
@@ -84,7 +84,7 @@ export default function OnboardingPage() {
                                 Workspace name
                             </label>
                             <div className="relative">
-                                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
+                                <BuildingOffice2Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
                                 <input
                                     type="text"
                                     placeholder="Acme Inc."
@@ -131,11 +131,11 @@ export default function OnboardingPage() {
                             className="btn btn-primary w-full"
                         >
                             {isLoading ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <ArrowPathIcon className="w-5 h-5 animate-spin" />
                             ) : (
                                 <>
                                     Create workspace
-                                    <ArrowRight className="w-4 h-4" />
+                                    <ArrowRightIcon className="w-4 h-4" />
                                 </>
                             )}
                         </button>

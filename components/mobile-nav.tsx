@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './sidebar';
 
@@ -54,7 +54,7 @@ export function MobileNav(props: MobileNavProps) {
                         onClick={() => setIsOpen(true)}
                         className="p-2 rounded-lg hover:bg-[var(--surface)] transition-colors"
                     >
-                        <Menu className="w-5 h-5 text-[var(--foreground)]" />
+                        <Bars3Icon className="w-5 h-5 text-[var(--foreground)]" />
                     </button>
                     <span className="font-semibold text-sm">
                         {props.currentWorkspace?.name || 'Menu'}
@@ -88,7 +88,7 @@ export function MobileNav(props: MobileNavProps) {
                                     onClick={() => setIsOpen(false)}
                                     className="absolute top-2 right-2 p-2 z-10 text-[var(--text-secondary)] hover:text-[var(--foreground)]"
                                 >
-                                    <X className="w-5 h-5" />
+                                    <XMarkIcon className="w-5 h-5" />
                                 </button>
                                 {/* We reuse generic Sidebar. Note: Sidebar is h-screen, w-64 fixed. 
                                     We might need to adjust styles via props or class overrides if possible.

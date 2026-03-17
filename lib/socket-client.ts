@@ -1,6 +1,13 @@
+'use client';
+
 import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
+let isConnecting = false;
+let pendingCallbacks: {
+  event: string;
+  callback: (...args: unknown[]) => void;
+}[] = [];
 
 interface UserInfo {
   id: string;
@@ -40,6 +47,14 @@ export interface CursorPosition {
   y: number;
 }
 
+// Process any pending callbacks that were registered before socket connected
+const processPendingCallbacks = () => {
+  pendingCallbacks.forEach(({ event, callback }) => {
+    socket?.on(event, callback as (...args: unknown[]) => void);
+  });
+  pendingCallbacks = [];
+};
+
 export const initSocket = (
   boardId: string,
   token: string,
@@ -48,6 +63,8 @@ export const initSocket = (
   if (socket?.connected) {
     socket.disconnect();
   }
+
+  console.log('[Socket] Initializing socket for board:', boardId);
 
   socket = io(window.location.origin, {
     auth: {
@@ -58,18 +75,24 @@ export const initSocket = (
       boardId,
     },
     transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
   });
 
   socket.on('connect', () => {
-    console.log('Socket connected:', socket?.id);
+    console.log('[Socket] Connected:', socket?.id);
+    isConnecting = false;
+    processPendingCallbacks();
   });
 
   socket.on('disconnect', (reason) => {
-    console.log('Socket disconnected:', reason);
+    console.log('[Socket] Disconnected:', reason);
   });
 
   socket.on('connect_error', (error) => {
-    console.error('Socket connection error:', error.message);
+    console.error('[Socket] Connection error:', error.message);
+    isConnecting = false;
   });
 
   return socket;
@@ -77,6 +100,10 @@ export const initSocket = (
 
 export const getSocket = (): Socket | null => {
   return socket;
+};
+
+export const isSocketConnected = (): boolean => {
+  return socket?.connected ?? false;
 };
 
 export const disconnectSocket = (): void => {
@@ -95,63 +122,83 @@ export const leaveBoard = (boardId: string): void => {
 };
 
 export const emitTaskMoved = (data: TaskMoveData): void => {
-  socket?.emit('task-moved', data);
+  console.log('[Socket] Emitting task-moved:', data);
+  if (socket?.connected) {
+    socket.emit('task-moved', data);
+  } else {
+    console.log('[Socket] Socket not connected, cannot emit');
+  }
 };
 
 export const emitTaskUpdated = (data: TaskUpdateData): void => {
-  socket?.emit('task-updated', data);
+  console.log('[Socket] Emitting task-updated:', data);
+  if (socket?.connected) {
+    socket.emit('task-updated', data);
+  }
 };
 
 export const emitTaskCreated = (data: TaskCreateData): void => {
-  socket?.emit('task-created', data);
+  console.log('[Socket] Emitting task-created:', data);
+  if (socket?.connected) {
+    socket.emit('task-created', data);
+  }
 };
 
 export const emitTaskDeleted = (data: TaskDeleteData): void => {
-  socket?.emit('task-deleted', data);
+  console.log('[Socket] Emitting task-deleted:', data);
+  if (socket?.connected) {
+    socket.emit('task-deleted', data);
+  }
 };
 
 export const emitCursorMove = (data: CursorPosition): void => {
   socket?.emit('cursor-move', data);
 };
 
-export const onPresenceUpdate = (callback: (users: SocketUser[]) => void): (() => void) => {
-  socket?.on('presence-update', callback);
+// Helper to register listeners that works whether socket is connected or not
+const registerListener = (event: string, callback: (...args: unknown[]) => void): (() => void) => {
+  if (!socket) {
+    console.log('[Socket] No socket, queuing listener for:', event);
+    pendingCallbacks.push({ event, callback });
+    return () => {};
+  }
+
+  if (socket.connected) {
+    socket.on(event, callback);
+    console.log('[Socket] Registered listener for:', event);
+  } else {
+    console.log('[Socket] Socket not connected, queuing listener for:', event);
+    pendingCallbacks.push({ event, callback });
+  }
+
   return () => {
-    socket?.off('presence-update', callback);
+    socket?.off(event, callback);
   };
+};
+
+export const onPresenceUpdate = (callback: (users: SocketUser[]) => void): (() => void) => {
+  return registerListener('presence-update', ((users: SocketUser[]) => callback(users)) as (...args: unknown[]) => void);
 };
 
 export const onTaskMoved = (callback: (data: TaskMoveData & { movedBy?: UserInfo }) => void): (() => void) => {
-  socket?.on('task-moved', callback);
-  return () => {
-    socket?.off('task-moved', callback);
-  };
+  return registerListener('task-moved', ((data: TaskMoveData & { movedBy?: UserInfo }) => {
+    console.log('[Socket] task-moved received:', data);
+    callback(data);
+  }) as (...args: unknown[]) => void);
 };
 
 export const onTaskUpdated = (callback: (data: TaskUpdateData & { updatedBy?: UserInfo }) => void): (() => void) => {
-  socket?.on('task-updated', callback);
-  return () => {
-    socket?.off('task-updated', callback);
-  };
+  return registerListener('task-updated', ((data: TaskUpdateData & { updatedBy?: UserInfo }) => callback(data)) as (...args: unknown[]) => void);
 };
 
 export const onTaskCreated = (callback: (data: TaskCreateData & { createdBy?: UserInfo }) => void): (() => void) => {
-  socket?.on('task-created', callback);
-  return () => {
-    socket?.off('task-created', callback);
-  };
+  return registerListener('task-created', ((data: TaskCreateData & { createdBy?: UserInfo }) => callback(data)) as (...args: unknown[]) => void);
 };
 
 export const onTaskDeleted = (callback: (data: TaskDeleteData & { deletedBy?: UserInfo }) => void): (() => void) => {
-  socket?.on('task-deleted', callback);
-  return () => {
-    socket?.off('task-deleted', callback);
-  };
+  return registerListener('task-deleted', ((data: TaskDeleteData & { deletedBy?: UserInfo }) => callback(data)) as (...args: unknown[]) => void);
 };
 
 export const onCursorMove = (callback: (data: CursorPosition & { userId: string; userName: string }) => void): (() => void) => {
-  socket?.on('cursor-move', callback);
-  return () => {
-    socket?.off('cursor-move', callback);
-  };
+  return registerListener('cursor-move', ((data: CursorPosition & { userId: string; userName: string }) => callback(data)) as (...args: unknown[]) => void);
 };

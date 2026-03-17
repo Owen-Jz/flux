@@ -5,16 +5,16 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
-    LayoutGrid,
-    Users,
-    CheckCircle2,
-    GripHorizontal,
-    GraduationCap,
-    ChevronUp,
-    Sparkles,
-    X,
-} from 'lucide-react';
-import { getOnboardingProgress, updateOnboardingProgress, dismissOnboarding } from '@/actions/onboarding';
+    Squares2X2Icon,
+    UsersIcon,
+    CheckCircleIcon,
+    Bars3BottomLeftIcon,
+    AcademicCapIcon,
+    ChevronUpIcon,
+    SparklesIcon,
+    XMarkIcon,
+} from '@heroicons/react/24/outline';
+import { getOnboardingProgress, updateOnboardingProgress, dismissOnboarding, isEligibleForOnboarding } from '@/actions/onboarding';
 
 interface OnboardingChecklistProps {
     workspaceSlug?: string;
@@ -34,35 +34,35 @@ const checklistItems = [
         id: 'createdFirstBoard',
         label: 'Create your first board',
         description: 'Organize your tasks into boards',
-        icon: LayoutGrid,
+        icon: Squares2X2Icon,
         href: null, // Will navigate to workspace root
     },
     {
         id: 'addedFirstTeamMember',
         label: 'Add team members',
         description: 'Collaborate with your team',
-        icon: Users,
+        icon: UsersIcon,
         href: 'team',
     },
     {
         id: 'createdFirstTask',
         label: 'Create your first task',
         description: 'Add a task to get started',
-        icon: CheckCircle2,
+        icon: CheckCircleIcon,
         href: null, // Will navigate to first board
     },
     {
         id: 'completedFirstDragDrop',
         label: 'Try drag-and-drop',
         description: 'Move tasks between columns',
-        icon: GripHorizontal,
+        icon: Bars3BottomLeftIcon,
         href: null, // Will navigate to first board
     },
     {
         id: 'completedTutorial',
         label: 'Complete the tutorial',
         description: 'Learn all the features',
-        icon: GraduationCap,
+        icon: AcademicCapIcon,
         href: null, // Will trigger tutorial
     },
 ];
@@ -75,8 +75,22 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
     const [justCompleted, setJustCompleted] = useState(false);
 
     useEffect(() => {
-        loadProgress();
+        checkEligibility();
     }, []);
+
+    const checkEligibility = async () => {
+        try {
+            const eligible = await isEligibleForOnboarding();
+            if (eligible) {
+                loadProgress();
+            } else {
+                setIsLoading(false);
+            }
+        } catch (error) {
+            console.error('Failed to check eligibility:', error);
+            setIsLoading(false);
+        }
+    };
 
     const loadProgress = async () => {
         try {
@@ -167,11 +181,11 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
                     onClick={() => setIsOpen(true)}
                     className="w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-[var(--flux-success-bg)] to-[var(--flux-info-bg)] border border-[var(--flux-success-border)] hover:opacity-90 transition-opacity"
                 >
-                    <Sparkles className="w-5 h-5 text-[var(--flux-success-primary)]" />
+                    <SparklesIcon className="w-5 h-5 text-[var(--flux-success-primary)]" />
                     <span className="text-sm font-medium text-[var(--flux-success-text-strong)]">
                         Onboarding Complete!
                     </span>
-                    <ChevronUp className="w-4 h-4 ml-auto text-[var(--flux-success-primary)]" />
+                    <ChevronUpIcon className="w-4 h-4 ml-auto text-[var(--flux-success-primary)]" />
                 </button>
             </div>
         );
@@ -191,7 +205,7 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
                         {/* Header */}
                         <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                                <Sparkles className="w-4 h-4 text-[var(--brand-primary)]" />
+                                <SparklesIcon className="w-4 h-4 text-[var(--brand-primary)]" />
                                 <span className="text-sm font-semibold text-[var(--text-primary)]">
                                     Getting Started
                                 </span>
@@ -201,7 +215,7 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
                                 className="p-1 rounded-lg text-[var(--text-tertiary)] hover:bg-[var(--background-subtle)] transition-colors"
                                 title="Dismiss"
                             >
-                                <X className="w-4 h-4" />
+                                <XMarkIcon className="w-4 h-4" />
                             </button>
                         </div>
 
@@ -252,7 +266,7 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
                                             }`}
                                         >
                                             {isCompleted ? (
-                                                <CheckCircle2 className="w-3.5 h-3.5" />
+                                                <CheckCircleIcon className="w-3.5 h-3.5" />
                                             ) : (
                                                 <Icon className="w-3.5 h-3.5" />
                                             )}
@@ -279,7 +293,7 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
                         onClick={() => setIsOpen(true)}
                         className="w-full flex items-center gap-3 p-3 rounded-xl bg-[var(--background-subtle)] hover:bg-[var(--border-subtle)] transition-colors"
                     >
-                        <Sparkles className="w-5 h-5 text-[var(--brand-primary)]" />
+                        <SparklesIcon className="w-5 h-5 text-[var(--brand-primary)]" />
                         <span className="text-sm font-medium text-[var(--text-primary)]">
                             Getting Started
                         </span>

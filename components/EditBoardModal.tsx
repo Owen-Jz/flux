@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { X, Loader2, LayoutGrid, Plus, Trash2, Pencil, Check, Save } from 'lucide-react';
+import { XMarkIcon, ArrowPathIcon, Squares2X2Icon, PlusIcon, TrashIcon, PencilIcon, CheckIcon, BookmarkSquareIcon } from '@heroicons/react/24/outline';
 import { updateBoard, addCategory, deleteCategory, updateCategory, getBoardCategories } from '@/actions/board';
 
 interface EditBoardModalProps {
@@ -146,7 +146,7 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                     onClick={onClose}
                     className="absolute top-6 right-6 p-2 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                 >
-                    <X className="w-5 h-5" />
+                    <XMarkIcon className="w-5 h-5" />
                 </button>
 
                 <div className="mb-8">
@@ -155,7 +155,7 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                             className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/20"
                             style={{ backgroundColor: color }}
                         >
-                            <LayoutGrid className="w-6 h-6 text-white" />
+                            <Squares2X2Icon className="w-6 h-6 text-white" />
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-[var(--text-primary)] leading-tight">Board Settings</h2>
@@ -239,14 +239,14 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                                                 disabled={!editCatName.trim() || isUpdatingCat}
                                                 className="p-1.5 text-[var(--flux-success-primary)] hover:bg-[var(--flux-success-bg)] rounded-lg transition-colors"
                                             >
-                                                {isUpdatingCat ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                                {isUpdatingCat ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <BookmarkSquareIcon className="w-4 h-4" />}
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={handleCancelEdit}
                                                 className="p-1.5 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--background-subtle)] rounded-lg transition-colors"
                                             >
-                                                <X className="w-4 h-4" />
+                                                <XMarkIcon className="w-4 h-4" />
                                             </button>
                                         </div>
                                     ) : (
@@ -259,14 +259,14 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                                                     onClick={() => handleStartEdit(cat)}
                                                     className="p-2 text-[var(--text-tertiary)] hover:text-[var(--brand-primary)] hover:bg-[var(--flux-info-bg)] rounded-xl transition-all"
                                                 >
-                                                    <Pencil className="w-4 h-4" />
+                                                    <PencilIcon className="w-4 h-4" />
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleDeleteCategory(cat.id)}
                                                     className="p-2 text-[var(--text-tertiary)] hover:text-[var(--flux-error-primary)] hover:bg-[var(--flux-error-bg)] rounded-xl transition-all"
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <TrashIcon className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </>
@@ -280,7 +280,7 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                             )}
                             {isLoadingCategories && (
                                 <div className="py-8 text-center bg-[var(--background-subtle)] border border-dashed border-[var(--border-subtle)] rounded-2xl">
-                                    <Loader2 className="w-5 h-5 animate-spin mx-auto text-[var(--text-tertiary)]" />
+                                    <ArrowPathIcon className="w-5 h-5 animate-spin mx-auto text-[var(--text-tertiary)]" />
                                     <p className="text-sm text-[var(--text-tertiary)] mt-2">Loading categories...</p>
                                 </div>
                             )}
@@ -316,7 +316,7 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                                 disabled={!newCatName.trim() || isAddingCat}
                                 className="w-full h-11 bg-[var(--text-primary)] text-[var(--text-inverse)] rounded-xl hover:opacity-90 disabled:opacity-50 flex items-center justify-center transition-all font-bold text-sm shadow-lg"
                             >
-                                {isAddingCat ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+                                {isAddingCat ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <PlusIcon className="w-4 h-4 mr-2" />}
                                 {isAddingCat ? 'Adding...' : 'Add Category'}
                             </button>
                         </div>
@@ -343,7 +343,7 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                         >
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    <ArrowPathIcon className="w-4 h-4 animate-spin mr-2" />
                                     Saving...
                                 </>
                             ) : (

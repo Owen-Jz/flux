@@ -4,16 +4,15 @@ export function PageFooter() {
   const footerLinks = {
     Product: [
       { label: 'Features', href: '/features' },
+      { label: 'How It Works', href: '/how-it-works' },
       { label: 'Pricing', href: '/pricing' },
       { label: 'Integrations', href: '/integrations' },
       { label: 'Changelog', href: '/changelog' },
     ],
     Resources: [
       { label: 'Documentation', href: '/docs' },
-      { label: 'API Reference', href: '/api-reference' },
       { label: 'Community', href: '/community' },
       { label: 'Blog', href: '/blog' },
-      { label: 'Webinars', href: '/webinars' },
     ],
     Company: [
       { label: 'About', href: '/about' },

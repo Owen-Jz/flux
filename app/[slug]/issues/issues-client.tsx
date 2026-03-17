@@ -2,19 +2,19 @@
 
 import { useState } from 'react';
 import {
-    Plus,
-    AlertCircle,
-    CheckCircle2,
-    Circle,
-    Clock,
-    Filter,
-    Search,
-    Bug,
-    Lightbulb,
-    Zap,
-    X,
-    User
-} from 'lucide-react';
+    PlusIcon,
+    ExclamationCircleIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    FunnelIcon,
+    MagnifyingGlassIcon,
+    BugAntIcon,
+    LightBulbIcon,
+    BoltIcon,
+    XMarkIcon,
+    UserIcon,
+    InboxIcon
+} from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createIssue, updateIssueStatus, moveIssueToBoard, updateIssue } from '@/actions/issue';
 import { useRouter } from 'next/navigation';
@@ -174,20 +174,20 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
 
     const getStatusIcon = (status: string) => {
         switch (status) {
-            case 'OPEN': return <Circle className="w-4 h-4 text-gray-400" />;
-            case 'IN_PROGRESS': return <Clock className="w-4 h-4 text-blue-500" />;
-            case 'RESOLVED': return <CheckCircle2 className="w-4 h-4 text-green-500" />;
-            case 'CLOSED': return <CheckCircle2 className="w-4 h-4 text-gray-500" />;
-            default: return <Circle className="w-4 h-4" />;
+            case 'OPEN': return <InboxIcon className="w-4 h-4 text-gray-400" />;
+            case 'IN_PROGRESS': return <ClockIcon className="w-4 h-4 text-blue-500" />;
+            case 'RESOLVED': return <CheckCircleIcon className="w-4 h-4 text-green-500" />;
+            case 'CLOSED': return <CheckCircleIcon className="w-4 h-4 text-gray-500" />;
+            default: return <InboxIcon className="w-4 h-4" />;
         }
     };
 
     const getTypeIcon = (type: string) => {
         switch (type) {
-            case 'BUG': return <Bug className="w-4 h-4 text-red-500" />;
-            case 'FEATURE': return <Lightbulb className="w-4 h-4 text-yellow-500" />;
-            case 'IMPROVEMENT': return <Zap className="w-4 h-4 text-blue-500" />;
-            default: return <AlertCircle className="w-4 h-4" />;
+            case 'BUG': return <BugAntIcon className="w-4 h-4 text-red-500" />;
+            case 'FEATURE': return <LightBulbIcon className="w-4 h-4 text-yellow-500" />;
+            case 'IMPROVEMENT': return <BoltIcon className="w-4 h-4 text-blue-500" />;
+            default: return <InboxIcon className="w-4 h-4" />;
         }
     };
 
@@ -207,7 +207,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
             {error && (
                 <div className="fixed top-4 right-4 z-50 max-w-md">
                     <div className="bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg flex items-start gap-3 animate-in slide-in-from-top-2">
-                        <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                        <InboxIcon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
                             <p className="text-sm font-medium text-red-800">{error}</p>
                         </div>
@@ -215,7 +215,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                             onClick={() => setError(null)}
                             className="text-red-400 hover:text-red-600"
                         >
-                            <X className="w-4 h-4" />
+                            <XMarkIcon className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
@@ -225,7 +225,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
             <header className="px-6 py-4 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface)] pr-32">
                 <div>
                     <h1 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
-                        <AlertCircle className="w-5 h-5 text-[var(--brand-primary)]" />
+                        <InboxIcon className="w-5 h-5 text-[var(--brand-primary)]" />
                         Issues
                     </h1>
                     <p className="text-sm text-[var(--text-secondary)]">Track bugs and improvements for {workspaceName}</p>
@@ -234,14 +234,14 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                     onClick={() => setIsCreateModalOpen(true)}
                     className="btn btn-primary shadow-lg shadow-indigo-500/20"
                 >
-                    <Plus className="w-4 h-4" /> New Issue
+                    <PlusIcon className="w-4 h-4" /> New Issue
                 </button>
             </header>
 
             {/* Filters */}
             <div className="px-6 py-3 border-b border-[var(--border-subtle)] flex gap-4 items-center bg-[var(--background)]">
                 <div className="relative flex-1 max-w-sm">
-                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search issues..."
@@ -251,7 +251,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                     />
                 </div>
                 <div className="flex items-center gap-2 border-l border-[var(--border-subtle)] pl-4">
-                    <Filter className="w-4 h-4 text-gray-400" />
+                    <FunnelIcon className="w-4 h-4 text-gray-400" />
                     {['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED'].map(status => (
                         <button
                             key={status}
@@ -273,7 +273,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                     {filteredIssues.length === 0 ? (
                         <div className="text-center py-20 text-gray-400">
                             <div className="w-16 h-16 bg-[var(--surface)] rounded-full flex items-center justify-center mx-auto mb-4">
-                                <CheckCircle2 className="w-8 h-8 text-gray-300" />
+                                <InboxIcon className="w-8 h-8 text-gray-300" />
                             </div>
                             <h3 className="font-medium text-[var(--foreground)]">No issues found</h3>
                             <p className="text-sm">Create a new issue to get started.</p>
@@ -360,7 +360,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                             <div className="p-4 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface)]">
                                 <h3 className="font-bold text-lg">Create New Issue</h3>
                                 <button onClick={() => setIsCreateModalOpen(false)} className="p-1 hover:bg-[var(--background)] rounded-lg text-gray-500">
-                                    <X className="w-5 h-5" />
+                                    <XMarkIcon className="w-5 h-5" />
                                 </button>
                             </div>
                             <form onSubmit={handleCreateIssue} className="p-6 space-y-4">

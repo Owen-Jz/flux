@@ -3,7 +3,7 @@
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { AnimatePresence } from 'framer-motion';
-import { Plus } from 'lucide-react';
+import { PlusIcon } from '@heroicons/react/24/outline';
 import { TaskCard, TaskData, Member } from './task-card';
 
 interface ColumnProps {
@@ -44,32 +44,32 @@ export function Column({
     const { setNodeRef, isOver } = useDroppable({ id });
 
     return (
-        <div className="flex flex-col w-80 flex-shrink-0 board-column">
+        <div className="flex flex-col board-column h-full">
             {/* Header */}
-            <div className="flex items-center justify-between mb-4 px-1">
-                <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${columnColors[id] || 'bg-[var(--text-tertiary)]'}`} />
-                    <h2 className="font-semibold text-sm text-[var(--text-primary)]">
+            <div className="flex items-center justify-between mb-2 px-1 flex-shrink-0">
+                <div className="flex items-center gap-1.5">
+                    <div className={`w-1.5 h-1.5 rounded-full ${columnColors[id] || 'bg-[var(--text-tertiary)]'}`} />
+                    <h2 className="font-semibold text-xs text-[var(--text-primary)] truncate">
                         {title}
                     </h2>
-                    <span className="text-xs text-[var(--text-secondary)] bg-[var(--background-subtle)] px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] text-[var(--text-secondary)] bg-[var(--background-subtle)] px-1.5 py-0.5 rounded-full">
                         {tasks.length}
                     </span>
                 </div>
                 {!isReadOnly && (
                     <button
                         onClick={onAddTask}
-                        className="add-task-btn p-1.5 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
+                        className="add-task-btn p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
                     >
-                        <Plus className="w-4 h-4 text-[var(--text-secondary)]" />
+                        <PlusIcon className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                     </button>
                 )}
             </div>
 
-            {/* Task List */}
+            {/* Task List - scrollable container */}
             <div
                 ref={setNodeRef}
-                className={`flex-1 flex flex-col gap-3 relative p-2 rounded-xl transition-colors min-h-[200px] ${
+                className={`flex-1 flex flex-col gap-2 relative p-1.5 rounded-xl transition-colors min-h-[100px] overflow-y-hidden ${
                     isOver
                         ? 'bg-[var(--flux-info-bg)] ring-2 ring-[var(--flux-info-border)]'
                         : 'bg-[var(--background-subtle)]/50'
@@ -97,7 +97,7 @@ export function Column({
                 </SortableContext>
 
                 {tasks.length === 0 && (
-                    <div className="flex items-center justify-center h-24 text-sm text-[var(--text-secondary)]">
+                    <div className="flex items-center justify-center h-12 text-xs text-[var(--text-secondary)]">
                         No tasks
                     </div>
                 )}

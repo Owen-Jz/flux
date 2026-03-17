@@ -105,3 +105,52 @@ export async function isOnboardingComplete() {
         progress.completedTutorial
     );
 }
+
+// Check if user is eligible for onboarding (new user within first 7 days)
+export async function isEligibleForOnboarding(): Promise<boolean> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return false;
+    }
+
+    try {
+        await connectDB();
+        const user = await User.findById(session.user.id).select('createdAt onboardingProgress').lean();
+
+        if (!user) return false;
+
+        // Check if already completed or dismissed
+        if (user.onboardingProgress?.dismissedAt) {
+            return false;
+        }
+
+        // Check if all steps completed
+        const progress = user.onboardingProgress;
+        if (progress?.createdFirstBoard &&
+            progress?.addedFirstTeamMember &&
+            progress?.createdFirstTask &&
+            progress?.completedFirstDragDrop &&
+            progress?.completedTutorial) {
+            return false;
+        }
+
+        // Check if user is new (created within last 7 days)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const userCreatedAt = user.createdAt ? new Date(user.createdAt) : null;
+        if (userCreatedAt && userCreatedAt > sevenDaysAgo) {
+            return true;
+        }
+
+        // Also eligible if no onboardingProgress at all (brand new user)
+        if (!user.onboardingProgress) {
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error('Failed to check onboarding eligibility:', error);
+        return false;
+    }
+}

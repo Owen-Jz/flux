@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Loader2, LayoutGrid } from 'lucide-react';
+import { XMarkIcon, ArrowPathIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
 import { createBoard } from '@/actions/board';
 import { updateOnboardingProgress } from '@/actions/onboarding';
 
@@ -59,7 +59,7 @@ export default function CreateBoardModal({ workspaceSlug, onClose, onSuccess }: 
                     onClick={onClose}
                     className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--foreground)]"
                 >
-                    <X className="w-5 h-5" />
+                    <XMarkIcon className="w-5 h-5" />
                 </button>
 
                 <div className="mb-6">
@@ -68,7 +68,7 @@ export default function CreateBoardModal({ workspaceSlug, onClose, onSuccess }: 
                             className="w-10 h-10 rounded-lg flex items-center justify-center"
                             style={{ backgroundColor: color }}
                         >
-                            <LayoutGrid className="w-5 h-5 text-white" />
+                            <Squares2X2Icon className="w-5 h-5 text-white" />
                         </div>
                         <h2 className="text-xl font-bold text-[var(--foreground)]">Create New Board</h2>
                     </div>
@@ -139,12 +139,12 @@ export default function CreateBoardModal({ workspaceSlug, onClose, onSuccess }: 
                         >
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
                                     Creating...
                                 </>
                             ) : (
                                 <>
-                                    <LayoutGrid className="w-4 h-4" />
+                                    <Squares2X2Icon className="w-4 h-4" />
                                     Create Board
                                 </>
                             )}

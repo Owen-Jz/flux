@@ -2,3 +2,7 @@ export * from './User';
 export * from './Workspace';
 export * from './Task';
 export * from './Board';
+export * from './Admin';
+export * from './AuditLog';
+export * from './WorkspaceInvite';
+export * from './Contact';

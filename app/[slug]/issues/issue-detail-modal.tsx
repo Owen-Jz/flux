@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, AlignLeft, Clock, UserPlus, Tag, Check, AlertCircle, Bug, Lightbulb, Zap, Loader2 } from 'lucide-react';
+import { XMarkIcon, Bars3BottomLeftIcon, ClockIcon, UserPlusIcon, TagIcon, CheckIcon, ExclamationCircleIcon, BugAntIcon, LightBulbIcon, BoltIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useSession } from 'next-auth/react';
 
 interface Issue {
@@ -44,10 +44,10 @@ const priorityColors = {
 
 const getTypeIcon = (type: string) => {
     switch (type) {
-        case 'BUG': return <Bug className="w-4 h-4 text-red-500" />;
-        case 'FEATURE': return <Lightbulb className="w-4 h-4 text-yellow-500" />;
-        case 'IMPROVEMENT': return <Zap className="w-4 h-4 text-blue-500" />;
-        default: return <AlertCircle className="w-4 h-4" />;
+        case 'BUG': return <BugAntIcon className="w-4 h-4 text-red-500" />;
+        case 'FEATURE': return <LightBulbIcon className="w-4 h-4 text-yellow-500" />;
+        case 'IMPROVEMENT': return <BoltIcon className="w-4 h-4 text-blue-500" />;
+        default: return <ExclamationCircleIcon className="w-4 h-4" />;
     }
 };
 
@@ -135,7 +135,7 @@ export function IssueDetailModal({
                                     onClick={onClose}
                                     className="p-2 rounded-xl hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-900"
                                 >
-                                    <X className="w-6 h-6" />
+                                    <XMarkIcon className="w-6 h-6" />
                                 </button>
                             </div>
 
@@ -147,7 +147,7 @@ export function IssueDetailModal({
                                         {/* Description */}
                                         <div className="group">
                                             <div className="flex items-center gap-2.5 text-sm font-semibold text-gray-900 mb-3">
-                                                <AlignLeft className="w-4 h-4 text-gray-400" />
+                                                <Bars3BottomLeftIcon className="w-4 h-4 text-gray-400" />
                                                 Description
                                             </div>
                                             <textarea
@@ -163,7 +163,7 @@ export function IssueDetailModal({
                                         {/* Activity Info */}
                                         <div className="pt-8 border-t border-gray-100">
                                             <div className="flex items-center gap-2.5 text-sm font-semibold text-gray-900 mb-6">
-                                                <Clock className="w-4 h-4 text-gray-400" />
+                                                <ClockIcon className="w-4 h-4 text-gray-400" />
                                                 Timeline
                                             </div>
 
@@ -186,7 +186,7 @@ export function IssueDetailModal({
                                         {/* Status */}
                                         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                                             <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                                                <Tag className="w-3.5 h-3.5" />
+                                                <TagIcon className="w-3.5 h-3.5" />
                                                 Status
                                             </div>
                                             <div className="space-y-2">
@@ -204,7 +204,7 @@ export function IssueDetailModal({
                                                         `}
                                                     >
                                                         {s.replace('_', ' ')}
-                                                        {issue.status === s && <Check className="w-4 h-4 stroke-[3]" />}
+                                                        {issue.status === s && <CheckIcon className="w-4 h-4 stroke-[3]" />}
                                                     </button>
                                                 ))}
                                             </div>
@@ -213,7 +213,7 @@ export function IssueDetailModal({
                                         {/* Assignees */}
                                         <div className="animate-in fade-in slide-in-from-right-4 duration-700">
                                             <div className="flex items-center gap-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">
-                                                <UserPlus className="w-3.5 h-3.5" />
+                                                <UserPlusIcon className="w-3.5 h-3.5" />
                                                 Assignee
                                             </div>
                                             <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
@@ -256,7 +256,7 @@ export function IssueDetailModal({
                                                                         : 'border-slate-100 bg-white group-hover:border-slate-300'
                                                                     }
                                                                 `}>
-                                                                    {isAssigned && <Check className="w-3 h-3 stroke-[3]" />}
+                                                                    {isAssigned && <CheckIcon className="w-3 h-3 stroke-[3]" />}
                                                                 </div>
                                                             </button>
                                                         );

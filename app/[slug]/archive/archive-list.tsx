@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { updateTask, deleteTask } from '@/actions/task';
 import { TaskPriority, TaskStatus } from '@/models/Task';
-import { Loader2, RotateCcw, Trash2, Calendar, Layout, AlertCircle, X } from 'lucide-react';
+import { ArrowPathIcon, TrashIcon, CalendarIcon, Squares2X2Icon, ExclamationCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface ArchivedTask {
     id: string;
@@ -81,7 +81,7 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
     if (tasks.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center p-12 text-center text-gray-500 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                <Trash2 className="w-12 h-12 mb-4 text-gray-300" />
+                <TrashIcon className="w-12 h-12 mb-4 text-gray-300" />
                 <h3 className="text-lg font-medium text-gray-900">No archived tasks</h3>
                 <p className="mt-1">Tasks you archive will appear here.</p>
             </div>
@@ -92,10 +92,10 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-4 flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                    <ExclamationCircleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
                     <p className="text-sm font-medium text-red-800">{error}</p>
                     <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
-                        <X className="w-4 h-4" />
+                        <XMarkIcon className="w-4 h-4" />
                     </button>
                 </div>
             )}
@@ -129,7 +129,7 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
                                                 disabled={isPending}
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors disabled:opacity-50"
                                             >
-                                                {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+                                                {isPending ? <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" /> : <ArrowPathIcon className="w-3.5 h-3.5" />}
                                                 Restore
                                             </button>
                                             <button
@@ -137,7 +137,7 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
                                                 disabled={isPending}
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50"
                                             >
-                                                <Trash2 className="w-3.5 h-3.5" />
+                                                <TrashIcon className="w-3.5 h-3.5" />
                                                 Delete
                                             </button>
                                         </div>

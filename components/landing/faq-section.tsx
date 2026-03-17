@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
 import { useState } from "react";
+import Link from "next/link";
 
 const faqs = [
     {
@@ -43,15 +44,15 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
         >
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full text-left bg-white bg-slate-800 rounded-2xl border border-slate-200 border-slate-700 overflow-hidden transition-all duration-300 hover:border-indigo-300 hover:border-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                className="w-full text-left bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden transition-all duration-300 hover:border-purple-300 dark:hover:border-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
                 aria-expanded={isOpen}
             >
                 <div className="flex items-center justify-between p-5 lg:p-6">
-                    <span className="font-bold text-slate-900 text-white pr-8 text-sm lg:text-base">
+                    <span className="font-bold text-slate-900 dark:text-white pr-8 text-sm lg:text-base">
                         {question}
                     </span>
-                    <ChevronDown
-                        className={`w-5 h-5 text-slate-400 text-slate-500 flex-shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                    <ChevronDownIcon
+                        className={`w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
                     />
                 </div>
                 <div
@@ -59,7 +60,7 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
                         isOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                 >
-                    <div className="px-5 lg:px-6 pb-5 lg:pb-6 text-slate-600 text-slate-300 leading-relaxed text-sm lg:text-base">
+                    <div className="px-5 lg:px-6 pb-5 lg:pb-6 text-slate-600 dark:text-slate-300 leading-relaxed text-sm lg:text-base">
                         {answer}
                     </div>
                 </div>
@@ -70,16 +71,16 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
 
 export const FAQSection = () => {
     return (
-        <section className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-white bg-slate-900" aria-labelledby="faq-heading">
+        <section className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900" aria-labelledby="faq-heading">
             <div className="max-w-3xl mx-auto">
                 <div className="text-center mb-12 lg:mb-16">
-                    <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 bg-indigo-900/30 text-indigo-700 text-indigo-300 text-xs font-bold uppercase tracking-widest mb-4">
+                    <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-widest mb-4">
                         FAQ
                     </span>
-                    <h2 id="faq-heading" className="text-3xl lg:text-4xl font-black text-slate-900 text-white mb-4 tracking-tight">
+                    <h2 id="faq-heading" className="text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">
                         Frequently Asked Questions
                     </h2>
-                    <p className="text-lg text-slate-600 text-slate-300">
+                    <p className="text-lg text-slate-600 dark:text-slate-300">
                         Everything you need to know about Flux.
                     </p>
                 </div>
@@ -91,11 +92,11 @@ export const FAQSection = () => {
                 </div>
 
                 <div className="text-center mt-10">
-                    <p className="text-slate-600 text-slate-300">
+                    <p className="text-slate-600 dark:text-slate-300">
                         Still have questions?{' '}
-                        <a href="#" className="text-indigo-600 text-indigo-400 font-semibold hover:underline">
+                        <Link href="/contact" className="text-purple-600 dark:text-purple-400 font-semibold hover:underline">
                             Contact our support team
-                        </a>
+                        </Link>
                     </p>
                 </div>
             </div>

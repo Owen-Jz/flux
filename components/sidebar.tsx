@@ -5,15 +5,16 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Settings,
-    Users,
-    ChevronDown,
-    Plus,
-    Check,
-    LogOut,
-    Archive,
-    AlertCircle,
-} from 'lucide-react';
+    Cog6ToothIcon,
+    UsersIcon,
+    ChevronDownIcon,
+    PlusIcon,
+    CheckIcon,
+    ArrowRightOnRectangleIcon,
+    ArchiveBoxIcon,
+    ExclamationCircleIcon,
+    ChartBarIcon,
+} from '@heroicons/react/24/outline';
 import { signOut } from 'next-auth/react';
 import BoardList from './BoardList';
 import { OnboardingChecklist } from './onboarding/onboarding-checklist';
@@ -55,25 +56,31 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
         {
             href: currentWorkspace ? `/${currentWorkspace.slug}/issues` : '/dashboard',
             label: 'Issues',
-            icon: AlertCircle,
+            icon: ExclamationCircleIcon,
+            show: true,
+        },
+        {
+            href: currentWorkspace ? `/${currentWorkspace.slug}/analytics` : '/dashboard',
+            label: 'Analytics',
+            icon: ChartBarIcon,
             show: true,
         },
         {
             href: currentWorkspace ? `/${currentWorkspace.slug}/team` : '/dashboard',
             label: 'Team',
-            icon: Users,
+            icon: UsersIcon,
             show: true,
         },
         {
             href: currentWorkspace ? `/${currentWorkspace.slug}/settings` : '/dashboard',
             label: 'Settings',
-            icon: Settings,
+            icon: Cog6ToothIcon,
             show: isAdmin, // Only show settings to admin
         },
         {
             href: currentWorkspace ? `/${currentWorkspace.slug}/archive` : '/dashboard',
             label: 'Archive',
-            icon: Archive,
+            icon: ArchiveBoxIcon,
             show: true,
         },
     ].filter(item => item.show);
@@ -94,7 +101,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                             {currentWorkspace?.name || 'Select Workspace'}
                         </span>
                     </div>
-                    <ChevronDown
+                    <ChevronDownIcon
                         className={`w-4 h-4 text-[var(--text-secondary)] transition-transform ${isWorkspaceSwitcherOpen ? 'rotate-180' : ''
                             }`}
                     />
@@ -124,7 +131,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                                         </div>
                                         <span className="truncate flex-1">{workspace.name}</span>
                                         {workspace.slug === currentWorkspace?.slug && (
-                                            <Check className="w-4 h-4 text-[var(--brand-primary)]" />
+                                            <CheckIcon className="w-4 h-4 text-[var(--brand-primary)]" />
                                         )}
                                     </Link>
                                 ))}
@@ -133,7 +140,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                                     className="flex items-center gap-3 p-2 rounded-lg text-sm text-[var(--text-secondary)] hover:bg-[var(--background)] transition-colors"
                                 >
                                     <div className="w-6 h-6 rounded border border-dashed border-[var(--border-subtle)] flex items-center justify-center">
-                                        <Plus className="w-3 h-3" />
+                                        <PlusIcon className="w-3 h-3" />
                                     </div>
                                     <span>New workspace</span>
                                 </Link>
@@ -214,7 +221,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                         className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--background)] transition-colors"
                         title="Sign out"
                     >
-                        <LogOut className="w-4 h-4" />
+                        <ArrowRightOnRectangleIcon className="w-4 h-4" />
                     </button>
                 </div>
             </div>

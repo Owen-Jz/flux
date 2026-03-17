@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { addUserToWorkspaceFromInvite } from '@/lib/process-workspace-invite';
 
 export async function POST(request: NextRequest) {
     // Apply rate limiting - 5 signup attempts per 15 minutes per IP
@@ -60,11 +61,18 @@ export async function POST(request: NextRequest) {
             password: hashedPassword,
         });
 
+        // Process any pending workspace invitations
+        const addedWorkspaces = await addUserToWorkspaceFromInvite(
+            user._id.toString(),
+            email
+        );
+
         return NextResponse.json(
             {
                 id: user._id.toString(),
                 name: user.name,
                 email: user.email,
+                addedWorkspaces,
             },
             { status: 201 }
         );

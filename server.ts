@@ -85,6 +85,7 @@ app.prepare().then(() => {
 
     // Handle task move events
     socket.on('task-moved', (data) => {
+      console.log('[Server] Received task-moved, broadcasting to board:', boardId);
       socket.to(boardId).emit('task-moved', {
         ...data,
         movedBy: user,

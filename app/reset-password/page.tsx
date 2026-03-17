@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { EnvelopeIcon, LockClosedIcon, ArrowRightIcon, ArrowPathIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 
 export default function ResetPasswordPage() {
     const router = useRouter();
@@ -107,7 +106,7 @@ export default function ResetPasswordPage() {
                 >
                     <div className="card p-8">
                         <div className="flex justify-center mb-4">
-                            <CheckCircle className="w-16 h-16 text-green-500" />
+                            <CheckCircleIcon className="w-16 h-16 text-green-500" />
                         </div>
                         <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">Check your email</h1>
                         <p className="text-[var(--text-secondary)] mb-6">
@@ -124,11 +123,6 @@ export default function ResetPasswordPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
-            {/* Theme Toggle - Positioned top right */}
-            <div className="fixed top-6 right-6">
-                <ThemeToggle />
-            </div>
-
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -164,13 +158,13 @@ export default function ResetPasswordPage() {
                             animate={{ opacity: 1, y: 0 }}
                             className="p-4 rounded-lg bg-green-50 text-green-600 text-center"
                         >
-                            <CheckCircle className="w-8 h-8 mx-auto mb-2" />
+                            <CheckCircleIcon className="w-8 h-8 mx-auto mb-2" />
                             <p>Password reset successfully! Redirecting to login...</p>
                         </motion.div>
                     ) : mode === 'request' ? (
                         <form onSubmit={handleRequestReset} className="space-y-6">
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
+                                <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
                                 <input
                                     type="email"
                                     placeholder="Enter your email"
@@ -187,11 +181,11 @@ export default function ResetPasswordPage() {
                                 className="btn btn-primary w-full"
                             >
                                 {isLoading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <ArrowPathIcon className="w-5 h-5 animate-spin" />
                                 ) : (
                                     <>
                                         Send reset link
-                                        <ArrowRight className="w-4 h-4" />
+                                        <ArrowRightIcon className="w-4 h-4" />
                                     </>
                                 )}
                             </button>
@@ -199,7 +193,7 @@ export default function ResetPasswordPage() {
                     ) : (
                         <form onSubmit={handleResetPassword} className="space-y-6">
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
+                                <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
                                 <input
                                     type="password"
                                     placeholder="New password"
@@ -212,7 +206,7 @@ export default function ResetPasswordPage() {
                             </div>
 
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
+                                <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
                                 <input
                                     type="password"
                                     placeholder="Confirm new password"
@@ -230,11 +224,11 @@ export default function ResetPasswordPage() {
                                 className="btn btn-primary w-full"
                             >
                                 {isLoading ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                    <ArrowPathIcon className="w-5 h-5 animate-spin" />
                                 ) : (
                                     <>
                                         Reset password
-                                        <ArrowRight className="w-4 h-4" />
+                                        <ArrowRightIcon className="w-4 h-4" />
                                     </>
                                 )}
                             </button>

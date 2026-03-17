@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, MessageSquare, X, Check, Clock, User, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
+import { BellIcon, ChatBubbleLeftRightIcon, XMarkIcon, CheckIcon, ClockIcon, UserIcon, ExclamationCircleIcon, ArrowRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { getActivities, getCommentActivities, markActivityAsRead, markAllActivitiesAsRead } from '@/actions/activity';
-import { ThemeToggle } from './theme-toggle';
 
 interface Activity {
     id: string;
@@ -60,17 +59,17 @@ function formatTimeAgo(dateString: string): string {
 function getActivityIcon(type: string) {
     switch (type) {
         case 'TASK_CREATED':
-            return <Check className="w-4 h-4 text-green-500" />;
+            return <CheckIcon className="w-4 h-4 text-green-500" />;
         case 'TASK_MOVED':
-            return <ArrowRight className="w-4 h-4 text-blue-500" />;
+            return <ArrowRightIcon className="w-4 h-4 text-blue-500" />;
         case 'TASK_ASSIGNED':
-            return <User className="w-4 h-4 text-purple-500" />;
+            return <UserIcon className="w-4 h-4 text-purple-500" />;
         case 'COMMENT_ADDED':
-            return <MessageSquare className="w-4 h-4 text-teal-500" />;
+            return <ChatBubbleLeftRightIcon className="w-4 h-4 text-teal-500" />;
         case 'TASK_DELETED':
-            return <X className="w-4 h-4 text-red-500" />;
+            return <XMarkIcon className="w-4 h-4 text-red-500" />;
         default:
-            return <Bell className="w-4 h-4 text-[var(--text-secondary)]" />;
+            return <BellIcon className="w-4 h-4 text-[var(--text-secondary)]" />;
     }
 }
 
@@ -149,9 +148,6 @@ export function WorkspaceHeader() {
 
     return (
         <div className="hidden md:flex items-center gap-2">
-            {/* Theme Toggle */}
-            <ThemeToggle />
-
             {/* Comments Button */}
             <div className="relative">
                 <button
@@ -162,7 +158,7 @@ export function WorkspaceHeader() {
                     className="relative p-2.5 rounded-xl bg-surface border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group"
                     title="Recent Comments"
                 >
-                    <MessageSquare className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
+                    <ChatBubbleLeftRightIcon className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
                 </button>
 
                 <AnimatePresence>
@@ -185,18 +181,18 @@ export function WorkspaceHeader() {
                                         onClick={() => setShowComments(false)}
                                         className="p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
                                     >
-                                        <X className="w-4 h-4 text-[var(--text-tertiary)]" />
+                                        <XMarkIcon className="w-4 h-4 text-[var(--text-tertiary)]" />
                                     </button>
                                 </div>
                                 <div className="max-h-[400px] overflow-y-auto">
                                     {isLoadingComments ? (
                                         <div className="p-8 text-center">
-                                            <Loader2 className="w-6 h-6 animate-spin mx-auto text-[var(--text-tertiary)]" />
+                                            <ArrowPathIcon className="w-6 h-6 animate-spin mx-auto text-[var(--text-tertiary)]" />
                                             <p className="text-sm text-[var(--text-tertiary)] mt-2">Loading comments...</p>
                                         </div>
                                     ) : comments.length === 0 ? (
                                         <div className="p-8 text-center">
-                                            <MessageSquare className="w-10 h-10 text-[var(--text-tertiary)] mx-auto mb-3" />
+                                            <ChatBubbleLeftRightIcon className="w-10 h-10 text-[var(--text-tertiary)] mx-auto mb-3" />
                                             <p className="text-sm text-[var(--text-tertiary)]">No comments yet</p>
                                             <p className="text-xs text-[var(--text-tertiary)] mt-1">Comments will appear here when team members add them</p>
                                         </div>
@@ -248,7 +244,7 @@ export function WorkspaceHeader() {
                     className="relative p-2.5 rounded-xl bg-surface border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group"
                     title="Notifications"
                 >
-                    <Bell className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
+                    <BellIcon className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
                     {unreadCount > 0 && (
                         <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm animate-pulse">
                             {unreadCount}
@@ -285,19 +281,19 @@ export function WorkspaceHeader() {
                                             onClick={() => setShowNotifications(false)}
                                             className="p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
                                         >
-                                            <X className="w-4 h-4 text-[var(--text-tertiary)]" />
+                                            <XMarkIcon className="w-4 h-4 text-[var(--text-tertiary)]" />
                                         </button>
                                     </div>
                                 </div>
                                 <div className="max-h-[400px] overflow-y-auto">
                                     {isLoadingActivities ? (
                                         <div className="p-8 text-center">
-                                            <Loader2 className="w-6 h-6 animate-spin mx-auto text-[var(--text-tertiary)]" />
+                                            <ArrowPathIcon className="w-6 h-6 animate-spin mx-auto text-[var(--text-tertiary)]" />
                                             <p className="text-sm text-[var(--text-tertiary)] mt-2">Loading activities...</p>
                                         </div>
                                     ) : activities.length === 0 ? (
                                         <div className="p-8 text-center">
-                                            <Bell className="w-10 h-10 text-[var(--text-tertiary)] mx-auto mb-3" />
+                                            <BellIcon className="w-10 h-10 text-[var(--text-tertiary)] mx-auto mb-3" />
                                             <p className="text-sm text-[var(--text-tertiary)]">No activities yet</p>
                                             <p className="text-xs text-[var(--text-tertiary)] mt-1">Activities will appear here as changes are made</p>
                                         </div>

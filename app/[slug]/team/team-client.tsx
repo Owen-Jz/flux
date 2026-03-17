@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { Check, X, Loader2, Clock, AlertCircle } from 'lucide-react';
+import { CheckIcon, XMarkIcon, ArrowPathIcon, ClockIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { handleAccessRequest } from '@/actions/access-control';
 
 interface AccessRequest {
@@ -59,10 +59,10 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
         <div className="space-y-3">
             {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                    <ExclamationCircleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
                     <p className="text-sm font-medium text-red-800">{error}</p>
                     <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
-                        <X className="w-4 h-4" />
+                        <XMarkIcon className="w-4 h-4" />
                     </button>
                 </div>
             )}
@@ -100,7 +100,7 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                                     Wants {request.requestedRole} access
                                 </span>
                                 <p className="text-xs text-[var(--text-secondary)] mt-1 flex items-center justify-end gap-1">
-                                    <Clock className="w-3 h-3" />
+                                    <ClockIcon className="w-3 h-3" />
                                     {formatDate(request.createdAt)}
                                 </p>
                             </div>
@@ -113,9 +113,9 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                                     title="Approve"
                                 >
                                     {processingId === request.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <ArrowPathIcon className="w-4 h-4 animate-spin" />
                                     ) : (
-                                        <Check className="w-4 h-4" />
+                                        <CheckIcon className="w-4 h-4" />
                                     )}
                                 </button>
                                 <button
@@ -124,7 +124,7 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                                     className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
                                     title="Deny"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <XMarkIcon className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>

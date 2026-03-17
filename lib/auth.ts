@@ -6,6 +6,7 @@ import { User } from '@/models/User';
 import { authConfig } from '@/lib/auth.config';
 import bcrypt from 'bcryptjs';
 import { rateLimit } from '@/lib/rate-limit';
+import { addUserToWorkspaceFromInvite } from '@/lib/process-workspace-invite';
 
 // Track failed login attempts in memory
 const failedLoginAttempts = new Map<string, { count: number; lockoutUntil?: number; lastAttempt: number }>();
@@ -110,18 +111,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 if (account?.provider === 'google' && user.email) {
                     await connectDB();
                     const existingUser = await User.findOne({ email: user.email });
+                    let userId: string | undefined;
+
                     if (!existingUser) {
                         try {
-                            await User.create({
+                            const newUser = await User.create({
                                 email: user.email,
                                 name: user.name || 'Unknown',
                                 image: user.image || undefined,
                                 emailVerified: new Date(),
                             });
+                            userId = newUser._id.toString();
                         } catch (creationError) {
                             console.error('[Auth] Error creating user from Google:', creationError);
                             return false;
                         }
+                    } else {
+                        userId = existingUser._id.toString();
+                    }
+
+                    // Process workspace invites for new or existing users
+                    if (userId && user.email) {
+                        const addedWorkspaces = await addUserToWorkspaceFromInvite(userId, user.email);
+                        if (addedWorkspaces.length > 0) {
+                            console.log(`[Auth] Added user to workspaces: ${addedWorkspaces.join(', ')}`);
+                        }
+                    }
+                } else if (account?.provider === 'credentials' && user.email && user.id) {
+                    // Process workspace invites for credentials login
+                    await connectDB();
+                    const addedWorkspaces = await addUserToWorkspaceFromInvite(user.id, user.email);
+                    if (addedWorkspaces.length > 0) {
+                        console.log(`[Auth] Added user to workspaces: ${addedWorkspaces.join(', ')}`);
                     }
                 }
                 return true;

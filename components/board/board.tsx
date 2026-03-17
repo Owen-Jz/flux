@@ -16,13 +16,16 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { Column } from './column';
 import { TaskCard, TaskData, Member } from './task-card';
 import { TaskDetailModal } from './task-detail-modal';
+import { CreateTaskModal } from './create-task-modal';
 import { updateTaskPosition, createTask, updateTask, deleteTask } from '@/actions/task';
 import { updateOnboardingProgress } from '@/actions/onboarding';
 import type { TaskStatus, TaskPriority } from '@/models/Task';
-import { Plus, X, Loader2, Search, User, Settings, Users } from 'lucide-react';
+import { PlusIcon, XMarkIcon, ArrowPathIcon, MagnifyingGlassIcon, UserIcon, Cog6ToothIcon, UsersIcon, BellIcon, ChatBubbleLeftRightIcon, MoonIcon, SunIcon, HomeIcon, ChevronDownIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import EditBoardModal from '../EditBoardModal';
 import { useSocket } from '@/contexts/socket-context';
+import { useTheme } from 'next-themes';
+import Link from 'next/link';
 
 interface BoardProps {
     initialTasks: TaskData[];
@@ -164,9 +167,15 @@ export function Board({
     const [activeTask, setActiveTask] = useState<TaskData | null>(null);
     const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
     const [isAddingTask, setIsAddingTask] = useState<ColumnId | null>(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('MEDIUM');
+    const [showSearch, setShowSearch] = useState(false);
+    const [showComments, setShowComments] = useState(false);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [isPending, startTransition] = useTransition();
+    const { theme, setTheme } = useTheme();
 
     type OptimisticAction =
         | { type: 'ADD'; task: TaskData }
@@ -409,6 +418,64 @@ export function Board({
         });
     };
 
+    const handleCreateTaskFromModal = async (taskData: {
+        title: string;
+        description?: string;
+        priority: TaskPriority;
+        status: TaskStatus;
+        assignees: Member[];
+    }) => {
+        const columnId = taskData.status as ColumnId;
+        const tempId = `temp-${Date.now()}`;
+        const newTask: TaskData = {
+            id: tempId,
+            title: taskData.title,
+            description: taskData.description,
+            status: columnId,
+            priority: taskData.priority,
+            order: Date.now(),
+            assignees: taskData.assignees,
+            createdAt: new Date().toISOString(),
+        };
+
+        startTransition(async () => {
+            dispatchOptimistic({ type: 'ADD', task: newTask });
+
+            try {
+                if (!boardSlug) {
+                    throw new Error('Board slug is required');
+                }
+                const result = await createTask(workspaceSlug, boardSlug, {
+                    title: taskData.title,
+                    description: taskData.description,
+                    status: columnId,
+                    priority: taskData.priority,
+                    assignees: taskData.assignees.map(a => a.id),
+                });
+
+                dispatchOptimistic({ type: 'DELETE', id: tempId });
+
+                setTasks((prev) => [
+                    ...prev.filter((t) => t.id !== tempId),
+                    { ...newTask, id: result.id },
+                ]);
+
+                // Emit socket event for real-time sync
+                if (boardId) {
+                    emitTaskCreated({
+                        task: { ...newTask, id: result.id },
+                    });
+                }
+
+                // Track onboarding progress
+                await updateOnboardingProgress('createdFirstTask');
+            } catch (error) {
+                console.error('Failed to create task:', error);
+                setTasks((prev) => prev.filter((t) => t.id !== tempId));
+            }
+        });
+    };
+
     const handleUpdateTask = async (taskId: string, data: Partial<TaskData>) => {
         const task = tasks.find((t) => t.id === taskId);
         if (!task) return;
@@ -480,116 +547,171 @@ export function Board({
     };
 
     return (
-        <div className="h-full p-6 overflow-x-auto relative">
-            {/* Board Header */}
-            <div id="board-header" className="mb-8 flex items-start justify-between pr-40">
-                <div>
-                    <div className="flex items-center gap-3 mb-2">
+        <div className="min-h-full p-3 md:p-4 overflow-x-hidden flex flex-col">
+            {/* Enhanced Navigation Bar */}
+            <div id="board-header" className="mb-4 flex items-center justify-between gap-3">
+                {/* Left: Navigation & Board Title */}
+                <div className="flex items-center gap-2 min-w-0">
+                    {/* Home Button */}
+                    <Link
+                        href="/dashboard"
+                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors flex-shrink-0"
+                        title="Go to Dashboard"
+                    >
+                        <HomeIcon className="w-5 h-5" />
+                    </Link>
+
+                    {/* Board Selector Dropdown */}
+                    <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-[var(--surface)] transition-colors group">
                         <div
-                            className="w-4 h-4 rounded-full"
+                            className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full flex-shrink-0"
                             style={{ backgroundColor: boardColor }}
                         />
-                        <h1 className="text-2xl font-bold text-[var(--foreground)] tracking-tight">
+                        <h1 className="text-base md:text-lg font-bold text-[var(--foreground)] tracking-tight truncate max-w-[150px] md:max-w-[200px]">
                             {boardName}
                         </h1>
-                    </div>
-                    {boardDescription && (
-                        <p className="text-[var(--text-secondary)] text-lg max-w-2xl font-normal ml-7">
-                            {boardDescription}
-                        </p>
-                    )}
-                </div>
-                {!isReadOnly && (
-                    <button
-                        onClick={() => setIsEditingBoard(true)}
-                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
-                        title="Board Settings"
-                    >
-                        <Settings className="w-5 h-5" />
+                        <ChevronDownIcon className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--foreground)] transition-colors" />
                     </button>
-                )}
+                </div>
 
-                {/* Presence Indicators */}
-                {onlineUsers.length > 0 && (
-                    <div className="absolute right-6 top-6 flex items-center -space-x-2">
-                        <div className="flex items-center gap-1 text-sm text-[var(--text-secondary)] mr-2">
-                            <Users className="w-4 h-4" />
-                            <span>{onlineUsers.length}</span>
-                        </div>
-                        {onlineUsers.slice(0, 5).map((user) => (
-                            <div
-                                key={user.socketId}
-                                className="relative group"
-                            >
-                                {user.image ? (
-                                    <img
-                                        src={user.image}
-                                        alt={user.name}
-                                        className="w-8 h-8 rounded-full border-2 border-[var(--background)]"
-                                    />
-                                ) : (
-                                    <div className="w-8 h-8 rounded-full border-2 border-[var(--background)] bg-[var(--brand-primary)] flex items-center justify-center text-white text-xs font-medium">
-                                        {user.name.charAt(0).toUpperCase()}
+                {/* Right: Navigation Actions */}
+                <div className="flex items-center gap-1">
+                    {/* Add Task Button */}
+                    {!isReadOnly && (
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--brand-primary)] text-white text-xs md:text-sm font-medium hover:bg-[var(--brand-primary-hover)] transition-colors shadow-sm"
+                        >
+                            <PlusIcon className="w-4 h-4" />
+                            <span className="hidden sm:inline">Add Task</span>
+                        </button>
+                    )}
+
+                    {/* Online Users - Right side */}
+                    {onlineUsers.length > 0 && (
+                        <div className="hidden md:flex items-center gap-2 mr-2">
+                            <div className="flex items-center -space-x-2">
+                                {onlineUsers.slice(0, 5).map((user) => (
+                                    <div
+                                        key={user.socketId}
+                                        className="relative group"
+                                    >
+                                        {user.image ? (
+                                            <img
+                                                src={user.image}
+                                                alt={user.name}
+                                                className="w-7 h-7 rounded-full border-2 border-[var(--background)]"
+                                            />
+                                        ) : (
+                                            <div className="w-7 h-7 rounded-full border-2 border-[var(--background)] bg-[var(--brand-primary)] flex items-center justify-center text-white text-[10px] font-medium">
+                                                {user.name.charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-[var(--text-secondary)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 bg-[var(--surface)] px-1.5 py-0.5 rounded">
+                                            {user.name}
+                                        </span>
+                                    </div>
+                                ))}
+                                {onlineUsers.length > 5 && (
+                                    <div className="w-7 h-7 rounded-full border-2 border-[var(--background)] bg-[var(--surface)] flex items-center justify-center text-[10px] text-[var(--text-secondary)]">
+                                        +{onlineUsers.length - 5}
                                     </div>
                                 )}
-                                <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-[var(--text-secondary)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {user.name}
-                                </span>
                             </div>
-                        ))}
-                        {onlineUsers.length > 5 && (
-                            <div className="w-8 h-8 rounded-full border-2 border-[var(--background)] bg-[var(--surface)] flex items-center justify-center text-xs text-[var(--text-secondary)]">
-                                +{onlineUsers.length - 5}
-                            </div>
+                            <span className="text-xs text-[var(--text-secondary)]">
+                                {onlineUsers.length} online
+                            </span>
+                        </div>
+                    )}
+
+                    {/* Settings */}
+                    {!isReadOnly && (
+                        <button
+                            onClick={() => setIsEditingBoard(true)}
+                            className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
+                            title="Board Settings"
+                        >
+                            <Cog6ToothIcon className="w-4.5 h-4.5" />
+                        </button>
+                    )}
+
+                    {/* Theme Toggle */}
+                    <button
+                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
+                        title="Toggle theme"
+                    >
+                        {theme === 'dark' ? (
+                            <SunIcon className="w-4.5 h-4.5" />
+                        ) : (
+                            <MoonIcon className="w-4.5 h-4.5" />
                         )}
-                    </div>
-                )}
+                    </button>
+
+                    {/* Comments */}
+                    <button
+                        onClick={() => setShowComments(!showComments)}
+                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
+                        title="Comments"
+                    >
+                        <ChatBubbleLeftRightIcon className="w-4.5 h-4.5" />
+                    </button>
+
+                    {/* Notifications */}
+                    <button
+                        onClick={() => setShowNotifications(!showNotifications)}
+                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
+                        title="Notifications"
+                    >
+                        <BellIcon className="w-4.5 h-4.5" />
+                    </button>
+                </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
-                {/* Filters */}
-                <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
-                    <div className="relative flex-1 sm:flex-initial">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between mb-3 gap-2">
+                {/* Filters - responsive wrapping */}
+                <div className="flex items-center gap-2 flex-wrap">
+                    <div className="relative flex-1 min-w-[140px] sm:flex-initial sm:min-w-0">
+                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                         <input
                             type="text"
-                            placeholder="Search tasks..."
+                            placeholder="Search..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="input !pl-11 text-sm w-full sm:w-64"
+                            className="input !pl-10 text-sm w-full min-w-[140px] sm:w-48 md:w-56 lg:w-64"
                         />
                     </div>
 
                     {currentUserId && (
                         <button
                             onClick={() => setFilterMyTasks(!filterMyTasks)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors border ${filterMyTasks
+                            className={`flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors border ${filterMyTasks
                                 ? 'bg-[var(--brand-primary)] text-white border-[var(--brand-primary)]'
                                 : 'bg-[var(--surface)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:bg-[var(--background-subtle)]'
                                 }`}
                         >
-                            <User className="w-4 h-4" />
-                            My Tasks
+                            <UserIcon className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            <span className="hidden sm:inline">My Tasks</span>
                         </button>
                     )}
 
                     <select
                         value={filterPriority}
                         onChange={(e) => setFilterPriority(e.target.value as any)}
-                        className="px-3 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                        className="px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 min-w-[90px]"
                     >
-                        <option value="ALL">All Priorities</option>
-                        <option value="HIGH">High Priority</option>
-                        <option value="MEDIUM">Medium Priority</option>
-                        <option value="LOW">Low Priority</option>
+                        <option value="ALL">Priority</option>
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
                     </select>
 
                     <select
                         value={filterMemberId}
                         onChange={(e) => setFilterMemberId(e.target.value)}
-                        className="px-3 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                        className="px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 min-w-[80px]"
                     >
-                        <option value="ALL">All Members</option>
+                        <option value="ALL">Members</option>
                         {members.map(member => (
                             <option key={member.id} value={member.id}>
                                 {member.name}
@@ -601,9 +723,9 @@ export function Board({
                         <select
                             value={filterCategoryId}
                             onChange={(e) => setFilterCategoryId(e.target.value)}
-                            className="px-3 py-2 rounded-lg text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20"
+                            className="px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 min-w-[90px]"
                         >
-                            <option value="ALL">All Categories</option>
+                            <option value="ALL">Categories</option>
                             {localCategories.map(cat => (
                                 <option key={cat.id} value={cat.id}>
                                     {cat.name}
@@ -615,9 +737,9 @@ export function Board({
 
                 {/* Loader */}
                 {isPending && (
-                    <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Syncing...
+                    <div className="flex items-center gap-2 text-xs md:text-sm text-[var(--text-secondary)]">
+                        <ArrowPathIcon className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" />
+                        <span className="hidden sm:inline">Syncing...</span>
                     </div>
                 )}
             </div>
@@ -631,9 +753,10 @@ export function Board({
                 // Only disable drag if search is active (priority/member filters allow drag)
                 modifiers={searchQuery ? [] : undefined}
             >
-                <div className="flex gap-6">
+                {/* Responsive columns container - all columns fit within viewport */}
+                <div className="flex gap-2 md:gap-3 pb-4 w-full min-w-0">
                     {columns.map((column) => (
-                        <div key={column.id} className="flex flex-col">
+                        <div key={column.id} className="flex flex-col flex-1 min-w-[160px] md:min-w-[200px] max-w-[320px]">
                             <Column
                                 id={column.id}
                                 title={column.title}
@@ -691,14 +814,14 @@ export function Board({
                                                     onClick={() => handleAddTask(column.id)}
                                                     className="btn btn-primary text-xs py-1.5"
                                                 >
-                                                    <Plus className="w-3 h-3" />
+                                                    <PlusIcon className="w-3 h-3" />
                                                     Add
                                                 </button>
                                                 <button
                                                     onClick={() => setIsAddingTask(null)}
                                                     className="btn btn-secondary text-xs py-1.5"
                                                 >
-                                                    <X className="w-3 h-3" />
+                                                    <XMarkIcon className="w-3 h-3" />
                                                 </button>
                                             </div>
                                         </div>
@@ -732,6 +855,15 @@ export function Board({
                 )}
             </AnimatePresence>
 
+            <CreateTaskModal
+                isOpen={showCreateModal}
+                onClose={() => setShowCreateModal(false)}
+                onSubmit={handleCreateTaskFromModal}
+                members={members}
+                columns={columns}
+                defaultColumn="TODO"
+            />
+
             {isEditingBoard && (
                 <EditBoardModal
                     workspaceSlug={workspaceSlug}
@@ -746,6 +878,32 @@ export function Board({
                     onClose={() => setIsEditingBoard(false)}
                     onCategoriesChange={(updatedCategories) => setLocalCategories(updatedCategories)}
                 />
+            )}
+
+            {/* Comments Panel */}
+            {showComments && (
+                <div className="fixed right-0 top-0 h-full w-80 bg-[var(--surface)] shadow-2xl z-50 p-4 overflow-y-auto" onClick={() => setShowComments(false)}>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-[var(--foreground)]">Comments</h3>
+                        <button onClick={() => setShowComments(false)} className="p-1 hover:bg-[var(--background-subtle)] rounded">
+                            <XMarkIcon className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <p className="text-sm text-[var(--text-secondary)]">No comments yet. Click on a task to view or add comments.</p>
+                </div>
+            )}
+
+            {/* Notifications Panel */}
+            {showNotifications && (
+                <div className="fixed right-0 top-0 h-full w-80 bg-[var(--surface)] shadow-2xl z-50 p-4 overflow-y-auto" onClick={() => setShowNotifications(false)}>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-[var(--foreground)]">Notifications</h3>
+                        <button onClick={() => setShowNotifications(false)} className="p-1 hover:bg-[var(--background-subtle)] rounded">
+                            <XMarkIcon className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <p className="text-sm text-[var(--text-secondary)]">No new notifications.</p>
+                </div>
             )}
         </div>
     );

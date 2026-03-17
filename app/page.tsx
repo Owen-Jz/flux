@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Menu, X } from 'lucide-react';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useSession, signOut } from 'next-auth/react';
 
 // Import new enhanced components
 import { HeroSection } from '@/components/landing/hero-section';
@@ -19,13 +20,12 @@ import { FAQSection } from '@/components/landing/faq-section';
 import { AnalyticsDashboard } from '@/components/landing/analytics-dashboard';
 import { LiveMetrics } from '@/components/landing/live-metrics';
 import { SmoothScroll } from '@/components/landing/smooth-scroll';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { useTheme } from '@/components/theme-provider';
 
 // Navigation Component
 function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,6 +34,8 @@ function Navigation() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const isLoggedIn = status === 'authenticated' && session?.user;
 
   const navLinks = [
     { label: 'Features', href: '#features' },
@@ -77,22 +79,30 @@ function Navigation() {
 
           {/* Right Side */}
           <div className="flex items-center gap-3">
-            {/* Theme Toggle */}
-            <ThemeToggle />
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                className="px-5 py-2.5 bg-purple-500 text-white rounded-xl text-sm font-semibold hover:bg-purple-600 transition-colors"
+              >
+                Go to Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="hidden sm:block text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white transition-colors"
+                >
+                  Log in
+                </Link>
 
-            <Link
-              href="/login"
-              className="hidden sm:block text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white transition-colors"
-            >
-              Log in
-            </Link>
-
-            <Link
-              href="/signup"
-              className="px-5 py-2.5 bg-purple-500 text-white rounded-xl text-sm font-semibold hover:bg-purple-600 transition-colors"
-            >
-              Get started free
-            </Link>
+                <Link
+                  href="/signup"
+                  className="px-5 py-2.5 bg-purple-500 text-white rounded-xl text-sm font-semibold hover:bg-purple-600 transition-colors"
+                >
+                  Get started free
+                </Link>
+              </>
+            )}
 
             {/* Mobile Menu Button */}
             <button
@@ -102,7 +112,7 @@ function Navigation() {
               aria-controls="mobile-menu"
               aria-label="Toggle menu"
             >
-              {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isMobileMenuOpen ? <XMarkIcon className="w-6 h-6" /> : <Bars3Icon className="w-6 h-6" />}
             </button>
           </div>
         </div>
@@ -136,10 +146,31 @@ function Navigation() {
 // Footer Component
 function Footer() {
   const footerLinks = {
-    Product: ['Features', 'Pricing', 'Integrations', 'Roadmap', 'Changelog'],
-    Resources: ['Documentation', 'API Reference', 'Community', 'Blog', 'Webinars'],
-    Company: ['About', 'Careers', 'Press', 'Partners', 'Contact'],
-    Legal: ['Privacy', 'Terms', 'Security', 'Cookies', 'Licenses'],
+    Product: [
+      { label: 'Features', href: '/features' },
+      { label: 'Pricing', href: '/pricing' },
+      { label: 'Integrations', href: '/integrations' },
+      { label: 'Changelog', href: '/changelog' },
+    ],
+    Resources: [
+      { label: 'Documentation', href: '/docs' },
+      { label: 'API Reference', href: '/api-reference' },
+      { label: 'Community', href: '/community' },
+      { label: 'Blog', href: '/blog' },
+      { label: 'Webinars', href: '/webinars' },
+    ],
+    Company: [
+      { label: 'About', href: '/about' },
+      { label: 'Careers', href: '/careers' },
+      { label: 'Contact', href: '/contact' },
+    ],
+    Legal: [
+      { label: 'Privacy', href: '/privacy' },
+      { label: 'Terms', href: '/terms' },
+      { label: 'Security', href: '/security' },
+      { label: 'Cookies', href: '/cookies' },
+      { label: 'Licenses', href: '/licenses' },
+    ],
   };
 
   return (
@@ -166,12 +197,12 @@ function Footer() {
               <h4 className="font-bold text-slate-900 dark:text-white mb-4">{title}</h4>
               <ul className="space-y-3">
                 {links.map((link) => (
-                  <li key={link}>
+                  <li key={link.label}>
                     <Link
-                      href="#"
+                      href={link.href}
                       className="text-sm text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
                     >
-                      {link}
+                      {link.label}
                     </Link>
                   </li>
                 ))}
@@ -185,13 +216,13 @@ function Footer() {
             © 2026 Flux Technologies Inc. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link href="#" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Link href="/privacy" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
               Privacy
             </Link>
-            <Link href="#" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Link href="/terms" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
               Terms
             </Link>
-            <Link href="#" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Link href="/security" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
               Security
             </Link>
           </div>

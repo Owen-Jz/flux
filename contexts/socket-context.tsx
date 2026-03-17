@@ -48,8 +48,6 @@ export function SocketProvider({ boardId, children }: SocketProviderProps) {
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user && boardId) {
-      // Use a placeholder token - in production, this should be a proper JWT
-      // The server will validate the session via the socket handshake
       const token = session.accessToken || session.user.id || 'anonymous';
       const user = {
         id: session.user.id as string,
@@ -57,14 +55,17 @@ export function SocketProvider({ boardId, children }: SocketProviderProps) {
         image: session.user.image || undefined,
       };
 
+      console.log('[SocketProvider] Initializing socket for user:', user.name);
       initSocket(boardId, token, user);
 
       const unsubscribePresence = onPresenceUpdate((users) => {
+        console.log('[SocketProvider] Presence update:', users.length, 'users');
         setOnlineUsers(users);
         setIsConnected(true);
       });
 
       return () => {
+        console.log('[SocketProvider] Cleaning up socket');
         unsubscribePresence();
         disconnectSocket();
         setIsConnected(false);

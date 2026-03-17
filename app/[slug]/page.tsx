@@ -2,11 +2,9 @@ import { auth } from '@/lib/auth';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoards } from '@/actions/board';
 import { getUserRole, hasPendingRequest } from '@/actions/access-control';
-import { getWorkspaceAnalytics } from '@/actions/analytics';
 import Link from 'next/link';
-import { LayoutGrid, Plus, ArrowRight, Eye } from 'lucide-react';
+import { Squares2X2Icon, PlusIcon, ArrowRightIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { RequestAccessButton } from '@/components/RequestAccessButton';
-import { AnalyticsSection } from '@/components/analytics/analytics-section';
 
 export default async function WorkspacePage({
     params,
@@ -28,9 +26,6 @@ export default async function WorkspacePage({
     const boards = await getBoards(slug);
     const userRole = await getUserRole(slug);
     const hasPending = session?.user ? await hasPendingRequest(slug) : false;
-
-    // Fetch analytics data
-    const analytics = await getWorkspaceAnalytics(workspace._id.toString());
 
     // Determine user's access level
     const canEdit = userRole === 'ADMIN' || userRole === 'EDITOR';
@@ -64,7 +59,7 @@ export default async function WorkspacePage({
                 )}
                 {isViewer && hasPending && (
                     <div className="px-4 py-2 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium border border-amber-200 flex items-center gap-2">
-                        <Eye className="w-4 h-4" />
+                        <EyeIcon className="w-4 h-4" />
                         Request Pending
                     </div>
                 )}
@@ -73,7 +68,7 @@ export default async function WorkspacePage({
             {boards.length === 0 ? (
                 <div className="text-center py-16">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--brand-primary)]/10 mb-6">
-                        <LayoutGrid className="w-8 h-8 text-[var(--brand-primary)]" />
+                        <Squares2X2Icon className="w-8 h-8 text-[var(--brand-primary)]" />
                     </div>
                     <h2 className="text-xl font-semibold mb-2">No boards yet</h2>
                     <p className="text-[var(--text-secondary)] mb-6 max-w-md mx-auto">
@@ -83,7 +78,7 @@ export default async function WorkspacePage({
                     </p>
                     {canEdit && (
                         <p className="text-sm text-[var(--text-secondary)]">
-                            Click the <Plus className="w-4 h-4 inline-block mx-1" /> button in the sidebar to create a board.
+                            Click the <PlusIcon className="w-4 h-4 inline-block mx-1" /> button in the sidebar to create a board.
                         </p>
                     )}
                 </div>
@@ -100,7 +95,7 @@ export default async function WorkspacePage({
                                     className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
                                     style={{ backgroundColor: board.color }}
                                 >
-                                    <LayoutGrid className="w-5 h-5 text-white" />
+                                    <Squares2X2Icon className="w-5 h-5 text-white" />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--brand-primary)] transition-colors truncate">
@@ -112,15 +107,12 @@ export default async function WorkspacePage({
                                         </p>
                                     )}
                                 </div>
-                                <ArrowRight className="w-5 h-5 text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                                <ArrowRightIcon className="w-5 h-5 text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
                             </div>
                         </Link>
                     ))}
                 </div>
             )}
-
-            {/* Analytics Section - show when there are tasks */}
-            {analytics && analytics.totalTasks > 0 && <AnalyticsSection analytics={analytics} />}
         </div>
     );
 }

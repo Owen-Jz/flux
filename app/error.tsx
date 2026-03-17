@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { AlertCircle, RotateCcw, AlertTriangle } from 'lucide-react';
+import { ExclamationCircleIcon, ArrowPathIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
 export default function Error({
@@ -38,7 +38,7 @@ export default function Error({
         <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--background)] p-4">
             <div className="text-center max-w-md">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-6">
-                    <AlertTriangle className="w-8 h-8 text-amber-500" />
+                    <ExclamationTriangleIcon className="w-8 h-8 text-amber-500" />
                 </div>
                 <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">
                     {isAuthError ? 'Authentication Required' : isNotFoundError ? 'Resource Not Found' : isPermissionError ? 'Access Denied' : 'Something went wrong'}
@@ -60,7 +60,7 @@ export default function Error({
                         onClick={() => reset()}
                         className="inline-flex items-center gap-2 px-6 py-2.5 bg-[var(--brand-primary)] text-white rounded-lg hover:opacity-90 transition-opacity font-medium"
                     >
-                        <RotateCcw className="w-4 h-4" />
+                        <ArrowPathIcon className="w-4 h-4" />
                         Try again
                     </button>
                     {isAuthError && (
@@ -68,7 +68,7 @@ export default function Error({
                             href="/login"
                             className="inline-flex items-center gap-2 px-6 py-2.5 border border-[var(--border-subtle)] rounded-lg hover:bg-[var(--surface)] transition-colors font-medium text-[var(--foreground)]"
                         >
-                            <AlertCircle className="w-4 h-4" />
+                            <ExclamationCircleIcon className="w-4 h-4" />
                             Log in
                         </Link>
                     )}

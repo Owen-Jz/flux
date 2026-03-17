@@ -1,12 +1,9 @@
 @import "tailwindcss";
 
 /* ============================================
-   FLUX DESIGN SYSTEM - ISOLATED THEMES
-   ============================================
-   This CSS uses theme-prefixed CSS custom properties
-   to ensure complete visual separation between
-   light and dark modes.
+   TAILWIND DARK MODE CONFIGURATION
    ============================================ */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Configure Tailwind to recognize our theme attributes */
 @custom-variant flux-dark (.flux-dark);
@@ -321,8 +318,8 @@
   --radius-full: var(--flux-radius-full);
 
   /* Typography */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
 
   /* Transitions */
   --transition-fast: var(--flux-transition-fast);
@@ -341,15 +338,38 @@ html {
   color: var(--flux-fg, #18181b);
 }
 
-/* Base body styles with instant theme transition */
+/* Base body styles with smooth theme transition */
 body {
   background: var(--flux-bg);
   color: var(--flux-fg);
-  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Instant transition - no animation for theme switching */
-  transition: none;
+  /* Smooth theme transitions for colors */
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* Theme transition for all elements */
+*,
+*::before,
+*::after {
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* Exclude animations from theme transition */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none;
+  }
 }
 
 /* Selection - theme isolated */

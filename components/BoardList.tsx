@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LayoutGrid, Plus, MoreHorizontal, Edit2, Trash2, Loader2 } from 'lucide-react';
+import { Squares2X2Icon, PlusIcon, EllipsisVerticalIcon, PencilSquareIcon, TrashIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import CreateBoardModal from './CreateBoardModal';
 import EditBoardModal from './EditBoardModal';
 import { deleteBoard } from '@/actions/board';
@@ -81,7 +81,7 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
                         className="p-1 rounded hover:bg-[var(--surface)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                         title="Create new board"
                     >
-                        <Plus className="w-4 h-4" />
+                        <PlusIcon className="w-4 h-4" />
                     </button>
                 </div>
 
@@ -91,7 +91,7 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
                             onClick={() => setShowCreateModal(true)}
                             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors border border-dashed border-[var(--border-subtle)]"
                         >
-                            <LayoutGrid className="w-4 h-4" />
+                            <Squares2X2Icon className="w-4 h-4" />
                             Create your first board
                         </button>
                     ) : (
@@ -121,7 +121,7 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
                                     className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--foreground)] transition-all ${openMenuId === board.id ? 'opacity-100 bg-[var(--background)]' : 'opacity-0 group-hover:opacity-100'
                                         }`}
                                 >
-                                    <MoreHorizontal className="w-4 h-4" />
+                                    <EllipsisVerticalIcon className="w-4 h-4" />
                                 </button>
 
                                 {/* Dropdown Menu */}
@@ -138,7 +138,7 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
                                             }}
                                             className="w-full flex items-center gap-2 px-2 py-1.5 text-sm text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--background)] rounded-md text-left"
                                         >
-                                            <Edit2 className="w-4 h-4" />
+                                            <PencilSquareIcon className="w-4 h-4" />
                                             Edit Board
                                         </button>
                                         <button
@@ -147,9 +147,9 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
                                             className="w-full flex items-center gap-2 px-2 py-1.5 text-sm text-red-500 hover:bg-red-500/10 rounded-md text-left transition-colors"
                                         >
                                             {deletingId === board.slug ? (
-                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <ArrowPathIcon className="w-4 h-4 animate-spin" />
                                             ) : (
-                                                <Trash2 className="w-4 h-4" />
+                                                <TrashIcon className="w-4 h-4" />
                                             )}
                                             Delete Board
                                         </button>

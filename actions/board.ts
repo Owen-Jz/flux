@@ -5,7 +5,9 @@ import { connectDB } from '@/lib/db';
 import { Board } from '@/models/Board';
 import { Task } from '@/models/Task';
 import { Workspace } from '@/models/Workspace';
+import { User } from '@/models/User';
 import { revalidatePath } from 'next/cache';
+import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
 import { Types } from 'mongoose';
 
 interface CreateBoardData {
@@ -34,6 +36,15 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
     // Only ADMIN and EDITOR can create boards
     if (!member || !['ADMIN', 'EDITOR'].includes(member.role)) {
         throw new Error('You do not have permission to create boards');
+    }
+
+    // Check plan limits
+    const user = await User.findById(session.user.id).select('plan');
+    const plan = (user?.plan || 'free') as 'free' | 'starter' | 'pro' | 'enterprise';
+    const currentProjectCount = await Board.countDocuments({ workspaceId: workspace._id });
+
+    if (!canCreateProject(plan, currentProjectCount)) {
+        throw new Error(getUpgradeMessage(plan, 'projects'));
     }
 
     // Generate slug from name (consistent with workspace slug normalization)

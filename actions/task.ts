@@ -23,6 +23,7 @@ interface CreateTaskData {
     priority?: TaskPriority;
     status?: TaskStatus;
     categoryId?: string;
+    assignees?: string[];
 }
 
 export async function createTask(workspaceSlug: string, boardSlug: string, data: CreateTaskData) {
@@ -70,7 +71,7 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
         status: data.status || 'BACKLOG',
         categoryId: data.categoryId ? new Types.ObjectId(data.categoryId) : undefined,
         order: newOrder,
-        assignees: [session.user.id], // Default to creator
+        assignees: data.assignees && data.assignees.length > 0 ? data.assignees : [session.user.id],
         subtasks: [],
     });
 
@@ -597,6 +598,7 @@ export async function addComment(taskId: string, content: string) {
     task.comments.push({
         content,
         userId: new Types.ObjectId(session.user.id),
+        likes: [],
     } as any);
 
     await task.save();
@@ -662,6 +664,8 @@ export async function addComment(taskId: string, content: string) {
             image: newComment.userId.image,
         },
         createdAt: newComment.createdAt.toISOString(),
+        likes: [],
+        reactions: [],
     };
 }
 
@@ -710,4 +714,224 @@ export async function deleteComment(taskId: string, commentId: string) {
 
     revalidatePath(`/${workspace.slug}`);
     return { success: true };
+}
+
+export async function likeComment(taskId: string, commentId: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('Unauthorized');
+    }
+
+    await connectDB();
+
+    const task = await Task.findById(taskId);
+    if (!task) {
+        throw new Error('Task not found');
+    }
+
+    const workspace = await Workspace.findById(task.workspaceId);
+    if (!workspace) {
+        throw new Error('Workspace not found');
+    }
+
+    // Check if user is member
+    const isMember = workspace.members.some(
+        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+    );
+    if (!isMember) {
+        throw new Error('You do not have permission to like comments');
+    }
+
+    if (!task.comments) {
+        throw new Error('Comment not found');
+    }
+
+    const comment = task.comments.find((c: any) => c._id.toString() === commentId) as any;
+    if (!comment) {
+        throw new Error('Comment not found');
+    }
+
+    // Initialize likes array if it doesn't exist
+    if (!comment.likes) {
+        comment.likes = [];
+    }
+
+    const userIdStr = session.user.id;
+    const likeIndex = comment.likes.indexOf(userIdStr);
+
+    if (likeIndex > -1) {
+        // Unlike - remove user from likes
+        comment.likes.splice(likeIndex, 1);
+    } else {
+        // Like - add user to likes
+        comment.likes.push(userIdStr);
+    }
+
+    await task.save();
+
+    revalidatePath(`/${workspace.slug}`);
+    return { success: true, liked: likeIndex === -1, likesCount: comment.likes.length };
+}
+
+export async function replyToComment(taskId: string, parentCommentId: string, content: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('Unauthorized');
+    }
+
+    await connectDB();
+
+    const task = await Task.findById(taskId);
+    if (!task) {
+        throw new Error('Task not found');
+    }
+
+    const workspace = await Workspace.findById(task.workspaceId);
+    if (!workspace) {
+        throw new Error('Workspace not found');
+    }
+
+    // Check if user is member
+    const isMember = workspace.members.some(
+        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+    );
+    if (!isMember) {
+        throw new Error('You do not have permission to reply to comments');
+    }
+
+    // Find parent comment
+    const parentComment = task.comments?.find((c: any) => c._id.toString() === parentCommentId);
+    if (!parentComment) {
+        throw new Error('Parent comment not found');
+    }
+
+    if (!task.comments) {
+        task.comments = [];
+    }
+
+    // Add reply
+    task.comments.push({
+        content,
+        userId: new Types.ObjectId(session.user.id),
+        parentId: new Types.ObjectId(parentCommentId),
+    } as any);
+
+    await task.save();
+
+    // Re-fetch to populate user
+    const updatedTask = await Task.findById(taskId).populate('comments.userId', 'name email image');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const newComment = (updatedTask?.comments as any[]).find(
+        (c: any) => c.parentId?.toString() === parentCommentId && c.content === content
+    );
+
+    revalidatePath(`/${workspace.slug}`);
+
+    if (newComment) {
+        return {
+            id: newComment._id.toString(),
+            content: newComment.content,
+            userId: newComment.userId._id.toString(),
+            user: {
+                id: newComment.userId._id.toString(),
+                name: newComment.userId.name,
+                email: newComment.userId.email,
+                image: newComment.userId.image,
+            },
+            createdAt: newComment.createdAt.toISOString(),
+            parentId: parentCommentId,
+            likes: [],
+            reactions: [],
+        };
+    }
+
+    return { success: false };
+}
+
+export async function addReaction(taskId: string, commentId: string, emoji: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('Unauthorized');
+    }
+
+    await connectDB();
+
+    const task = await Task.findById(taskId);
+    if (!task) {
+        throw new Error('Task not found');
+    }
+
+    const workspace = await Workspace.findById(task.workspaceId);
+    if (!workspace) {
+        throw new Error('Workspace not found');
+    }
+
+    // Check if user is member
+    const isMember = workspace.members.some(
+        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+    );
+    if (!isMember) {
+        throw new Error('You do not have permission to react');
+    }
+
+    if (!task.comments) {
+        throw new Error('Comment not found');
+    }
+
+    const comment = task.comments.find((c: any) => c._id.toString() === commentId) as any;
+    if (!comment) {
+        throw new Error('Comment not found');
+    }
+
+    // Initialize reactions array if it doesn't exist
+    if (!comment.reactions) {
+        comment.reactions = [];
+    }
+
+    const userIdStr = session.user.id;
+    // Check if user already reacted with this emoji
+    const existingReactionIndex = comment.reactions.findIndex(
+        (r: { emoji: string; userId: string }) => r.emoji === emoji && r.userId === userIdStr
+    );
+
+    if (existingReactionIndex > -1) {
+        // Remove reaction if already exists
+        comment.reactions.splice(existingReactionIndex, 1);
+    } else {
+        // Add new reaction
+        comment.reactions.push({ emoji, userId: userIdStr });
+    }
+
+    await task.save();
+
+    revalidatePath(`/${workspace.slug}`);
+    return { success: true, reactions: comment.reactions };
+}
+
+// Helper function to extract @mentions from content
+function extractMentions(content: string): string[] {
+    const mentionRegex = /@(\w+(?:\s\w+)*)/g;
+    const mentions: string[] = [];
+    let match;
+    while ((match = mentionRegex.exec(content)) !== null) {
+        mentions.push(match[1]);
+    }
+    return mentions;
+}
+
+// Get workspace members for @mention autocomplete
+export async function getWorkspaceMembers(workspaceSlug: string) {
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug }).populate('members.userId', 'name email image');
+    if (!workspace) {
+        throw new Error('Workspace not found');
+    }
+
+    return workspace.members.map((m: any) => ({
+        id: m.userId._id.toString(),
+        name: m.userId.name,
+        email: m.userId.email,
+        image: m.userId.image,
+    }));
 }

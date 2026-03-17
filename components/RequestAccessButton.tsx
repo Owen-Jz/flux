@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit3, X, Loader2, MessageSquare } from 'lucide-react';
+import { PencilSquareIcon, XMarkIcon, ArrowPathIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
 import { requestEditAccess } from '@/actions/access-control';
 
 interface RequestAccessButtonProps {
@@ -38,7 +38,7 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
                 onClick={() => setIsOpen(true)}
                 className="btn btn-primary flex items-center gap-2"
             >
-                <Edit3 className="w-4 h-4" />
+                <PencilSquareIcon className="w-4 h-4" />
                 Request Edit Access
             </button>
 
@@ -66,7 +66,7 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
                                     <div className="flex items-center justify-between mb-6">
                                         <div className="flex items-center gap-3">
                                             <div className="p-2 rounded-lg bg-[var(--brand-primary)]/10">
-                                                <Edit3 className="w-5 h-5 text-[var(--brand-primary)]" />
+                                                <PencilSquareIcon className="w-5 h-5 text-[var(--brand-primary)]" />
                                             </div>
                                             <div>
                                                 <h2 className="text-lg font-semibold">Request Edit Access</h2>
@@ -79,7 +79,7 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
                                             onClick={() => !isPending && setIsOpen(false)}
                                             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                         >
-                                            <X className="w-5 h-5" />
+                                            <XMarkIcon className="w-5 h-5" />
                                         </button>
                                     </div>
 
@@ -90,7 +90,7 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
                                             className="text-center py-8"
                                         >
                                             <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-                                                <Edit3 className="w-6 h-6 text-green-600" />
+                                                <PencilSquareIcon className="w-6 h-6 text-green-600" />
                                             </div>
                                             <h3 className="font-semibold text-green-600">Request Sent!</h3>
                                             <p className="text-sm text-[var(--text-secondary)] mt-1">
@@ -108,7 +108,7 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
 
                                                 <div>
                                                     <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                                                        <MessageSquare className="w-4 h-4" />
+                                                        <ChatBubbleLeftRightIcon className="w-4 h-4" />
                                                         Add a message (optional)
                                                     </label>
                                                     <textarea
@@ -139,7 +139,7 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
                                                 >
                                                     {isPending ? (
                                                         <>
-                                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                                            <ArrowPathIcon className="w-4 h-4 animate-spin" />
                                                             Sending...
                                                         </>
                                                     ) : (

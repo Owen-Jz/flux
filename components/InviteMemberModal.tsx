@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Mail, Loader2 } from 'lucide-react';
+import { XMarkIcon, EnvelopeIcon, ArrowPathIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { inviteMemberToWorkspace } from '@/actions/workspace-invite';
 import { updateOnboardingProgress } from '@/actions/onboarding';
 
@@ -12,9 +12,11 @@ interface InviteMemberModalProps {
 
 export default function InviteMemberModal({ slug, onClose }: InviteMemberModalProps) {
     const [email, setEmail] = useState('');
+    const [role, setRole] = useState<'VIEWER' | 'EDITOR' | 'ADMIN'>('VIEWER');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [successMessage, setSuccessMessage] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,15 +25,16 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
         setSuccess(false);
 
         try {
-            const res = await inviteMemberToWorkspace(slug, email);
+            const res = await inviteMemberToWorkspace(slug, email, role);
             if (res?.error) {
                 setError(res.error);
                 return;
             }
-            // Track onboarding progress
+            // Track onboarding progress for first member invite
             await updateOnboardingProgress('addedFirstTeamMember');
             setSuccess(true);
-            setTimeout(onClose, 2000);
+            setSuccessMessage(res?.message || 'Invitation sent successfully!');
+            setTimeout(onClose, 3000);
         } catch (err: any) {
             setError(err.message || 'Something went wrong');
         } finally {
@@ -46,24 +49,24 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
                     onClick={onClose}
                     className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--foreground)]"
                 >
-                    <X className="w-5 h-5" />
+                    <XMarkIcon className="w-5 h-5" />
                 </button>
 
                 <div className="mb-6">
                     <h2 className="text-xl font-bold mb-2 text-[var(--foreground)]">Invite Team Member</h2>
                     <p className="text-sm text-[var(--text-secondary)]">
-                        Enter the email address of the person you'd like to invite to this workspace.
+                        Enter the email address of the person you'd like to invite. If they don't have an account, they'll receive an email to sign up and join this workspace.
                     </p>
                 </div>
 
                 {success ? (
                     <div className="bg-green-500/10 text-green-500 p-4 rounded-lg flex items-center gap-3 animate-in fade-in duration-300">
                         <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <Mail className="w-4 h-4" />
+                            <UserPlusIcon className="w-4 h-4" />
                         </div>
                         <div>
-                            <p className="font-medium text-blue-900 dark:text-blue-100">Invitation Sent!</p>
-                            <p className="text-xs opacity-80 text-blue-800 dark:text-blue-200">User added to workspace.</p>
+                            <p className="font-medium text-green-800 dark:text-green-100">Invitation Sent!</p>
+                            <p className="text-xs opacity-80 text-green-700 dark:text-green-200">{successMessage}</p>
                         </div>
                     </div>
                 ) : (
@@ -78,6 +81,19 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
                                 className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border-subtle)] text-[var(--foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/50 transition-all placeholder-[var(--text-secondary)]/50"
                                 required
                             />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium mb-1.5 text-[var(--foreground)]">Role</label>
+                            <select
+                                value={role}
+                                onChange={(e) => setRole(e.target.value as 'VIEWER' | 'EDITOR' | 'ADMIN')}
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border-subtle)] text-[var(--foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/50 transition-all"
+                            >
+                                <option value="VIEWER">Viewer - Can view boards and tasks</option>
+                                <option value="EDITOR">Editor - Can create and edit tasks</option>
+                                <option value="ADMIN">Admin - Full access including settings</option>
+                            </select>
                         </div>
 
                         {error && (
@@ -101,12 +117,12 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
                             >
                                 {isLoading ? (
                                     <>
-                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        <ArrowPathIcon className="w-4 h-4 animate-spin" />
                                         Sending...
                                     </>
                                 ) : (
                                     <>
-                                        <Mail className="w-4 h-4" />
+                                        <EnvelopeIcon className="w-4 h-4" />
                                         Send Invite
                                     </>
                                 )}

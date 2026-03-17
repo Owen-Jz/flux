@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GripVertical, MoreHorizontal, Trash2, Pencil, Check, Calendar, UserPlus, Archive, MessageSquareText } from 'lucide-react';
+import { Bars4Icon, EllipsisVerticalIcon, TrashIcon, PencilIcon, CheckIcon, CalendarIcon, UserPlusIcon, ArchiveBoxIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useSession } from 'next-auth/react';
 import type { TaskPriority } from '@/models/Task';
 
@@ -35,6 +35,9 @@ export interface TaskData {
         userId: string;
         createdAt: string;
         user: Member;
+        likes?: string[];
+        reactions?: { emoji: string; userId: string }[];
+        parentId?: string | null;
     }[];
     createdAt: string;
 }
@@ -147,6 +150,8 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
 
     const config = priorityConfig[task.priority];
     const subtaskCount = task.subtasks?.length || 0;
+    const completedSubtaskCount = task.subtasks?.filter(s => s.completed).length || 0;
+    const subtaskProgress = subtaskCount > 0 ? (completedSubtaskCount / subtaskCount) * 100 : 0;
     const isDone = task.status === 'DONE';
 
     return (
@@ -170,7 +175,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
             {...attributes}
             {...listeners}
             className={`
-                relative group cursor-pointer bg-[var(--surface)] rounded-xl
+                relative group cursor-pointer bg-[var(--surface)] rounded-lg
                 border ${config.border}
                 ${isDragging
                     ? 'shadow-2xl rotate-2 opacity-90 z-50 scale-105'
@@ -179,30 +184,29 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                         : 'shadow-sm hover:shadow-md transition-all duration-200'
                 }
                 ${isDone ? 'opacity-60 grayscale hover:opacity-80 hover:grayscale-0' : ''}
-                p-4 flex flex-col gap-2 origin-center
+                p-3.5 flex flex-col gap-2 origin-center
             `}
         >
             {/* Comments Icon (Hovering) */}
             {task.comments && task.comments.length > 0 && !isEditing && (
-                <div className={`absolute -top-1.5 -right-1.5 z-30 ${hasUnreadComments ? 'bg-red-500' : 'bg-[var(--text-tertiary)]'} text-white px-1.5 py-0.5 text-[10px] font-bold rounded-bl-lg rounded-tr-lg shadow-md flex items-center gap-1 justify-center`}>
-                    <MessageSquareText className="w-3 h-3" />
-                    <span>{task.comments.length}</span>
+                <div className={`absolute -top-1 -right-1 z-30 ${hasUnreadComments ? 'bg-red-500' : 'bg-[var(--text-tertiary)]'} text-white px-1 py-0.5 text-[9px] font-bold rounded-bl rounded-tr shadow-md flex items-center justify-center`}>
+                    <ChatBubbleLeftIcon className="w-2.5 h-2.5" />
                 </div>
             )}
             {/* Action Menu Button */}
             {!isReadOnly && !isEditing && (
-                <div className="absolute top-2 right-2 z-20 task-menu-container">
+                <div className="absolute top-1.5 right-1.5 z-20 task-menu-container">
                     <button
                         onClick={(e) => {
                             e.stopPropagation();
                             setIsMenuOpen(!isMenuOpen);
                         }}
-                        className={`p-1.5 rounded-lg transition-all duration-200 ${isMenuOpen
+                        className={`p-1 rounded-lg transition-all duration-200 ${isMenuOpen
                             ? 'bg-[var(--background-subtle)] text-[var(--text-primary)] opacity-100'
                             : 'text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100 hover:bg-[var(--background-subtle)] hover:text-[var(--text-primary)]'
                             }`}
                     >
-                        <MoreHorizontal className="w-4 h-4" />
+                        <EllipsisVerticalIcon className="w-3.5 h-3.5" />
                     </button>
 
                     {/* Dropdown Menu */}
@@ -223,7 +227,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                         }}
                                         className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background-subtle)] rounded-lg transition-colors font-medium"
                                     >
-                                        <Pencil className="w-4 h-4 text-slate-400" />
+                                        <PencilIcon className="w-4 h-4 text-slate-400" />
                                         Edit Task
                                     </button>
 
@@ -255,7 +259,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                     {/* Assignees Section */}
                                     <div className="px-3 py-2">
                                         <p className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold mb-2 flex items-center gap-2">
-                                            <UserPlus className="w-3 h-3" />
+                                            <UserPlusIcon className="w-3 h-3" />
                                             Assignees
                                         </p>
                                         <div className="max-h-32 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
@@ -283,7 +287,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                                             </div>
                                                             <span>{member.name}</span>
                                                         </div>
-                                                        {isAssigned && <Check className="w-3 h-3" />}
+                                                        {isAssigned && <CheckIcon className="w-3 h-3" />}
                                                     </button>
                                                 );
                                             }) : (
@@ -303,7 +307,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                         }}
                                         className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[var(--text-primary)] hover:bg-[var(--background-subtle)] rounded-lg transition-colors font-medium"
                                     >
-                                        <Archive className="w-4 h-4 text-[var(--text-tertiary)]" />
+                                        <ArchiveBoxIcon className="w-4 h-4 text-[var(--text-tertiary)]" />
                                         Archive Task
                                     </button>
 
@@ -311,7 +315,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                         onClick={() => onDelete?.(task.id)}
                                         className="w-full flex items-center gap-3 px-3 py-2 text-sm text-[var(--flux-error-primary)] hover:bg-[var(--flux-error-bg)] rounded-lg transition-colors font-medium"
                                     >
-                                        <Trash2 className="w-4 h-4" />
+                                        <TrashIcon className="w-4 h-4" />
                                         Delete
                                     </button>
                                 </div>
@@ -373,7 +377,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                     </div>
                 ) : (
                     <h3
-                        className="font-semibold text-[15px] text-[var(--text-primary)] break-words leading-tight tracking-tight pr-6"
+                        className="font-semibold text-sm text-[var(--text-primary)] break-words leading-tight pr-5"
                         style={{ wordBreak: 'break-word' }}
                     >
                         {task.title}
@@ -382,17 +386,30 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
 
                 {/* Description */}
                 {task.description && !isEditing && (
-                    <p className="text-[12px] text-[var(--text-secondary)] leading-snug line-clamp-2 font-medium">
+                    <p className="text-[11px] text-[var(--text-secondary)] leading-snug line-clamp-2">
                         {task.description}
                     </p>
                 )}
 
-                {/* Subtasks Badge */}
+                {/* Subtasks Progress Bar */}
                 {subtaskCount > 0 && !isEditing && (
-                    <div className="flex">
-                        <span className="bg-[var(--background-subtle)] text-[var(--text-secondary)] text-[10px] font-bold px-2 py-1 rounded-md">
-                            +{subtaskCount} subtasks
-                        </span>
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-semibold text-[var(--text-secondary)]">
+                                {completedSubtaskCount}/{subtaskCount} subtasks
+                            </span>
+                            <span className="text-[9px] font-bold text-[var(--brand-primary)]">
+                                {Math.round(subtaskProgress)}%
+                            </span>
+                        </div>
+                        <div className="h-1.5 w-full bg-[var(--background-subtle)] rounded-full overflow-hidden">
+                            <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${subtaskProgress}%` }}
+                                transition={{ duration: 0.3, ease: 'easeOut' }}
+                                className={`h-full rounded-full ${subtaskProgress === 100 ? 'bg-green-500' : 'bg-[var(--brand-primary)]'}`}
+                            />
+                        </div>
                     </div>
                 )}
             </div>
@@ -410,7 +427,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                 key={assignee.id}
                                 className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[var(--background-subtle)] text-[10px] font-bold text-[var(--text-secondary)]"
                             >
-                                <div className="w-3.5 h-3.5 rounded-full bg-[var(--background-subtle)] overflow-hidden flex-shrink-0">
+                                <div className="w-3 h-3 rounded-full bg-[var(--background-subtle)] overflow-hidden flex-shrink-0">
                                     {assignee.image ? (
                                         <img
                                             src={assignee.image}
@@ -419,26 +436,26 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                             referrerPolicy="no-referrer"
                                         />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-[var(--flux-info-bg)] text-[var(--flux-info-text-strong)] font-bold text-[8px]">
+                                        <div className="w-full h-full flex items-center justify-center bg-[var(--flux-info-bg)] text-[var(--flux-info-text-strong)] font-bold text-[7px]">
                                             {assignee.name.charAt(0)}
                                         </div>
                                     )}
                                 </div>
-                                <span className="truncate max-w-[50px]">{assignee.name.split(' ')[0]}</span>
+                                <span className="truncate max-[40px]">{assignee.name.split(' ')[0]}</span>
                             </div>
                         ))
                     ) : (
-                        <div className="text-[10px] text-[var(--text-tertiary)] italic">Unassigned</div>
+                        <div className="text-[9px] text-[var(--text-tertiary)] italic">Unassigned</div>
                     )}
                     {task.assignees.length > 2 && (
-                        <div className="px-1.5 py-1 rounded-full bg-[var(--background-subtle)] text-[10px] font-semibold text-[var(--text-secondary)]">
+                        <div className="px-1 py-0.5 rounded-full bg-[var(--background-subtle)] text-[9px] font-semibold text-[var(--text-secondary)]">
                             +{task.assignees.length - 2}
                         </div>
                     )}
                 </div>
 
                 {/* Priority Badge */}
-                <div className={`text-[10px] font-semibold px-2.5 py-1 rounded-md ${config.badge}`}>
+                <div className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${config.badge}`}>
                     {priorityLabels[task.priority]}
                 </div>
 

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { updateMemberRole, removeMember } from '@/actions/workspace';
-import { Check, X, Loader2, Trash2 } from 'lucide-react';
+import { CheckIcon, XMarkIcon, ArrowPathIcon, TrashIcon } from '@heroicons/react/24/outline';
 
 interface Member {
     userId: string;
@@ -109,7 +109,7 @@ export function MemberRow({ member, slug, isAdmin, onError }: MemberRowProps) {
                                     className="p-1 text-green-600 hover:bg-green-50 rounded"
                                     title="Save"
                                 >
-                                    {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                                    {isPending ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <CheckIcon className="w-4 h-4" />}
                                 </button>
                                 <button
                                     onClick={() => setIsEditing(false)}
@@ -117,7 +117,7 @@ export function MemberRow({ member, slug, isAdmin, onError }: MemberRowProps) {
                                     className="p-1 text-gray-400 hover:bg-gray-100 rounded"
                                     title="Cancel"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <XMarkIcon className="w-4 h-4" />
                                 </button>
                                 <div className="w-px h-4 bg-gray-200 mx-1" />
                                 <button
@@ -126,7 +126,7 @@ export function MemberRow({ member, slug, isAdmin, onError }: MemberRowProps) {
                                     className="p-1 text-red-500 hover:bg-red-50 rounded"
                                     title="Remove Member"
                                 >
-                                    <Trash2 className="w-4 h-4" />
+                                    <TrashIcon className="w-4 h-4" />
                                 </button>
                             </div>
                         ) : (

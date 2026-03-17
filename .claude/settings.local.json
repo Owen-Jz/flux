@@ -6,7 +6,26 @@
       "Bash(ls -la \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" | grep -E \"\\\\.\\(ts|js|json\\)$\")",
       "Bash(npm install:*)",
       "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && timeout 10 npx tsx server.ts 2>&1 || true)",
-      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npm list express)"
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npm list express)",
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && timeout 8 npx tsx server.ts 2>&1 || true)",
+      "Bash(ls -la \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" | grep -E \"\\\\.ts$|\\\\.js$\")",
+      "Bash(taskkill //F //IM node.exe 2>&1 || true)",
+      "mcp__ide__getDiagnostics",
+      "Bash(MONGODB_URI=\"mongodb://new_owen_user:0lLdhFMmLK582IDp@ac-8fpezwt-shard-00-00.zvxia6f.mongodb.net:27017,ac-8fpezwt-shard-00-01.zvxia6f.mongodb.net:27017,ac-8fpezwt-shard-00-02.zvxia6f.mongodb.net:27017/?ssl=true&replicaSet=atlas-3ud85q-shard-0&authSource=admin&retryWrites=true&w=majority\" npx tsx -e \"\nimport mongoose from 'mongoose';\nconst MONGODB_URI = process.env.MONGODB_URI;\nawait mongoose.connect\\(MONGODB_URI\\);\nconst users = await mongoose.connection.db.collection\\('users'\\).find\\({}\\).limit\\(5\\).toArray\\(\\);\nconsole.log\\('Users found:', users.length\\);\nusers.forEach\\(u => console.log\\('-', u.name || 'No name', '|', u.email, '| ID:', u._id\\)\\);\nawait mongoose.disconnect\\(\\);\n\")",
+      "Bash(npx tsx:*)",
+      "Bash(taskkill /F /IM node.exe 2>/dev/null; sleep 2; npm run dev)",
+      "Bash(taskkill /F /IM node.exe 2>/dev/null; rm -rf .next/dev/lock)",
+      "Bash(taskkill /F /IM node.exe 2>/dev/null; rm -rf .next)",
+      "Bash(netstat -ano | grep 3000)",
+      "Bash(taskkill /F /PID 92336)",
+      "Bash(taskkill //F //PID 92336)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx next build --no-lint 2>&1 | tail -40)",
+      "Bash(cp -r \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\\\\.claude\\\\worktrees\\\\footer-pages\\\\app\\\\features\" \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\\\\app\\\\\" && cp -r \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\\\\.claude\\\\worktrees\\\\footer-pages\\\\app\\\\pricing\" \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\\\\app\\\\\" && cp -r \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\\\\.claude\\\\worktrees\\\\footer-pages\\\\app\\\\integrations\" \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\\\\app\\\\\" && cp -r \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\\\\.claude\\\\worktrees\\\\footer-pages\\\\app\\\\changelog\" \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\\\\app\\\\\")",
+      "WebSearch",
+      "Bash(cp -r /c/Users/owen/Downloads/Projects/flux/.claude/worktrees/footer-pages/app/docs /c/Users/owen/Downloads/Projects/flux/app/ && cp -r /c/Users/owen/Downloads/Projects/flux/.claude/worktrees/footer-pages/app/api-reference /c/Users/owen/Downloads/Projects/flux/app/ && cp -r /c/Users/owen/Downloads/Projects/flux/.claude/worktrees/footer-pages/app/community /c/Users/owen/Downloads/Projects/flux/app/ && cp -r /c/Users/owen/Downloads/Projects/flux/.claude/worktrees/footer-pages/app/blog /c/Users/owen/Downloads/Projects/flux/app/ && cp -r /c/Users/owen/Downloads/Projects/flux/.claude/worktrees/footer-pages/app/webinars /c/Users/owen/Downloads/Projects/flux/app/)",
+      "Bash(cp -r /c/Users/owen/Downloads/Projects/flux/.claude/worktrees/footer-pages/app/about /c/Users/owen/Downloads/Projects/flux/app/ && cp -r /c/Users/owen/Downloads/Projects/flux/.claude/worktrees/footer-pages/app/careers /c/Users/owen/Downloads/Projects/flux/app/)"
     ]
   }
 }

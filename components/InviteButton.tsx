@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail } from 'lucide-react';
+import { EnvelopeIcon } from '@heroicons/react/24/outline';
 import InviteMemberModal from './InviteMemberModal';
 
 export default function InviteButton({ slug }: { slug: string }) {
@@ -13,7 +13,7 @@ export default function InviteButton({ slug }: { slug: string }) {
                 onClick={() => setIsOpen(true)}
                 className="btn btn-primary text-sm flex items-center gap-2"
             >
-                <Mail className="w-4 h-4" />
+                <EnvelopeIcon className="w-4 h-4" />
                 Invite Member
             </button>
 

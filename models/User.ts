@@ -1,5 +1,7 @@
 import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 
+export type PlanType = 'free' | 'starter' | 'pro' | 'enterprise';
+
 export interface IUser extends Document {
     _id: Types.ObjectId;
     name: string;
@@ -25,6 +27,15 @@ export interface IUser extends Document {
         completedTutorial: boolean;
         dismissedAt?: Date;
     };
+    // Billing fields
+    plan: PlanType;
+    paystackCustomerCode?: string;
+    subscriptionId?: string;
+    subscriptionStatus?: 'active' | 'inactive' | 'cancelled' | 'past_due';
+    subscriptionPlanId?: string;
+    billingEmail?: string;
+    trialEndsAt?: Date;
+    hasUsedTrial: boolean;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -50,6 +61,15 @@ const UserSchema = new Schema<IUser>(
             completedTutorial: { type: Boolean, default: false },
             dismissedAt: { type: Date },
         },
+        // Billing fields
+        plan: { type: String, enum: ['free', 'starter', 'pro', 'enterprise'], default: 'free' },
+        paystackCustomerCode: { type: String },
+        subscriptionId: { type: String },
+        subscriptionStatus: { type: String, enum: ['active', 'inactive', 'cancelled', 'past_due'], default: 'inactive' },
+        subscriptionPlanId: { type: String },
+        billingEmail: { type: String },
+        trialEndsAt: { type: Date },
+        hasUsedTrial: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

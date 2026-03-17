@@ -94,17 +94,12 @@ export default async function WorkspaceLayout({
             )}
 
             {/* Main Content */}
-            <main className="flex-1 overflow-hidden flex flex-col relative">
-                {/* Header with notifications and comments - only for authenticated users */}
-                {session?.user && (
-                    <div className="absolute top-4 right-6 z-30">
-                        <WorkspaceHeader />
-                    </div>
-                )}
+            <main className="flex-1 flex flex-col relative overflow-y-auto">
+                {/* Note: WorkspaceHeader moved to individual pages with integrated navigation */}
 
                 {/* Public viewer banner */}
                 {isPublicViewer && (
-                    <div className="bg-gradient-to-r from-[var(--brand-primary)] to-indigo-600 text-white shadow-md z-50">
+                    <div className="bg-gradient-to-r from-[var(--brand-primary)] to-indigo-600 text-white shadow-md z-50 flex-shrink-0">
                         <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-6">
                             <div className="flex items-center gap-2 text-sm sm:text-base font-medium">
                                 <span>👋 You are viewing <strong>{workspace.name}</strong> as a guest.</span>
@@ -126,7 +121,7 @@ export default async function WorkspaceLayout({
                         </div>
                     </div>
                 )}
-                <div className="flex-1 overflow-hidden">
+                <div className="flex-1">
                     {children}
                 </div>
             </main>

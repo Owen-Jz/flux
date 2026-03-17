@@ -2,25 +2,24 @@
 
 import { motion } from "framer-motion";
 import {
-    Command,
-    Box,
-    Hexagon,
-    Triangle,
-    Circle,
-    Layers,
-    Droplet,
-    Cpu
-} from "lucide-react";
+    CommandLineIcon,
+    CubeIcon,
+    Square2StackIcon,
+    SwatchIcon,
+    TableCellsIcon,
+    BeakerIcon,
+    CpuChipIcon
+} from "@heroicons/react/24/outline";
 
 const logos = [
-    { name: "Veridian", icon: Box },
-    { name: "Nebula", icon: Hexagon },
-    { name: "Crest", icon: Command },
-    { name: "Apex", icon: Triangle },
-    { name: "Nova", icon: Circle },
-    { name: "Prism", icon: Droplet },
-    { name: "Synapse", icon: Cpu },
-    { name: "Catalyst", icon: Layers },
+    { name: "Veridian", icon: CubeIcon },
+    { name: "Nebula", icon: Square2StackIcon },
+    { name: "Crest", icon: CommandLineIcon },
+    { name: "Apex", icon: Square2StackIcon },
+    { name: "Nova", icon: SwatchIcon },
+    { name: "Prism", icon: BeakerIcon },
+    { name: "Synapse", icon: CpuChipIcon },
+    { name: "Catalyst", icon: TableCellsIcon },
 ];
 
 export const LogoMarquee = () => {

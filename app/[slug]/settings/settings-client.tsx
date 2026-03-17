@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Settings as SettingsIcon, Globe, Shield, Trash2, Loader2, Palette, Check, AlertCircle, X } from 'lucide-react';
+import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon } from '@heroicons/react/24/outline';
 import { updateWorkspaceSettings } from '@/actions/workspace';
 import { deleteWorkspace } from '@/actions/access-control';
+import { BillingSection } from '@/components/billing/billing-section';
 
 interface SettingsClientProps {
     workspace: {
@@ -34,6 +35,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'general' | 'billing'>('general');
 
     const handleTogglePublicAccess = async () => {
         const newValue = !publicAccess;
@@ -83,10 +85,10 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
         <div className="p-8 pt-16 max-w-3xl mx-auto">
             {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-                    <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                    <ExclamationCircleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
                     <p className="text-sm font-medium text-red-800">{error}</p>
                     <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
-                        <X className="w-4 h-4" />
+                        <XMarkIcon className="w-4 h-4" />
                     </button>
                 </div>
             )}
@@ -95,11 +97,40 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                 <p className="text-[var(--text-secondary)]">Configure your workspace preferences</p>
             </div>
 
+            {/* Tab Navigation */}
+            <div className="flex gap-2 mb-6 border-b border-[var(--border-subtle)] pb-4">
+                <button
+                    onClick={() => setActiveTab('general')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        activeTab === 'general'
+                            ? 'bg-[var(--brand-primary)] text-white'
+                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
+                    }`}
+                >
+                    <Cog6ToothIcon className="w-4 h-4" />
+                    General
+                </button>
+                <button
+                    onClick={() => setActiveTab('billing')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        activeTab === 'billing'
+                            ? 'bg-[var(--brand-primary)] text-white'
+                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
+                    }`}
+                >
+                    <CreditCardIcon className="w-4 h-4" />
+                    Billing
+                </button>
+            </div>
+
+            {activeTab === 'billing' ? (
+                <BillingSection />
+            ) : (
             <div className="space-y-6">
                 {/* General Settings */}
                 <div id="settings-general" className="card p-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <SettingsIcon className="w-4 h-4 text-[var(--brand-primary)]" />
+                        <Cog6ToothIcon className="w-4 h-4 text-[var(--brand-primary)]" />
                         <h2 className="font-semibold">General</h2>
                     </div>
                     <div className="space-y-4">
@@ -120,7 +151,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                 {/* Visibility Settings */}
                 <div className="card p-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <Globe className="w-4 h-4 text-[var(--brand-primary)]" />
+                        <GlobeAltIcon className="w-4 h-4 text-[var(--brand-primary)]" />
                         <h2 className="font-semibold">Visibility & Access</h2>
                     </div>
                     <div className="flex items-center justify-between">
@@ -147,7 +178,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                 {/* Brand Appearance */}
                 <div className="card p-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <Palette className="w-4 h-4 text-[var(--brand-primary)]" />
+                        <PaintBrushIcon className="w-4 h-4 text-[var(--brand-primary)]" />
                         <h2 className="font-semibold">Appearance</h2>
                     </div>
                     <div className="space-y-4">
@@ -173,7 +204,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                                         />
                                         {accentColor === color.value && (
                                             <div className="absolute -top-1 -right-1 bg-[var(--brand-primary)] text-white p-0.5 rounded-full ring-2 ring-white">
-                                                <Check className="w-2 h-2" />
+                                                <CheckIcon className="w-2 h-2" />
                                             </div>
                                         )}
                                     </button>
@@ -186,7 +217,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                 {/* Security Settings */}
                 <div className="card p-6 opacity-60 grayscale cursor-not-allowed">
                     <div className="flex items-center gap-2 mb-4">
-                        <Shield className="w-4 h-4 text-[var(--text-secondary)]" />
+                        <ShieldCheckIcon className="w-4 h-4 text-[var(--text-secondary)]" />
                         <h2 className="font-semibold text-[var(--text-secondary)]">Security</h2>
                     </div>
                     <p className="text-xs text-[var(--text-secondary)]">
@@ -197,7 +228,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                 {/* Danger Zone */}
                 <div id="settings-danger" className="card p-6 border-red-200 bg-red-50/30">
                     <div className="flex items-center gap-2 mb-4 text-red-600">
-                        <Trash2 className="w-4 h-4" />
+                        <TrashIcon className="w-4 h-4" />
                         <h2 className="font-semibold">Danger Zone</h2>
                     </div>
 
@@ -242,7 +273,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                                 >
                                     {isPending ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <ArrowPathIcon className="w-4 h-4 animate-spin" />
                                             Deleting...
                                         </>
                                     ) : (
@@ -263,6 +294,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                     )}
                 </div>
             </div>
+            )}
         </div>
     );
 }

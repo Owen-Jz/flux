@@ -4,9 +4,17 @@ import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Workspace } from '@/models/Workspace';
 import { User } from '@/models/User';
+import { WorkspaceInvite } from '@/models/WorkspaceInvite';
 import { revalidatePath } from 'next/cache';
+import { canAddMember, getUpgradeMessage } from '@/lib/plan-limits';
+import { sendWorkspaceInviteEmail } from '@/lib/email/workspace-invite';
+import crypto from 'crypto';
 
-export async function inviteMemberToWorkspace(slug: string, email: string) {
+function generateInviteToken(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+export async function inviteMemberToWorkspace(slug: string, email: string, role: 'VIEWER' | 'EDITOR' | 'ADMIN' = 'VIEWER') {
     try {
         const session = await auth();
         if (!session?.user?.id) {
@@ -20,46 +28,87 @@ export async function inviteMemberToWorkspace(slug: string, email: string) {
             return { error: 'Workspace not found' };
         }
 
-        // Check if inviter is owner (only owner can invite)
-        // Note: The structure of members object might depend on mongoose version. 
-        // Assuming members is an array of objects with userId
         const inviter = workspace.members.find(
             (m: any) => m.userId.toString() === session.user.id
         );
 
-        // Only ADMIN can invite
         if (!inviter || inviter.role !== 'ADMIN') {
             return { error: 'Only the workspace admin can invite members' };
+        }
+
+        const inviterUser = await User.findById(session.user.id).select('plan name');
+        const plan = (inviterUser?.plan || 'free') as 'free' | 'starter' | 'pro' | 'enterprise';
+        const currentMemberCount = workspace.members.length;
+
+        if (!canAddMember(plan, currentMemberCount)) {
+            return { error: getUpgradeMessage(plan, 'members') };
         }
 
         const escapedEmail = email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const user = await User.findOne({
             email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') }
         });
-        if (!user) {
-            // For MVP, we only allow inviting existing users
-            // Ideally we would create a pending invite or send an email to signup
-            return { error: 'User not found. They need to sign up for Flux first.' };
+
+        if (user) {
+            // Check if user is already a member
+            const isMember = workspace.members.some(
+                (m: any) => m.userId.toString() === user._id.toString()
+            );
+            if (isMember) {
+                return { error: 'User is already a member of this workspace' };
+            }
+
+            // Add existing user directly to workspace
+            workspace.members.push({
+                userId: user._id,
+                role,
+                joinedAt: new Date(),
+            });
+
+            await workspace.save();
+            revalidatePath(`/${slug}/team`);
+
+            return { success: true, message: 'Member added successfully' };
         }
 
-        // Check if user is already a member
-        const isMember = workspace.members.some(
-            (m: any) => m.userId.toString() === user._id.toString()
-        );
-        if (isMember) {
-            return { error: 'User is already a member of this workspace' };
-        }
-
-        workspace.members.push({
-            userId: user._id,
-            role: 'VIEWER',
-            joinedAt: new Date(),
+        // User doesn't exist - create pending invite and send email
+        // Check for existing pending invite
+        const existingInvite = await WorkspaceInvite.findOne({
+            email: { $regex: new RegExp(`^${escapedEmail}$`, 'i') },
+            workspaceId: workspace._id,
+            expiresAt: { $gt: new Date() },
         });
 
-        await workspace.save();
-        revalidatePath(`/${slug}/team`);
+        if (existingInvite) {
+            return { error: 'An invitation has already been sent to this email' };
+        }
 
-        return { success: true };
+        // Create invite token
+        const inviteToken = generateInviteToken();
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+
+        await WorkspaceInvite.create({
+            email: email.toLowerCase(),
+            workspaceId: workspace._id,
+            workspaceSlug: workspace.slug,
+            workspaceName: workspace.name,
+            invitedBy: session.user.id,
+            role,
+            token: inviteToken,
+            expiresAt,
+        });
+
+        // Send invite email
+        await sendWorkspaceInviteEmail({
+            to: email,
+            invitedByName: inviterUser?.name || 'A team member',
+            workspaceName: workspace.name,
+            workspaceSlug: workspace.slug,
+            inviteToken,
+        });
+
+        return { success: true, message: 'Invitation sent! The user will be added to the workspace after they sign up.' };
     } catch (err: any) {
         console.error('Error in inviteMemberToWorkspace:', err);
         return { error: err.message || 'Something went wrong' };

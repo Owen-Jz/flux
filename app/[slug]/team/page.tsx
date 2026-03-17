@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getAccessRequests, getUserRole, hasPendingRequest } from '@/actions/access-control';
-import { Users } from 'lucide-react';
+import { UsersIcon } from '@heroicons/react/24/outline';
 import InviteButton from '@/components/InviteButton';
 import { TeamClient } from './team-client';
 import { RequestAccessButton } from '@/components/RequestAccessButton';
@@ -87,7 +87,7 @@ export default async function TeamPage({
             <div className="mt-8 p-6 rounded-2xl bg-[var(--brand-primary)]/5 border border-[var(--brand-primary)]/10">
                 <div className="flex items-start gap-4">
                     <div className="p-2 rounded-lg bg-[var(--brand-primary)] text-white">
-                        <Users className="w-5 h-5" />
+                        <UsersIcon className="w-5 h-5" />
                     </div>
                     <div>
                         <h3 className="font-semibold text-[var(--brand-primary)]">Collaboration is key</h3>

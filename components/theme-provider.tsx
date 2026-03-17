@@ -1,15 +1,14 @@
 /**
- * Flux Theme System - Light Mode Only
- *
- * Dark mode has been disabled for the landing page to optimize conversion rates.
- * All components use light theme by default.
+ * Flux Theme System - Light & Dark Mode
  *
  * This implementation ensures complete visual and functional separation between
  * light and dark themes by using:
  * 1. Theme-prefixed CSS custom properties (e.g., --flux-light-bg)
  * 2. Explicit theme class scoping on all components
- * 3. A robust theme-switching mechanism that clears previous theme state
- * 4. Instant theme transitions with no artifacts or bleeding
+ * 3. A robust theme-switching mechanism with localStorage persistence
+ * 4. System preference detection on first visit
+ * 5. Smooth transitions between themes
+ * 6. FOUC prevention
  */
 
 'use client';
@@ -24,16 +23,16 @@ import {
   useMemo,
 } from 'react';
 
-/** Theme type - light mode only enforced */
-type Theme = 'light';
+/** Theme type - supports both light and dark */
+type Theme = 'light' | 'dark';
 
-/** Theme context type with full API - light mode enforced */
+/** Theme context type with full API */
 interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
   isTransitioning: boolean;
-  isDarkModeAvailable: boolean; // Always false - dark mode disabled
+  isDarkModeAvailable: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -50,25 +49,25 @@ const CSS_VAR_PREFIX = 'flux';
  * Dark theme uses --flux-dark-* variables
  */
 const LIGHT_THEME_VARS: Record<string, string> = {
-  /** Brand Colors */
-  [`--${CSS_VAR_PREFIX}-light-brand-primary`]: '#6366f1',
-  [`--${CSS_VAR_PREFIX}-light-brand-primary-hover`]: '#4f46e5',
-  [`--${CSS_VAR_PREFIX}-light-brand-primary-active`]: '#4338ca',
+  /** Brand Colors - Purple primary */
+  [`--${CSS_VAR_PREFIX}-light-brand-primary`]: '#7c3aed',
+  [`--${CSS_VAR_PREFIX}-light-brand-primary-hover`]: '#6d28d9',
+  [`--${CSS_VAR_PREFIX}-light-brand-primary-active`]: '#5b21b6',
   [`--${CSS_VAR_PREFIX}-light-brand-secondary`]: '#8b5cf6',
-  [`--${CSS_VAR_PREFIX}-light-brand-accent`]: '#f472b6',
+  [`--${CSS_VAR_PREFIX}-light-brand-accent`]: '#d946ef',
 
-  /** Backgrounds */
+  /** Backgrounds - WCAG compliant light theme */
   [`--${CSS_VAR_PREFIX}-light-bg`]: '#fafafa',
   [`--${CSS_VAR_PREFIX}-light-bg-subtle`]: '#f4f4f5',
   [`--${CSS_VAR_PREFIX}-light-surface`]: '#ffffff',
   [`--${CSS_VAR_PREFIX}-light-surface-elevated`]: '#ffffff',
 
-  /** Foreground / Text */
+  /** Foreground / Text - WCAG 2.2 AA compliant */
   [`--${CSS_VAR_PREFIX}-light-fg`]: '#18181b',
   [`--${CSS_VAR_PREFIX}-light-fg-muted`]: '#52525b',
   [`--${CSS_VAR_PREFIX}-light-text-primary`]: '#18181b',
-  [`--${CSS_VAR_PREFIX}-light-text-secondary`]: '#71717a',
-  [`--${CSS_VAR_PREFIX}-light-text-tertiary`]: '#a1a1aa',
+  [`--${CSS_VAR_PREFIX}-light-text-secondary`]: '#52525b',
+  [`--${CSS_VAR_PREFIX}-light-text-tertiary`]: '#71717a',
   [`--${CSS_VAR_PREFIX}-light-text-inverse`]: '#ffffff',
 
   /** Borders */
@@ -121,8 +120,8 @@ const LIGHT_THEME_VARS: Record<string, string> = {
   [`--${CSS_VAR_PREFIX}-light-shadow-xl`]: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)',
   [`--${CSS_VAR_PREFIX}-light-shadow-2xl`]: '0 25px 50px -12px rgb(0 0 0 / 0.25)',
 
-  /** Focus Ring */
-  [`--${CSS_VAR_PREFIX}-light-focus-ring`]: '0 0 0 3px rgba(99, 102, 241, 0.4)',
+  /** Focus Ring - Purple brand */
+  [`--${CSS_VAR_PREFIX}-light-focus-ring`]: '0 0 0 3px rgba(124, 58, 237, 0.4)',
   [`--${CSS_VAR_PREFIX}-light-focus-ring-success`]: '0 0 0 3px rgba(34, 197, 94, 0.4)',
   [`--${CSS_VAR_PREFIX}-light-focus-ring-error`]: '0 0 0 3px rgba(239, 68, 68, 0.4)',
 
@@ -137,12 +136,12 @@ const LIGHT_THEME_VARS: Record<string, string> = {
 };
 
 const DARK_THEME_VARS: Record<string, string> = {
-  /** Brand Colors (brighter for dark mode) */
-  [`--${CSS_VAR_PREFIX}-dark-brand-primary`]: '#818cf8',
-  [`--${CSS_VAR_PREFIX}-dark-brand-primary-hover`]: '#6366f1',
-  [`--${CSS_VAR_PREFIX}-dark-brand-primary-active`]: '#4f46e5',
-  [`--${CSS_VAR_PREFIX}-dark-brand-secondary`]: '#a78bfa',
-  [`--${CSS_VAR_PREFIX}-dark-brand-accent`]: '#f472b6',
+  /** Brand Colors - Brighter purple for dark mode */
+  [`--${CSS_VAR_PREFIX}-dark-brand-primary`]: '#a78bfa',
+  [`--${CSS_VAR_PREFIX}-dark-brand-primary-hover`]: '#8b5cf6',
+  [`--${CSS_VAR_PREFIX}-dark-brand-primary-active`]: '#7c3aed',
+  [`--${CSS_VAR_PREFIX}-dark-brand-secondary`]: '#c4b5fd',
+  [`--${CSS_VAR_PREFIX}-dark-brand-accent`]: '#f0abfc',
 
   /** Backgrounds */
   [`--${CSS_VAR_PREFIX}-dark-bg`]: '#09090b',
@@ -209,7 +208,7 @@ const DARK_THEME_VARS: Record<string, string> = {
   [`--${CSS_VAR_PREFIX}-dark-shadow-2xl`]: '0 25px 50px -12px rgb(0 0 0 / 0.8)',
 
   /** Focus Ring (adjusted for dark mode) */
-  [`--${CSS_VAR_PREFIX}-dark-focus-ring`]: '0 0 0 3px rgba(129, 140, 248, 0.5)',
+  [`--${CSS_VAR_PREFIX}-dark-focus-ring`]: '0 0 0 3px rgba(167, 139, 250, 0.5)',
   [`--${CSS_VAR_PREFIX}-dark-focus-ring-success`]: '0 0 0 3px rgba(34, 197, 94, 0.5)',
   [`--${CSS_VAR_PREFIX}-dark-focus-ring-error`]: '0 0 0 3px rgba(239, 68, 68, 0.5)',
 
@@ -223,9 +222,8 @@ const DARK_THEME_VARS: Record<string, string> = {
   [`--${CSS_VAR_PREFIX}-dark-scrollbar-thumb-hover`]: '#52525b',
 };
 
-/** Shared non-color variables (radius, spacing, transitions, z-index) */
+/** Shared non-color variables */
 const SHARED_VARS: Record<string, string> = {
-  /** Border Radius */
   '--flux-radius-none': '0',
   '--flux-radius-xs': '4px',
   '--flux-radius-sm': '6px',
@@ -235,7 +233,6 @@ const SHARED_VARS: Record<string, string> = {
   '--flux-radius-2xl': '24px',
   '--flux-radius-full': '9999px',
 
-  /** Spacing */
   '--flux-space-1': '0.25rem',
   '--flux-space-2': '0.5rem',
   '--flux-space-3': '0.75rem',
@@ -247,29 +244,24 @@ const SHARED_VARS: Record<string, string> = {
   '--flux-space-12': '3rem',
   '--flux-space-16': '4rem',
 
-  /** Transitions */
   '--flux-transition-fast': '150ms cubic-bezier(0.4, 0, 0.2, 1)',
   '--flux-transition-base': '200ms cubic-bezier(0.4, 0, 0.2, 1)',
   '--flux-transition-slow': '300ms cubic-bezier(0.4, 0, 0.2, 1)',
-  '--flux-transition-spring': '500ms cubic-bezier(0.34, 1.56, 0.64, 1)',
+  '--flux-transition-theme': '300ms cubic-bezier(0.4, 0, 0.2, 1)',
 
-  /** Z-Index */
   '--flux-z-dropdown': '100',
   '--flux-z-sticky': '200',
   '--flux-z-modal': '300',
   '--flux-z-popover': '400',
   '--flux-z-tooltip': '500',
 
-  /** Backdrop */
   '--flux-backdrop-blur': 'blur(12px)',
   '--flux-backdrop-saturate': 'saturate(180%)',
 };
 
 /**
- * Apply CSS variables to the document root
- * This function completely replaces all theme variables to prevent bleeding
+ * Backward compatibility aliases
  */
-/** Backward compatibility aliases - old var names for existing components */
 const BACKWARD_COMPAT_ALIASES: Record<string, Record<string, string>> = {
   light: {
     '--background': '#fafafa',
@@ -279,18 +271,17 @@ const BACKWARD_COMPAT_ALIASES: Record<string, Record<string, string>> = {
     '--foreground': '#18181b',
     '--foreground-muted': '#52525b',
     '--text-primary': '#18181b',
-    '--text-secondary': '#71717a',
-    '--text-tertiary': '#a1a1aa',
+    '--text-secondary': '#52525b',
+    '--text-tertiary': '#71717a',
     '--text-inverse': '#ffffff',
     '--border-subtle': '#e4e4e7',
     '--border-default': '#d4d4d8',
     '--border-strong': '#a1a1aa',
-    '--brand-primary': '#6366f1',
-    '--brand-primary-hover': '#4f46e5',
-    '--brand-primary-active': '#4338ca',
+    '--brand-primary': '#7c3aed',
+    '--brand-primary-hover': '#6d28d9',
+    '--brand-primary-active': '#5b21b6',
     '--brand-secondary': '#8b5cf6',
-    '--brand-accent': '#f472b6',
-    // Semantic colors
+    '--brand-accent': '#d946ef',
     '--success-bg': '#f0fdf4',
     '--success-bg-subtle': '#dcfce7',
     '--success-border': '#86efac',
@@ -333,12 +324,11 @@ const BACKWARD_COMPAT_ALIASES: Record<string, Record<string, string>> = {
     '--border-subtle': '#27272a',
     '--border-default': '#3f3f46',
     '--border-strong': '#52525b',
-    '--brand-primary': '#818cf8',
-    '--brand-primary-hover': '#6366f1',
-    '--brand-primary-active': '#4f46e5',
-    '--brand-secondary': '#a78bfa',
-    '--brand-accent': '#f472b6',
-    // Semantic colors (dark variants)
+    '--brand-primary': '#a78bfa',
+    '--brand-primary-hover': '#8b5cf6',
+    '--brand-primary-active': '#7c3aed',
+    '--brand-secondary': '#c4b5fd',
+    '--brand-accent': '#f0abfc',
     '--success-bg': '#052e16',
     '--success-bg-subtle': '#14532d',
     '--success-border': '#22c55e',
@@ -369,10 +359,35 @@ const BACKWARD_COMPAT_ALIASES: Record<string, Record<string, string>> = {
   },
 };
 
+/**
+ * Get system preference
+ */
+function getSystemPreference(): Theme {
+  if (typeof window === 'undefined') return 'light';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+/**
+ * Get stored theme preference or system default
+ */
+function getInitialTheme(): Theme {
+  if (typeof window === 'undefined') return 'light';
+
+  const stored = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
+  if (stored && (stored === 'light' || stored === 'dark')) {
+    return stored;
+  }
+
+  return getSystemPreference();
+}
+
+/**
+ * Apply CSS variables for the selected theme
+ */
 function applyThemeVars(theme: Theme): void {
   const root = document.documentElement;
 
-  // Clear ALL existing flux theme variables first
+  // Clear existing theme variables
   const allVars = [
     ...Object.keys(LIGHT_THEME_VARS),
     ...Object.keys(DARK_THEME_VARS),
@@ -384,73 +399,71 @@ function applyThemeVars(theme: Theme): void {
     root.style.removeProperty(varName);
   });
 
-  // Apply shared variables (same for both themes)
+  // Apply shared variables
   Object.entries(SHARED_VARS).forEach(([name, value]) => {
     root.style.setProperty(name, value);
   });
 
-  // Apply theme-specific variables (light mode only)
-  Object.entries(LIGHT_THEME_VARS).forEach(([name, value]) => {
+  // Apply theme-specific variables
+  const themeVars = theme === 'light' ? LIGHT_THEME_VARS : DARK_THEME_VARS;
+  Object.entries(themeVars).forEach(([name, value]) => {
     root.style.setProperty(name, value);
   });
 
-  // Apply backward compatibility aliases (light mode only)
-  Object.entries(BACKWARD_COMPAT_ALIASES.light).forEach(([name, value]) => {
+  // Apply backward compatibility aliases
+  const compatAliases = theme === 'light' ? BACKWARD_COMPAT_ALIASES.light : BACKWARD_COMPAT_ALIASES.dark;
+  Object.entries(compatAliases).forEach(([name, value]) => {
     root.style.setProperty(name, value);
   });
 
-  // Set the current theme attribute for CSS selectors
+  // Set theme attribute for CSS selectors
   root.setAttribute('data-flux-theme', theme);
 
-  // Always remove dark class since dark mode is disabled
-  root.classList.remove('flux-dark');
+  // Handle class for dark mode - add both flux-dark and dark classes for Tailwind compatibility
+  if (theme === 'dark') {
+    root.classList.add('flux-dark');
+    root.classList.add('dark');
+  } else {
+    root.classList.remove('flux-dark');
+    root.classList.remove('dark');
+  }
 }
 
 /**
- * ThemeProvider component - provides theme context and manages theme switching
- * Note: Dark mode is disabled - light mode is always enforced
+ * ThemeProvider component
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  // Initialize theme on mount - always use light mode
+  // Initialize theme on mount
   useEffect(() => {
-    setMounted(true);
-
-    // Always enforce light mode - dark mode disabled
-    const initialTheme: Theme = 'light';
-
+    const initialTheme = getInitialTheme();
     setThemeState(initialTheme);
     applyThemeVars(initialTheme);
+    setMounted(true);
   }, []);
 
   /**
-   * Set theme with proper transition handling
-   * Note: Dark mode is disabled - always uses light mode
-   * This function is kept for API compatibility but will always use light
+   * Set theme with smooth transition
    */
   const setTheme = useCallback((newTheme: Theme) => {
-    // Always enforce light mode - dark mode disabled
-    const enforcedTheme: Theme = 'light';
+    if (theme === newTheme) return;
 
-    // Prevent redundant updates
-    if (theme === enforcedTheme) return;
-
-    // Start transition state
+    // Start transition
     setIsTransitioning(true);
 
-    // Immediately apply light theme (instant switch)
-    applyThemeVars(enforcedTheme);
+    // Apply theme variables
+    applyThemeVars(newTheme);
 
     // Persist to localStorage
-    localStorage.setItem(THEME_STORAGE_KEY, enforcedTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
 
     // Update state
-    setThemeState(enforcedTheme);
+    setThemeState(newTheme);
 
-    // End transition state after a brief delay for animations
+    // End transition
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         setIsTransitioning(false);
@@ -460,37 +473,36 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   /**
    * Toggle between light and dark themes
-   * Note: Dark mode is disabled - this is a no-op
    */
   const toggleTheme = useCallback(() => {
-    // Dark mode disabled - no toggle allowed
-    console.warn('Dark mode is disabled. Light mode is enforced.');
-  }, []);
+    const newTheme = theme === 'light' ? 'dark' : 'light';
+    setTheme(newTheme);
+  }, [theme, setTheme]);
 
-  // Always create context value - useMemo must be called unconditionally
+  // Create context value
   const contextValue = useMemo(
     () => ({
       theme,
       toggleTheme,
       setTheme,
       isTransitioning,
-      isDarkModeAvailable: false, // Dark mode disabled
+      isDarkModeAvailable: true,
     }),
     [theme, toggleTheme, setTheme, isTransitioning]
   );
 
-  // Prevent flash of wrong theme (FOUC) during SSR
-  // Use hydration boundary instead of conditional rendering
+  // Prevent FOUC - render nothing until mounted
   if (!mounted) {
-    // Still render provider but with default values during SSR
     return (
-      <ThemeContext.Provider value={{
-        theme: 'light',
-        toggleTheme: () => {},
-        setTheme: () => {},
-        isTransitioning: false,
-        isDarkModeAvailable: false,
-      }}>
+      <ThemeContext.Provider
+        value={{
+          theme: 'light',
+          toggleTheme: () => {},
+          setTheme: () => {},
+          isTransitioning: false,
+          isDarkModeAvailable: true,
+        }}
+      >
         {children}
       </ThemeContext.Provider>
     );
@@ -505,7 +517,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
 /**
  * Hook to access theme context
- * Returns default values if context is not available (SSR safety)
  */
 export function useTheme(): ThemeContextType {
   const context = useContext(ThemeContext);
@@ -516,7 +527,7 @@ export function useTheme(): ThemeContextType {
       toggleTheme: () => {},
       setTheme: () => {},
       isTransitioning: false,
-      isDarkModeAvailable: false,
+      isDarkModeAvailable: true,
     };
   }
 
@@ -524,18 +535,8 @@ export function useTheme(): ThemeContextType {
 }
 
 /**
- * Helper function to get theme-scoped CSS variable
- * Use this in components to get the correct variable for current theme
+ * Get theme-scoped CSS variable
  */
 export function getThemeVar(name: string): string {
-  // This will be resolved at runtime based on the data-flux-theme attribute
   return `var(--flux-${name})`;
-}
-
-/**
- * Generate theme-aware CSS class suffix
- * Usage: themeClass('bg', 'surface') => 'bg-flux-light-surface'
- */
-export function themeClass(prefix: string, suffix: string): string {
-  return `${prefix}-flux-{theme}-${suffix}`;
 }

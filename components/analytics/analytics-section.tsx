@@ -17,7 +17,7 @@ import {
     ResponsiveContainer,
     Legend,
 } from "recharts";
-import { TrendingUp, Activity, CheckCircle, Users } from "lucide-react";
+import { ArrowTrendingUpIcon, BoltIcon, CheckCircleIcon, UsersIcon } from "@heroicons/react/24/outline";
 import { WorkspaceAnalytics } from "@/actions/analytics";
 
 interface AnalyticsSectionProps {
@@ -76,7 +76,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
         {
             label: "Tasks Completed",
             value: analytics.completedTasks,
-            icon: CheckCircle,
+            icon: CheckCircleIcon,
             color: "from-green-500 to-emerald-500",
             bgColor: "bg-green-500/10",
             textColor: "text-green-600",
@@ -84,7 +84,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
         {
             label: "In Progress",
             value: analytics.inProgressTasks,
-            icon: Activity,
+            icon: BoltIcon,
             color: "from-blue-500 to-cyan-500",
             bgColor: "bg-blue-500/10",
             textColor: "text-blue-600",
@@ -92,7 +92,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
         {
             label: "To Do",
             value: analytics.todoTasks,
-            icon: TrendingUp,
+            icon: ArrowTrendingUpIcon,
             color: "from-amber-500 to-orange-500",
             bgColor: "bg-amber-500/10",
             textColor: "text-amber-600",
@@ -108,7 +108,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
             {/* Section Header */}
             <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 bg-purple-500/10 rounded-lg">
-                    <Users className="w-5 h-5 text-purple-600" />
+                    <UsersIcon className="w-5 h-5 text-purple-600" />
                 </div>
                 <h2
                     id="analytics-heading"
@@ -161,7 +161,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
                 >
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-purple-500/10 rounded-lg">
-                            <TrendingUp className="w-5 h-5 text-purple-600" />
+                            <ArrowTrendingUpIcon className="w-5 h-5 text-purple-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-[var(--foreground)]">
                             Task Completion Trend
@@ -209,7 +209,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
                 >
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-blue-500/10 rounded-lg">
-                            <Activity className="w-5 h-5 text-blue-600" />
+                            <BoltIcon className="w-5 h-5 text-blue-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-[var(--foreground)]">
                             Team Velocity
@@ -247,7 +247,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
                 >
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-green-500/10 rounded-lg">
-                            <CheckCircle className="w-5 h-5 text-green-600" />
+                            <CheckCircleIcon className="w-5 h-5 text-green-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-[var(--foreground)]">
                             Task Distribution
@@ -291,7 +291,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
                 >
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-amber-500/10 rounded-lg">
-                            <Users className="w-5 h-5 text-amber-600" />
+                            <UsersIcon className="w-5 h-5 text-amber-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-[var(--foreground)]">
                             Recent Activity
