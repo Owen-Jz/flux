@@ -27,7 +27,13 @@ export default function LoginPage() {
             });
 
             if (result?.error) {
-                setError('Invalid email or password');
+                if (result.error.includes('locked') || result.error.includes('too many attempts')) {
+                    setError('Too many failed attempts. Please try again in 15 minutes.');
+                } else if (result.error.includes('credentials')) {
+                    setError('Invalid email or password. Please try again.');
+                } else {
+                    setError('Something went wrong. Please try again.');
+                }
             } else {
                 router.push('/dashboard');
             }

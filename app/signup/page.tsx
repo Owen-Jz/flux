@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { EnvelopeIcon, LockClosedIcon, UserIcon, ArrowRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, LockClosedIcon, UserIcon, ArrowRightIcon, ArrowPathIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { signIn } from 'next-auth/react';
+import { usePasswordStrength } from '@/hooks/use-password-strength';
+import { strengthColors, strengthLabels } from '@/lib/password-strength';
 
 export default function SignupPage() {
     const router = useRouter();
@@ -14,9 +16,30 @@ export default function SignupPage() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [emailError, setEmailError] = useState('');
+    const [emailChecking, setEmailChecking] = useState(false);
+    const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
+
+    const { strength, score, requirements } = usePasswordStrength(password);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate email format first
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setError('Please enter a valid email address');
+            return;
+        }
+
+        // Check email availability if not already checked
+        if (emailAvailable === null) {
+            await handleEmailBlur();
+            if (!emailAvailable) {
+                setError(emailError || 'Email is not available');
+                return;
+            }
+        }
+
         setIsLoading(true);
         setError('');
 
@@ -56,6 +79,35 @@ export default function SignupPage() {
 
     const handleGoogleSignIn = () => {
         signIn('google', { callbackUrl: '/onboarding' });
+    };
+
+    const handleEmailBlur = async () => {
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            setEmailError('Please enter a valid email address');
+            setEmailAvailable(null);
+            return;
+        }
+
+        setEmailChecking(true);
+        try {
+            const res = await fetch('/api/auth/validate-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email }),
+            });
+            const data = await res.json();
+            if (!data.available) {
+                setEmailError(data.message);
+                setEmailAvailable(false);
+            } else {
+                setEmailError('');
+                setEmailAvailable(true);
+            }
+        } catch {
+            // Ignore network errors on blur
+        } finally {
+            setEmailChecking(false);
+        }
     };
 
     return (
@@ -146,10 +198,28 @@ export default function SignupPage() {
                                 placeholder="Email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
+                                onBlur={handleEmailBlur}
                                 className="input !pl-12"
                                 required
                             />
                         </div>
+
+                        {(emailError || emailAvailable !== null) && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={`flex items-center gap-1 text-sm ${
+                                    emailAvailable ? 'text-green-600' : 'text-red-500'
+                                }`}
+                            >
+                                {emailAvailable ? (
+                                    <CheckIcon className="w-4 h-4" />
+                                ) : (
+                                    <XMarkIcon className="w-4 h-4" />
+                                )}
+                                <span>{emailError || 'Email available'}</span>
+                            </motion.div>
+                        )}
 
                         <div className="relative">
                             <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
@@ -163,6 +233,30 @@ export default function SignupPage() {
                                 required
                             />
                         </div>
+
+                        {password && (
+                            <div className="space-y-2">
+                                {/* Strength bar */}
+                                <div className="flex gap-1">
+                                    {[0, 1, 2, 3].map((i) => (
+                                        <div
+                                            key={i}
+                                            className={`h-1 flex-1 rounded-full transition-colors ${
+                                                i <= score ? strengthColors[strength] : 'bg-gray-200'
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="flex justify-between items-center text-xs">
+                                    <span className={strength !== 'empty' ? strengthColors[strength].replace('bg-', 'text-') : 'text-gray-400'}>
+                                        {strengthLabels[strength]}
+                                    </span>
+                                    <span className="text-[var(--text-secondary)]">
+                                        {password.length < 6 ? '6+ characters' : 'Good password'}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
 
                         <button
                             type="submit"
