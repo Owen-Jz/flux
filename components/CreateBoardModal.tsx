@@ -5,10 +5,18 @@ import { XMarkIcon, ArrowPathIcon, Squares2X2Icon } from '@heroicons/react/24/ou
 import { createBoard } from '@/actions/board';
 import { updateOnboardingProgress } from '@/actions/onboarding';
 
+interface Board {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string;
+    color: string;
+}
+
 interface CreateBoardModalProps {
     workspaceSlug: string;
     onClose: () => void;
-    onSuccess?: (boardSlug: string) => void;
+    onSuccess?: (board: Board) => void;
 }
 
 const BOARD_COLORS = [
@@ -43,7 +51,9 @@ export default function CreateBoardModal({ workspaceSlug, onClose, onSuccess }: 
             const result = await createBoard(workspaceSlug, { name, description, color });
             // Track onboarding progress
             await updateOnboardingProgress('createdFirstBoard');
-            onSuccess?.(result.slug);
+            // Dispatch event for optimistic UI update
+            window.dispatchEvent(new CustomEvent('board-created', { detail: result }));
+            onSuccess?.(result);
             onClose();
         } catch (err: any) {
             setError(err.message || 'Something went wrong');

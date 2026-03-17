@@ -50,18 +50,16 @@ function ThemeScript() {
         __html: `
           (function() {
             try {
-              // Get system preference
-              var systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
               // Check localStorage for saved preference
               var stored = localStorage.getItem('flux-theme');
 
-              // Determine theme: stored preference > system preference > default light
+              // Determine theme: stored preference > default light
               var theme;
               if (stored === 'light' || stored === 'dark') {
                 theme = stored;
               } else {
-                theme = systemDark ? 'dark' : 'light';
+                // Default to light mode (not system preference)
+                theme = 'light';
               }
 
               // Apply theme attribute immediately

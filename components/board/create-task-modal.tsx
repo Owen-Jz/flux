@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, CheckIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import type { TaskPriority, TaskStatus } from '@/models/Task';
 import type { Member } from './task-card';
+import CustomSelect from '../ui/custom-select';
 
 type ColumnId = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
 
@@ -113,17 +114,12 @@ export function CreateTaskModal({
                                     <label className="block text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2">
                                         Column
                                     </label>
-                                    <select
+                                    <CustomSelect
                                         value={status}
-                                        onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                                        className="w-full px-3 py-2.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)]"
-                                    >
-                                        {columns.map(col => (
-                                            <option key={col.id} value={col.id}>
-                                                {col.title}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        onChange={(value) => setStatus(value as TaskStatus)}
+                                        options={columns.map(col => ({ value: col.id, label: col.title }))}
+                                        className="w-full"
+                                    />
                                 </div>
 
                                 {/* Title */}

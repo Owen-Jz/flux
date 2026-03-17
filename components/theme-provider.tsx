@@ -368,7 +368,7 @@ function getSystemPreference(): Theme {
 }
 
 /**
- * Get stored theme preference or system default
+ * Get stored theme preference or default to light
  */
 function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return 'light';
@@ -378,7 +378,8 @@ function getInitialTheme(): Theme {
     return stored;
   }
 
-  return getSystemPreference();
+  // Default to light mode (not system preference)
+  return 'light';
 }
 
 /**

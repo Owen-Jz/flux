@@ -16,6 +16,7 @@ import {
     ChartBarIcon,
 } from '@heroicons/react/24/outline';
 import { signOut } from 'next-auth/react';
+import { ThemeToggle } from './theme-toggle';
 import BoardList from './BoardList';
 import { OnboardingChecklist } from './onboarding/onboarding-checklist';
 
@@ -194,6 +195,11 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                     })}
                 </ul>
             </nav>
+
+            {/* Theme Toggle */}
+            <div className="px-4 py-2">
+                <ThemeToggle className="w-full" />
+            </div>
 
             {/* User */}
             <div className="p-4 border-t border-[var(--border-subtle)]">

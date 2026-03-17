@@ -324,7 +324,7 @@ export function BillingSection() {
                 <p className="text-sm text-[var(--text-secondary)] mb-4">
                     Need custom pricing, SSO, SLA guarantees, or on-premise deployment? Contact us for a custom solution.
                 </p>
-                <a href="mailto:billing@flux.com?subject=Enterprise%20Pricing" className="btn btn-secondary text-sm">
+                <a href="mailto:updates@fluxboard.site?subject=Enterprise%20Pricing" className="btn btn-secondary text-sm">
                     Contact Sales
                 </a>
             </div>

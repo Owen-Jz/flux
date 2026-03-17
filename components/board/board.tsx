@@ -23,6 +23,7 @@ import type { TaskStatus, TaskPriority } from '@/models/Task';
 import { PlusIcon, XMarkIcon, ArrowPathIcon, MagnifyingGlassIcon, UserIcon, Cog6ToothIcon, UsersIcon, BellIcon, ChatBubbleLeftRightIcon, MoonIcon, SunIcon, HomeIcon, ChevronDownIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import EditBoardModal from '../EditBoardModal';
+import CustomSelect from '../ui/custom-select';
 import { useSocket } from '@/contexts/socket-context';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
@@ -635,19 +636,6 @@ export function Board({
                         </button>
                     )}
 
-                    {/* Theme Toggle */}
-                    <button
-                        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
-                        title="Toggle theme"
-                    >
-                        {theme === 'dark' ? (
-                            <SunIcon className="w-4.5 h-4.5" />
-                        ) : (
-                            <MoonIcon className="w-4.5 h-4.5" />
-                        )}
-                    </button>
-
                     {/* Comments */}
                     <button
                         onClick={() => setShowComments(!showComments)}
@@ -695,43 +683,38 @@ export function Board({
                         </button>
                     )}
 
-                    <select
+                    <CustomSelect
                         value={filterPriority}
-                        onChange={(e) => setFilterPriority(e.target.value as any)}
-                        className="px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 min-w-[90px]"
-                    >
-                        <option value="ALL">Priority</option>
-                        <option value="HIGH">High</option>
-                        <option value="MEDIUM">Medium</option>
-                        <option value="LOW">Low</option>
-                    </select>
+                        onChange={(value) => setFilterPriority(value as TaskPriority | 'ALL')}
+                        options={[
+                            { value: 'ALL', label: 'Priority' },
+                            { value: 'HIGH', label: 'High' },
+                            { value: 'MEDIUM', label: 'Medium' },
+                            { value: 'LOW', label: 'Low' },
+                        ]}
+                        minWidth="100px"
+                    />
 
-                    <select
+                    <CustomSelect
                         value={filterMemberId}
-                        onChange={(e) => setFilterMemberId(e.target.value)}
-                        className="px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 min-w-[80px]"
-                    >
-                        <option value="ALL">Members</option>
-                        {members.map(member => (
-                            <option key={member.id} value={member.id}>
-                                {member.name}
-                            </option>
-                        ))}
-                    </select>
+                        onChange={setFilterMemberId}
+                        options={[
+                            { value: 'ALL', label: 'Members' },
+                            ...members.map(member => ({ value: member.id, label: member.name }))
+                        ]}
+                        minWidth="100px"
+                    />
 
                     {localCategories.length > 0 && (
-                        <select
+                        <CustomSelect
                             value={filterCategoryId}
-                            onChange={(e) => setFilterCategoryId(e.target.value)}
-                            className="px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 min-w-[90px]"
-                        >
-                            <option value="ALL">Categories</option>
-                            {localCategories.map(cat => (
-                                <option key={cat.id} value={cat.id}>
-                                    {cat.name}
-                                </option>
-                            ))}
-                        </select>
+                            onChange={setFilterCategoryId}
+                            options={[
+                                { value: 'ALL', label: 'Categories' },
+                                ...localCategories.map(cat => ({ value: cat.id, label: cat.name }))
+                            ]}
+                            minWidth="110px"
+                        />
                     )}
                 </div>
 

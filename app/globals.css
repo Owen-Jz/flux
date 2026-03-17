@@ -999,3 +999,29 @@ body {
     display: none !important;
   }
 }
+
+/* ============================================
+   DRIVER.JS TUTORIAL FONT OVERRIDE
+   ============================================ */
+
+/* Override driver.js font to use brand font (Plus Jakarta Sans) */
+.driver-popover {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.driver-popover-title {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif !important;
+  font-weight: 600 !important;
+}
+
+.driver-popover-description {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.driver-popover-footer {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif !important;
+}
+
+.driver-popover-arrow {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif !important;
+}

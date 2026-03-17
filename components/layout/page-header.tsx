@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 import { useState } from 'react';
 import { ArrowRightOnRectangleIcon, UserIcon, Cog6ToothIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { ThemeToggle } from '../theme-toggle';
 
 interface PageHeaderProps {
   activeLink?: string;
@@ -49,6 +50,7 @@ export function PageHeader({ activeLink }: PageHeaderProps) {
             ))}
           </nav>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             {isLoggedIn ? (
               <div className="relative">
                 <button

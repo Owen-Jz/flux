@@ -28,7 +28,14 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
     const [editingBoard, setEditingBoard] = useState<Board | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
+    // Optimistic UI state for boards
+    const [boardList, setBoardList] = useState<Board[]>(boards);
     const router = useRouter();
+
+    // Sync state with props when boards change (e.g., after refresh)
+    useEffect(() => {
+        setBoardList(boards);
+    }, [boards]);
     const menuRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -44,8 +51,10 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
         };
     }, []);
 
-    const handleBoardCreated = (boardSlug: string) => {
-        router.push(`/${workspaceSlug}/board/${boardSlug}`);
+    const handleBoardCreated = (board: Board) => {
+        // Optimistically add the new board to the list
+        setBoardList(prev => [...prev, board]);
+        router.push(`/${workspaceSlug}/board/${board.slug}`);
         router.refresh();
     };
 
@@ -86,7 +95,7 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
                 </div>
 
                 <div className="space-y-1">
-                    {boards.length === 0 ? (
+                    {boardList.length === 0 ? (
                         <button
                             onClick={() => setShowCreateModal(true)}
                             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors border border-dashed border-[var(--border-subtle)]"
@@ -95,7 +104,7 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
                             Create your first board
                         </button>
                     ) : (
-                        boards.map((board) => (
+                        boardList.map((board) => (
                             <div key={board.id} className="relative group">
                                 <Link
                                     href={`/${workspaceSlug}/board/${board.slug}`}
