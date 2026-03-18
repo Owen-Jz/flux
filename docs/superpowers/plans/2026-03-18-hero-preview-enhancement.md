@@ -241,9 +241,16 @@ interface HeroDetailModalProps {
   task: MockTask | null;
   isOpen: boolean;
   onClose: () => void;
+  showDecomposed?: boolean;
 }
 
-export function HeroDetailModal({ task, isOpen, onClose }: HeroDetailModalProps) {
+export function HeroDetailModal({ task, isOpen, onClose, showDecomposed }: HeroDetailModalProps) {
+  // Mock subtasks for AI decompose animation
+  const subtasks = [
+    { id: 's1', title: 'Design new dashboard layout', status: 'TODO' },
+    { id: 's2', title: 'Implement chart components', status: 'TODO' },
+    { id: 's3', title: 'Add data visualization', status: 'TODO' },
+  ];
   return (
     <AnimatePresence>
       {isOpen && task && (
@@ -342,6 +349,35 @@ export function HeroDetailModal({ task, isOpen, onClose }: HeroDetailModalProps)
                   <p className="text-xs text-slate-500 dark:text-slate-400">This looks great! Can we add a progress indicator?</p>
                 </div>
               </div>
+
+              {/* AI Decomposed Subtasks */}
+              <AnimatePresence>
+                {showDecomposed && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-2"
+                  >
+                    <div className="flex items-center gap-2 text-xs font-medium text-purple-500 uppercase">
+                      <SparklesIcon className="w-4 h-4" />
+                      AI Generated Subtasks
+                    </div>
+                    {subtasks.map((subtask, i) => (
+                      <motion.div
+                        key={subtask.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        className="p-3 bg-purple-50 dark:bg-purple-500/10 rounded-lg border border-purple-200 dark:border-purple-500/30 flex items-center gap-2"
+                      >
+                        <div className="w-4 h-4 rounded-full border-2 border-purple-300" />
+                        <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{subtask.title}</span>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Footer */}
@@ -475,16 +511,38 @@ Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 import { SparklesIcon, BoltIcon, ShieldCheckIcon, UsersIcon, CheckIcon, ClockIcon, MagnifyingGlassIcon, FunnelIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { mockTasks, mockTeamMembers, mockActivities, mockNotifications, columns, MockTask } from "./hero-preview-data";
 import { HeroTaskCard } from "./hero-task-card";
 import { HeroDetailModal } from "./hero-detail-modal";
 import { NotificationToast } from "./hero-notification";
 
-// Custom cursor component
-function CustomCursor({ x, y, isVisible }: { x: number; y: number; isVisible: boolean }) {
+// Custom cursor component with reduced motion support
+function CustomCursor({ x, y, isVisible, reducedMotion }: { x: number; y: number; isVisible: boolean; reducedMotion?: boolean }) {
   if (!isVisible) return null;
+
+  // Skip animation if reduced motion is preferred
+  if (reducedMotion) {
+    return (
+      <div
+        className="fixed top-0 left-0 z-[100] pointer-events-none"
+        style={{ transform: `translate(${x - 10}px, ${y - 10}px)` }}
+      >
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="drop-shadow-lg">
+          <path
+            d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19177L23.0003 11.6923L12.411 11.6923C11.7236 11.6923 11.018 11.9523 10.2523 12.3973L5.65376 12.3673Z"
+            fill="#0f172a"
+            stroke="white"
+            strokeWidth="1.5"
+          />
+        </svg>
+        <div className="ml-5 -mt-2 bg-[#8b5cf6] text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-lg whitespace-nowrap">
+          You
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -664,7 +722,11 @@ export function HeroPreviewSection() {
   const [showAIToast, setShowAIToast] = useState(false);
   const [cursorPhase, setCursorPhase] = useState(0);
   const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+  const [showDecomposed, setShowDecomposed] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Accessibility: respect reduced motion preference
+  const reducedMotion = useReducedMotion();
 
   const tasksByColumn = columns.reduce((acc, col) => {
     acc[col.id] = mockTasks.filter(t => t.status === col.id);
@@ -725,6 +787,7 @@ export function HeroPreviewSection() {
 
   // Modal open/close based on cursor phase
   useEffect(() => {
+    if (reducedMotion) return; // Skip animation if reduced motion preferred
     if (cursorPhase === 1) {
       const task = mockTasks.find(t => t.status === 'IN_PROGRESS');
       if (task) {
@@ -733,6 +796,14 @@ export function HeroPreviewSection() {
       }
     } else if (cursorPhase === 4) {
       setIsModalOpen(false);
+      setShowDecomposed(false);
+    }
+  }, [cursorPhase, reducedMotion]);
+
+  // AI decompose triggers visual split
+  useEffect(() => {
+    if (cursorPhase === 3) {
+      setTimeout(() => setShowDecomposed(true), 500);
     }
   }, [cursorPhase]);
 
@@ -741,6 +812,8 @@ export function HeroPreviewSection() {
   return (
     <section className="relative bg-white dark:bg-slate-950 overflow-hidden py-8">
       <div className="max-w-6xl mx-auto px-4">
+        {/* Responsive: Hide sidebar and right panel on smaller screens */}
+        <div className="hidden lg:flex">
         <div
           ref={containerRef}
           className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden"
@@ -831,6 +904,27 @@ export function HeroPreviewSection() {
 
             <RightPanel />
           </div>
+        </div>
+
+        {/* Mobile/Tablet: Simplified 3-column view */}
+        <div className="lg:hidden p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl">
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
+            {columns.slice(1, 4).map(col => (
+              <button
+                key={col.id}
+                className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap"
+              >
+                {col.title} ({getColumnCount(col.id)})
+              </button>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {mockTasks.filter(t => ['TODO', 'IN_PROGRESS', 'DONE'].includes(t.status)).slice(0, 6).map(task => (
+              <HeroTaskCard key={task.id} task={task} onClick={() => { setSelectedTask(task); setIsModalOpen(true); }} />
+            ))}
+          </div>
+        </div>
+        </div>
 
           {/* Floating elements */}
           <AIToast show={showAIToast} />
@@ -838,14 +932,15 @@ export function HeroPreviewSection() {
         </div>
       </div>
 
-      {/* Custom cursor */}
-      <CustomCursor x={cursorPos.x} y={cursorPos.y} isVisible={true} />
+      {/* Custom cursor - disabled when reduced motion preferred */}
+      {!reducedMotion && <CustomCursor x={cursorPos.x} y={cursorPos.y} isVisible={true} />}
 
-      {/* Detail modal */}
+      {/* Detail modal with AI decompose animation */}
       <HeroDetailModal
         task={selectedTask}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+        showDecomposed={showDecomposed}
       />
     </section>
   );
@@ -888,11 +983,22 @@ npm run dev
 - [ ] Floating notifications appear
 - [ ] Cursor moves through animation phases
 - [ ] Clicking task opens modal
+- [ ] AI Decompose shows subtask animation
 - [ ] Dark mode renders correctly
 
-- [ ] **Step 3: Fix any issues found**
+- [ ] **Step 3: Verify reduced motion support**
+- [ ] Enable "Reduce Motion" in OS accessibility settings
+- [ ] Refresh page - cursor should NOT move automatically
+- [ ] Hover effects should still work
 
-- [ ] **Step 4: Commit any fixes**
+- [ ] **Step 4: Verify responsive breakpoints**
+- [ ] Desktop (1200px+): Full 5-column + sidebar + stats
+- [ ] Tablet (768px): Simplified 3-column view
+- [ ] Mobile: Single column with tabs
+
+- [ ] **Step 5: Fix any issues found**
+
+- [ ] **Step 6: Commit any fixes**
 
 ```bash
 git add components/landing/
@@ -910,8 +1016,10 @@ This implementation plan creates an enhanced hero preview with:
 - ✅ Rich cursor interactivity (ambient hover + scenario-based animations)
 - ✅ Latest dashboard features (AI decompose, real-time presence, filtering)
 - ✅ Notification toast system
-- ✅ Detail modal with comments and assignees
+- ✅ Detail modal with comments, assignees, and AI subtask generation
 - ✅ Dark mode support
+- ✅ Responsive breakpoints (desktop/tablet/mobile)
+- ✅ Reduced motion accessibility support
 
 **Total Tasks:** 6 major tasks with multiple steps
 **Estimated Time:** 30-45 minutes
