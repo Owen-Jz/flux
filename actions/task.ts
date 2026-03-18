@@ -24,6 +24,7 @@ interface CreateTaskData {
     status?: TaskStatus;
     categoryId?: string;
     assignees?: string[];
+    subtasks?: { id?: string; title: string; completed: boolean }[];
 }
 
 export async function createTask(workspaceSlug: string, boardSlug: string, data: CreateTaskData) {
@@ -72,7 +73,7 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
         categoryId: data.categoryId ? new Types.ObjectId(data.categoryId) : undefined,
         order: newOrder,
         assignees: data.assignees && data.assignees.length > 0 ? data.assignees : [session.user.id],
-        subtasks: [],
+        subtasks: data.subtasks || [],
     });
 
     // Log activity
@@ -183,6 +184,13 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
                 email: c.userId.email || '',
                 image: c.userId.image,
             }
+        })),
+        dueDate: task.dueDate?.toISOString(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        links: (task.links || []).map((l: any) => ({
+            id: l._id?.toString() || Math.random().toString(36).substr(2, 9),
+            url: l.url,
+            title: l.title || l.url,
         })),
         createdAt: task.createdAt.toISOString(),
     }));
@@ -350,6 +358,8 @@ export async function updateTask(
         assignees?: string[];
         subtasks?: { id?: string; title: string; completed: boolean }[];
         categoryId?: string | null;
+        dueDate?: string | null;
+        links?: { id: string; url: string; title: string }[];
     }
 ) {
     const session = await auth();
@@ -402,6 +412,16 @@ export async function updateTask(
     }
     if (data.categoryId !== undefined) {
         task.categoryId = data.categoryId ? new Types.ObjectId(data.categoryId) : undefined;
+    }
+    if (data.dueDate !== undefined) {
+        task.dueDate = data.dueDate ? new Date(data.dueDate) : undefined;
+    }
+    if (data.links !== undefined) {
+        task.links = data.links.map((l) => ({
+            _id: (l.id && Types.ObjectId.isValid(l.id) && !l.id.startsWith('temp-')) ? new Types.ObjectId(l.id) : new Types.ObjectId(),
+            url: l.url,
+            title: l.title,
+        }));
     }
 
     await task.save();

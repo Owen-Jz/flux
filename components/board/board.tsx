@@ -17,10 +17,11 @@ import { Column } from './column';
 import { TaskCard, TaskData, Member } from './task-card';
 import { TaskDetailModal } from './task-detail-modal';
 import { CreateTaskModal } from './create-task-modal';
+import { AIDecomposeModal } from './ai-decompose-modal';
 import { updateTaskPosition, createTask, updateTask, deleteTask } from '@/actions/task';
 import { updateOnboardingProgress } from '@/actions/onboarding';
 import type { TaskStatus, TaskPriority } from '@/models/Task';
-import { PlusIcon, XMarkIcon, ArrowPathIcon, MagnifyingGlassIcon, UserIcon, Cog6ToothIcon, UsersIcon, BellIcon, ChatBubbleLeftRightIcon, MoonIcon, SunIcon, HomeIcon, ChevronDownIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, XMarkIcon, ArrowPathIcon, MagnifyingGlassIcon, UserIcon, Cog6ToothIcon, UsersIcon, BellIcon, ChatBubbleLeftRightIcon, MoonIcon, SunIcon, ChevronDownIcon, EllipsisHorizontalIcon, SparklesIcon, FunnelIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import EditBoardModal from '../EditBoardModal';
 import CustomSelect from '../ui/custom-select';
@@ -169,6 +170,7 @@ export function Board({
     const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
     const [isAddingTask, setIsAddingTask] = useState<ColumnId | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showAIDecomposeModal, setShowAIDecomposeModal] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('MEDIUM');
     const [showSearch, setShowSearch] = useState(false);
@@ -467,12 +469,69 @@ export function Board({
                         task: { ...newTask, id: result.id },
                     });
                 }
-
-                // Track onboarding progress
-                await updateOnboardingProgress('createdFirstTask');
             } catch (error) {
                 console.error('Failed to create task:', error);
-                setTasks((prev) => prev.filter((t) => t.id !== tempId));
+                dispatchOptimistic({ type: 'DELETE', id: tempId });
+            }
+        });
+    };
+
+    // Handle task creation from AI Decompose modal
+    const handleCreateTaskFromAI = async (taskData: {
+        title: string;
+        description: string;
+        subtasks: { title: string; completed: boolean }[];
+    }) => {
+        const columnId = 'BACKLOG' as ColumnId;
+        const tempId = `temp-${Date.now()}`;
+        const subtasksWithIds = taskData.subtasks.map((s, i) => ({
+            id: `temp-subtask-${Date.now()}-${i}`,
+            ...s,
+        }));
+        const newTask: TaskData = {
+            id: tempId,
+            title: taskData.title,
+            description: taskData.description,
+            status: columnId,
+            priority: 'MEDIUM' as TaskPriority,
+            order: Date.now(),
+            assignees: [],
+            createdAt: new Date().toISOString(),
+            subtasks: subtasksWithIds,
+        };
+
+        startTransition(async () => {
+            dispatchOptimistic({ type: 'ADD', task: newTask });
+
+            try {
+                if (!boardSlug) {
+                    throw new Error('Board slug is required');
+                }
+                const result = await createTask(workspaceSlug, boardSlug, {
+                    title: taskData.title,
+                    description: taskData.description,
+                    status: columnId,
+                    priority: 'MEDIUM',
+                    assignees: [],
+                    subtasks: subtasksWithIds,
+                });
+
+                dispatchOptimistic({ type: 'DELETE', id: tempId });
+
+                setTasks((prev) => [
+                    ...prev.filter((t) => t.id !== tempId),
+                    { ...newTask, id: result.id },
+                ]);
+
+                // Emit socket event for real-time sync
+                if (boardId) {
+                    emitTaskCreated({
+                        task: { ...newTask, id: result.id },
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to create task:', error);
+                dispatchOptimistic({ type: 'DELETE', id: tempId });
             }
         });
     };
@@ -551,48 +610,53 @@ export function Board({
         <div className="min-h-full p-3 md:p-4 overflow-x-hidden flex flex-col">
             {/* Enhanced Navigation Bar */}
             <div id="board-header" className="mb-4 flex items-center justify-between gap-3">
-                {/* Left: Navigation & Board Title */}
+                {/* Left: Board Title & Color indicator */}
                 <div className="flex items-center gap-2 min-w-0">
-                    {/* Home Button */}
-                    <Link
-                        href="/dashboard"
-                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors flex-shrink-0"
-                        title="Go to Dashboard"
-                    >
-                        <HomeIcon className="w-5 h-5" />
-                    </Link>
-
-                    {/* Board Selector Dropdown */}
-                    <button className="flex items-center gap-1.5 px-2 py-1.5 rounded-lg hover:bg-[var(--surface)] transition-colors group">
+                    {/* Board Color Dot & Name */}
+                    <div className="flex items-center gap-2">
                         <div
-                            className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full flex-shrink-0"
+                            className="w-3 h-3 md:w-3.5 md:h-3.5 rounded-full flex-shrink-0 ring-2 ring-[var(--background)]"
                             style={{ backgroundColor: boardColor }}
                         />
-                        <h1 className="text-base md:text-lg font-bold text-[var(--foreground)] tracking-tight truncate max-w-[150px] md:max-w-[200px]">
+                        <h1 className="text-lg md:text-xl font-bold text-[var(--foreground)] tracking-tight truncate">
                             {boardName}
                         </h1>
-                        <ChevronDownIcon className="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--foreground)] transition-colors" />
-                    </button>
+                    </div>
                 </div>
 
-                {/* Right: Navigation Actions */}
-                <div className="flex items-center gap-1">
-                    {/* Add Task Button */}
+                {/* Right: Primary Actions & Tools */}
+                <div className="flex items-center gap-2">
+                    {/* Primary Actions - Add Task */}
                     {!isReadOnly && (
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--brand-primary)] text-white text-xs md:text-sm font-medium hover:bg-[var(--brand-primary-hover)] transition-colors shadow-sm"
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--brand-primary)] text-white text-xs md:text-sm font-semibold hover:bg-[var(--brand-primary-hover)] transition-colors shadow-sm"
                         >
                             <PlusIcon className="w-4 h-4" />
                             <span className="hidden sm:inline">Add Task</span>
                         </button>
                     )}
 
-                    {/* Online Users - Right side */}
+                    {/* AI Decompose Button */}
+                    {!isReadOnly && (
+                        <button
+                            onClick={() => setShowAIDecomposeModal(true)}
+                            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs md:text-sm font-semibold hover:from-purple-700 hover:to-blue-700 transition-colors shadow-sm"
+                            title="AI Decompose Task"
+                        >
+                            <SparklesIcon className="w-4 h-4" />
+                            <span>AI Decompose</span>
+                        </button>
+                    )}
+
+                    {/* Divider */}
+                    <div className="hidden sm:block w-px h-6 bg-[var(--border-subtle)] mx-1" />
+
+                    {/* Online Users */}
                     {onlineUsers.length > 0 && (
-                        <div className="hidden md:flex items-center gap-2 mr-2">
+                        <div className="hidden lg:flex items-center gap-2">
                             <div className="flex items-center -space-x-2">
-                                {onlineUsers.slice(0, 5).map((user) => (
+                                {onlineUsers.slice(0, 4).map((user) => (
                                     <div
                                         key={user.socketId}
                                         className="relative group"
@@ -613,73 +677,92 @@ export function Board({
                                         </span>
                                     </div>
                                 ))}
-                                {onlineUsers.length > 5 && (
+                                {onlineUsers.length > 4 && (
                                     <div className="w-7 h-7 rounded-full border-2 border-[var(--background)] bg-[var(--surface)] flex items-center justify-center text-[10px] text-[var(--text-secondary)]">
-                                        +{onlineUsers.length - 5}
+                                        +{onlineUsers.length - 4}
                                     </div>
                                 )}
                             </div>
-                            <span className="text-xs text-[var(--text-secondary)]">
-                                {onlineUsers.length} online
-                            </span>
                         </div>
                     )}
 
-                    {/* Settings */}
-                    {!isReadOnly && (
+                    {/* Quick Actions - Icon Buttons */}
+                    <div className="flex items-center gap-0.5">
+                        {/* Settings */}
+                        {!isReadOnly && (
+                            <button
+                                onClick={() => setIsEditingBoard(true)}
+                                className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
+                                title="Board Settings"
+                            >
+                                <Cog6ToothIcon className="w-4.5 h-4.5" />
+                            </button>
+                        )}
+
+                        {/* Comments */}
                         <button
-                            onClick={() => setIsEditingBoard(true)}
-                            className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
-                            title="Board Settings"
+                            onClick={() => setShowComments(!showComments)}
+                            className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
+                            title="Comments"
                         >
-                            <Cog6ToothIcon className="w-4.5 h-4.5" />
+                            <ChatBubbleLeftRightIcon className="w-4.5 h-4.5" />
                         </button>
-                    )}
 
-                    {/* Comments */}
-                    <button
-                        onClick={() => setShowComments(!showComments)}
-                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
-                        title="Comments"
-                    >
-                        <ChatBubbleLeftRightIcon className="w-4.5 h-4.5" />
-                    </button>
-
-                    {/* Notifications */}
-                    <button
-                        onClick={() => setShowNotifications(!showNotifications)}
-                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
-                        title="Notifications"
-                    >
-                        <BellIcon className="w-4.5 h-4.5" />
-                    </button>
+                        {/* Notifications */}
+                        <button
+                            onClick={() => setShowNotifications(!showNotifications)}
+                            className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
+                            title="Notifications"
+                        >
+                            <BellIcon className="w-4.5 h-4.5" />
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between mb-3 gap-2">
-                {/* Filters - responsive wrapping */}
+            {/* Filter Bar */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-4 gap-2">
+                {/* Left: Search */}
+                <div className="relative w-full sm:w-64">
+                    <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+                    <input
+                        type="text"
+                        placeholder="Search tasks..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="input !pl-10 text-sm w-full"
+                    />
+                </div>
+
+                {/* Right: Filter Controls */}
                 <div className="flex items-center gap-2 flex-wrap">
-                    <div className="relative flex-1 min-w-[140px] sm:flex-initial sm:min-w-0">
-                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="input !pl-10 text-sm w-full min-w-[140px] sm:w-48 md:w-56 lg:w-64"
-                        />
-                    </div>
+                    {/* Active Filters Summary */}
+                    {((searchQuery || filterMyTasks || filterPriority !== 'ALL' || filterMemberId !== 'ALL' || filterCategoryId !== 'ALL')) && (
+                        <button
+                            onClick={() => {
+                                setSearchQuery('');
+                                setFilterMyTasks(false);
+                                setFilterPriority('ALL');
+                                setFilterMemberId('ALL');
+                                setFilterCategoryId('ALL');
+                            }}
+                            className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        >
+                            <XCircleIcon className="w-3.5 h-3.5" />
+                            Clear filters
+                        </button>
+                    )}
 
                     {currentUserId && (
                         <button
                             onClick={() => setFilterMyTasks(!filterMyTasks)}
-                            className={`flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-2 rounded-lg text-xs md:text-sm font-medium transition-colors border ${filterMyTasks
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${filterMyTasks
                                 ? 'bg-[var(--brand-primary)] text-white border-[var(--brand-primary)]'
                                 : 'bg-[var(--surface)] text-[var(--text-secondary)] border-[var(--border-subtle)] hover:bg-[var(--background-subtle)]'
                                 }`}
                         >
-                            <UserIcon className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                            <span className="hidden sm:inline">My Tasks</span>
+                            <UserIcon className="w-3.5 h-3.5" />
+                            My Tasks
                         </button>
                     )}
 
@@ -687,22 +770,22 @@ export function Board({
                         value={filterPriority}
                         onChange={(value) => setFilterPriority(value as TaskPriority | 'ALL')}
                         options={[
-                            { value: 'ALL', label: 'Priority' },
+                            { value: 'ALL', label: 'All Priorities' },
                             { value: 'HIGH', label: 'High' },
                             { value: 'MEDIUM', label: 'Medium' },
                             { value: 'LOW', label: 'Low' },
                         ]}
-                        minWidth="100px"
+                        minWidth="130px"
                     />
 
                     <CustomSelect
                         value={filterMemberId}
                         onChange={setFilterMemberId}
                         options={[
-                            { value: 'ALL', label: 'Members' },
+                            { value: 'ALL', label: 'All Members' },
                             ...members.map(member => ({ value: member.id, label: member.name }))
                         ]}
-                        minWidth="100px"
+                        minWidth="130px"
                     />
 
                     {localCategories.length > 0 && (
@@ -710,10 +793,10 @@ export function Board({
                             value={filterCategoryId}
                             onChange={setFilterCategoryId}
                             options={[
-                                { value: 'ALL', label: 'Categories' },
+                                { value: 'ALL', label: 'All Categories' },
                                 ...localCategories.map(cat => ({ value: cat.id, label: cat.name }))
                             ]}
-                            minWidth="110px"
+                            minWidth="140px"
                         />
                     )}
                 </div>
@@ -847,6 +930,13 @@ export function Board({
                 defaultColumn="TODO"
             />
 
+            <AIDecomposeModal
+                isOpen={showAIDecomposeModal}
+                onClose={() => setShowAIDecomposeModal(false)}
+                onSubmit={handleCreateTaskFromAI}
+                boardId={boardId || ''}
+            />
+
             {isEditingBoard && (
                 <EditBoardModal
                     workspaceSlug={workspaceSlug}
@@ -865,28 +955,99 @@ export function Board({
 
             {/* Comments Panel */}
             {showComments && (
-                <div className="fixed right-0 top-0 h-full w-80 bg-[var(--surface)] shadow-2xl z-50 p-4 overflow-y-auto" onClick={() => setShowComments(false)}>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-bold text-[var(--foreground)]">Comments</h3>
-                        <button onClick={() => setShowComments(false)} className="p-1 hover:bg-[var(--background-subtle)] rounded">
-                            <XMarkIcon className="w-5 h-5" />
-                        </button>
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+                        onClick={() => setShowComments(false)}
+                    />
+                    {/* Panel */}
+                    <div className="fixed inset-y-0 right-0 w-96 max-w-full bg-[var(--surface)] shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-[var(--brand-primary)]/10 flex items-center justify-center">
+                                    <ChatBubbleLeftRightIcon className="w-4 h-4 text-[var(--brand-primary)]" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-[var(--foreground)]">Comments</h3>
+                                    <p className="text-xs text-[var(--text-secondary)]">Recent activity</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowComments(false)}
+                                className="p-2 hover:bg-[var(--background-subtle)] rounded-xl transition-colors text-[var(--text-secondary)] hover:text-[var(--foreground)]"
+                            >
+                                <XMarkIcon className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-4">
+                            <div className="text-center py-12">
+                                <div className="w-16 h-16 rounded-2xl bg-[var(--brand-primary)]/10 flex items-center justify-center mx-auto mb-4">
+                                    <ChatBubbleLeftRightIcon className="w-8 h-8 text-[var(--brand-primary)]/50" />
+                                </div>
+                                <h4 className="font-semibold text-[var(--foreground)] mb-2">No comments yet</h4>
+                                <p className="text-sm text-[var(--text-secondary)] max-w-xs mx-auto">
+                                    Click on any task to view or add comments. All comments on this board will appear here.
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    <p className="text-sm text-[var(--text-secondary)]">No comments yet. Click on a task to view or add comments.</p>
-                </div>
+                </>
             )}
 
             {/* Notifications Panel */}
             {showNotifications && (
-                <div className="fixed right-0 top-0 h-full w-80 bg-[var(--surface)] shadow-2xl z-50 p-4 overflow-y-auto" onClick={() => setShowNotifications(false)}>
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-bold text-[var(--foreground)]">Notifications</h3>
-                        <button onClick={() => setShowNotifications(false)} className="p-1 hover:bg-[var(--background-subtle)] rounded">
-                            <XMarkIcon className="w-5 h-5" />
-                        </button>
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-in fade-in duration-200"
+                        onClick={() => setShowNotifications(false)}
+                    />
+                    {/* Panel */}
+                    <div className="fixed inset-y-0 right-0 w-96 max-w-full bg-[var(--surface)] shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                                    <BellIcon className="w-4 h-4 text-purple-500" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-[var(--foreground)]">Notifications</h3>
+                                    <p className="text-xs text-[var(--text-secondary)]">Stay updated</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowNotifications(false)}
+                                className="p-2 hover:bg-[var(--background-subtle)] rounded-xl transition-colors text-[var(--text-secondary)] hover:text-[var(--foreground)]"
+                            >
+                                <XMarkIcon className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-4">
+                            <div className="text-center py-12">
+                                <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
+                                    <BellIcon className="w-8 h-8 text-purple-500/50" />
+                                </div>
+                                <h4 className="font-semibold text-[var(--foreground)] mb-2">All caught up!</h4>
+                                <p className="text-sm text-[var(--text-secondary)] max-w-xs mx-auto">
+                                    You'll receive notifications for task assignments, mentions, due dates, and more.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="p-4 border-t border-[var(--border-subtle)]">
+                            <button className="w-full py-2.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--background-subtle)] rounded-xl transition-colors">
+                                Notification settings
+                            </button>
+                        </div>
                     </div>
-                    <p className="text-sm text-[var(--text-secondary)]">No new notifications.</p>
-                </div>
+                </>
             )}
         </div>
     );

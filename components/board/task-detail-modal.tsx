@@ -2,7 +2,7 @@
 // @ts-nocheck
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { XMarkIcon, CalendarIcon, CheckIcon, UserPlusIcon, Bars3BottomLeftIcon, TagIcon, ClockIcon, Squares2X2Icon, PlusIcon, TrashIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, ArrowPathIcon, ExclamationCircleIcon, HeartIcon, ArrowUturnLeftIcon, FaceSmileIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CalendarIcon, CheckIcon, UserPlusIcon, Bars3BottomLeftIcon, TagIcon, ClockIcon, Squares2X2Icon, PlusIcon, TrashIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, ArrowPathIcon, ExclamationCircleIcon, HeartIcon, ArrowUturnLeftIcon, FaceSmileIcon, LinkIcon } from '@heroicons/react/24/outline';
 import { TaskData, Member } from './task-card';
 import { addComment, deleteComment, likeComment, replyToComment, addReaction, getWorkspaceMembers } from '@/actions/task';
 import { useSession } from 'next-auth/react';
@@ -50,6 +50,8 @@ export function TaskDetailModal({
     const [showMentionDropdown, setShowMentionDropdown] = useState(false);
     const [mentionSearch, setMentionSearch] = useState('');
     const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 });
+    const [newLinkUrl, setNewLinkUrl] = useState('');
+    const [newLinkTitle, setNewLinkTitle] = useState('');
 
     useEffect(() => {
         setTitle(task.title);
@@ -127,6 +129,24 @@ export function TaskDetailModal({
     const handleDeleteSubtask = (subtaskId: string) => {
         const updatedSubtasks = (task.subtasks || []).filter(s => s.id !== subtaskId);
         onUpdate(task.id, { subtasks: updatedSubtasks });
+    };
+
+    const handleAddLink = () => {
+        if (!newLinkUrl.trim()) return;
+        const newLink = {
+            id: `temp-${Date.now()}`,
+            url: newLinkUrl,
+            title: newLinkTitle || newLinkUrl,
+        };
+        const updatedLinks = [...(task.links || []), newLink];
+        onUpdate(task.id, { links: updatedLinks });
+        setNewLinkUrl('');
+        setNewLinkTitle('');
+    };
+
+    const handleDeleteLink = (linkId: string) => {
+        const updatedLinks = (task.links || []).filter(l => l.id !== linkId);
+        onUpdate(task.id, { links: updatedLinks });
     };
 
     const handleAddComment = async () => {
@@ -828,6 +848,87 @@ export function TaskDetailModal({
                                                     </button>
                                                 ))}
                                             </div>
+                                        </div>
+
+                                        {/* Due Date */}
+                                        <div className="animate-in fade-in slide-in-from-right-4 duration-400">
+                                            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-4">
+                                                <CalendarIcon className="w-3.5 h-3.5" />
+                                                Due Date
+                                            </div>
+                                            <input
+                                                type="date"
+                                                disabled={isReadOnly}
+                                                value={task.dueDate ? task.dueDate.split('T')[0] : ''}
+                                                onChange={(e) => {
+                                                    const dateValue = e.target.value ? new Date(e.target.value).toISOString() : undefined;
+                                                    onUpdate(task.id, { dueDate: dateValue });
+                                                }}
+                                                className="input text-sm"
+                                            />
+                                            {task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'DONE' && task.status !== 'ARCHIVED' && (
+                                                <p className="text-xs text-red-500 mt-2 font-medium">This task is overdue!</p>
+                                            )}
+                                        </div>
+
+                                        {/* Links */}
+                                        <div className="animate-in fade-in slide-in-from-right-4 duration-500">
+                                            <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-4">
+                                                <LinkIcon className="w-3.5 h-3.5" />
+                                                Links
+                                            </div>
+                                            {/* Existing Links */}
+                                            {(task.links || []).length > 0 && (
+                                                <div className="space-y-2 mb-4">
+                                                    {task.links?.map((link) => (
+                                                        <div key={link.id} className="flex items-center justify-between group bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg px-3 py-2">
+                                                            <a
+                                                                href={link.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-sm text-[var(--brand-primary)] hover:underline truncate flex-1"
+                                                            >
+                                                                {link.title || link.url}
+                                                            </a>
+                                                            {!isReadOnly && (
+                                                                <button
+                                                                    onClick={() => handleDeleteLink(link.id)}
+                                                                    className="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-opacity"
+                                                                >
+                                                                    <TrashIcon className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {/* Add Link */}
+                                            {!isReadOnly && (
+                                                <div className="space-y-2">
+                                                    <input
+                                                        type="url"
+                                                        placeholder="https://..."
+                                                        value={newLinkUrl}
+                                                        onChange={(e) => setNewLinkUrl(e.target.value)}
+                                                        className="input text-sm"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="Link title (optional)"
+                                                        value={newLinkTitle}
+                                                        onChange={(e) => setNewLinkTitle(e.target.value)}
+                                                        className="input text-sm"
+                                                    />
+                                                    <button
+                                                        onClick={handleAddLink}
+                                                        disabled={!newLinkUrl.trim()}
+                                                        className="btn btn-secondary w-full text-sm"
+                                                    >
+                                                        <PlusIcon className="w-4 h-4" />
+                                                        Add Link
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Priority */}

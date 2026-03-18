@@ -65,7 +65,13 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
     });
 
     revalidatePath(`/${workspaceSlug}`);
-    return { id: board._id.toString(), slug: board.slug };
+    return {
+        id: board._id.toString(),
+        name: board.name,
+        slug: board.slug,
+        description: board.description,
+        color: board.color,
+    };
 }
 
 export async function getBoards(workspaceSlug: string) {

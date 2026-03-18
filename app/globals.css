@@ -125,6 +125,14 @@
   --brand-primary-active: var(--flux-light-brand-primary-active);
   --brand-secondary: var(--flux-light-brand-secondary);
   --brand-accent: var(--flux-light-brand-accent);
+
+  /* Space scale for spacing utilities */
+  --flux-space-1: 0.25rem;
+  --flux-space-2: 0.5rem;
+  --flux-space-3: 0.75rem;
+  --flux-space-4: 1rem;
+  --flux-space-5: 1.25rem;
+  --flux-space-6: 1.5rem;
 }
 
 /* Dark Theme Variables */
@@ -234,6 +242,14 @@
   --brand-primary-active: var(--flux-dark-brand-primary-active);
   --brand-secondary: var(--flux-dark-brand-secondary);
   --brand-accent: var(--flux-dark-brand-accent);
+
+  /* Space scale for spacing utilities */
+  --flux-space-1: 0.25rem;
+  --flux-space-2: 0.5rem;
+  --flux-space-3: 0.75rem;
+  --flux-space-4: 1rem;
+  --flux-space-5: 1.25rem;
+  --flux-space-6: 1.5rem;
 }
 
 /* ============================================

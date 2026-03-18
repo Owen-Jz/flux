@@ -24,6 +24,12 @@ export interface ITask extends Document {
     }[];
     tags: string[];
     dueDate?: Date;
+    links?: { _id: Types.ObjectId; url: string; title: string }[];
+    parentTaskId?: Types.ObjectId;
+    summary?: string;
+    referenceUrls?: string[];
+    requestedCompletionDate?: Date;
+    isDecomposedTask?: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -46,6 +52,12 @@ const TaskSchema = new Schema<ITask>(
             },
         ],
         tags: [{ type: String }],
+        links: [
+            {
+                url: { type: String, required: true },
+                title: { type: String },
+            },
+        ],
         comments: [
             new Schema(
                 {
@@ -56,6 +68,11 @@ const TaskSchema = new Schema<ITask>(
             ),
         ],
         dueDate: { type: Date },
+        parentTaskId: { type: Schema.Types.ObjectId, ref: 'Task' },
+        summary: { type: String },
+        referenceUrls: [{ type: String }],
+        requestedCompletionDate: { type: Date },
+        isDecomposedTask: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

@@ -39,6 +39,8 @@ export interface TaskData {
         reactions?: { emoji: string; userId: string }[];
         parentId?: string | null;
     }[];
+    dueDate?: string;
+    links?: { id: string; url: string; title: string }[];
     createdAt: string;
 }
 
@@ -457,6 +459,30 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 {/* Priority Badge */}
                 <div className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${config.badge}`}>
                     {priorityLabels[task.priority]}
+                </div>
+
+                {/* Due Date & Links */}
+                <div className="flex items-center gap-2 mt-2">
+                    {task.dueDate && (
+                        <div className={`flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
+                            new Date(task.dueDate) < new Date() && task.status !== 'DONE' && task.status !== 'ARCHIVED'
+                                ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
+                                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                        }`}>
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </div>
+                    )}
+                    {task.links && task.links.length > 0 && (
+                        <div className="flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                            </svg>
+                            {task.links.length}
+                        </div>
+                    )}
                 </div>
 
 

@@ -1,0 +1,155 @@
+openapi: 3.1.0
+info:
+  title: Task Decomposition API
+  version: 1.0.0
+  description: AI-powered task decomposition service
+
+servers:
+  - url: https://your-domain.com
+    description: Production
+  - url: http://localhost:3000
+    description: Development
+
+paths:
+  /api/v1/tasks/decompose:
+    post:
+      summary: Decompose a high-level task into subtasks
+      operationId: decomposeTask
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - taskTitle
+                - taskDescription
+              properties:
+                taskTitle:
+                  type: string
+                  minLength: 5
+                  maxLength: 120
+                  example: "Build user authentication system"
+                taskDescription:
+                  type: string
+                  maxLength: 2000
+                  example: "Implement login, logout, registration with email verification"
+                contextLinks:
+                  type: array
+                  maxItems: 5
+                  items:
+                    type: string
+                    format: uri
+                  example: ["https://docs.example.com/auth"]
+                requestedCompletionDate:
+                  type: string
+                  format: date-time
+                  example: "2026-03-25T00:00:00Z"
+                boardId:
+                  type: string
+                  example: "507f1f77bcf86cd799439011"
+      headers:
+        X-Idempotency-Key:
+          schema:
+            type: string
+            format: uuid
+          description: Optional UUID v4 for idempotent requests
+      responses:
+        200:
+          description: Task successfully decomposed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecomposeResponse'
+        400:
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        401:
+          description: Unauthorized
+        429:
+          description: Rate limit exceeded
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying
+        502:
+          description: LLM service error
+        504:
+          description: LLM timeout
+
+  /api/v1/metrics:
+    get:
+      summary: Prometheus metrics
+      operationId: getMetrics
+      tags:
+        - Monitoring
+      responses:
+        200:
+          description: Prometheus metrics
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    DecomposeResponse:
+      type: object
+      properties:
+        taskId:
+          type: string
+        summary:
+          type: string
+          minLength: 150
+          maxLength: 400
+        subtasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubTask'
+
+    SubTask:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 80
+        description:
+          type: string
+          maxLength: 500
+        estimatedHours:
+          type: number
+          minimum: 0.5
+          maximum: 16
+          multipleOf: 0.5
+        priority:
+          type: string
+          enum: [Low, Medium, High]
+        referenceUrls:
+          type: array
+          maxItems: 2
+          items:
+            type: string
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+        details:
+          type: object

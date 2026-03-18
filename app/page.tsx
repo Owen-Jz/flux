@@ -8,6 +8,7 @@ import { useSession, signOut } from 'next-auth/react';
 
 // Import new enhanced components
 import { HeroSection } from '@/components/landing/hero-section';
+import { HeroPreviewSection } from '@/components/landing/hero-preview';
 import { StatsSection } from '@/components/landing/stats-section';
 import { ValueProposition } from '@/components/landing/value-proposition';
 import { CTASection } from '@/components/landing/cta-section';
@@ -56,11 +57,6 @@ function Navigation() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group" aria-label="Flux home">
-            <img
-              src="/icon.svg"
-              alt=""
-              className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl transform group-hover:scale-105 transition-transform"
-            />
             <span className="font-extrabold text-2xl tracking-tight text-slate-900 dark:text-white">flux</span>
           </Link>
 
@@ -180,7 +176,6 @@ function Footer() {
           {/* Brand */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-4">
-              <img src="/icon.svg" alt="" className="w-10 h-10 rounded-xl" />
               <span className="font-black text-2xl tracking-tight text-slate-900 dark:text-white">flux</span>
             </Link>
             <p className="text-slate-500 dark:text-slate-400 max-w-xs mb-6 leading-relaxed">
@@ -244,6 +239,9 @@ export default function HomePage() {
         <main>
           {/* Hero Section - New enhanced version */}
           <HeroSection />
+
+          {/* Hero Preview Section - Kanban animation that appears after hero */}
+          <HeroPreviewSection />
 
           {/* Social Proof - Trusted by */}
           <section className="py-12 lg:py-16 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">

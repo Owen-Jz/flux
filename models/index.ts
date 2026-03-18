@@ -6,3 +6,4 @@ export * from './Admin';
 export * from './AuditLog';
 export * from './WorkspaceInvite';
 export * from './Contact';
+export * from './IdempotencyKey';

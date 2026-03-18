@@ -34,3 +34,56 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Task Decomposition API
+
+### Setup
+
+1. Add to `.env.local`:
+```env
+MINIMAX_API_KEY=your_minimax_api_key
+```
+
+### Rate Limiting
+
+- Per-user: 20 requests / 60 minutes
+- Per-API key: 100 requests / 24 hours
+
+### Idempotency
+
+Include `X-Idempotency-Key` header with UUID v4 for duplicate request protection.
+
+### Metrics
+
+Prometheus metrics available at `/api/v1/metrics`
+
+### API Endpoint
+
+```
+POST /api/v1/tasks/decompose
+```
+
+Request:
+```json
+{
+  "taskTitle": "Build user authentication",
+  "taskDescription": "Implement login, logout, registration",
+  "boardId": "507f1f77bcf86cd799439011"
+}
+```
+
+Response:
+```json
+{
+  "taskId": "...",
+  "summary": "...",
+  "subtasks": [
+    {
+      "title": "Create login form",
+      "description": "Build login UI with email/password",
+      "estimatedHours": 2,
+      "priority": "High"
+    }
+  ]
+}
+```
