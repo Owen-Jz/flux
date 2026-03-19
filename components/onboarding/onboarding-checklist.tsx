@@ -261,7 +261,7 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
                                         <div
                                             className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
                                                 isCompleted
-                                                    ? 'bg-[var(--flux-success-primary)] text-white'
+                                                    ? 'bg-[var(--flux-success-primary)] text-[var(--flux-success-text-strong)]'
                                                     : 'bg-[var(--background-subtle)] text-[var(--text-tertiary)]'
                                             }`}
                                         >

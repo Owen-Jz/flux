@@ -69,7 +69,7 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
             {accessRequests.map((request) => (
                 <div
                     key={request.id}
-                    className="card p-4 border-amber-200 bg-amber-50/30 hover:shadow-md transition-shadow"
+                    className="card p-4 border-[var(--warning-border)] bg-[var(--warning-bg)] hover:shadow-md transition-shadow"
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                                 <button
                                     onClick={() => handleAction(request.id, 'approve')}
                                     disabled={isPending}
-                                    className="p-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors disabled:opacity-50"
+                                    className="p-2 rounded-lg bg-[var(--success-primary)] text-[var(--success-text-strong)] hover:opacity-90 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--success-primary)] focus-visible:ring-offset-2"
                                     title="Approve"
                                 >
                                     {processingId === request.id ? (
@@ -121,7 +121,7 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                                 <button
                                     onClick={() => handleAction(request.id, 'deny')}
                                     disabled={isPending}
-                                    className="p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+                                    className="p-2 rounded-lg bg-[var(--error-primary)] text-white hover:opacity-90 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)] focus-visible:ring-offset-2"
                                     title="Deny"
                                 >
                                     <XMarkIcon className="w-4 h-4" />
@@ -131,7 +131,7 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                     </div>
 
                     {request.message && (
-                        <div className="mt-3 p-3 bg-white/50 rounded-lg text-sm text-[var(--text-secondary)]">
+                        <div className="mt-3 p-3 bg-[var(--surface)] rounded-lg text-sm text-[var(--text-secondary)]">
                             <span className="font-medium text-[var(--foreground)]">Message:</span>{' '}
                             {request.message}
                         </div>

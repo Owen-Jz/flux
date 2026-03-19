@@ -18,7 +18,7 @@ interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'chi
 
 const variantStyles: Record<ButtonVariant, string> = {
     primary: `
-        bg-[var(--brand-primary)] text-white
+        bg-[var(--brand-primary)] text-[var(--text-inverse)]
         hover:bg-[var(--brand-primary-hover)]
         active:bg-[var(--brand-primary-active)]
         disabled:bg-[var(--border-default)] disabled:text-[var(--text-tertiary)]
@@ -37,9 +37,9 @@ const variantStyles: Record<ButtonVariant, string> = {
         disabled:text-[var(--text-tertiary)]
     `,
     danger: `
-        bg-[var(--error-primary)] text-white
-        hover:bg-[var(--error-text-strong)]
-        active:bg-[var(--error-text)]
+        bg-[var(--error-primary)] text-[var(--text-inverse)]
+        hover:opacity-90
+        active:opacity-80
         disabled:bg-[var(--border-default)] disabled:text-[var(--text-tertiary)]
     `,
 };

@@ -28,7 +28,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
   if (!mounted) {
     return (
       <div
-        className={`w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-800 ${className}`}
+        className={`w-10 h-10 rounded-xl bg-[var(--background-subtle)] ${className}`}
         aria-hidden="true"
       />
     );
@@ -42,12 +42,12 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
       disabled={isTransitioning}
       className={`
         relative p-2.5 rounded-xl
-        bg-slate-100 dark:bg-slate-800
-        border border-slate-200 dark:border-slate-700
+        bg-[var(--background-subtle)]
+        border border-[var(--border-subtle)]
         shadow-sm hover:shadow-md
         transition-all duration-200
-        hover:bg-slate-200 dark:hover:bg-slate-700
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900
+        hover:bg-[var(--border-subtle)]
+        focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]
         disabled:opacity-50 disabled:cursor-not-allowed
         group
         ${className}
@@ -68,7 +68,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
               exit={{ rotate: 90, opacity: 0, scale: 0.5 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
             >
-              <MoonIcon className="w-5 h-5 text-purple-400" />
+              <MoonIcon className="w-5 h-5 text-[var(--brand-primary)]" />
             </motion.div>
           ) : (
             <motion.div
@@ -78,7 +78,7 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
               exit={{ rotate: -90, opacity: 0, scale: 0.5 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
             >
-              <SunIcon className="w-5 h-5 text-amber-500" />
+              <SunIcon className="w-5 h-5 text-[var(--flux-warning-primary)]" />
             </motion.div>
           )}
         </AnimatePresence>
@@ -90,8 +90,8 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
           absolute inset-0 rounded-xl
           transition-opacity duration-200
           ${isDark
-            ? 'bg-gradient-to-br from-slate-800 to-slate-900 opacity-0 group-hover:opacity-100'
-            : 'bg-gradient-to-br from-indigo-50 to-purple-50 opacity-0 group-hover:opacity-100'
+            ? 'bg-gradient-to-br from-[var(--background)] to-[var(--surface)] opacity-0 group-hover:opacity-100'
+            : 'bg-gradient-to-br from-[var(--surface)] to-[var(--background-subtle)] opacity-0 group-hover:opacity-100'
           }
         `}
       />

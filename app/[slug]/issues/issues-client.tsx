@@ -222,7 +222,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
             )}
 
             {/* Header */}
-            <header className="px-6 py-4 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface)] pr-32">
+            <header className="px-6 py-4 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface)] md:pr-32">
                 <div>
                     <h1 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
                         <InboxIcon className="w-5 h-5 text-[var(--brand-primary)]" />
@@ -256,7 +256,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${filterStatus === status
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-1 ${filterStatus === status
                                 ? 'bg-[var(--surface)] text-[var(--brand-primary)] ring-1 ring-[var(--border-subtle)]'
                                 : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                                 }`}
@@ -284,7 +284,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                 key={issue._id}
                                 layout
                                 onClick={() => setSelectedIssue(issue)}
-                                className="group flex items-center gap-4 p-4 bg-[var(--background)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--brand-primary)]/50 hover:shadow-md transition-all cursor-pointer"
+                                className="group flex items-center gap-4 p-4 bg-[var(--background)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--brand-primary)]/50 hover:shadow-md focus-visible:border-[var(--brand-primary)]/50 focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-all cursor-pointer outline-none"
                             >
                                 <div className="shrink-0 pt-1 self-start">
                                     {getTypeIcon(issue.type)}

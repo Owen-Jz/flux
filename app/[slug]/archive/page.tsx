@@ -19,9 +19,9 @@ export default async function ArchivePage({
 
     return (
         <div className="flex flex-col h-full bg-[var(--background)] p-8">
-            <div className="mb-8">
+            <div className="mb-8 max-w-4xl">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500">
+                    <div className="w-10 h-10 rounded-xl bg-[var(--background-subtle)] flex items-center justify-center text-[var(--text-secondary)]">
                         <ArchiveBoxIcon className="w-5 h-5" />
                     </div>
                     <h1 className="text-3xl font-extrabold text-[var(--foreground)] tracking-tight">
@@ -33,7 +33,9 @@ export default async function ArchivePage({
                 </p>
             </div>
 
-            <ArchiveList initialTasks={tasks as any} workspaceSlug={slug} />
+            <div className="max-w-6xl">
+                <ArchiveList initialTasks={tasks as any} workspaceSlug={slug} />
+            </div>
         </div>
     );
 }

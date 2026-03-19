@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { EnvelopeIcon, LockClosedIcon, UserIcon, ArrowRightIcon, ArrowPathIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, LockClosedIcon, UserIcon, ArrowRightIcon, ArrowPathIcon, CheckIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { FcGoogle } from 'react-icons/fc';
 import { signIn } from 'next-auth/react';
 import { usePasswordStrength } from '@/hooks/use-password-strength';
 import { strengthColors, strengthLabels } from '@/lib/password-strength';
@@ -14,11 +15,13 @@ export default function SignupPage() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [emailError, setEmailError] = useState('');
     const [emailChecking, setEmailChecking] = useState(false);
     const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
     const { strength, score, requirements } = usePasswordStrength(password);
 
@@ -77,8 +80,13 @@ export default function SignupPage() {
         }
     };
 
-    const handleGoogleSignIn = () => {
-        signIn('google', { callbackUrl: '/onboarding' });
+    const handleGoogleSignIn = async () => {
+        setIsGoogleLoading(true);
+        try {
+            await signIn('google', { callbackUrl: '/onboarding' });
+        } finally {
+            // Loading will persist until redirect
+        }
     };
 
     const handleEmailBlur = async () => {
@@ -129,9 +137,13 @@ export default function SignupPage() {
                     {/* Google Sign Up */}
                     <button
                         onClick={handleGoogleSignIn}
-                        className="btn btn-secondary w-full mb-6"
+                        disabled={isGoogleLoading}
+                        className="btn btn-secondary w-full mb-6 disabled:opacity-70"
                     >
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        {isGoogleLoading ? (
+                            <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <svg className="w-5 h-5" viewBox="0 0 24 24">
                             <path
                                 fill="currentColor"
                                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -149,6 +161,7 @@ export default function SignupPage() {
                                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                             />
                         </svg>
+                        )}
                         Continue with Google
                     </button>
 
@@ -170,7 +183,7 @@ export default function SignupPage() {
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="p-3 rounded-lg bg-red-50 text-red-600 text-sm"
+                                className="p-3 rounded-lg bg-[var(--error-bg)] text-[var(--error-primary)] text-sm"
                             >
                                 {error}
                             </motion.div>
@@ -206,7 +219,7 @@ export default function SignupPage() {
                                 initial={{ opacity: 0, y: -5 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 className={`flex items-center gap-1 text-sm ${
-                                    emailAvailable ? 'text-green-600' : 'text-red-500'
+                                    emailAvailable ? 'text-[var(--success-primary)]' : 'text-[var(--error-primary)]'
                                 }`}
                             >
                                 {emailAvailable ? (
@@ -221,14 +234,26 @@ export default function SignupPage() {
                         <div className="relative">
                             <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="input !pl-12"
+                                className="input !pl-12 !pr-12"
                                 minLength={6}
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                                tabIndex={-1}
+                            >
+                                {showPassword ? (
+                                    <EyeSlashIcon className="w-5 h-5" />
+                                ) : (
+                                    <EyeIcon className="w-5 h-5" />
+                                )}
+                            </button>
                         </div>
 
                         {password && (
@@ -239,13 +264,13 @@ export default function SignupPage() {
                                         <div
                                             key={i}
                                             className={`h-1 flex-1 rounded-full transition-colors ${
-                                                i <= score ? strengthColors[strength] : 'bg-gray-200'
+                                                i <= score ? strengthColors[strength] : 'bg-[var(--border-subtle)]'
                                             }`}
                                         />
                                     ))}
                                 </div>
                                 <div className="flex justify-between items-center text-xs">
-                                    <span className={strength !== 'empty' ? strengthColors[strength].replace('bg-', 'text-') : 'text-gray-400'}>
+                                    <span className={strength !== 'empty' ? strengthColors[strength].replace('bg-', 'text-') : 'text-[var(--text-tertiary)]'}>
                                         {strengthLabels[strength]}
                                     </span>
                                     <span className="text-[var(--text-secondary)]">

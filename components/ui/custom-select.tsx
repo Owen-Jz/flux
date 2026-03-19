@@ -49,7 +49,7 @@ export default function CustomSelect({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--background-subtle)] hover:border-[var(--border)] transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)]"
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs md:text-sm font-medium border border-[var(--border-subtle)] bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--background-subtle)] hover:border-[var(--border-subtle)] transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)]"
       >
         <span className="truncate">
           {selectedOption ? selectedOption.label : placeholder}

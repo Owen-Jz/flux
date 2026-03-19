@@ -177,21 +177,22 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
             {...attributes}
             {...listeners}
             className={`
-                relative group cursor-pointer bg-[var(--surface)] rounded-lg
+                relative group cursor-grab active:cursor-grabbing bg-[var(--surface)] rounded-lg
                 border ${config.border}
                 ${isDragging
-                    ? 'shadow-2xl rotate-2 opacity-90 z-50 scale-105'
+                    ? 'shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)] ring-2 ring-[var(--brand-primary)]/30 rotate-1 scale-[1.02] opacity-95 z-50 cursor-grabbing'
                     : isMenuOpen
                         ? 'shadow-md z-40'
-                        : 'shadow-sm hover:shadow-md transition-all duration-200'
+                        : 'shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:scale-[1.01] focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-all duration-200'
                 }
                 ${isDone ? 'opacity-60 grayscale hover:opacity-80 hover:grayscale-0' : ''}
-                p-3.5 flex flex-col gap-2 origin-center
+                p-3.5 flex flex-col gap-2 origin-center outline-none
+                ${isDragging ? 'transition-transform duration-150' : ''}
             `}
         >
             {/* Comments Icon (Hovering) */}
             {task.comments && task.comments.length > 0 && !isEditing && (
-                <div className={`absolute -top-1 -right-1 z-30 ${hasUnreadComments ? 'bg-red-500' : 'bg-[var(--text-tertiary)]'} text-white px-1 py-0.5 text-[9px] font-bold rounded-bl rounded-tr shadow-md flex items-center justify-center`}>
+                <div className={`absolute -top-1 -right-1 z-30 ${hasUnreadComments ? 'bg-[var(--error-primary)]' : 'bg-[var(--text-tertiary)]'} text-[var(--text-inverse)] px-1 py-0.5 text-[9px] font-bold rounded-bl rounded-tr shadow-md flex items-center justify-center`}>
                     <ChatBubbleLeftIcon className="w-2.5 h-2.5" />
                 </div>
             )}
@@ -203,10 +204,11 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                             e.stopPropagation();
                             setIsMenuOpen(!isMenuOpen);
                         }}
-                        className={`p-1 rounded-lg transition-all duration-200 ${isMenuOpen
+                        className={`p-1 rounded-lg transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-1 ${isMenuOpen
                             ? 'bg-[var(--background-subtle)] text-[var(--text-primary)] opacity-100'
-                            : 'text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100 hover:bg-[var(--background-subtle)] hover:text-[var(--text-primary)]'
+                            : 'text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100 hover:bg-[var(--background-subtle)] hover:text-[var(--text-primary)] focus-visible:opacity-100'
                             }`}
+                        aria-label="Task options"
                     >
                         <EllipsisVerticalIcon className="w-3.5 h-3.5" />
                     </button>
@@ -388,7 +390,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
 
                 {/* Description */}
                 {task.description && !isEditing && (
-                    <p className="text-[11px] text-[var(--text-secondary)] leading-snug line-clamp-2">
+                    <p className="text-[11px] text-[var(--text-secondary)] leading-snug line-clamp-2 break-words">
                         {task.description}
                     </p>
                 )}
@@ -443,7 +445,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                         </div>
                                     )}
                                 </div>
-                                <span className="truncate max-[40px]">{assignee.name.split(' ')[0]}</span>
+                                <span className="truncate max-w-[40px]">{assignee.name.split(' ')[0]}</span>
                             </div>
                         ))
                     ) : (
@@ -457,7 +459,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 </div>
 
                 {/* Priority Badge */}
-                <div className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${config.badge}`}>
+                <div className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ml-auto ${config.badge}`}>
                     {priorityLabels[task.priority]}
                 </div>
 
@@ -466,8 +468,8 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                     {task.dueDate && (
                         <div className={`flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
                             new Date(task.dueDate) < new Date() && task.status !== 'DONE' && task.status !== 'ARCHIVED'
-                                ? 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
-                                : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                                ? 'bg-[var(--error-bg)] text-[var(--error-text-strong)]'
+                                : 'bg-[var(--background-subtle)] text-[var(--text-secondary)]'
                         }`}>
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />

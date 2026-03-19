@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { BellIcon, ChatBubbleLeftRightIcon, XMarkIcon, CheckIcon, ClockIcon, UserIcon, ExclamationCircleIcon, ArrowRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
-import { getActivities, getCommentActivities, markActivityAsRead, markAllActivitiesAsRead } from '@/actions/activity';
+import { getActivities, getCommentActivities, markActivityAsRead, markAllActivitiesAsRead, getUnreadActivityCount } from '@/actions/activity';
 
 interface Activity {
     id: string;
@@ -59,15 +59,15 @@ function formatTimeAgo(dateString: string): string {
 function getActivityIcon(type: string) {
     switch (type) {
         case 'TASK_CREATED':
-            return <CheckIcon className="w-4 h-4 text-green-500" />;
+            return <CheckIcon className="w-4 h-4 text-[var(--success-primary)]" />;
         case 'TASK_MOVED':
-            return <ArrowRightIcon className="w-4 h-4 text-blue-500" />;
+            return <ArrowRightIcon className="w-4 h-4 text-[var(--info-primary)]" />;
         case 'TASK_ASSIGNED':
-            return <UserIcon className="w-4 h-4 text-purple-500" />;
+            return <UserIcon className="w-4 h-4 text-[var(--brand-primary)]" />;
         case 'COMMENT_ADDED':
-            return <ChatBubbleLeftRightIcon className="w-4 h-4 text-teal-500" />;
+            return <ChatBubbleLeftRightIcon className="w-4 h-4 text-[var(--info-primary)]" />;
         case 'TASK_DELETED':
-            return <XMarkIcon className="w-4 h-4 text-red-500" />;
+            return <XMarkIcon className="w-4 h-4 text-[var(--error-primary)]" />;
         default:
             return <BellIcon className="w-4 h-4 text-[var(--text-secondary)]" />;
     }
@@ -84,12 +84,17 @@ export function WorkspaceHeader() {
     const [comments, setComments] = useState<CommentActivity[]>([]);
     const [isLoadingActivities, setIsLoadingActivities] = useState(false);
     const [isLoadingComments, setIsLoadingComments] = useState(false);
+    const [initialUnreadCount, setInitialUnreadCount] = useState(0);
 
-    const unreadCount = activities.filter(a => !a.read).length;
+    const unreadCount = activities.length > 0 ? activities.filter(a => !a.read).length : initialUnreadCount;
 
-    // Fetch activities on mount and when workspaceSlug changes
+    // Fetch activities and unread count on mount
     useEffect(() => {
         if (workspaceSlug) {
+            // Get initial unread count
+            getUnreadActivityCount(workspaceSlug).then(setInitialUnreadCount);
+
+            // Fetch activities
             setIsLoadingActivities(true);
             getActivities(workspaceSlug, 20)
                 .then(setActivities)
@@ -100,6 +105,24 @@ export function WorkspaceHeader() {
                 .finally(() => setIsLoadingComments(false));
         }
     }, [workspaceSlug]);
+
+    // Poll for new notifications every 30 seconds
+    useEffect(() => {
+        if (!workspaceSlug) return;
+
+        const pollInterval = setInterval(() => {
+            getUnreadActivityCount(workspaceSlug).then(setInitialUnreadCount);
+            // Also refresh activities if notifications dropdown is open
+            if (showNotifications) {
+                getActivities(workspaceSlug, 20).then(setActivities);
+            }
+            if (showComments) {
+                getCommentActivities(workspaceSlug, 20).then(setComments);
+            }
+        }, 30000);
+
+        return () => clearInterval(pollInterval);
+    }, [workspaceSlug, showNotifications, showComments]);
 
     // Refetch activities when dropdown opens to get latest
     useEffect(() => {
@@ -119,6 +142,7 @@ export function WorkspaceHeader() {
         if (!workspaceSlug) return;
         await markAllActivitiesAsRead(workspaceSlug);
         setActivities(activities.map(a => ({ ...a, read: true })));
+        setInitialUnreadCount(0);
     };
 
     const handleMarkAsRead = async (id: string) => {
@@ -126,6 +150,7 @@ export function WorkspaceHeader() {
         setActivities(activities.map(a =>
             a.id === id ? { ...a, read: true } : a
         ));
+        setInitialUnreadCount(Math.max(0, initialUnreadCount - 1));
     };
 
     const handleActivityClick = (activity: Activity) => {
@@ -155,7 +180,7 @@ export function WorkspaceHeader() {
                         setShowComments(!showComments);
                         setShowNotifications(false);
                     }}
-                    className="relative p-2.5 rounded-xl bg-surface border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group"
+                    className="relative p-2.5 rounded-xl bg-[var(--surface)] border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group"
                     title="Recent Comments"
                 >
                     <ChatBubbleLeftRightIcon className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
@@ -173,7 +198,7 @@ export function WorkspaceHeader() {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute right-0 top-full mt-2 w-96 bg-surface rounded-2xl shadow-2xl border border-[var(--border-subtle)] z-50 overflow-hidden"
+                                className="absolute right-0 top-full mt-2 w-96 bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-subtle)] z-50 overflow-hidden"
                             >
                                 <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
                                     <h3 className="font-bold text-[var(--text-primary)]">Recent Comments</h3>
@@ -241,12 +266,12 @@ export function WorkspaceHeader() {
                         setShowNotifications(!showNotifications);
                         setShowComments(false);
                     }}
-                    className="relative p-2.5 rounded-xl bg-surface border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group"
+                    className="relative p-2.5 rounded-xl bg-[var(--surface)] border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group"
                     title="Notifications"
                 >
                     <BellIcon className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
                     {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm animate-pulse">
+                        <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--error-primary)] text-[var(--text-inverse)] text-[10px] font-bold rounded-full flex items-center justify-center shadow-sm animate-pulse">
                             {unreadCount}
                         </span>
                     )}
@@ -264,7 +289,7 @@ export function WorkspaceHeader() {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute right-0 top-full mt-2 w-96 bg-surface rounded-2xl shadow-2xl border border-[var(--border-subtle)] z-50 overflow-hidden"
+                                className="absolute right-0 top-full mt-2 w-96 bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-subtle)] z-50 overflow-hidden"
                             >
                                 <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
                                     <h3 className="font-bold text-[var(--text-primary)]">Activity Log</h3>
@@ -306,7 +331,7 @@ export function WorkspaceHeader() {
                                                     }`}
                                             >
                                                 <div className="flex items-start gap-3">
-                                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${!activity.read ? 'bg-surface shadow-sm' : 'bg-[var(--background-subtle)]'
+                                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${!activity.read ? 'bg-[var(--surface)] shadow-sm' : 'bg-[var(--background-subtle)]'
                                                         }`}>
                                                         {getActivityIcon(activity.type)}
                                                     </div>

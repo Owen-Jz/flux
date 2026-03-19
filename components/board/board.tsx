@@ -817,6 +817,7 @@ export function Board({
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
                 // Only disable drag if search is active (priority/member filters allow drag)
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 modifiers={searchQuery ? [] : undefined}
             >
                 {/* Responsive columns container - all columns fit within viewport */}
@@ -900,9 +901,14 @@ export function Board({
 
                 <DragOverlay>
                     {activeTask && (
-                        <div className="rotate-3">
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0.8 }}
+                            animate={{ scale: 1.02, opacity: 1, rotate: 1 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            className="shadow-[0_25px_50px_-12px_rgba(0,0,0,0.3)] ring-2 ring-[var(--brand-primary)]/30 rounded-lg"
+                        >
                             <TaskCard task={activeTask} isReadOnly isOverlay categories={localCategories} />
-                        </div>
+                        </motion.div>
                     )}
                 </DragOverlay>
             </DndContext>
@@ -962,7 +968,7 @@ export function Board({
                         onClick={() => setShowComments(false)}
                     />
                     {/* Panel */}
-                    <div className="fixed inset-y-0 right-0 w-96 max-w-full bg-[var(--surface)] shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+                    <div className="fixed inset-y-0 right-0 w-full md:w-96 max-w-full bg-[var(--surface)] shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
                         {/* Header */}
                         <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
                             <div className="flex items-center gap-3">
@@ -1007,7 +1013,7 @@ export function Board({
                         onClick={() => setShowNotifications(false)}
                     />
                     {/* Panel */}
-                    <div className="fixed inset-y-0 right-0 w-96 max-w-full bg-[var(--surface)] shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
+                    <div className="fixed inset-y-0 right-0 w-full md:w-96 max-w-full bg-[var(--surface)] shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
                         {/* Header */}
                         <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
                             <div className="flex items-center gap-3">

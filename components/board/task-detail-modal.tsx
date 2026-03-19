@@ -413,7 +413,7 @@ export function TaskDetailModal({
                                                             className={`
                                                                 flex-shrink-0 w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center
                                                                 ${subtask.completed
-                                                                    ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-white shadow-lg shadow-[var(--brand-primary)]/20'
+                                                                    ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-[var(--text-inverse)] shadow-lg shadow-[var(--brand-primary)]/20'
                                                                     : 'bg-[var(--surface)] border-[var(--border-default)] text-transparent hover:border-[var(--brand-primary)]'
                                                                 }
                                                             `}
@@ -455,7 +455,7 @@ export function TaskDetailModal({
                                                         {newSubtaskTitle.trim() && (
                                                             <button
                                                                 onClick={handleAddSubtask}
-                                                                className="px-3 py-1.5 bg-[var(--brand-primary)] text-white text-xs font-bold rounded-lg hover:bg-[var(--brand-primary-hover)] transition-all shadow-sm animate-in fade-in zoom-in duration-200"
+                                                                className="px-3 py-1.5 bg-[var(--brand-primary)] text-[var(--text-inverse)] text-xs font-bold rounded-lg hover:bg-[var(--brand-primary-hover)] transition-all shadow-sm animate-in fade-in zoom-in duration-200"
                                                             >
                                                                 Add
                                                             </button>
@@ -629,7 +629,7 @@ export function TaskDetailModal({
                                                                                 <button
                                                                                     disabled={!replyContent.trim() || isSubmittingReply}
                                                                                     onClick={() => handleReplySubmit(comment.id)}
-                                                                                    className="absolute bottom-2 right-2 p-1.5 bg-[var(--brand-primary)] text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                                                    className="absolute bottom-2 right-2 p-1.5 bg-[var(--brand-primary)] text-[var(--text-inverse)] rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                                                                 >
                                                                                     {isSubmittingReply ? (
                                                                                         <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" />
@@ -782,7 +782,7 @@ export function TaskDetailModal({
                                                                 <button
                                                                     disabled={!newComment.trim() || isSubmittingComment}
                                                                     onClick={handleAddComment}
-                                                                    className="absolute bottom-3 right-3 p-2 bg-[var(--brand-primary)] text-white rounded-xl hover:shadow-lg hover:shadow-[var(--brand-primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                                    className="absolute bottom-3 right-3 p-2 bg-[var(--brand-primary)] text-[var(--text-inverse)] rounded-xl hover:shadow-lg hover:shadow-[var(--brand-primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                                                 >
                                                                     {isSubmittingComment ? (
                                                                         <ArrowPathIcon className="w-4 h-4 animate-spin" />
@@ -841,7 +841,7 @@ export function TaskDetailModal({
                                                         }}
                                                     >
                                                         <div
-                                                            className={`w-2 h-2 rounded-full ${task.categoryId === cat.id ? 'bg-white' : ''}`}
+                                                            className={`w-2 h-2 rounded-full ${task.categoryId === cat.id ? 'bg-[var(--text-inverse)]' : ''}`}
                                                             style={{ backgroundColor: task.categoryId === cat.id ? undefined : cat.color }}
                                                         />
                                                         {cat.name}

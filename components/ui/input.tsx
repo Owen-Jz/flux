@@ -38,7 +38,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                             disabled:bg-[var(--background-subtle)] disabled:cursor-not-allowed disabled:opacity-70
                             ${leftIcon ? 'pl-11' : ''}
                             ${rightIcon ? 'pr-11' : ''}
-                            ${error ? 'border-[var(--error-primary)] focus:border-[var(--error-primary)] focus:ring-[var(--error-primary)]/20' : 'border-[var(--border-subtle)]'}
+                            ${error ? 'border-[var(--error-primary)] focus:border-[var(--error-primary)] focus:ring-2 focus:ring-[var(--error-primary)]/30' : 'border-[var(--border-subtle)]'}
                             ${className}
                         `}
                         {...props}
@@ -50,7 +50,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     )}
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-sm text-[var(--error-text-strong)]">
+                    <p className="mt-1.5 text-sm text-[var(--error-primary)]">
                         {error}
                     </p>
                 )}

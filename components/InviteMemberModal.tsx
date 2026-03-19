@@ -60,13 +60,13 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
                 </div>
 
                 {success ? (
-                    <div className="bg-green-500/10 text-green-500 p-4 rounded-lg flex items-center gap-3 animate-in fade-in duration-300">
-                        <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                    <div className="bg-[var(--success-bg)] text-[var(--success-primary)] p-4 rounded-lg flex items-center gap-3 animate-in fade-in duration-300">
+                        <div className="w-8 h-8 rounded-full bg-[var(--success-primary)]/20 flex items-center justify-center">
                             <UserPlusIcon className="w-4 h-4" />
                         </div>
                         <div>
-                            <p className="font-medium text-green-800 dark:text-green-100">Invitation Sent!</p>
-                            <p className="text-xs opacity-80 text-green-700 dark:text-green-200">{successMessage}</p>
+                            <p className="font-medium text-[var(--success-text-strong)]">Invitation Sent!</p>
+                            <p className="text-xs opacity-80 text-[var(--success-text)]">{successMessage}</p>
                         </div>
                     </div>
                 ) : (
@@ -78,7 +78,7 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="colleague@example.com"
-                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border-subtle)] text-[var(--foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/50 transition-all placeholder-[var(--text-secondary)]/50"
+                                className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border-subtle)] text-[var(--foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/50 transition-all placeholder:text-[var(--text-tertiary)]"
                                 required
                             />
                         </div>
@@ -97,7 +97,7 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
                         </div>
 
                         {error && (
-                            <p className="text-sm text-red-500 bg-red-500/10 px-3 py-2 rounded-lg border border-red-500/20">
+                            <p className="text-sm text-[var(--error-primary)] bg-[var(--error-bg)] px-3 py-2 rounded-lg border border-[var(--error-border)]">
                                 {error}
                             </p>
                         )}

@@ -5,13 +5,16 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { EnvelopeIcon, LockClosedIcon, ArrowRightIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, LockClosedIcon, ArrowRightIcon, ArrowPathIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { FcGoogle } from 'react-icons/fc';
 
 export default function LoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [error, setError] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -44,8 +47,13 @@ export default function LoginPage() {
         }
     };
 
-    const handleGoogleSignIn = () => {
-        signIn('google', { callbackUrl: '/dashboard' });
+    const handleGoogleSignIn = async () => {
+        setIsGoogleLoading(true);
+        try {
+            await signIn('google', { callbackUrl: '/dashboard' });
+        } finally {
+            // Loading will persist until redirect
+        }
     };
 
     return (
@@ -67,9 +75,13 @@ export default function LoginPage() {
                     {/* Google Sign In */}
                     <button
                         onClick={handleGoogleSignIn}
-                        className="btn btn-secondary w-full mb-6"
+                        disabled={isGoogleLoading}
+                        className="btn btn-secondary w-full mb-6 disabled:opacity-70"
                     >
-                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                        {isGoogleLoading ? (
+                            <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <svg className="w-5 h-5" viewBox="0 0 24 24">
                             <path
                                 fill="currentColor"
                                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -87,6 +99,7 @@ export default function LoginPage() {
                                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                             />
                         </svg>
+                        )}
                         Continue with Google
                     </button>
 
@@ -108,7 +121,7 @@ export default function LoginPage() {
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="p-3 rounded-lg bg-red-50 text-red-600 text-sm"
+                                className="p-3 rounded-lg bg-[var(--error-bg)] text-[var(--error-primary)] text-sm"
                             >
                                 {error}
                             </motion.div>
@@ -129,13 +142,25 @@ export default function LoginPage() {
                         <div className="relative">
                             <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
                             <input
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="input !pl-12"
+                                className="input !pl-12 !pr-12"
                                 required
                             />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                                tabIndex={-1}
+                            >
+                                {showPassword ? (
+                                    <EyeSlashIcon className="w-5 h-5" />
+                                ) : (
+                                    <EyeIcon className="w-5 h-5" />
+                                )}
+                            </button>
                         </div>
 
                         <button

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { EnvelopeIcon, LockClosedIcon, ArrowRightIcon, ArrowPathIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, LockClosedIcon, ArrowRightIcon, ArrowPathIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 export default function ResetPasswordPage() {
     const router = useRouter();
@@ -18,6 +18,8 @@ export default function ResetPasswordPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     useEffect(() => {
         if (token) {
@@ -106,7 +108,7 @@ export default function ResetPasswordPage() {
                 >
                     <div className="card p-8">
                         <div className="flex justify-center mb-4">
-                            <CheckCircleIcon className="w-16 h-16 text-green-500" />
+                            <CheckCircleIcon className="w-16 h-16 text-[var(--success-primary)]" />
                         </div>
                         <h1 className="text-2xl font-bold text-[var(--foreground)] mb-4">Check your email</h1>
                         <p className="text-[var(--text-secondary)] mb-6">
@@ -146,7 +148,7 @@ export default function ResetPasswordPage() {
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="p-3 rounded-lg bg-red-50 text-red-600 text-sm mb-6"
+                            className="p-3 rounded-lg bg-[var(--error-bg)] text-[var(--error-primary)] text-sm mb-6"
                         >
                             {error}
                         </motion.div>
@@ -156,7 +158,7 @@ export default function ResetPasswordPage() {
                         <motion.div
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="p-4 rounded-lg bg-green-50 text-green-600 text-center"
+                            className="p-4 rounded-lg bg-[var(--success-bg)] text-[var(--success-primary)] text-center"
                         >
                             <CheckCircleIcon className="w-8 h-8 mx-auto mb-2" />
                             <p>Password reset successfully! Redirecting to login...</p>
@@ -195,27 +197,51 @@ export default function ResetPasswordPage() {
                             <div className="relative">
                                 <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     placeholder="New password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="input !pl-12"
+                                    className="input !pl-12 !pr-12"
                                     minLength={6}
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                                    tabIndex={-1}
+                                >
+                                    {showPassword ? (
+                                        <EyeSlashIcon className="w-5 h-5" />
+                                    ) : (
+                                        <EyeIcon className="w-5 h-5" />
+                                    )}
+                                </button>
                             </div>
 
                             <div className="relative">
                                 <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
                                 <input
-                                    type="password"
+                                    type={showConfirmPassword ? 'text' : 'password'}
                                     placeholder="Confirm new password"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
-                                    className="input !pl-12"
+                                    className="input !pl-12 !pr-12"
                                     minLength={6}
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                                    tabIndex={-1}
+                                >
+                                    {showConfirmPassword ? (
+                                        <EyeSlashIcon className="w-5 h-5" />
+                                    ) : (
+                                        <EyeIcon className="w-5 h-5" />
+                                    )}
+                                </button>
                             </div>
 
                             <button

@@ -80,46 +80,46 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
 
     if (tasks.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-12 text-center text-gray-500 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                <TrashIcon className="w-12 h-12 mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-900">No archived tasks</h3>
+            <div className="flex flex-col items-center justify-center p-12 text-center text-[var(--text-secondary)] bg-[var(--background-subtle)] rounded-xl border-2 border-dashed border-[var(--border-subtle)]">
+                <TrashIcon className="w-12 h-12 mb-4 text-[var(--text-tertiary)]" />
+                <h3 className="text-lg font-medium text-[var(--foreground)]">No archived tasks</h3>
                 <p className="mt-1">Tasks you archive will appear here.</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-[var(--surface)] rounded-xl shadow-sm border border-[var(--border-subtle)] overflow-hidden">
             {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 m-4 flex items-center gap-3">
-                    <ExclamationCircleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
-                    <p className="text-sm font-medium text-red-800">{error}</p>
-                    <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
+                <div className="bg-[var(--error-bg)] border border-[var(--error-border)] rounded-lg p-4 m-4 flex items-center gap-3">
+                    <ExclamationCircleIcon className="w-5 h-5 text-[var(--error-primary)] flex-shrink-0" />
+                    <p className="text-sm font-medium text-[var(--error-text-strong)]">{error}</p>
+                    <button onClick={() => setError(null)} className="ml-auto text-[var(--error-primary)] hover:opacity-80">
                         <XMarkIcon className="w-4 h-4" />
                     </button>
                 </div>
             )}
             <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                    <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-100">
+                <table className="w-full text-sm text-left min-w-[600px]">
+                    <thead className="text-xs uppercase bg-[var(--background-subtle)] border-b border-[var(--border-subtle)]">
                         <tr>
                             <th className="px-6 py-3 font-medium">Task</th>
                             <th className="px-6 py-3 font-medium">Archived Date</th>
                             <th className="px-6 py-3 font-medium text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-[var(--border-subtle)]">
                         {tasks.map((task) => {
                             const isPending = actioningIds.has(task.id);
                             return (
-                                <tr key={task.id} className="hover:bg-gray-50 transition-colors">
+                                <tr key={task.id} className="hover:bg-[var(--background-subtle)] transition-colors">
                                     <td className="px-6 py-4">
-                                        <div className="font-medium text-gray-900">{task.title}</div>
+                                        <div className="font-medium text-[var(--foreground)]">{task.title}</div>
                                         {task.description && (
-                                            <div className="text-gray-500 text-xs mt-0.5 line-clamp-1">{task.description}</div>
+                                            <div className="text-[var(--text-secondary)] text-xs mt-0.5 line-clamp-1">{task.description}</div>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4 text-gray-500">
+                                    <td className="px-6 py-4 text-[var(--text-secondary)]">
                                         {new Date(task.updatedAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 text-right">
@@ -127,7 +127,7 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
                                             <button
                                                 onClick={() => handleRestore(task)}
                                                 disabled={isPending}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors disabled:opacity-50"
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--info-primary)] bg-[var(--info-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--info-primary)] focus-visible:ring-offset-2"
                                             >
                                                 {isPending ? <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" /> : <ArrowPathIcon className="w-3.5 h-3.5" />}
                                                 Restore
@@ -135,7 +135,7 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
                                             <button
                                                 onClick={() => handleDelete(task.id)}
                                                 disabled={isPending}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition-colors disabled:opacity-50"
+                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--error-primary)] bg-[var(--error-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)] focus-visible:ring-offset-2"
                                             >
                                                 <TrashIcon className="w-3.5 h-3.5" />
                                                 Delete

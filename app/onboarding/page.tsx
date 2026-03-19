@@ -291,7 +291,7 @@ export default function OnboardingPage() {
                                 <div className="flex gap-3">
                                     <button
                                         type="button"
-                                        onClick={() => handleWorkspaceSubmit()}
+                                        onClick={() => router.push('/dashboard')}
                                         className="btn btn-secondary flex-1"
                                     >
                                         Skip
