@@ -72,12 +72,12 @@ export function AnalyticsDashboard() {
   return (
     <section
       ref={containerRef}
-      className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950 relative overflow-hidden"
+      className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[var(--background)] relative overflow-hidden"
       aria-labelledby="analytics-heading"
     >
       {/* Background */}
       <div className="absolute inset-0" aria-hidden="true">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-200/20 dark:bg-blue-500/5 rounded-full blur-[120px]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[var(--brand-primary)]/10 rounded-full blur-[120px]" />
         <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-200/20 dark:bg-purple-500/5 rounded-full blur-[100px]" />
       </div>
 

@@ -607,7 +607,7 @@ export function Board({
     };
 
     return (
-        <div className="min-h-full p-3 md:p-4 overflow-x-hidden flex flex-col">
+        <div className="min-h-full p-3 md:p-4 overflow-x-auto md:overflow-x-hidden flex flex-col">
             {/* Enhanced Navigation Bar */}
             <div id="board-header" className="mb-4 flex items-center justify-between gap-3">
                 {/* Left: Board Title & Color indicator */}
@@ -823,7 +823,7 @@ export function Board({
                 {/* Responsive columns container - all columns fit within viewport */}
                 <div className="flex gap-2 md:gap-3 pb-4 w-full min-w-0">
                     {columns.map((column) => (
-                        <div key={column.id} className="flex flex-col flex-1 min-w-[160px] md:min-w-[200px] max-w-[320px]">
+                        <div key={column.id} className="flex flex-col flex-1 min-w-[140px] sm:min-w-[160px] md:min-w-[200px] max-w-[280px] md:max-w-[320px]">
                             <Column
                                 id={column.id}
                                 title={column.title}

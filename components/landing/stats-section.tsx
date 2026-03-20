@@ -57,13 +57,13 @@ export function StatsSection() {
   return (
     <section
       ref={containerRef}
-      className="relative py-20 lg:py-28 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 overflow-hidden"
+      className="relative py-20 lg:py-28 px-4 sm:px-6 lg:px-8 bg-[var(--background-subtle)] overflow-hidden"
       aria-label="Platform statistics"
     >
       {/* Background effects */}
       <div className="absolute inset-0" aria-hidden="true">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-600/10 dark:bg-blue-600/10 rounded-full blur-[150px]" />
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02] dark:opacity-[0.03]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[var(--brand-primary)]/10 rounded-full blur-[150px]" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
       </div>
 
       <motion.div style={{ y, opacity }} className="max-w-7xl mx-auto relative z-10">
@@ -77,10 +77,10 @@ export function StatsSection() {
               transition={{ delay: index * 0.1, duration: 0.6, ease: "easeOut" }}
               className="text-center group"
             >
-              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-100 to-white dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700/50 mb-5 group-hover:scale-110 transition-transform duration-300">
-                <stat.icon className={`w-7 h-7 bg-gradient-to-bg ${stat.color} bg-clip-text text-transparent`} />
+              <div className="inline-flex items-center justify-center w-12 h-12 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-[var(--surface)] border border-[var(--border-subtle)] mb-4 md:mb-5 group-hover:scale-110 transition-transform duration-300">
+                <stat.icon className={`w-5 h-5 md:w-7 md:h-7 bg-gradient-to-bg ${stat.color} bg-clip-text text-transparent`} />
               </div>
-              <div className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">
+              <div className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--text-primary)] mb-1 md:mb-2 tracking-tight">
                 {stat.isDecimal ? (
                   <span>
                     <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={2.5} />
@@ -89,7 +89,7 @@ export function StatsSection() {
                   <AnimatedCounter value={stat.value} suffix={stat.suffix} duration={2.5} />
                 )}
               </div>
-              <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{stat.label}</div>
+              <div className="text-sm font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">{stat.label}</div>
             </motion.div>
           ))}
         </div>

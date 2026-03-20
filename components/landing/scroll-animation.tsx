@@ -11,51 +11,51 @@ export function LandingPageAnimation() {
     const rotate = useTransform(scrollYProgress, [0, 1], [-1, 1]);
 
     return (
-        <section ref={ref} id="how-it-works" className="relative py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900 overflow-hidden" aria-labelledby="how-it-works-heading">
+        <section ref={ref} id="how-it-works" className="relative py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[var(--background-subtle)] overflow-hidden" aria-labelledby="how-it-works-heading">
             {/* Background elements */}
             <div className="absolute inset-0" aria-hidden="true">
-                <div className="absolute inset-0 bg-grid-pattern opacity-[0.03] dark:opacity-[0.05]" />
-                <div className="absolute top-1/4 -left-20 w-80 h-80 bg-indigo-100 dark:bg-indigo-900/20 rounded-full blur-[120px]" />
-                <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-purple-100 dark:bg-purple-900/20 rounded-full blur-[120px]" />
+                <div className="absolute inset-0 bg-grid-pattern opacity-[0.03]" />
+                <div className="absolute top-1/4 -left-20 w-80 h-80 bg-[var(--brand-primary)]/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-[var(--brand-secondary)]/10 rounded-full blur-[120px]" />
             </div>
 
             <div className="max-w-7xl mx-auto flex flex-col items-center">
                 <div className="text-center max-w-2xl mb-12 lg:mb-20">
-                    <span className="inline-block px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-widest mb-4">
+                    <span className="inline-block px-3 py-1 rounded-full bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] text-xs font-bold uppercase tracking-widest mb-4">
                         How It Works
                     </span>
-                    <h2 id="how-it-works-heading" className="text-3xl lg:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">
+                    <h2 id="how-it-works-heading" className="text-3xl lg:text-5xl font-black text-[var(--text-primary)] mb-6 tracking-tight">
                         Designed for the way you work
                     </h2>
-                    <p className="text-lg text-slate-600 dark:text-slate-300">
+                    <p className="text-lg text-[var(--text-secondary)]">
                         A workspace that balances power with simplicity. No configuration required, just focus on what matters.
                     </p>
                 </div>
 
                 <motion.div
                     style={{ scale, rotate }}
-                    className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                    className="relative w-full rounded-2xl overflow-hidden shadow-2xl border border-[var(--border-subtle)] bg-[var(--surface)]"
                 >
-                    <div className="h-11 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 flex items-center px-5 gap-3">
+                    <div className="h-11 border-b border-[var(--border-subtle)] bg-[var(--background-subtle)] flex items-center px-5 gap-3">
                         <div className="flex gap-1.5">
                             <div className="w-3 h-3 rounded-full bg-red-400/20 border border-red-400/40" />
                             <div className="w-3 h-3 rounded-full bg-yellow-400/20 border border-yellow-400/40" />
                             <div className="w-3 h-3 rounded-full bg-green-400/20 border border-green-400/40" />
                         </div>
                         <div className="flex-1 flex justify-center lg:pr-12">
-                            <div className="h-6 w-full max-w-md bg-white dark:bg-slate-700 rounded-md border border-slate-200 dark:border-slate-600 flex items-center px-3 gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse" />
-                                <div className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">flux.so/workspace/main</div>
+                            <div className="h-6 w-full max-w-md bg-[var(--surface)] rounded-md border border-[var(--border-subtle)] flex items-center px-3 gap-2">
+                                <div className="w-2.5 h-2.5 rounded-full bg-[var(--brand-primary)] animate-pulse" />
+                                <div className="text-[10px] text-[var(--text-tertiary)] font-medium uppercase tracking-widest">flux.so/workspace/main</div>
                             </div>
                         </div>
                     </div>
 
                     {/* Application Mockup */}
-                    <div className="aspect-[16/10] w-full bg-white dark:bg-slate-800 flex overflow-hidden">
+                    <div className="aspect-[16/10] w-full bg-[var(--surface)] flex overflow-hidden">
                         {/* Sidebar */}
-                        <div className="w-56 lg:w-64 border-r border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5 lg:p-6 hidden lg:flex flex-col gap-6">
+                        <div className="w-56 lg:w-64 border-r border-[var(--border-subtle)] bg-[var(--background-subtle)] p-5 lg:p-6 hidden lg:flex flex-col gap-6">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-purple-600 shadow-lg shadow-purple-600/20 flex items-center justify-center text-white">
+                                <div className="w-10 h-10 rounded-xl bg-[var(--brand-primary)] shadow-lg shadow-[var(--brand-primary)]/20 flex items-center justify-center text-[var(--text-inverse)]">
                                     <TableCellsIcon className="w-5 h-5" />
                                 </div>
                                 <div className="font-bold text-sm text-slate-800 dark:text-white tracking-tight">Acme Global</div>

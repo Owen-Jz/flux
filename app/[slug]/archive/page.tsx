@@ -18,17 +18,17 @@ export default async function ArchivePage({
     const tasks = await getArchivedTasks(slug);
 
     return (
-        <div className="flex flex-col h-full bg-[var(--background)] p-8">
-            <div className="mb-8 max-w-4xl">
+        <div className="flex flex-col h-full bg-[var(--background)] p-4 md:p-6 lg:p-8">
+            <div className="mb-6 md:mb-8 max-w-4xl">
                 <div className="flex items-center gap-3 mb-2">
                     <div className="w-10 h-10 rounded-xl bg-[var(--background-subtle)] flex items-center justify-center text-[var(--text-secondary)]">
                         <ArchiveBoxIcon className="w-5 h-5" />
                     </div>
-                    <h1 className="text-3xl font-extrabold text-[var(--foreground)] tracking-tight">
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-[var(--foreground)] tracking-tight">
                         Archive
                     </h1>
                 </div>
-                <p className="text-[var(--text-secondary)] text-lg max-w-2xl font-normal ml-14">
+                <p className="text-[var(--text-secondary)] text-base md:text-lg max-w-2xl font-normal ml-14">
                     View and restore tasks that have been archived from your boards.
                 </p>
             </div>

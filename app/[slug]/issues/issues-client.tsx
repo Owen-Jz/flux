@@ -222,46 +222,46 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
             )}
 
             {/* Header */}
-            <header className="px-6 py-4 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface)] md:pr-32">
+            <header className="px-4 md:px-6 py-3 md:py-4 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-[var(--surface)]">
                 <div>
-                    <h1 className="text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
+                    <h1 className="text-lg md:text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
                         <InboxIcon className="w-5 h-5 text-[var(--brand-primary)]" />
-                        Issues
+                        <span className="hidden sm:inline">Issues</span>
                     </h1>
-                    <p className="text-sm text-[var(--text-secondary)]">Track bugs and improvements for {workspaceName}</p>
+                    <p className="text-xs md:text-sm text-[var(--text-secondary)] hidden md:block">Track bugs and improvements for {workspaceName}</p>
                 </div>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
-                    className="btn btn-primary shadow-lg shadow-indigo-500/20"
+                    className="btn btn-primary shadow-lg shadow-indigo-500/20 text-sm"
                 >
                     <PlusIcon className="w-4 h-4" /> New Issue
                 </button>
             </header>
 
             {/* Filters */}
-            <div className="px-6 py-3 border-b border-[var(--border-subtle)] flex gap-4 items-center bg-[var(--background)]">
-                <div className="relative flex-1 max-w-sm">
+            <div className="px-4 md:px-6 py-3 border-b border-[var(--border-subtle)] flex flex-col sm:flex-row gap-3 items-stretch sm:items-center bg-[var(--background)]">
+                <div className="relative flex-1">
                     <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search issues..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="input pl-9 h-9 text-sm"
+                        className="input pl-9 h-9 text-sm w-full"
                     />
                 </div>
-                <div className="flex items-center gap-2 border-l border-[var(--border-subtle)] pl-4">
-                    <FunnelIcon className="w-4 h-4 text-gray-400" />
+                <div className="flex flex-wrap items-center gap-2 border-l-0 sm:border-l border-[var(--border-subtle)] pl-0 sm:pl-4">
+                    <FunnelIcon className="w-4 h-4 text-gray-400 hidden sm:block" />
                     {['ALL', 'OPEN', 'IN_PROGRESS', 'RESOLVED'].map(status => (
                         <button
                             key={status}
                             onClick={() => setFilterStatus(status)}
-                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-1 ${filterStatus === status
+                            className={`px-2 md:px-3 py-1.5 rounded-md text-xs font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-1 ${filterStatus === status
                                 ? 'bg-[var(--surface)] text-[var(--brand-primary)] ring-1 ring-[var(--border-subtle)]'
                                 : 'text-[var(--text-secondary)] hover:text-[var(--foreground)]'
                                 }`}
                         >
-                            {status === 'ALL' ? 'All Issues' : status.replace('_', ' ')}
+                            {status === 'ALL' ? 'All' : status.replace('_', ' ')}
                         </button>
                     ))}
                 </div>
@@ -284,35 +284,33 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                 key={issue._id}
                                 layout
                                 onClick={() => setSelectedIssue(issue)}
-                                className="group flex items-center gap-4 p-4 bg-[var(--background)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--brand-primary)]/50 hover:shadow-md focus-visible:border-[var(--brand-primary)]/50 focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-all cursor-pointer outline-none"
+                                className="group flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 md:p-4 bg-[var(--background)] border border-[var(--border-subtle)] rounded-xl hover:border-[var(--brand-primary)]/50 hover:shadow-md focus-visible:border-[var(--brand-primary)]/50 focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-all cursor-pointer outline-none"
                             >
                                 <div className="shrink-0 pt-1 self-start">
                                     {getTypeIcon(issue.type)}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1">
+                                <div className="flex-1 min-w-0 w-full">
+                                    <div className="flex flex-wrap items-center gap-2 mb-1">
                                         <h3 className="font-medium text-[var(--foreground)] truncate">{issue.title}</h3>
                                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${getPriorityColor(issue.priority)}`}>
                                             {issue.priority}
                                         </span>
                                     </div>
-                                    <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
+                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-[var(--text-secondary)]">
                                         <span className="flex items-center gap-1">#{issue._id.slice(-4)}</span>
-                                        <span>•</span>
-                                        <span>Opened by {issue.reporter?.name}</span>
+                                        <span className="hidden xs:inline">•</span>
+                                        <span className="hidden xs:inline">{issue.reporter?.name}</span>
                                         {issue.assignee && (
                                             <>
-                                                <span>•</span>
+                                                <span className="hidden xs:inline">•</span>
                                                 <span className="flex items-center gap-1 text-[var(--brand-primary)]">
-                                                    Assigned to {issue.assignee.name}
+                                                    → {issue.assignee.name}
                                                 </span>
                                             </>
                                         )}
-                                        <span>•</span>
-                                        <span>{new Date(issue.createdAt).toLocaleDateString()}</span>
                                     </div>
                                 </div>
-                                <div className="shrink-0 flex items-center gap-3">
+                                <div className="shrink-0 flex items-center gap-2 w-full sm:w-auto">
                                     <select
                                         value=""
                                         onClick={(e) => e.stopPropagation()}
@@ -322,9 +320,9 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                                 if (board) handleMoveToBoard(issue._id, board.id, board.name);
                                             }
                                         }}
-                                        className="bg-[var(--surface)] border border-[var(--border-subtle)] text-xs font-medium rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors"
+                                        className="bg-[var(--surface)] border border-[var(--border-subtle)] text-xs font-medium rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors flex-1 sm:flex-none"
                                     >
-                                        <option value="" disabled>Move to...</option>
+                                        <option value="" disabled>Move</option>
                                         {boards.map(b => (
                                             <option key={b.id} value={b.id}>{b.name}</option>
                                         ))}
@@ -333,7 +331,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                         value={issue.status}
                                         onClick={(e) => e.stopPropagation()}
                                         onChange={(e) => handleStatusChange(issue._id, e.target.value)}
-                                        className="bg-[var(--surface)] border border-[var(--border-subtle)] text-xs font-medium rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors"
+                                        className="bg-[var(--surface)] border border-[var(--border-subtle)] text-xs font-medium rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors flex-1 sm:flex-none"
                                     >
                                         <option value="OPEN">Open</option>
                                         <option value="IN_PROGRESS">In Progress</option>

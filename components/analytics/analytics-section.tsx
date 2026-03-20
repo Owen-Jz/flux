@@ -119,7 +119,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
             </div>
 
             {/* Metrics Cards */}
-            <div className="grid grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-8">
                 {metrics.map((metric, index) => (
                     <motion.div
                         key={metric.label}

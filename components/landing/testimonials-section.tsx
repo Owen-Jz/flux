@@ -38,10 +38,10 @@ export const TestimonialsSection = () => {
     const y = useTransform(scrollYProgress, [0, 1], [50, -50]);
 
     return (
-        <section ref={containerRef} className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 border-y border-slate-200 dark:border-slate-800" aria-labelledby="testimonials-heading">
+        <section ref={containerRef} className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[var(--background-subtle)] border-y border-[var(--border-subtle)]" aria-labelledby="testimonials-heading">
             {/* Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-500/5 dark:bg-blue-500/5 rounded-full blur-[120px]" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[var(--brand-primary)]/5 rounded-full blur-[120px]" />
             </div>
 
             <motion.div style={{ y }} className="max-w-7xl mx-auto relative z-10">
@@ -50,7 +50,7 @@ export const TestimonialsSection = () => {
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="inline-block px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 dark:from-purple-500/20 dark:to-blue-500/20 border border-purple-500/30 dark:border-blue-500/30 text-purple-600 dark:text-purple-400 text-xs font-bold uppercase tracking-widest mb-4"
+                        className="inline-block px-4 py-1.5 rounded-full bg-gradient-to-r from-[var(--brand-primary)]/20 to-[var(--info-primary)]/20 border border-[var(--brand-primary)]/30 text-[var(--brand-primary)] text-xs font-bold uppercase tracking-widest mb-4"
                     >
                         Testimonials
                     </motion.span>
@@ -60,16 +60,16 @@ export const TestimonialsSection = () => {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight"
+                        className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--text-primary)] mb-6 tracking-tight"
                     >
-                        Loved by <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 dark:from-purple-400 to-blue-600 dark:to-blue-400">innovative teams</span>
+                        Loved by <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary)] to-[var(--info-primary)]">innovative teams</span>
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto"
+                        className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto"
                     >
                         See why thousands of teams choose Flux to power their workflow.
                     </motion.p>
@@ -84,23 +84,23 @@ export const TestimonialsSection = () => {
                             viewport={{ once: true, margin: "-50px" }}
                             transition={{ delay: idx * 0.15, duration: 0.5 }}
                             whileHover={{ y: -8, scale: 1.02 }}
-                            className="bg-white dark:bg-slate-800/50 p-6 lg:p-8 rounded-2xl border border-slate-200 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600/50 hover:shadow-lg dark:hover:bg-slate-800/80 transition-all duration-300 group backdrop-blur-xl"
+                            className="bg-[var(--surface)]/80 p-5 md:p-6 lg:p-8 rounded-2xl border border-[var(--border-subtle)] hover:border-[var(--border-default)] hover:shadow-lg transition-all duration-300 group backdrop-blur-xl"
                         >
                             <div className="flex gap-1 mb-4 lg:mb-6">
                                 {[...Array(5)].map((_, i) => (
-                                    <StarIcon key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                    <StarIcon key={i} className="w-4 h-4 fill-[var(--warning-primary)] text-[var(--warning-primary)]" />
                                 ))}
                             </div>
-                            <blockquote className="text-base lg:text-lg text-slate-700 dark:text-slate-300 mb-6 lg:mb-8 leading-relaxed font-medium">
-                                "{testimonial.quote}"
+                            <blockquote className="text-sm md:text-base lg:text-lg text-[var(--text-secondary)] mb-4 md:mb-6 lg:mb-8 leading-relaxed font-medium">
+                                &quot;{testimonial.quote}&quot;
                             </blockquote>
-                            <div className="flex items-center gap-4 pt-4 lg:pt-6 border-t border-slate-200 dark:border-slate-700/50">
+                            <div className="flex items-center gap-4 pt-4 lg:pt-6 border-t border-[var(--border-subtle)]">
                                 <div className={`w-12 h-12 rounded-full bg-gradient-to-tr ${testimonial.gradient} flex items-center justify-center text-white font-bold text-sm shadow-lg`}>
                                     {testimonial.avatar}
                                 </div>
                                 <div>
-                                    <div className="font-bold text-slate-900 dark:text-white">{testimonial.author}</div>
-                                    <div className="text-sm text-slate-500 dark:text-slate-400">{testimonial.role}</div>
+                                    <div className="font-bold text-[var(--text-primary)]">{testimonial.author}</div>
+                                    <div className="text-sm text-[var(--text-tertiary)]">{testimonial.role}</div>
                                 </div>
                             </div>
                         </motion.div>

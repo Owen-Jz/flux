@@ -263,6 +263,12 @@ export async function removeMember(workspaceSlug: string, memberId: string) {
     );
     await workspace.save();
 
+    // Remove member from all task assignments in this workspace
+    await Task.updateMany(
+        { workspaceId: workspace._id, assignees: memberId },
+        { $pull: { assignees: memberId } }
+    );
+
     revalidatePath(`/${workspaceSlug}/team`);
     return { success: true };
 }

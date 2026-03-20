@@ -42,8 +42,8 @@ export const LogoMarquee = () => {
                             key={idx}
                             className="flex items-center gap-3 group opacity-40 hover:opacity-100 transition-all duration-300"
                         >
-                            <logo.icon className="w-5 h-5 text-slate-600 text-slate-400 group-hover:text-indigo-600 group-hover:text-indigo-400 transition-colors" />
-                            <span className="text-lg font-bold text-slate-700 text-slate-300 tracking-tight group-hover:text-slate-900 group-hover:text-white transition-colors">
+                            <logo.icon className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
+                            <span className="text-lg font-bold text-[var(--text-secondary)] tracking-tight group-hover:text-[var(--text-primary)] transition-colors">
                                 {logo.name}
                             </span>
                         </div>

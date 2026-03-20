@@ -14,6 +14,7 @@ import { TaskCreatedEmail } from '@/components/emails/task-created';
 import { TaskAssignedEmail } from '@/components/emails/task-assigned';
 import { TaskMovedEmail } from '@/components/emails/task-moved';
 import { NewCommentEmail } from '@/components/emails/new-comment';
+import { SubtaskAddedEmail } from '@/components/emails/subtask-added';
 import { render } from '@react-email/components';
 import React from 'react';
 
@@ -24,7 +25,7 @@ interface CreateTaskData {
     status?: TaskStatus;
     categoryId?: string;
     assignees?: string[];
-    subtasks?: { id?: string; title: string; completed: boolean }[];
+    subtasks?: { id?: string; title: string; completed: boolean; createdBy?: string }[];
 }
 
 export async function createTask(workspaceSlug: string, boardSlug: string, data: CreateTaskData) {
@@ -73,7 +74,12 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
         categoryId: data.categoryId ? new Types.ObjectId(data.categoryId) : undefined,
         order: newOrder,
         assignees: data.assignees && data.assignees.length > 0 ? data.assignees : [session.user.id],
-        subtasks: data.subtasks || [],
+        subtasks: data.subtasks?.map((s) => ({
+            title: s.title,
+            completed: s.completed || false,
+            createdAt: new Date(),
+            createdBy: new Types.ObjectId(session.user.id),
+        })),
     });
 
     // Log activity
@@ -147,6 +153,7 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
     const tasks = await Task.find({ boardId: board._id })
         .populate('assignees', 'name email image')
         .populate('comments.userId', 'name email image')
+        .populate('subtasks.createdBy', 'name email image')
         .sort({ order: 1 })
         .lean();
 
@@ -170,6 +177,13 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
             id: s._id.toString(),
             title: s.title,
             completed: s.completed,
+            createdAt: s.createdAt ? s.createdAt.toISOString() : undefined,
+            createdBy: s.createdBy ? {
+                id: s.createdBy._id?.toString() || s.createdBy.toString(),
+                name: s.createdBy.name || '',
+                email: s.createdBy.email || '',
+                image: s.createdBy.image,
+            } : undefined,
         })),
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -395,6 +409,7 @@ export async function updateTask(
     const previousStatus = task.status;
     const previousTitle = task.title;
     const previousAssignees = task.assignees.map(id => id.toString());
+    const previousSubtaskTitles = (task.subtasks || []).map(s => s.title);
 
     if (data.title !== undefined) task.title = data.title;
     if (data.description !== undefined) task.description = data.description;
@@ -408,6 +423,10 @@ export async function updateTask(
             _id: (s.id && Types.ObjectId.isValid(s.id)) ? new Types.ObjectId(s.id) : new Types.ObjectId(),
             title: s.title,
             completed: s.completed,
+            createdAt: s.createdAt ? new Date(s.createdAt) : new Date(),
+            createdBy: s.createdBy
+                ? (typeof s.createdBy === 'string' ? new Types.ObjectId(s.createdBy) : s.createdBy)
+                : new Types.ObjectId(session.user.id),
         }));
     }
     if (data.categoryId !== undefined) {
@@ -425,6 +444,43 @@ export async function updateTask(
     }
 
     await task.save();
+
+    // EMAIL NOTIFICATION: New Subtasks Added
+    if (data.subtasks !== undefined) {
+        const newSubtaskTitles = data.subtasks
+            .map(s => s.title)
+            .filter(title => !previousSubtaskTitles.includes(title));
+
+        if (newSubtaskTitles.length > 0) {
+            const memberIds = workspace.members.map((m: any) => m.userId.toString());
+            const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
+
+            if (notifyIds.length > 0) {
+                const board = await Board.findById(task.boardId);
+                const boardSlug = board?.slug || 'main';
+
+                const users = await User.find({ _id: { $in: notifyIds } });
+                await Promise.all(users.map(async (user) => {
+                    if (user.email) {
+                        const html = await render(
+                            React.createElement(SubtaskAddedEmail, {
+                                taskTitle: task.title,
+                                subtaskTitles: newSubtaskTitles,
+                                creatorName: session.user.name || 'A teammate',
+                                workspaceName: workspace.name,
+                                taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/board/${boardSlug}`,
+                            })
+                        );
+                        await sendEmail({
+                            to: user.email,
+                            subject: `New Subtasks Added to "${task.title}" in ${workspace.name}`,
+                            html,
+                        });
+                    }
+                }));
+            }
+        }
+    }
 
     // EMAIL NOTIFICATION: New Assignment
     // Check for NEW assignees

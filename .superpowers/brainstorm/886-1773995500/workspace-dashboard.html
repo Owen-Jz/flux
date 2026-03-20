@@ -1,0 +1,56 @@
+<h2>Workspace Dashboard Mockup</h2>
+<p class="subtitle">Click on a card to see it selected</p>
+
+<div class="cards">
+  <div class="card" data-choice="workspace" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); width: 100%; height: 80px; border-radius: 8px 8px 0 0;"></div>
+    </div>
+    <div class="card-body">
+      <h3>Acme Corp</h3>
+      <div style="display: flex; gap: 16px; margin: 8px 0; color: #64748b; font-size: 13px;">
+        <span>👥 4 members</span>
+        <span>📋 12 boards</span>
+      </div>
+      <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">Last active 2 hours ago</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="workspace" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%); width: 100%; height: 80px; border-radius: 8px 8px 0 0;"></div>
+    </div>
+    <div class="card-body">
+      <h3>Side Projects</h3>
+      <div style="display: flex; gap: 16px; margin: 8px 0; color: #64748b; font-size: 13px;">
+        <span>👥 2 members</span>
+        <span>📋 5 boards</span>
+      </div>
+      <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">Last active yesterday</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="workspace" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%); width: 100%; height: 80px; border-radius: 8px 8px 0 0;"></div>
+    </div>
+    <div class="card-body">
+      <h3>Client: Stark Ind</h3>
+      <div style="display: flex; gap: 16px; margin: 8px 0; color: #64748b; font-size: 13px;">
+        <span>👥 8 members</span>
+        <span>📋 23 boards</span>
+      </div>
+      <p style="color: #94a3b8; font-size: 12px; margin-top: 8px;">Last active 5 min ago</p>
+    </div>
+  </div>
+</div>
+
+<h3 style="margin-top: 32px;">Empty State</h3>
+<div style="background: #f8fafc; border: 2px dashed #e2e8f0; border-radius: 12px; padding: 48px; text-align: center; margin-top: 16px;">
+  <div style="font-size: 64px; margin-bottom: 16px;">🚀</div>
+  <h3 style="color: #1e293b;">No workspaces yet</h3>
+  <p style="color: #64748b; margin: 12px 0 24px;">Create your first workspace to get started with your projects</p>
+  <button style="background: #6366f1; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer;">
+    Create your first workspace →
+  </button>
+</div>

@@ -67,14 +67,14 @@ export function ValueProposition() {
   return (
     <section
       ref={containerRef}
-      className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-900 relative overflow-hidden"
+      className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[var(--background-subtle)] relative overflow-hidden"
       aria-labelledby="value-heading"
     >
       {/* Background elements */}
       <div className="absolute inset-0" aria-hidden="true">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-200/30 dark:bg-purple-500/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-200/20 dark:bg-blue-500/10 rounded-full blur-[100px]" />
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02] dark:opacity-[0.03]" />
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[var(--brand-primary)]/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[var(--info-primary)]/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
       </div>
 
       <motion.div style={{ y }} className="max-w-7xl mx-auto relative z-10">
@@ -83,7 +83,7 @@ export function ValueProposition() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-block px-4 py-1.5 rounded-full bg-purple-100 dark:bg-purple-500/20 border border-purple-200 dark:border-purple-500/30 text-purple-700 dark:text-purple-400 text-xs font-bold uppercase tracking-widest mb-4"
+            className="inline-block px-4 py-1.5 rounded-full bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 text-[var(--brand-primary)] text-xs font-bold uppercase tracking-widest mb-4"
           >
             Why Flux
           </motion.span>
@@ -93,10 +93,10 @@ export function ValueProposition() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-4xl lg:text-5xl xl:text-6xl font-black text-slate-900 dark:text-white tracking-tight mb-6"
+            className="text-4xl lg:text-5xl xl:text-6xl font-black text-[var(--text-primary)] tracking-tight mb-6"
           >
             Everything you need to
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-purple-600 dark:from-purple-400 to-blue-600 dark:to-blue-400">
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary)] to-[var(--info-primary)]">
               ship faster
             </span>
           </motion.h2>
@@ -105,7 +105,7 @@ export function ValueProposition() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-lg text-slate-600 dark:text-slate-400"
+            className="text-lg text-[var(--text-secondary)]"
           >
             Stop juggling multiple tools. Flux consolidates your workflow into one powerful platform.
           </motion.p>
@@ -120,13 +120,13 @@ export function ValueProposition() {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ delay: index * 0.08, duration: 0.5 }}
               whileHover={{ y: -8, scale: 1.02 }}
-              className="group p-6 lg:p-8 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 hover:border-purple-300 dark:hover:border-slate-600/50 hover:shadow-lg dark:hover:bg-slate-800/80 transition-all duration-300 cursor-pointer backdrop-blur-xl"
+              className="group p-6 lg:p-8 rounded-2xl bg-[var(--surface)] border border-[var(--border-subtle)] hover:border-[var(--brand-primary)]/30 hover:shadow-lg transition-all duration-300 cursor-pointer backdrop-blur-xl"
             >
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${benefit.gradient} flex items-center justify-center text-white mb-5 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-current/20 transition-all duration-300`}>
                 <benefit.icon className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{benefit.title}</h3>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+              <h3 className="text-xl font-bold text-[var(--text-primary)] mb-3">{benefit.title}</h3>
+              <p className="text-[var(--text-secondary)] leading-relaxed">
                 {benefit.description}
               </p>
             </motion.div>

@@ -13,7 +13,7 @@ export interface ITask extends Document {
     priority: TaskPriority;
     categoryId?: Types.ObjectId;
     order: number;
-    subtasks: { _id: Types.ObjectId; title: string; completed: boolean }[];
+    subtasks: { _id: Types.ObjectId; title: string; completed: boolean; createdAt: Date; createdBy?: Types.ObjectId }[];
     assignees: Types.ObjectId[];
     comments: {
         _id: Types.ObjectId;
@@ -49,6 +49,8 @@ const TaskSchema = new Schema<ITask>(
             {
                 title: { type: String, required: true },
                 completed: { type: Boolean, default: false },
+                createdAt: { type: Date, default: Date.now },
+                createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
             },
         ],
         tags: [{ type: String }],

@@ -2,10 +2,11 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import { updateWorkspaceSettings } from '@/actions/workspace';
 import { deleteWorkspace } from '@/actions/access-control';
 import { BillingSection } from '@/components/billing/billing-section';
+import { WorkspaceIconPicker } from '@/components/workspace/workspace-icon-picker';
 
 interface SettingsClientProps {
     workspace: {
@@ -13,6 +14,11 @@ interface SettingsClientProps {
         slug: string;
         publicAccess: boolean;
         accentColor?: string;
+        icon?: {
+            type: 'upload' | 'emoji';
+            url?: string;
+            emoji?: string;
+        };
     };
 }
 
@@ -36,6 +42,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'general' | 'billing'>('general');
+    const [showIconPicker, setShowIconPicker] = useState(false);
 
     const handleTogglePublicAccess = async () => {
         const newValue = !publicAccess;
@@ -181,7 +188,38 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                         <PaintBrushIcon className="w-4 h-4 text-[var(--brand-primary)]" />
                         <h2 className="font-semibold">Appearance</h2>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                        {/* Workspace Icon */}
+                        <div>
+                            <p className="text-sm font-medium">Workspace Icon</p>
+                            <p className="text-xs text-[var(--text-secondary)] mt-1 mb-3">
+                                Set a custom icon or emoji to represent your workspace.
+                            </p>
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => setShowIconPicker(true)}
+                                    className="w-16 h-16 rounded-xl bg-[var(--background)] border border-[var(--border-subtle)] flex items-center justify-center text-2xl hover:border-[var(--brand-primary)] transition-colors overflow-hidden"
+                                >
+                                    {workspace.icon?.type === 'emoji' ? (
+                                        <span>{workspace.icon.emoji}</span>
+                                    ) : workspace.icon?.type === 'upload' ? (
+                                        <img src={workspace.icon.url} alt="" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <PhotoIcon className="w-6 h-6 text-[var(--text-secondary)]" />
+                                    )}
+                                </button>
+                                <div>
+                                    <button
+                                        onClick={() => setShowIconPicker(true)}
+                                        className="btn btn-secondary text-sm"
+                                    >
+                                        {workspace.icon ? 'Change icon' : 'Set icon'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Brand Color */}
                         <div>
                             <p className="text-sm font-medium">Brand Color</p>
                             <p className="text-xs text-[var(--text-secondary)] mt-1 mb-4">
@@ -294,6 +332,15 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                     )}
                 </div>
             </div>
+            )}
+
+            {showIconPicker && (
+                <WorkspaceIconPicker
+                    workspaceSlug={workspace.slug}
+                    currentIcon={workspace.icon}
+                    onClose={() => setShowIconPicker(false)}
+                    onIconChange={() => router.refresh()}
+                />
             )}
         </div>
     );

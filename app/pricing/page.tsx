@@ -12,16 +12,16 @@ export const metadata: Metadata = {
 const plans = [
   {
     name: 'Starter',
-    price: 'Free',
-    period: '',
+    price: '$10',
+    period: '/month',
     description: 'Perfect for individuals and small side projects.',
     features: [
-      'Up to 3 Projects',
-      'Unlimited Tasks',
-      '1 Team Member',
+      'Up to 5 Projects',
+      'Up to 10 Team Members',
       'Basic Analytics',
-      'Community Support',
-      'Mobile App Access',
+      'Email Support',
+      'Custom Workflows',
+      'API Access',
     ],
     cta: 'Start for Free',
     href: '/signup',
@@ -29,18 +29,17 @@ const plans = [
   },
   {
     name: 'Pro',
-    price: '$12',
-    period: '/user/month',
+    price: '$25',
+    period: '/month',
     description: 'For growing teams that need more power and flexibility.',
     features: [
       'Unlimited Projects',
-      'Unlimited Tasks',
-      'Up to 10 Team Members',
+      'Up to 25 Team Members',
       'Advanced Analytics',
       'Priority Support',
       'Custom Workflows',
       'Admin Controls',
-      'API Access',
+      'SSO',
     ],
     cta: 'Start Free Trial',
     href: '/signup?plan=pro',
@@ -81,6 +80,9 @@ export default function PricingPage() {
             </h1>
             <p className="text-xl text-[var(--text-secondary)] dark:text-slate-400 leading-relaxed">
               Choose the plan that's right for your team. All plans include a 14-day free trial.
+            </p>
+            <p className="text-sm text-[var(--text-tertiary)] mt-2">
+              Approximate pricing: Starter ≈ ₦10,000/mo, Pro ≈ ₦25,000/mo (USD based)
             </p>
           </div>
 

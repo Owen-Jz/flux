@@ -24,6 +24,11 @@ interface Workspace {
     id: string;
     name: string;
     slug: string;
+    icon?: {
+        type: 'upload' | 'emoji';
+        url?: string;
+        emoji?: string;
+    };
 }
 
 interface Board {
@@ -95,9 +100,21 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                     className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--background)] transition-colors"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-[var(--brand-primary)] text-white flex items-center justify-center font-semibold text-sm">
-                            {currentWorkspace?.name.charAt(0).toUpperCase() || 'F'}
-                        </div>
+                        {currentWorkspace?.icon?.type === 'emoji' ? (
+                            <div className="w-8 h-8 rounded-lg bg-[var(--background)] flex items-center justify-center text-xl">
+                                {currentWorkspace.icon.emoji}
+                            </div>
+                        ) : currentWorkspace?.icon?.type === 'upload' ? (
+                            <img
+                                src={currentWorkspace.icon.url}
+                                alt=""
+                                className="w-8 h-8 rounded-lg object-cover"
+                            />
+                        ) : (
+                            <div className="w-8 h-8 rounded-lg bg-[var(--brand-primary)] text-white flex items-center justify-center font-semibold text-sm">
+                                {currentWorkspace?.name.charAt(0).toUpperCase() || 'F'}
+                            </div>
+                        )}
                         <span className="font-medium text-sm truncate max-w-[120px]">
                             {currentWorkspace?.name || 'Select Workspace'}
                         </span>
@@ -127,9 +144,21 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                                             }`}
                                         onClick={() => setIsWorkspaceSwitcherOpen(false)}
                                     >
-                                        <div className="w-6 h-6 rounded bg-[var(--border-subtle)] flex items-center justify-center text-xs font-medium">
-                                            {workspace.name.charAt(0)}
-                                        </div>
+                                        {workspace.icon?.type === 'emoji' ? (
+                                            <div className="w-6 h-6 rounded bg-[var(--background)] flex items-center justify-center text-sm">
+                                                {workspace.icon.emoji}
+                                            </div>
+                                        ) : workspace.icon?.type === 'upload' ? (
+                                            <img
+                                                src={workspace.icon.url}
+                                                alt=""
+                                                className="w-6 h-6 rounded object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-6 h-6 rounded bg-[var(--border-subtle)] flex items-center justify-center text-xs font-medium">
+                                                {workspace.name.charAt(0)}
+                                            </div>
+                                        )}
                                         <span className="truncate flex-1">{workspace.name}</span>
                                         {workspace.slug === currentWorkspace?.slug && (
                                             <CheckIcon className="w-4 h-4 text-[var(--brand-primary)]" />

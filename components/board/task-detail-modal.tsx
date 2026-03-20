@@ -2,7 +2,7 @@
 // @ts-nocheck
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { XMarkIcon, CalendarIcon, CheckIcon, UserPlusIcon, Bars3BottomLeftIcon, TagIcon, ClockIcon, Squares2X2Icon, PlusIcon, TrashIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, ArrowPathIcon, ExclamationCircleIcon, HeartIcon, ArrowUturnLeftIcon, FaceSmileIcon, LinkIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CalendarIcon, CheckIcon, UserPlusIcon, Bars3BottomLeftIcon, TagIcon, ClockIcon, Squares2X2Icon, PlusIcon, TrashIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, ArrowPathIcon, ExclamationCircleIcon, HeartIcon, ArrowUturnLeftIcon, FaceSmileIcon, LinkIcon, InformationCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { TaskData, Member } from './task-card';
 import { addComment, deleteComment, likeComment, replyToComment, addReaction, getWorkspaceMembers } from '@/actions/task';
 import { useSession } from 'next-auth/react';
@@ -52,6 +52,7 @@ export function TaskDetailModal({
     const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 });
     const [newLinkUrl, setNewLinkUrl] = useState('');
     const [newLinkTitle, setNewLinkTitle] = useState('');
+    const [showSubtaskDetails, setShowSubtaskDetails] = useState(false);
 
     useEffect(() => {
         setTitle(task.title);
@@ -311,7 +312,7 @@ export function TaskDetailModal({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-2 sm:p-4"
                     >
                         {/* Modal */}
                         <motion.div
@@ -319,10 +320,10 @@ export function TaskDetailModal({
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)]"
+                            className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)]"
                         >
                             {/* Header */}
-                            <div className="flex items-start justify-between p-8 border-b border-[var(--border-subtle)] bg-[var(--surface)]">
+                            <div className="flex items-start justify-between p-4 md:p-6 lg:p-8 border-b border-[var(--border-subtle)] bg-[var(--surface)]">
                                 {error && (
                                     <div className="w-full mb-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-3">
                                         <ExclamationCircleIcon className="w-5 h-5 text-red-500 dark:text-red-400 flex-shrink-0" />
@@ -336,6 +337,12 @@ export function TaskDetailModal({
                                     <div className="flex items-center gap-3 mb-2">
                                         <span className="px-2.5 py-1 rounded-md bg-[var(--background-subtle)] text-[var(--text-secondary)] font-bold text-[10px] tracking-wider uppercase border border-[var(--border-subtle)]">
                                             {task.status.replace('_', ' ')}
+                                        </span>
+                                        <span className="text-[11px] text-[var(--text-tertiary)]">
+                                            Created {new Date(task.createdAt).toLocaleString(undefined, {
+                                                month: 'short', day: 'numeric', year: 'numeric',
+                                                hour: 'numeric', minute: '2-digit',
+                                            })}
                                         </span>
                                     </div>
                                     <input
@@ -357,7 +364,7 @@ export function TaskDetailModal({
                             </div>
 
                             {/* Body */}
-                            <div className="flex-1 overflow-y-auto p-8 bg-[var(--background)]">
+                            <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-[var(--background)]">
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
                                     {/* Main Content */}
                                     <div className="md:col-span-8 space-y-10">
@@ -405,13 +412,13 @@ export function TaskDetailModal({
                                                 {(task.subtasks || []).map((subtask) => (
                                                     <div
                                                         key={subtask.id}
-                                                        className="group flex items-center gap-3 p-2 rounded-xl hover:bg-[var(--surface)] hover:shadow-sm border border-transparent hover:border-[var(--border-subtle)] transition-all"
+                                                        className="group flex items-start gap-3 p-2 rounded-xl hover:bg-[var(--surface)] hover:shadow-sm border border-transparent hover:border-[var(--border-subtle)] transition-all"
                                                     >
                                                         <button
                                                             disabled={isReadOnly}
                                                             onClick={() => handleToggleSubtask(subtask.id)}
                                                             className={`
-                                                                flex-shrink-0 w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center
+                                                                flex-shrink-0 w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center mt-0.5
                                                                 ${subtask.completed
                                                                     ? 'bg-[var(--brand-primary)] border-[var(--brand-primary)] text-[var(--text-inverse)] shadow-lg shadow-[var(--brand-primary)]/20'
                                                                     : 'bg-[var(--surface)] border-[var(--border-default)] text-transparent hover:border-[var(--brand-primary)]'
@@ -420,12 +427,24 @@ export function TaskDetailModal({
                                                         >
                                                             <CheckIcon className="w-3.5 h-3.5 stroke-[3]" />
                                                         </button>
-                                                        <span
-                                                            className={`flex-1 text-[14px] font-medium transition-all ${subtask.completed ? 'text-[var(--text-tertiary)] line-through' : 'text-[var(--text-primary)]'
-                                                                }`}
-                                                        >
-                                                            {subtask.title}
-                                                        </span>
+                                                        <div className="flex-1 min-w-0">
+                                                            <span
+                                                                className={`block text-[14px] font-medium transition-all ${subtask.completed ? 'text-[var(--text-tertiary)] line-through' : 'text-[var(--text-primary)]'
+                                                                    }`}
+                                                            >
+                                                                {subtask.title}
+                                                            </span>
+                                                            {subtask.createdAt && (
+                                                                <span className="block text-[11px] text-[var(--text-tertiary)] mt-0.5">
+                                                                    {new Date(subtask.createdAt).toLocaleString(undefined, {
+                                                                        month: 'short',
+                                                                        day: 'numeric',
+                                                                        hour: 'numeric',
+                                                                        minute: '2-digit',
+                                                                    })}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                         {!isReadOnly && (
                                                             <button
                                                                 onClick={() => handleDeleteSubtask(subtask.id)}
@@ -464,6 +483,55 @@ export function TaskDetailModal({
                                                 )}
                                             </div>
                                         </div>
+
+                                        {(task.subtasks || []).length > 0 && (
+                                            <div className="mt-4 border-t border-[var(--border-subtle)] pt-4">
+                                                <button
+                                                    onClick={() => setShowSubtaskDetails(!showSubtaskDetails)}
+                                                    className="flex items-center gap-2 text-xs font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                                                >
+                                                    <InformationCircleIcon className="w-4 h-4" />
+                                                    Subtask Details
+                                                    <ChevronDownIcon className={`w-4 h-4 transition-transform ${showSubtaskDetails ? 'rotate-180' : ''}`} />
+                                                </button>
+
+                                                <AnimatePresence>
+                                                    {showSubtaskDetails && (
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            className="overflow-hidden"
+                                                        >
+                                                            <div className="mt-3 space-y-2">
+                                                                {(task.subtasks || []).map((subtask) => (
+                                                                    <div key={subtask.id} className="flex items-center gap-3 p-2 rounded-lg bg-[var(--background-subtle)] border border-[var(--border-subtle)]">
+                                                                        <div className="w-6 h-6 rounded-full bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0">
+                                                                            {subtask.createdBy?.image ? (
+                                                                                <img src={subtask.createdBy.image} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                                                            ) : (
+                                                                                <span className="text-[9px] font-bold text-[var(--brand-primary)]">
+                                                                                    {subtask.createdBy?.name?.charAt(0) || '?'}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-[13px] font-medium text-[var(--text-primary)] truncate">{subtask.title}</p>
+                                                                            <p className="text-[11px] text-[var(--text-tertiary)]">
+                                                                                {subtask.createdBy?.name || 'Unknown'} · {subtask.createdAt ? new Date(subtask.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'Unknown date'}
+                                                                            </p>
+                                                                        </div>
+                                                                        <div className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 ${subtask.completed ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' : 'bg-[var(--background-subtle)] border border-[var(--border-default)]'}`}>
+                                                                            {subtask.completed && <CheckIcon className="w-3.5 h-3.5 stroke-[3]" />}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </div>
+                                        )}
 
                                         {/* Activity */}
                                         <div className="pt-8 border-t border-[var(--border-subtle)]">
@@ -530,7 +598,7 @@ export function TaskDetailModal({
                                                                             </button>
                                                                         )}
                                                                     </div>
-                                                                    <div className="text-[14px] text-[var(--text-primary)] bg-[var(--surface)] rounded-2xl p-4 border border-[var(--border-subtle)] shadow-sm leading-relaxed">
+                                                                    <div className="text-[14px] text-[var(--text-primary)] bg-[var(--surface)] rounded-2xl p-4 border border-[var(--border-subtle)] shadow-sm leading-relaxed whitespace-pre-wrap">
                                                                         {comment.content}
                                                                     </div>
                                                                     {/* Like, Reactions and Reply buttons */}

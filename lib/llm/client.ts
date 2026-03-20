@@ -12,7 +12,7 @@ export class MinimaxClient {
       throw new Error('Minimax API key is required');
     }
     this.apiKey = config.apiKey;
-    this.baseUrl = config.baseUrl || 'https://api.minimax.chat/v1';
+    this.baseUrl = config.baseUrl || 'https://api.minimax.io/v1';
     this.model = config.model || 'MiniMax-M2.5';
   }
 

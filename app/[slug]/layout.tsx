@@ -56,6 +56,7 @@ export default async function WorkspaceLayout({
         id: workspace.id,
         name: workspace.name,
         slug: workspace.slug,
+        icon: workspace.icon,
     };
 
     return (

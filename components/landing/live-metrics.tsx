@@ -92,13 +92,13 @@ export function LiveMetrics() {
   return (
     <section
       ref={containerRef}
-      className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 border-y border-slate-200 dark:border-slate-800 overflow-hidden"
+      className="py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-[var(--background-subtle)] border-y border-[var(--border-subtle)] overflow-hidden"
       aria-label="Live metrics"
     >
       {/* Background effects */}
       <div className="absolute inset-0" aria-hidden="true">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02] dark:opacity-[0.03]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-purple-200/30 dark:bg-purple-500/5 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--brand-primary)]/10 rounded-full blur-[100px]" />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
@@ -109,11 +109,11 @@ export function LiveMetrics() {
           viewport={{ once: true }}
           className="text-center mb-8"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 mb-4">
-            <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--surface)] border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)] mb-4">
+            <span className="w-2 h-2 rounded-full bg-[var(--brand-primary)] animate-pulse" />
             Real-time metrics
           </div>
-          <h2 className="text-2xl lg:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <h2 className="text-2xl lg:text-3xl font-bold text-[var(--text-primary)] tracking-tight">
             See what your team is achieving
           </h2>
         </motion.div>
@@ -129,7 +129,7 @@ export function LiveMetrics() {
               transition={{ delay: index * 0.1, duration: 0.5 }}
               className="relative group"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-white dark:from-slate-800/50 dark:to-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-700/50 backdrop-blur-xl overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-[var(--surface)] to-[var(--background-subtle)] rounded-2xl border border-[var(--border-subtle)] backdrop-blur-xl overflow-hidden">
                 {/* Gradient overlay on hover */}
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${metric.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
@@ -145,7 +145,7 @@ export function LiveMetrics() {
                 </div>
 
                 {/* Value */}
-                <div className="text-2xl lg:text-3xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">
+                <div className="text-2xl lg:text-3xl font-black text-[var(--text-primary)] mb-1 tracking-tight">
                   {isInView && (
                     <AnimatedNumber
                       value={metric.value}
@@ -155,7 +155,7 @@ export function LiveMetrics() {
                 </div>
 
                 {/* Label */}
-                <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                <div className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">
                   {metric.label}
                 </div>
               </div>

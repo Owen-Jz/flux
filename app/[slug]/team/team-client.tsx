@@ -71,7 +71,7 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                     key={request.id}
                     className="card p-4 border-[var(--warning-border)] bg-[var(--warning-bg)] hover:shadow-md transition-shadow"
                 >
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             {request.user.image ? (
                                 <img
@@ -88,18 +88,18 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                                 <p className="font-medium text-[var(--foreground)]">
                                     {request.user.name}
                                 </p>
-                                <p className="text-sm text-[var(--text-secondary)]">
+                                <p className="text-sm text-[var(--text-secondary)] truncate max-w-[180px]">
                                     {request.user.email}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            <div className="text-right">
+                        <div className="flex items-start sm:items-center gap-4">
+                            <div className="text-left sm:text-right">
                                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
                                     Wants {request.requestedRole} access
                                 </span>
-                                <p className="text-xs text-[var(--text-secondary)] mt-1 flex items-center justify-end gap-1">
+                                <p className="text-xs text-[var(--text-secondary)] mt-1 flex items-center justify-start sm:justify-end gap-1">
                                     <ClockIcon className="w-3 h-3" />
                                     {formatDate(request.createdAt)}
                                 </p>

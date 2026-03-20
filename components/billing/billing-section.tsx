@@ -47,10 +47,11 @@ export function BillingSection() {
     // Check for payment callback
     useEffect(() => {
         const billingStatus = searchParams.get('billing');
-        const reference = searchParams.get('reference');
+        const reference = searchParams.get('reference') || searchParams.get('trxref');
+        const plan = searchParams.get('plan');
 
-        if (billingStatus === 'success' && reference) {
-            verifyPayment(reference);
+        if (billingStatus === 'success' && reference && plan) {
+            verifyPayment(reference, plan);
             // Clear URL params
             router.replace(window.location.pathname, { scroll: false });
         }
@@ -73,14 +74,14 @@ export function BillingSection() {
         }
     };
 
-    const verifyPayment = async (reference: string) => {
+    const verifyPayment = async (reference: string, plan: string = 'pro') => {
         setProcessing(true);
         setError(null);
         try {
             const res = await fetch('/api/billing/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reference, plan: subscription?.plan || 'pro' }),
+                body: JSON.stringify({ reference, plan }),
             });
             const data = await res.json();
             if (data.success) {

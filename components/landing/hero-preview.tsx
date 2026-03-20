@@ -24,9 +24,9 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
   const ref = useRef<HTMLDivElement>(null);
 
   const priorityColors = {
-    low: 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-400',
-    medium: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400',
-    high: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+    low: 'bg-[var(--success-bg)] text-[var(--success-text-strong)] dark:bg-[var(--success-bg)] dark:text-[var(--success-text)]',
+    medium: 'bg-[var(--warning-bg)] text-[var(--warning-text-strong)] dark:bg-[var(--warning-bg)] dark:text-[var(--warning-text)]',
+    high: 'bg-[var(--error-bg)] text-[var(--error-text-strong)] dark:bg-[var(--error-bg)] dark:text-[var(--error-text)]'
   };
 
   return (
@@ -36,7 +36,7 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay, duration: 0.5 }}
       whileHover={{ y: -4, scale: 1.02 }}
-      className="p-4 bg-white dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-md dark:shadow-lg cursor-pointer group"
+      className="p-4 bg-[var(--surface)] rounded-xl border border-[var(--border-subtle)] shadow-md cursor-pointer group"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
@@ -45,7 +45,7 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
             category === 'Development' ? 'bg-purple-400' :
             category === 'Research' ? 'bg-green-400' : 'bg-blue-400'
           }`} />
-          <span className="text-[10px] font-medium uppercase text-slate-500 dark:text-slate-400">{category}</span>
+          <span className="text-[10px] font-medium uppercase text-[var(--text-tertiary)]">{category}</span>
         </div>
         {priority && (
           <motion.span
@@ -58,13 +58,13 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
           </motion.span>
         )}
       </div>
-      <div className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1 group-hover:text-purple-600 dark:group-hover:text-white transition-colors">{title}</div>
+      <div className="text-sm font-semibold text-[var(--text-primary)] mb-1 group-hover:text-[var(--brand-primary)] transition-colors">{title}</div>
       {description && (
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 0.6 }}
           transition={{ delay: delay + 0.1 }}
-          className="text-[11px] text-slate-500 dark:text-slate-400 mb-2 line-clamp-2"
+          className="text-[11px] text-[var(--text-tertiary)] mb-2 line-clamp-2"
         >
           {description}
         </motion.p>
@@ -77,7 +77,7 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: delay + 0.15 + (i * 0.05) }}
-              className="w-5 h-5 rounded-full border border-white dark:border-slate-800 flex items-center justify-center text-[9px] font-bold text-white"
+              className="w-5 h-5 rounded-full border-2 border-[var(--surface)] flex items-center justify-center text-[9px] font-bold text-white"
               style={{ backgroundColor: ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"][i % 5] }}
             >
               {initials}
@@ -86,12 +86,12 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
         </div>
       )}
       {progress !== undefined && (
-        <div className="w-full bg-slate-100 dark:bg-slate-700/50 h-1.5 rounded-full mt-2 overflow-hidden">
+        <div className="w-full bg-[var(--background-subtle)] h-1.5 rounded-full mt-2 overflow-hidden">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 1, delay: delay + 0.3 }}
-            className="bg-gradient-to-r from-purple-500 to-blue-500 h-full rounded-full"
+            className="bg-gradient-to-r from-[var(--brand-primary)] to-[var(--info-primary)] h-full rounded-full"
           />
         </div>
       )}
@@ -113,19 +113,19 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
   const springY = useSpring(y3, { stiffness: 100, damping: 30 });
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-5xl mx-auto mt-8 lg:mt-12 perspective-1500">
+    <div ref={containerRef} className="relative w-full max-w-5xl mx-auto mt-8 lg:mt-12 px-4 md:px-0 perspective-1500">
       {/* Background cards with parallax - floating around - Light mode */}
       <motion.div
         style={{ y: y1, rotate }}
         initial={{ opacity: 0, x: -50 }}
         animate={{ opacity: 0.5, x: 0 }}
         transition={{ duration: 1, delay: 1 }}
-        className="absolute -left-8 lg:-left-16 top-8 w-[200px] lg:w-[320px] hidden md:block"
+        className="absolute -left-4 lg:-left-16 top-8 w-[160px] md:w-[200px] lg:w-[320px] hidden md:block"
       >
         <motion.div
           animate={{ y: [0, -15, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xl"
+          className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-4 shadow-2xl"
         >
           <div className="flex items-center gap-2 mb-3">
             <div className="w-3 h-3 rounded-full bg-red-400/60" />
@@ -133,11 +133,11 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
             <div className="w-3 h-3 rounded-full bg-green-400/60" />
           </div>
           <div className="space-y-2">
-            <div className="h-2 w-3/4 bg-slate-200 rounded" />
-            <div className="h-2 w-1/2 bg-slate-100 rounded" />
+            <div className="h-2 w-3/4 bg-[var(--border-subtle)] rounded" />
+            <div className="h-2 w-1/2 bg-[var(--background-subtle)] rounded" />
             <div className="flex gap-2 mt-3">
-              <div className="h-12 flex-1 bg-slate-50 rounded" />
-              <div className="h-12 flex-1 bg-slate-50 rounded" />
+              <div className="h-12 flex-1 bg-[var(--background-subtle)] rounded" />
+              <div className="h-12 flex-1 bg-[var(--background-subtle)] rounded" />
             </div>
           </div>
         </motion.div>
@@ -148,18 +148,18 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 0.4, x: 0 }}
         transition={{ duration: 1, delay: 1.2 }}
-        className="absolute -right-8 lg:-right-16 top-20 w-[180px] lg:w-[280px] hidden md:block"
+        className="absolute -right-4 lg:-right-16 top-20 w-[140px] md:w-[180px] lg:w-[280px] hidden md:block"
       >
         <motion.div
           animate={{ y: [0, 10, 0] }}
           transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          className="bg-white rounded-2xl border border-slate-200 p-4 shadow-2xl"
+          className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-4 shadow-2xl"
         >
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-purple-100" />
-                <div className="h-2 flex-1 bg-slate-100 rounded" />
+                <div className="w-6 h-6 rounded-full bg-[var(--brand-primary)]/20" />
+                <div className="h-2 flex-1 bg-[var(--background-subtle)] rounded" />
               </div>
             ))}
           </div>
@@ -177,13 +177,13 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
           delay: 0.6,
           ease: [0.22, 1, 0.36, 1]
         }}
-        className="relative z-10 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-800 shadow-2xl"
+        className="relative z-10 bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] shadow-2xl"
       >
         {/* Subtle border for light mode */}
-        <div className="absolute inset-0 rounded-2xl pointer-events-none border border-purple-500/10" />
+        <div className="absolute inset-0 rounded-2xl pointer-events-none border border-[var(--brand-primary)]/10" />
 
         {/* Header - Light mode */}
-        <div className="h-14 border-b border-slate-200 flex items-center px-6 gap-4 bg-white/80">
+        <div className="h-12 md:h-14 border-b border-[var(--border-subtle)] flex items-center px-4 md:px-6 gap-4 bg-[var(--surface)]/80">
           <div className="flex gap-2">
             <motion.div
               whileHover={{ scale: 1.2 }}
@@ -198,18 +198,18 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
               className="w-3.5 h-3.5 rounded-full bg-[#28c840]/80 cursor-pointer"
             />
           </div>
-          <div className="h-6 w-px bg-slate-200" />
+          <div className="h-6 w-px bg-[var(--border-subtle)]" />
           <motion.div
             whileHover={{ scale: 1.02 }}
-            className="flex items-center gap-2 px-4 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-medium text-slate-600 border border-slate-200 cursor-pointer transition-colors"
+            className="flex items-center gap-2 px-4 py-1.5 bg-[var(--background-subtle)] hover:bg-[var(--border-subtle)] rounded-lg text-xs font-medium text-[var(--text-secondary)] border border-[var(--border-subtle)] cursor-pointer transition-colors"
           >
-            <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-[var(--brand-primary)] animate-pulse" />
             Flux Board / Q4 Roadmap
           </motion.div>
         </div>
 
         {/* Content - Light mode with enhanced styling */}
-        <div className="p-6 bg-gradient-to-b from-white to-slate-50 min-h-[400px] relative overflow-visible">
+        <div className="p-4 md:p-6 bg-gradient-to-b from-[var(--surface)] to-[var(--background-subtle)] min-h-[300px] md:min-h-[400px] relative overflow-visible">
           {/* Subtle grid pattern */}
           <div className="absolute inset-0 opacity-[0.015]" aria-hidden="true">
             <svg className="w-full h-full">
@@ -222,39 +222,39 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
             </svg>
           </div>
 
-          <div className="flex gap-6 relative z-10">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-6 relative z-10">
             {/* Sidebar - Light mode */}
-            <div className="w-48 hidden lg:block space-y-6">
+            <div className="w-full lg:w-48 hidden md:block space-y-4 md:space-y-6">
               <div className="space-y-2">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Workspaces</div>
+                <div className="text-xs font-bold text-[var(--text-tertiary)] uppercase tracking-wider">Workspaces</div>
                 <motion.div
                   whileHover={{ x: 4, scale: 1.02 }}
-                  className="h-10 w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl flex items-center px-3 text-sm font-semibold cursor-pointer shadow-lg shadow-purple-500/25"
+                  className="h-10 w-full bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-secondary)] text-[var(--text-inverse)] rounded-xl flex items-center px-3 text-sm font-semibold cursor-pointer shadow-lg shadow-[var(--brand-primary)]/25"
                 >
                   <BoltIcon className="w-4 h-4 mr-2" /> Product
                 </motion.div>
                 <motion.div
                   whileHover={{ x: 4, scale: 1.02, backgroundColor: "rgba(59, 130, 246, 0.1)" }}
-                  className="h-10 w-full bg-white hover:bg-slate-50 rounded-xl flex items-center px-3 text-sm text-slate-600 transition-all cursor-pointer border border-slate-200 shadow-sm"
+                  className="h-10 w-full bg-[var(--surface)] hover:bg-[var(--background-subtle)] rounded-xl flex items-center px-3 text-sm text-[var(--text-secondary)] transition-all cursor-pointer border border-[var(--border-subtle)] shadow-sm"
                 >
                   <ShieldCheckIcon className="w-4 h-4 mr-2" /> Engineering
                 </motion.div>
                 <motion.div
                   whileHover={{ x: 4, scale: 1.02, backgroundColor: "rgba(59, 130, 246, 0.1)" }}
-                  className="h-10 w-full bg-white hover:bg-slate-50 rounded-xl flex items-center px-3 text-sm text-slate-600 transition-all cursor-pointer border border-slate-200 shadow-sm"
+                  className="h-10 w-full bg-[var(--surface)] hover:bg-[var(--background-subtle)] rounded-xl flex items-center px-3 text-sm text-[var(--text-secondary)] transition-all cursor-pointer border border-[var(--border-subtle)] shadow-sm"
                 >
                   <UsersIcon className="w-4 h-4 mr-2" /> Design
                 </motion.div>
               </div>
 
               <div className="space-y-2">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Team</div>
+                <div className="text-xs font-bold text-[var(--text-tertiary)] uppercase tracking-wider">Team</div>
                 <div className="flex -space-x-2">
                   {["JD", "SK", "MR", "AL"].map((initials, i) => (
                     <motion.div
                       key={initials}
                       whileHover={{ scale: 1.2, zIndex: 10, rotate: 5 }}
-                      className="w-8 h-8 rounded-full border-3 border-white flex items-center justify-center text-xs font-bold text-white cursor-pointer shadow-md"
+                      className="w-8 h-8 rounded-full border-2 border-[var(--surface)] flex items-center justify-center text-xs font-bold text-white cursor-pointer shadow-md"
                       style={{ backgroundColor: ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6"][i] }}
                     >
                       {initials}
@@ -262,7 +262,7 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
                   ))}
                   <motion.div
                     whileHover={{ scale: 1.1 }}
-                    className="w-8 h-8 rounded-full border-3 border-white bg-slate-100 flex items-center justify-center text-xs text-slate-500 cursor-pointer shadow-sm"
+                    className="w-8 h-8 rounded-full border-2 border-[var(--surface)] bg-[var(--background-subtle)] flex items-center justify-center text-xs text-[var(--text-tertiary)] cursor-pointer shadow-sm"
                   >
                     +12
                   </motion.div>
@@ -277,34 +277,34 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.8 }}
-                  className="text-xl font-bold text-slate-800"
+                  className="text-xl font-bold text-[var(--text-primary)]"
                 >
                   Q4 Product Roadmap
                 </motion.div>
                 <div className="flex gap-2">
                   <motion.div
-                    whileHover={{ scale: 1.05, backgroundColor: "#f1f5f9" }}
+                    whileHover={{ scale: 1.05, backgroundColor: "var(--background-subtle)" }}
                     whileTap={{ scale: 0.95 }}
-                    className="h-9 px-4 rounded-xl bg-white border border-slate-200 text-sm flex items-center text-slate-600 font-medium cursor-pointer shadow-sm"
+                    className="h-9 px-4 rounded-xl bg-[var(--surface)] border border-[var(--border-subtle)] text-sm flex items-center text-[var(--text-secondary)] font-medium cursor-pointer shadow-sm"
                   >
                     Filter
                   </motion.div>
                   <motion.div
                     whileHover={{ scale: 1.05, boxShadow: "0 10px 40px -10px rgba(139, 92, 246, 0.4)" }}
                     whileTap={{ scale: 0.95 }}
-                    className="h-9 px-4 rounded-xl bg-gradient-to-r from-purple-500 to-purple-600 text-white text-sm flex items-center font-semibold shadow-lg shadow-purple-500/25 cursor-pointer"
+                    className="h-9 px-4 rounded-xl bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-secondary)] text-[var(--text-inverse)] text-sm flex items-center font-semibold shadow-lg shadow-[var(--brand-primary)]/25 cursor-pointer"
                   >
                     <SparklesIcon className="w-4 h-4 mr-1.5" /> New Task
                   </motion.div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
                 {/* To Do */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-tertiary)] uppercase">
                     <span>To Do</span>
-                    <span className="bg-purple-100 text-purple-600 px-2 py-0.5 rounded font-medium">5</span>
+                    <span className="bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] px-2 py-0.5 rounded font-medium">5</span>
                   </div>
                   <AnimatedTaskCard
                     title="Design system audit"
@@ -334,9 +334,9 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
 
                 {/* In Progress */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-tertiary)] uppercase">
                     <span>In Progress</span>
-                    <span className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded font-medium">3</span>
+                    <span className="bg-[var(--info-primary)]/10 text-[var(--info-primary)] px-2 py-0.5 rounded font-medium">3</span>
                   </div>
                   <AnimatedTaskCard
                     title="Dashboard redesign"
@@ -369,29 +369,29 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
 
                 {/* Done */}
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase">
+                  <div className="flex items-center justify-between text-xs font-semibold text-[var(--text-tertiary)] uppercase">
                     <span>Done</span>
-                    <span className="bg-green-100 text-green-600 px-2 py-0.5 rounded font-medium">9</span>
+                    <span className="bg-[var(--success-primary)]/10 text-[var(--success-primary)] px-2 py-0.5 rounded font-medium">9</span>
                   </div>
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 0.7 }}
                     transition={{ delay: 1.3 }}
-                    className="p-4 bg-slate-100 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/30"
+                    className="p-4 bg-[var(--background-subtle)] rounded-xl border border-[var(--border-subtle)]"
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-2 h-2 rounded-full bg-purple-400" />
-                      <span className="text-[10px] font-medium text-purple-500 dark:text-purple-400 uppercase">Research</span>
+                      <span className="text-[10px] font-medium text-[var(--brand-secondary)] uppercase">Research</span>
                     </div>
-                    <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 line-through mb-3">User interviews</div>
+                    <div className="text-sm font-semibold text-[var(--text-tertiary)] line-through mb-3">User interviews</div>
                     <div className="flex justify-end">
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 1.5, type: "spring" }}
-                        className="w-5 h-5 rounded-full bg-purple-500/20 flex items-center justify-center"
+                        className="w-5 h-5 rounded-full bg-[var(--brand-primary)]/20 flex items-center justify-center"
                       >
-                        <CheckIcon className="w-3 h-3 text-purple-400" />
+                        <CheckIcon className="w-3 h-3 text-[var(--brand-secondary)]" />
                       </motion.div>
                     </div>
                   </motion.div>
@@ -399,21 +399,21 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 0.7 }}
                     transition={{ delay: 1.35 }}
-                    className="p-4 bg-slate-100 dark:bg-slate-800/30 rounded-xl border border-slate-200 dark:border-slate-700/30"
+                    className="p-4 bg-[var(--background-subtle)] rounded-xl border border-[var(--border-subtle)]"
                   >
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-2 h-2 rounded-full bg-green-400" />
-                      <span className="text-[10px] font-medium text-green-600 dark:text-green-400 uppercase">Design</span>
+                      <span className="text-[10px] font-medium text-[var(--success-primary)] uppercase">Design</span>
                     </div>
-                    <div className="text-sm font-semibold text-slate-500 dark:text-slate-400 line-through mb-3">Wireframe prototypes</div>
+                    <div className="text-sm font-semibold text-[var(--text-tertiary)] line-through mb-3">Wireframe prototypes</div>
                     <div className="flex justify-end">
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 1.55, type: "spring" }}
-                        className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center"
+                        className="w-5 h-5 rounded-full bg-[var(--success-primary)]/20 flex items-center justify-center"
                       >
-                        <CheckIcon className="w-3 h-3 text-green-400" />
+                        <CheckIcon className="w-3 h-3 text-[var(--success-primary)]" />
                       </motion.div>
                     </div>
                   </motion.div>
@@ -429,14 +429,14 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
           animate={{ x: 0, opacity: 1, scale: 1 }}
           transition={{ delay: 1.6, type: "spring", stiffness: 200 }}
           whileHover={{ scale: 1.05, x: 5 }}
-          className="absolute -right-4 top-24 bg-white p-3 rounded-2xl border border-slate-200/60 shadow-2xl flex items-center gap-3 z-20 cursor-pointer"
+          className="absolute -right-2 md:-right-4 top-20 md:top-24 bg-[var(--surface)] p-2.5 md:p-3 rounded-xl md:rounded-2xl border border-[var(--border-subtle)] shadow-2xl flex items-center gap-2 md:gap-3 z-20 cursor-pointer max-w-[200px] md:max-w-none"
         >
-          <div className="p-2 bg-purple-100 rounded-xl">
-            <ShieldCheckIcon className="w-4 h-4 text-purple-600" />
+          <div className="p-2 bg-[var(--brand-primary)]/10 rounded-xl">
+            <ShieldCheckIcon className="w-4 h-4 text-[var(--brand-primary)]" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-700">Security audit passed</div>
-            <div className="text-[10px] text-slate-400 flex items-center gap-1">
+            <div className="text-xs font-bold text-[var(--text-primary)]">Security audit passed</div>
+            <div className="text-[10px] text-[var(--text-tertiary)] flex items-center gap-1">
               <ClockIcon className="w-3 h-3" /> Just now
             </div>
           </div>
@@ -447,17 +447,17 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
           animate={{ x: 0, opacity: 1, scale: 1 }}
           transition={{ delay: 1.8, type: "spring", stiffness: 200 }}
           whileHover={{ scale: 1.05, x: -5 }}
-          className="absolute -left-4 bottom-24 bg-white p-3 rounded-2xl border border-slate-200/60 shadow-2xl flex items-center gap-3 z-20 cursor-pointer"
+          className="absolute -left-2 md:-left-4 bottom-16 md:bottom-24 bg-[var(--surface)] p-2.5 md:p-3 rounded-xl md:rounded-2xl border border-[var(--border-subtle)] shadow-2xl flex items-center gap-2 md:gap-3 z-20 cursor-pointer max-w-[180px] md:max-w-none"
         >
           <div className="relative">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow-lg">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[var(--info-primary)] to-[var(--brand-primary)] flex items-center justify-center text-white font-bold text-xs shadow-lg">
               SK
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-purple-400 border-2 border-white rounded-full" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-purple-400 border-2 border-[var(--surface)] rounded-full" />
           </div>
           <div>
-            <div className="text-xs font-bold text-slate-700">Sarah commented</div>
-            <div className="text-[10px] text-slate-400 max-w-[120px] truncate">"This looks amazing! 🔥"</div>
+            <div className="text-xs font-bold text-[var(--text-primary)]">Sarah commented</div>
+            <div className="text-[10px] text-[var(--text-tertiary)] max-w-[120px] truncate">"This looks amazing! 🔥"</div>
           </div>
         </motion.div>
 

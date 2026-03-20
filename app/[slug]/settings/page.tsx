@@ -43,6 +43,7 @@ export default async function SettingsPage({
                 slug: workspace.slug,
                 publicAccess: workspace.publicAccess,
                 accentColor: workspace.accentColor,
+                icon: workspace.icon,
             }}
         />
     );

@@ -21,6 +21,7 @@ import { FAQSection } from '@/components/landing/faq-section';
 import { AnalyticsDashboard } from '@/components/landing/analytics-dashboard';
 import { LiveMetrics } from '@/components/landing/live-metrics';
 import { SmoothScroll } from '@/components/landing/smooth-scroll';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 // Navigation Component
 function Navigation() {
@@ -46,9 +47,9 @@ function Navigation() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-150 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
         isScrolled
-          ? 'bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50'
+          ? 'glass border-b border-[var(--border-subtle)]'
           : 'bg-transparent'
       }`}
       aria-label="Main navigation"
@@ -57,7 +58,7 @@ function Navigation() {
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group" aria-label="Flux home">
-            <span className="font-extrabold text-2xl tracking-tight text-slate-900 dark:text-white">flux</span>
+            <span className="font-extrabold text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -66,7 +67,7 @@ function Navigation() {
               <a
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white transition-colors"
+                className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
               >
                 {link.label}
               </a>
@@ -75,10 +76,15 @@ function Navigation() {
 
           {/* Right Side */}
           <div className="flex items-center gap-3">
+            {/* Theme Toggle - Desktop */}
+            <div className="hidden lg:block">
+              <ThemeToggle />
+            </div>
+
             {isLoggedIn ? (
               <Link
                 href="/dashboard"
-                className="px-5 py-2.5 bg-purple-500 text-white rounded-xl text-sm font-semibold hover:bg-purple-600 transition-colors"
+                className="px-5 py-2.5 bg-[var(--brand-primary)] text-[var(--text-inverse)] rounded-xl text-sm font-semibold hover:opacity-90 transition-colors"
               >
                 Go to Dashboard
               </Link>
@@ -86,14 +92,14 @@ function Navigation() {
               <>
                 <Link
                   href="/login"
-                  className="hidden sm:block text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white transition-colors"
+                  className="hidden sm:block text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
                 >
                   Log in
                 </Link>
 
                 <Link
                   href="/signup"
-                  className="px-5 py-2.5 bg-purple-500 text-white rounded-xl text-sm font-semibold hover:bg-purple-600 transition-colors"
+                  className="px-5 py-2.5 bg-[var(--brand-primary)] text-[var(--text-inverse)] rounded-xl text-sm font-semibold hover:opacity-90 transition-colors"
                 >
                   Get started free
                 </Link>
@@ -102,7 +108,7 @@ function Navigation() {
 
             {/* Mobile Menu Button */}
             <button
-              className="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="lg:hidden p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--background-subtle)] transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-expanded={isMobileMenuOpen}
               aria-controls="mobile-menu"
@@ -120,18 +126,42 @@ function Navigation() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden border-t border-slate-200 dark:border-slate-800 py-4"
+            className="lg:hidden border-t border-[var(--border-subtle)] py-4"
           >
+            {/* Theme Toggle - Mobile */}
+            <div className="mb-4">
+              <ThemeToggle />
+            </div>
+
             {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
-                className="block py-3 text-base font-semibold text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-white"
+                className="block py-3 text-base font-semibold text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 {link.label}
               </a>
             ))}
+
+            {!isLoggedIn && (
+              <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] flex flex-col gap-3">
+                <Link
+                  href="/login"
+                  className="block text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/signup"
+                  className="px-5 py-2.5 bg-[var(--brand-primary)] text-[var(--text-inverse)] rounded-xl text-sm font-semibold hover:opacity-90 transition-colors text-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Get started free
+                </Link>
+              </div>
+            )}
           </motion.div>
         )}
       </div>
@@ -170,15 +200,15 @@ function Footer() {
   };
 
   return (
-    <footer className="bg-white dark:bg-slate-950 pt-16 pb-8 px-4 sm:px-6 lg:px-8 border-t border-slate-200 dark:border-slate-800" role="contentinfo">
+    <footer className="bg-[var(--background)] pt-16 pb-8 px-4 sm:px-6 lg:px-8 border-t border-[var(--border-subtle)]" role="contentinfo">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 lg:gap-12 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-6 md:gap-8 lg:gap-12 mb-12">
           {/* Brand */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-4">
-              <span className="font-black text-2xl tracking-tight text-slate-900 dark:text-white">flux</span>
+              <span className="font-black text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
             </Link>
-            <p className="text-slate-500 dark:text-slate-400 max-w-xs mb-6 leading-relaxed">
+            <p className="text-[var(--text-tertiary)] max-w-xs mb-6 leading-relaxed">
               The all-in-one workspace for high-performing engineering teams to ship faster.
             </p>
             <div className="flex gap-3">
@@ -189,13 +219,13 @@ function Footer() {
           {/* Links */}
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="font-bold text-slate-900 dark:text-white mb-4">{title}</h4>
+              <h4 className="font-bold text-[var(--text-primary)] mb-4">{title}</h4>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.label}>
                     <Link
                       href={link.href}
-                      className="text-sm text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                      className="text-sm text-[var(--text-tertiary)] hover:text-[var(--brand-primary)] transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -206,18 +236,18 @@ function Footer() {
           ))}
         </div>
 
-        <div className="pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+        <div className="pt-8 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-[var(--text-tertiary)]">
             © 2026 Flux Technologies Inc. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Link href="/privacy" className="text-sm text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Link href="/terms" className="text-sm text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
               Terms
             </Link>
-            <Link href="/security" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Link href="/security" className="text-sm text-[var(--text-tertiary)] hover:text-[var(--text-primary)] transition-colors">
               Security
             </Link>
           </div>
@@ -230,7 +260,7 @@ function Footer() {
 export default function HomePage() {
   return (
     <SmoothScroll>
-      <div className="min-h-screen bg-white dark:bg-slate-950 overflow-x-hidden selection:bg-purple-500 selection:text-white">
+      <div className="min-h-screen bg-[var(--background)] overflow-x-hidden selection:bg-[var(--brand-primary)] selection:text-[var(--text-inverse)]">
         {/* Noise overlay for texture */}
         <div className="fixed inset-0 noise opacity-[0.015] dark:opacity-[0.03] pointer-events-none z-[100]" aria-hidden="true" />
 
@@ -244,9 +274,9 @@ export default function HomePage() {
           <HeroPreviewSection />
 
           {/* Social Proof - Trusted by */}
-          <section className="py-12 lg:py-16 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800">
+          <section className="py-12 lg:py-16 bg-[var(--background-subtle)] border-b border-[var(--border-subtle)]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <p className="text-center text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mb-8">
+              <p className="text-center text-sm font-bold text-[var(--text-tertiary)] uppercase tracking-[0.2em] mb-8">
                 Trusted by industry leaders
               </p>
               <LogoMarquee />
@@ -266,16 +296,16 @@ export default function HomePage() {
           <AnalyticsDashboard />
 
           {/* Features */}
-          <section id="features" className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-white dark:bg-slate-950">
+          <section id="features" className="py-16 md:py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[var(--background)]">
             <div className="max-w-7xl mx-auto">
-              <div className="max-w-3xl mb-16">
-                <span className="inline-block px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-bold uppercase tracking-widest mb-4">
+              <div className="max-w-3xl mb-10 md:mb-16">
+                <span className="inline-block px-3 py-1 rounded-full bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] text-xs font-bold uppercase tracking-widest mb-4">
                   Features
                 </span>
-                <h2 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--text-primary)] tracking-tight mb-4 md:mb-6">
                   Built for modern teams
                 </h2>
-                <p className="text-lg text-slate-600 dark:text-slate-400">
+                <p className="text-base md:text-lg text-[var(--text-secondary)]">
                   Every feature designed with performance and usability in mind.
                 </p>
               </div>

@@ -50,10 +50,10 @@ export const FeaturesGrid = () => {
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="md:col-span-6 lg:col-span-8 group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-lg transition-all duration-500"
+                className="md:col-span-6 lg:col-span-8 group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 md:p-6 lg:p-8 shadow-sm hover:shadow-lg transition-all duration-500"
             >
                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity text-slate-900 dark:text-white" aria-hidden="true">
-                    <UsersIcon size={120} />
+                    <UsersIcon className="w-24 h-24 md:w-32 md:h-32" />
                 </div>
                 <div className="relative z-10">
                     <div className="w-12 h-12 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mb-6">
@@ -77,7 +77,7 @@ export const FeaturesGrid = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className="md:col-span-6 lg:col-span-4 group rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-900 dark:to-slate-950 p-8 shadow-sm hover:shadow-lg transition-all duration-500 overflow-hidden relative"
+                className="md:col-span-6 lg:col-span-4 group rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 dark:from-indigo-900 dark:to-slate-950 p-5 md:p-6 lg:p-8 shadow-sm hover:shadow-lg transition-all duration-500 overflow-hidden relative"
             >
                 <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-10 transition-opacity" aria-hidden="true" />
                 <div className="relative z-10 h-full flex flex-col justify-between">
@@ -105,12 +105,12 @@ export const FeaturesGrid = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
-                className="md:col-span-3 lg:col-span-4 group rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-lg transition-all duration-500"
+                className="md:col-span-3 lg:col-span-4 group rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 md:p-6 lg:p-8 shadow-sm hover:shadow-lg transition-all duration-500"
             >
-                <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4 md:mb-6">
                     <TableCellsIcon className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Workflow Automation</h3>
+                <h3 className="text-lg md:text-xl font-bold mb-3 text-slate-900 dark:text-white">Workflow Automation</h3>
                 <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
                     Set up custom triggers and actions. Automatically move cards based on status or assignee changes.
                 </p>
@@ -122,15 +122,15 @@ export const FeaturesGrid = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 }}
-                className="md:col-span-3 lg:col-span-4 group rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-lg transition-all duration-500"
+                className="md:col-span-3 lg:col-span-4 group rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 md:p-6 lg:p-8 shadow-sm hover:shadow-lg transition-all duration-500"
             >
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex items-start justify-between mb-4 md:mb-6">
                     <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 flex items-center justify-center">
                         <LockClosedIcon className="w-6 h-6" />
                     </div>
-                    <div className="px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase">SOC2 Type II</div>
+                    <div className="px-2 py-1 rounded-md bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 text-[10px] font-bold uppercase">SOC2</div>
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Enterprise Security</h3>
+                <h3 className="text-lg md:text-xl font-bold mb-3 text-slate-900 dark:text-white">Enterprise Security</h3>
                 <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
                     Bank-grade encryption, SSO, and granular role-based access controls to keep your data safe.
                 </p>
@@ -142,12 +142,12 @@ export const FeaturesGrid = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.4 }}
-                className="md:col-span-6 lg:col-span-4 group rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-8 shadow-sm hover:shadow-lg transition-all duration-500"
+                className="md:col-span-6 lg:col-span-4 group rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 md:p-6 lg:p-8 shadow-sm hover:shadow-lg transition-all duration-500"
             >
-                <div className="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-400 flex items-center justify-center mb-6">
+                <div className="w-12 h-12 rounded-xl bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-400 flex items-center justify-center mb-4 md:mb-6">
                     <ChartBarIcon className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-slate-900 dark:text-white">Deep Insights</h3>
+                <h3 className="text-lg md:text-xl font-bold mb-3 text-slate-900 dark:text-white">Deep Insights</h3>
                 <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
                     Visualize team velocity, burnback charts, and resource allocation with beautiful built-in charts.
                 </p>

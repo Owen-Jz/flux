@@ -178,11 +178,13 @@ export async function initializeTransaction(
 export async function initializeSubscription(
     email: string,
     planCode: string,
+    amountKobo: number,
     callbackUrl?: string
 ): Promise<InitializeTransactionResponse> {
     const result = await paystackFetch<InitializeTransactionResponse>('/transaction/initialize', 'POST', {
         email,
         plan: planCode,
+        amount: amountKobo,
         reference: `sub_${crypto.randomBytes(12).toString('hex')}`,
         callback_url: callbackUrl,
     });
@@ -347,9 +349,16 @@ export async function getNairaPrice(usdPrice: number): Promise<number> {
 
 // Legacy: Plan pricing in Naira (for reference)
 export const PLAN_PRICES = {
-    starter: 5000, // ₦5,000/month (~ $10)
-    pro: 15000,    // ₦15,000/month (~ $25)
-    enterprise: 50000, // ₦50,000/month (~ $100)
+    starter: 10000, // ₦10,000/month (~ $10)
+    pro: 25000,    // ₦25,000/month (~ $25)
+    enterprise: 50000, // ₦50,000/month (~ $50)
+};
+
+// Plan pricing in kobo (Paystack's smallest currency unit)
+export const PLAN_PRICES_KOBO = {
+    starter: 1000000, // ₦10,000 = 1,000,000 kobo
+    pro: 2500000,    // ₦25,000 = 2,500,000 kobo
+    enterprise: 5000000, // ₦50,000 = 5,000,000 kobo
 };
 
 // Plan limits

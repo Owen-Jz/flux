@@ -18,15 +18,15 @@ export function CTASection() {
   return (
     <section
       ref={containerRef}
-      className="py-24 lg:py-40 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 relative overflow-hidden"
+      className="py-24 lg:py-40 px-4 sm:px-6 lg:px-8 bg-[var(--background-subtle)] relative overflow-hidden"
       aria-labelledby="cta-heading"
     >
       {/* Background */}
       <div className="absolute inset-0" aria-hidden="true">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-100 dark:from-purple-900/20 via-slate-50 dark:via-slate-950 to-blue-100 dark:to-blue-900/20" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-purple-200/30 dark:bg-purple-500/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-200/20 dark:bg-blue-500/10 rounded-full blur-[100px]" />
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02] dark:opacity-[0.03]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary)]/10 via-[var(--background-subtle)] to-[var(--info-primary)]/10" />
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--brand-primary)]/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[var(--info-primary)]/10 rounded-full blur-[100px]" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
       </div>
 
       <motion.div
@@ -39,19 +39,19 @@ export function CTASection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-purple-100 dark:bg-purple-500/20 border border-purple-200 dark:border-purple-500/30 text-purple-700 dark:text-purple-400 text-xs font-bold uppercase tracking-widest mb-6">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 text-[var(--brand-primary)] text-xs font-bold uppercase tracking-widest mb-6">
             Get Started Today
           </span>
 
-          <h2 id="cta-heading" className="text-4xl lg:text-5xl xl:text-6xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">
+          <h2 id="cta-heading" className="text-4xl lg:text-5xl xl:text-6xl font-black text-[var(--text-primary)] mb-6 tracking-tight">
             Ready to transform
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 dark:from-purple-400 to-blue-600 dark:to-blue-400">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary)] to-[var(--info-primary)]">
               your workflow?
             </span>
           </h2>
 
-          <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto leading-relaxed">
             Join thousands of high-performing teams who rely on Flux to ship faster.
             No credit card required. Setup in minutes.
           </p>
@@ -60,7 +60,7 @@ export function CTASection() {
             {/* Primary CTA */}
             <Link
               href="/signup"
-              className="group relative px-8 py-4 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl text-base font-extrabold shadow-xl shadow-purple-500/25 hover:shadow-2xl hover:shadow-purple-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+              className="group relative px-8 py-4 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary)] text-[var(--text-inverse)] rounded-2xl text-base font-extrabold shadow-xl shadow-[var(--brand-primary)]/25 hover:shadow-2xl hover:shadow-[var(--brand-primary)]/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
             >
               <span className="flex items-center gap-2">
                 Start your free trial
@@ -70,24 +70,24 @@ export function CTASection() {
 
             <Link
               href="#contact"
-              className="px-8 py-4 bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-2xl text-base font-bold hover:bg-slate-50 dark:hover:bg-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex items-center gap-2 backdrop-blur-xl"
+              className="px-8 py-4 bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)] rounded-2xl text-base font-bold hover:bg-[var(--background-subtle)] hover:border-[var(--border-default)] transition-all flex items-center gap-2 backdrop-blur-xl"
             >
               Contact sales
             </Link>
           </div>
 
           {/* Trust indicators */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500 dark:text-slate-400">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-[var(--text-tertiary)]">
             <div className="flex items-center gap-2">
-              <CheckIcon className="w-4 h-4 text-purple-600 dark:text-purple-500" />
+              <CheckIcon className="w-4 h-4 text-[var(--brand-primary)]" />
               <span>Free for teams up to 5 members</span>
             </div>
             <div className="flex items-center gap-2">
-              <BoltIcon className="w-4 h-4 text-amber-500" />
+              <BoltIcon className="w-4 h-4 text-[var(--warning-primary)]" />
               <span>Setup in minutes</span>
             </div>
             <div className="flex items-center gap-2">
-              <ShieldCheckIcon className="w-4 h-4 text-blue-500" />
+              <ShieldCheckIcon className="w-4 h-4 text-[var(--info-primary)]" />
               <span>Cancel anytime</span>
             </div>
           </div>

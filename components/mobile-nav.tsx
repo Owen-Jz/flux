@@ -10,6 +10,11 @@ interface Workspace {
     id: string;
     name: string;
     slug: string;
+    icon?: {
+        type: 'upload' | 'emoji';
+        url?: string;
+        emoji?: string;
+    };
 }
 
 interface Board {

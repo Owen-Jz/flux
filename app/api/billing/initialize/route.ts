@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { auth } from '@/lib/auth';
-import { createCustomer, getCustomer, initializeSubscription, PLAN_CODES, PLAN_PRICES_USD, getNairaPrice, getExchangeRate } from '@/lib/paystack';
+import { createCustomer, getCustomer, initializeSubscription, PLAN_CODES, PLAN_PRICES_KOBO, PLAN_PRICES_USD, getNairaPrice, getExchangeRate } from '@/lib/paystack';
 
 // Initialize subscription checkout
 export async function POST(request: NextRequest) {
@@ -52,20 +52,22 @@ export async function POST(request: NextRequest) {
 
         // Initialize the subscription
         const planCode = PLAN_CODES[plan as keyof typeof PLAN_CODES];
+        const amountKobo = PLAN_PRICES_KOBO[plan as keyof typeof PLAN_PRICES_KOBO];
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-        // For test mode, we'll use the one-time payment approach
-        const reference = `sub_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+        // Build callback URL - redirect to settings page after payment
+        const callbackUrl = `${baseUrl}/settings?billing=success&plan=${plan}`;
 
         const transaction = await initializeSubscription(
             user.email,
             planCode,
-            `${baseUrl}/${user.email.split('@')[0]}/settings?billing=success&reference=${reference}`
+            amountKobo,
+            callbackUrl
         );
 
-        // Store reference temporarily for verification
+        // Store Paystack's reference for verification
         user.subscriptionPlanId = plan;
-        user.subscriptionId = reference;
+        user.subscriptionId = transaction.data.reference;
         await user.save();
 
         // Get pricing info for display

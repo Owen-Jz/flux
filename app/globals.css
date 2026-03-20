@@ -43,6 +43,9 @@
   --flux-border-default: var(--flux-light-border-default);
   --flux-border-strong: var(--flux-light-border-strong);
 
+  /* Skeleton */
+  --skeleton-highlight: var(--skeleton-light-highlight);
+
   /* Semantic - Success */
   --flux-success-bg: var(--flux-light-success-bg);
   --flux-success-bg-subtle: var(--flux-light-success-bg-subtle);
@@ -163,6 +166,9 @@
   --flux-border-subtle: var(--flux-dark-border-subtle);
   --flux-border-default: var(--flux-dark-border-default);
   --flux-border-strong: var(--flux-dark-border-strong);
+
+  /* Skeleton */
+  --skeleton-highlight: var(--skeleton-dark-highlight);
 
   /* Semantic - Success */
   --flux-success-bg: var(--flux-dark-success-bg);
@@ -736,20 +742,22 @@ body {
 
 @keyframes shimmer {
   0% {
-    background-position: -200% 0;
+    background-position: 200% 0;
   }
   100% {
-    background-position: 200% 0;
+    background-position: -200% 0;
   }
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg,
-    var(--flux-bg-subtle) 25%,
-    var(--flux-border-subtle) 37%,
-    var(--flux-bg-subtle) 63%);
-  background-size: 400% 100%;
-  animation: shimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base, var(--flux-bg-subtle)) 0%,
+    var(--skeleton-highlight, var(--flux-bg-subtle)) 50%,
+    var(--skeleton-base, var(--flux-bg-subtle)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
 @keyframes float {
@@ -975,12 +983,14 @@ body {
 
 /* Skeleton */
 .skeleton {
-  background: linear-gradient(90deg,
-    var(--flux-bg-subtle) 25%,
-    var(--flux-border-subtle) 37%,
-    var(--flux-bg-subtle) 63%);
-  background-size: 400% 100%;
-  animation: shimmer 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  background: linear-gradient(
+    90deg,
+    var(--skeleton-base, var(--flux-bg-subtle)) 0%,
+    var(--skeleton-highlight, var(--flux-bg-subtle)) 50%,
+    var(--skeleton-base, var(--flux-bg-subtle)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   border-radius: var(--flux-radius-md);
 }
 

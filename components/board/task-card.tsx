@@ -28,6 +28,8 @@ export interface TaskData {
         id: string;
         title: string;
         completed: boolean;
+        createdAt?: string;
+        createdBy?: Member;
     }[];
     comments?: {
         id: string;
@@ -422,49 +424,52 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
             <div className="flex-1" />
 
             {/* Footer */}
-            <div className="flex items-center justify-between mt-2 pt-2">
-                {/* Assignees */}
-                <div className="flex flex-wrap gap-2">
-                    {task.assignees.length > 0 ? (
-                        task.assignees.slice(0, 2).map((assignee) => (
-                            <div
-                                key={assignee.id}
-                                className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-[var(--background-subtle)] text-[10px] font-bold text-[var(--text-secondary)]"
-                            >
-                                <div className="w-3 h-3 rounded-full bg-[var(--background-subtle)] overflow-hidden flex-shrink-0">
-                                    {assignee.image ? (
-                                        <img
-                                            src={assignee.image}
-                                            alt=""
-                                            className="w-full h-full object-cover"
-                                            referrerPolicy="no-referrer"
-                                        />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-[var(--flux-info-bg)] text-[var(--flux-info-text-strong)] font-bold text-[7px]">
-                                            {assignee.name.charAt(0)}
-                                        </div>
-                                    )}
+            <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]">
+                {/* Top row: Assignees + Priority */}
+                <div className="flex items-center justify-between gap-2">
+                    {/* Assignees */}
+                    <div className="flex flex-wrap gap-1.5">
+                        {task.assignees.length > 0 ? (
+                            task.assignees.slice(0, 2).map((assignee) => (
+                                <div
+                                    key={assignee.id}
+                                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-[var(--background-subtle)] text-[10px] font-bold text-[var(--text-secondary)]"
+                                >
+                                    <div className="w-3 h-3 rounded-full bg-[var(--background-subtle)] overflow-hidden flex-shrink-0">
+                                        {assignee.image ? (
+                                            <img
+                                                src={assignee.image}
+                                                alt=""
+                                                className="w-full h-full object-cover"
+                                                referrerPolicy="no-referrer"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center bg-[var(--flux-info-bg)] text-[var(--flux-info-text-strong)] font-bold text-[7px]">
+                                                {assignee.name.charAt(0)}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className="truncate max-w-[35px]">{assignee.name.split(' ')[0]}</span>
                                 </div>
-                                <span className="truncate max-w-[40px]">{assignee.name.split(' ')[0]}</span>
+                            ))
+                        ) : (
+                            <div className="text-[9px] text-[var(--text-tertiary)] italic">Unassigned</div>
+                        )}
+                        {task.assignees.length > 2 && (
+                            <div className="px-1 py-0.5 rounded-full bg-[var(--background-subtle)] text-[9px] font-semibold text-[var(--text-secondary)]">
+                                +{task.assignees.length - 2}
                             </div>
-                        ))
-                    ) : (
-                        <div className="text-[9px] text-[var(--text-tertiary)] italic">Unassigned</div>
-                    )}
-                    {task.assignees.length > 2 && (
-                        <div className="px-1 py-0.5 rounded-full bg-[var(--background-subtle)] text-[9px] font-semibold text-[var(--text-secondary)]">
-                            +{task.assignees.length - 2}
-                        </div>
-                    )}
+                        )}
+                    </div>
+
+                    {/* Priority Badge */}
+                    <div className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${config.badge}`}>
+                        {priorityLabels[task.priority]}
+                    </div>
                 </div>
 
-                {/* Priority Badge */}
-                <div className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ml-auto ${config.badge}`}>
-                    {priorityLabels[task.priority]}
-                </div>
-
-                {/* Due Date & Links */}
-                <div className="flex items-center gap-2 mt-2">
+                {/* Bottom row: Due Date & Links */}
+                <div className="flex items-center gap-2">
                     {task.dueDate && (
                         <div className={`flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
                             new Date(task.dueDate) < new Date() && task.status !== 'DONE' && task.status !== 'ARCHIVED'
@@ -486,8 +491,6 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                         </div>
                     )}
                 </div>
-
-
             </div>
         </motion.div>
     );

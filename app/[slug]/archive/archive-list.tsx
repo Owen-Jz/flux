@@ -99,8 +99,8 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
                     </button>
                 </div>
             )}
-            <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left min-w-[600px]">
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+                <table className="w-full text-sm text-left min-w-[500px] md:min-w-[600px]">
                     <thead className="text-xs uppercase bg-[var(--background-subtle)] border-b border-[var(--border-subtle)]">
                         <tr>
                             <th className="px-6 py-3 font-medium">Task</th>

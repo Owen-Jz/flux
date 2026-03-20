@@ -17,6 +17,11 @@ export interface IWorkspace extends Document {
     settings: {
         publicAccess: boolean;
         accentColor?: string;
+        icon?: {
+            type: 'upload' | 'emoji';
+            url?: string;
+            emoji?: string;
+        };
     };
     members: IMember[];
     createdAt: Date;
@@ -41,6 +46,14 @@ const WorkspaceSchema = new Schema<IWorkspace>(
         settings: {
             publicAccess: { type: Boolean, default: false },
             accentColor: { type: String },
+            icon: {
+                type: {
+                    type: String,
+                    enum: ['upload', 'emoji'],
+                },
+                url: { type: String },
+                emoji: { type: String },
+            },
         },
         members: [
             {

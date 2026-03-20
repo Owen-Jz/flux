@@ -99,7 +99,7 @@ export function IssueDetailModal({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-2 sm:p-4"
                     >
                         {/* Modal */}
                         <motion.div
@@ -107,10 +107,10 @@ export function IssueDetailModal({
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-gray-100"
+                            className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col border border-gray-100"
                         >
                             {/* Header */}
-                            <div className="flex items-start justify-between p-8 border-b border-gray-100 bg-white">
+                            <div className="flex items-start justify-between p-4 md:p-6 lg:p-8 border-b border-gray-100 bg-white">
                                 <div className="flex-1 mr-4">
                                     <div className="flex items-center gap-3 mb-2">
                                         <span className="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 font-bold text-[10px] tracking-wider uppercase border border-slate-200 flex items-center gap-1.5">
@@ -140,7 +140,7 @@ export function IssueDetailModal({
                             </div>
 
                             {/* Body */}
-                            <div className="flex-1 overflow-y-auto p-8 bg-[#fdfdfd]">
+                            <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-[#fdfdfd]">
                                 <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
                                     {/* Main Content */}
                                     <div className="md:col-span-8 space-y-10">

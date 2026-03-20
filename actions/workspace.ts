@@ -93,6 +93,7 @@ export async function getWorkspaces() {
                 slug: w.slug,
                 publicAccess: w.settings?.publicAccess || false,
                 accentColor: w.settings?.accentColor,
+                icon: w.settings?.icon,
                 memberCount: w.members.length,
                 boardCount: stats.count,
                 lastActiveAt: stats.lastActive,
@@ -119,6 +120,7 @@ export async function getWorkspaceBySlug(slug: string) {
         ownerId: workspace.ownerId.toString(),
         publicAccess: workspace.settings?.publicAccess || false,
         accentColor: workspace.settings?.accentColor,
+        icon: workspace.settings?.icon,
         members: workspace.members.map((m: {
             userId: { _id: { toString: () => string }; name: string; email: string; image?: string } | { toString: () => string };
             role: string;
@@ -137,7 +139,7 @@ export async function getWorkspaceBySlug(slug: string) {
 
 export async function updateWorkspaceSettings(
     slug: string,
-    settings: { publicAccess?: boolean; accentColor?: string }
+    settings: { publicAccess?: boolean; accentColor?: string; icon?: { type: 'upload' | 'emoji'; url?: string; emoji?: string } | null }
 ) {
     const session = await auth();
     if (!session?.user?.id) {
@@ -146,12 +148,17 @@ export async function updateWorkspaceSettings(
 
     await connectDB();
 
+    // First verify user is admin
     const workspace = await Workspace.findOne({ slug });
     if (!workspace) {
         throw new Error('Workspace not found');
     }
 
-    // Check if user is owner (only owner can modify settings)
+    // Ensure settings object exists
+    if (!workspace.settings) {
+        workspace.settings = { publicAccess: false };
+    }
+
     const member = workspace.members.find(
         (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
     );
@@ -159,14 +166,34 @@ export async function updateWorkspaceSettings(
         throw new Error('Only the workspace admin can modify settings');
     }
 
+    // Build update object
+    const updateFields: Record<string, unknown> = {};
+
     if (settings.publicAccess !== undefined) {
-        workspace.settings.publicAccess = settings.publicAccess;
+        updateFields['settings.publicAccess'] = settings.publicAccess;
     }
     if (settings.accentColor !== undefined) {
-        workspace.settings.accentColor = settings.accentColor;
+        updateFields['settings.accentColor'] = settings.accentColor;
+    }
+    if (settings.icon !== undefined) {
+        if (settings.icon === null) {
+            updateFields['settings.icon'] = undefined;
+        } else {
+            // Build the complete icon object to avoid partial subdocument updates
+            updateFields['settings.icon'] = {
+                type: settings.icon.type,
+                url: settings.icon.url ?? null,
+                emoji: settings.icon.emoji ?? null,
+            };
+        }
     }
 
-    await workspace.save();
+    await Workspace.findOneAndUpdate(
+        { slug },
+        { $set: updateFields },
+        { new: true }
+    );
+
     revalidatePath(`/${slug}`);
 
     return { success: true };
