@@ -124,13 +124,13 @@ export function AnalyticsDashboard() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="bg-white dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6"
+            className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-6"
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-purple-500/10 dark:bg-blue-500/20 rounded-lg">
-                <ArrowTrendingUpIcon className="w-5 h-5 text-purple-600 dark:text-blue-400" />
+              <div className="p-2 bg-[var(--brand-primary)]/10 rounded-lg">
+                <ArrowTrendingUpIcon className="w-5 h-5 text-[var(--brand-primary)]" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Task Completion Trend</h3>
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">Task Completion Trend</h3>
             </div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -173,13 +173,13 @@ export function AnalyticsDashboard() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3, duration: 0.6 }}
-            className="bg-white dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6"
+            className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-6"
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-purple-500/10 dark:bg-purple-500/20 rounded-lg">
-                <BoltIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <div className="p-2 bg-[var(--brand-primary)]/10 rounded-lg">
+                <BoltIcon className="w-5 h-5 text-[var(--brand-primary)]" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Team Velocity</h3>
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">Team Velocity</h3>
             </div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -212,13 +212,13 @@ export function AnalyticsDashboard() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="bg-white dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6"
+            className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-6"
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-purple-500/10 dark:bg-purple-500/20 rounded-lg">
-                <CheckCircleIcon className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <div className="p-2 bg-[var(--brand-primary)]/10 rounded-lg">
+                <CheckCircleIcon className="w-5 h-5 text-[var(--brand-primary)]" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Task Distribution</h3>
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">Task Distribution</h3>
             </div>
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -258,15 +258,15 @@ export function AnalyticsDashboard() {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.5, duration: 0.6 }}
-            className="bg-white dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700/50 p-6"
+            className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-6"
           >
             <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-amber-500/10 dark:bg-amber-500/20 rounded-lg">
-                <UsersIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+              <div className="p-2 bg-[var(--warning-primary)]/10 rounded-lg">
+                <UsersIcon className="w-5 h-5 text-[var(--warning-primary)]" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Live Activity</h3>
-              <span className="ml-auto flex items-center gap-2 text-xs text-purple-400">
-                <span className="w-2 h-2 rounded-full bg-purple-400 animate-pulse" />
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">Live Activity</h3>
+              <span className="ml-auto flex items-center gap-2 text-xs text-[var(--brand-primary)]">
+                <span className="w-2 h-2 rounded-full bg-[var(--brand-primary)] animate-pulse" />
                 Live
               </span>
             </div>
@@ -278,18 +278,18 @@ export function AnalyticsDashboard() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.6 + index * 0.1 }}
-                  className="flex items-center gap-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/30 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors"
+                  className="flex items-center gap-4 p-3 rounded-xl bg-[var(--background-subtle)] hover:bg-[var(--border-subtle)] transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--info-primary)] to-[var(--brand-primary)] flex items-center justify-center text-[var(--text-inverse)] font-bold text-sm">
                     {activity.user.split(" ").map((n) => n[0]).join("")}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-slate-700 dark:text-slate-300">
-                      <span className="font-semibold text-slate-900 dark:text-white">{activity.user}</span>{" "}
+                    <p className="text-sm text-[var(--text-secondary)]">
+                      <span className="font-semibold text-[var(--text-primary)]">{activity.user}</span>{" "}
                       {activity.action}{" "}
-                      <span className="text-purple-600 dark:text-blue-400">{activity.task}</span>
+                      <span className="text-[var(--brand-primary)]">{activity.task}</span>
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-500">{activity.time}</p>
+                    <p className="text-xs text-[var(--text-tertiary)]">{activity.time}</p>
                   </div>
                 </motion.div>
               ))}

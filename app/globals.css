@@ -1048,6 +1048,72 @@ body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif !important;
 }
 
+/* ============================================
+   HORIZONTAL SCROLL UTILITIES
+   ============================================ */
+
+/* Gradient fade mask for horizontal scroll containers */
+.mask-gradient {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0px,
+    black 12px,
+    black calc(100% - 12px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0px,
+    black 12px,
+    black calc(100% - 12px),
+    transparent 100%
+  );
+}
+
+/* On very small screens, reduce fade distance */
+@media (max-width: 380px) {
+  .mask-gradient {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0px,
+      black 8px,
+      black calc(100% - 8px),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0px,
+      black 8px,
+      black calc(100% - 8px),
+      transparent 100%
+    );
+  }
+}
+
+/* Hide scrollbar but keep functionality on mobile */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth momentum scrolling on iOS */
+.snap-x {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Active scroll shadow indicators */
+.scroll-shadow-left {
+  box-shadow: inset 12px 0 16px -12px rgba(0, 0, 0, 0.15);
+}
+
+.scroll-shadow-right {
+  box-shadow: inset -12px 0 16px -12px rgba(0, 0, 0, 0.15);
+}
+
 .driver-popover-arrow {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif !important;
 }

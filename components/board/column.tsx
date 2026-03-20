@@ -69,7 +69,7 @@ export function Column({
             {/* Task List - scrollable container */}
             <div
                 ref={setNodeRef}
-                className={`flex-1 flex flex-col gap-2 relative p-1.5 rounded-xl transition-all duration-200 min-h-[100px] overflow-y-hidden ${
+                className={`flex-1 flex flex-col gap-2 relative p-1.5 rounded-xl transition-all duration-200 min-h-[100px] overflow-y-auto md:overflow-y-hidden ${
                     isOver
                         ? 'bg-[var(--brand-primary)]/10 ring-2 ring-[var(--brand-primary)]/30 scale-[1.01]'
                         : 'bg-[var(--background-subtle)]/50'

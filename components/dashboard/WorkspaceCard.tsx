@@ -79,8 +79,10 @@ export function WorkspaceCard({
                 <div className="flex items-start gap-4">
                     {/* Avatar Circle */}
                     <div
-                        className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl font-bold text-white shadow-lg overflow-hidden"
-                        style={{ background: gradient }}
+                        className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl font-bold shadow-lg overflow-hidden ${
+                            icon?.type === 'upload' ? '' : 'text-white'
+                        }`}
+                        style={icon?.type === 'upload' ? {} : { background: gradient }}
                     >
                         {icon?.type === 'emoji' ? (
                             <span className="text-3xl">{icon.emoji}</span>

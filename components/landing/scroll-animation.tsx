@@ -71,8 +71,8 @@ export function LandingPageAnimation() {
                                         key={item.name}
                                         className={`h-10 w-full rounded-lg flex items-center px-3 text-sm font-medium ${
                                             item.active
-                                                ? "bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 shadow-sm text-purple-600 dark:text-purple-400"
-                                                : "text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-colors"
+                                                ? "bg-[var(--surface)] border border-[var(--border-subtle)] shadow-sm text-[var(--brand-primary)]"
+                                                : "text-[var(--text-tertiary)] hover:bg-[var(--background-subtle)] transition-colors"
                                         }`}
                                     >
                                         {item.name}
@@ -83,47 +83,50 @@ export function LandingPageAnimation() {
 
                         {/* Content Area */}
                         <div className="flex-1 flex flex-col min-w-0">
-                            <header className="h-14 border-b border-slate-200 dark:border-slate-700 px-6 lg:px-8 flex items-center justify-between bg-white dark:bg-slate-800/50">
+                            <header className="h-14 border-b border-[var(--border-subtle)] px-6 lg:px-8 flex items-center justify-between bg-[var(--surface)]">
                                 <div className="flex items-center gap-4">
-                                    <h3 className="font-bold text-slate-800 dark:text-white">Product Roadmap 2026</h3>
-                                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-600 mx-2" />
+                                    <h3 className="font-bold text-[var(--text-primary)]">Product Roadmap 2026</h3>
+                                    <div className="h-6 w-px bg-[var(--border-subtle)] mx-2 hidden sm:block" />
                                     <div className="flex -space-x-2">
                                         {[1, 2, 3, 4].map(i => (
-                                            <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-800 bg-slate-200 dark:bg-slate-600" />
+                                            <div key={i} className="w-8 h-8 rounded-full border-2 border-[var(--surface)] bg-[var(--background-subtle)]" />
                                         ))}
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
-                                    <div className="h-9 w-24 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg shadow-sm" />
-                                    <div className="h-9 w-28 bg-purple-600 rounded-lg shadow-lg shadow-purple-600/20" />
+                                    <div className="h-9 w-24 bg-[var(--background-subtle)] border border-[var(--border-subtle)] rounded-lg shadow-sm" />
+                                    <div className="h-9 w-28 bg-[var(--brand-primary)] rounded-lg shadow-lg shadow-[var(--brand-primary)]/20" />
                                 </div>
                             </header>
 
-                            <div className="flex-1 p-5 lg:p-8 bg-slate-50/30 dark:bg-slate-800/30 overflow-hidden">
-                                <div className="flex gap-5 lg:gap-6 h-full overflow-x-auto pb-4">
+                            <div className="flex-1 p-4 sm:p-5 lg:p-8 bg-[var(--background-subtle)] overflow-hidden">
+                                {/* Horizontal scroll container for kanban columns on mobile */}
+                                <div className="flex gap-3 sm:gap-4 lg:gap-5 h-full overflow-x-auto pb-2 snap-x">
                                     {[
-                                        { label: "Research", count: 4, color: "bg-orange-400" },
-                                        { label: "Design", count: 2, color: "bg-purple-400" },
-                                        { label: "Development", count: 6, color: "bg-blue-400" }
+                                        { label: "Backlog", count: 6, color: "bg-[var(--text-tertiary)]" },
+                                        { label: "To Do", count: 4, color: "bg-blue-500" },
+                                        { label: "In Progress", count: 3, color: "bg-amber-500" },
+                                        { label: "Review", count: 2, color: "bg-purple-500" },
+                                        { label: "Done", count: 8, color: "bg-emerald-500" }
                                     ].map((col, idx) => (
-                                        <div key={idx} className="w-72 lg:w-80 flex-shrink-0 flex flex-col gap-3 lg:gap-4">
+                                        <div key={idx} className="w-48 sm:w-52 lg:w-60 flex-shrink-0 flex flex-col gap-2 lg:gap-3 snap-start">
                                             <div className="flex items-center justify-between px-1">
                                                 <div className="flex items-center gap-2">
                                                     <div className={`w-2 h-2 rounded-full ${col.color}`} />
-                                                    <span className="font-bold text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">{col.label}</span>
+                                                    <span className="font-bold text-[10px] sm:text-xs uppercase tracking-wider text-[var(--text-tertiary)]">{col.label}</span>
                                                 </div>
-                                                <span className="text-[10px] bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-1.5 py-0.5 rounded-md font-bold text-slate-600 dark:text-slate-300">{col.count}</span>
+                                                <span className="text-[10px] bg-[var(--surface)] border border-[var(--border-subtle)] px-1.5 py-0.5 rounded-md font-bold text-[var(--text-secondary)]">{col.count}</span>
                                             </div>
                                             {[1, 2].map(card => (
-                                                <div key={card} className="bg-white dark:bg-slate-700/50 p-4 lg:p-5 rounded-xl border border-slate-200 dark:border-slate-600 shadow-sm hover:-translate-y-0.5 transition-transform duration-300">
-                                                    <div className="h-3 w-3/4 bg-slate-100 dark:bg-slate-600 rounded mb-3" />
-                                                    <div className="h-2 w-1/2 bg-slate-50 dark:bg-slate-700 rounded mb-4" />
-                                                    <div className="flex justify-between items-center pt-2">
+                                                <div key={card} className="bg-[var(--surface)] p-3 sm:p-4 lg:p-5 rounded-xl border border-[var(--border-subtle)] shadow-sm">
+                                                    <div className="h-2.5 sm:h-3 w-3/4 bg-[var(--background-subtle)] rounded mb-2 sm:mb-3" />
+                                                    <div className="h-2 w-1/2 bg-[var(--background-subtle)] rounded mb-3 sm:mb-4" />
+                                                    <div className="flex justify-between items-center pt-1 sm:pt-2">
                                                         <div className="flex gap-1">
-                                                            <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-600" />
-                                                            <div className="w-5 h-5 rounded-full bg-slate-100 dark:bg-slate-600" />
+                                                            <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[var(--background-subtle)]" />
+                                                            <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[var(--background-subtle)]" />
                                                         </div>
-                                                        <div className="h-4 w-12 bg-slate-50 dark:bg-slate-600 rounded" />
+                                                        <div className="h-3 sm:h-4 w-10 sm:w-12 bg-[var(--background-subtle)] rounded" />
                                                     </div>
                                                 </div>
                                             ))}

@@ -91,7 +91,14 @@
       "Bash(curl -s -X POST \"https://api.paystack.co/customer\" \\\\\n  -H \"Authorization: Bearer [PAYSTACK_LIVE_KEY]\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"email\":\"test@example.com\",\"first_name\":\"Test\",\"last_name\":\"User\"}')",
       "Bash(curl -s -X POST \"https://api.paystack.co/transaction/initialize\" \\\\\n  -H \"Authorization: Bearer [PAYSTACK_LIVE_KEY]\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"customer\":\"CUS_f17nlvycl5zhakh\",\"plan\":\"PLN_mtt63o01umre02a\"}')",
       "Bash(curl -s -X POST \"https://api.paystack.co/transaction/initialize\" \\\\\n  -H \"Authorization: Bearer [PAYSTACK_LIVE_KEY]\" \\\\\n  -H \"Content-Type: application/json\" \\\\\n  -d '{\"customer\":\"CUS_f17nlvycl5zhakh\",\"plan\":\"PLN_mtt63o01umre02a\",\"amount\":2500000}')",
-      "Bash(git clone:*)"
+      "Bash(git clone:*)",
+      "Bash(sleep 5 && curl -s http://localhost:3000 > /dev/null && echo \"Server is up\")",
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/board/board.tsx components/board/column.tsx --max-warnings=100 2>&1 | head -30)",
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/board/column.tsx --max-warnings=100 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx stylelint app/globals.css 2>&1 | head -20)",
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/landing/scroll-animation.tsx components/landing/hero-preview.tsx --max-warnings=50 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/landing/hero-preview.tsx --max-warnings=50 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/dashboard/WorkspaceCard.tsx --max-warnings=50 2>&1)"
     ]
   }
 }

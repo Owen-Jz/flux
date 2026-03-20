@@ -820,10 +820,10 @@ export function Board({
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 modifiers={searchQuery ? [] : undefined}
             >
-                {/* Responsive columns container - all columns fit within viewport */}
-                <div className="flex gap-2 md:gap-3 pb-4 w-full min-w-0">
+                {/* Responsive columns container - horizontal scroll on mobile, grid on desktop */}
+                <div className="flex gap-2 md:gap-3 w-full min-w-0 overflow-x-auto pb-4 md:pb-0 md:overflow-visible snap-x snap-mandatory md:snap-none scroll-px-4 md:scroll-px-0 -mx-4 px-4 md:mx-0 md:px-0 mask-gradient">
                     {columns.map((column) => (
-                        <div key={column.id} className="flex flex-col flex-1 min-w-[140px] sm:min-w-[160px] md:min-w-[200px] max-w-[280px] md:max-w-[320px]">
+                        <div key={column.id} className="flex flex-col flex-shrink-0 w-[280px] md:flex-1 md:min-w-[160px] md:max-w-[320px] snap-start first:snap-none">
                             <Column
                                 id={column.id}
                                 title={column.title}
