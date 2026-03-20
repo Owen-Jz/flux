@@ -38,7 +38,6 @@ export default async function DashboardPage() {
                     {workspaces.map((workspace) => (
                         <WorkspaceCard
                             key={workspace.id}
-                            id={workspace.id}
                             name={workspace.name}
                             slug={workspace.slug}
                             accentColor={workspace.accentColor}

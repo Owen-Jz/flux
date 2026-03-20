@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 interface WorkspaceCardProps {
-    id: string;
     name: string;
     slug: string;
     accentColor?: string;
