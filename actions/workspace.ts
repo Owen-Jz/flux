@@ -3,6 +3,8 @@
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Workspace } from '@/models/Workspace';
+import { Board } from '@/models/Board';
+import { Task } from '@/models/Task';
 import { User } from '@/models/User';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
@@ -54,15 +56,49 @@ export async function getWorkspaces() {
     const workspaces = await Workspace.find({
         'members.userId': session.user.id,
     })
-        .select('name slug settings')
+        .select('name slug settings updatedAt members')
         .lean();
 
-    return workspaces.map((w) => ({
-        id: w._id.toString(),
-        name: w.name,
-        slug: w.slug,
-        publicAccess: w.settings?.publicAccess || false,
-    }));
+    // Get board counts and most recent activity per workspace
+    const workspaceIds = workspaces.map((w) => w._id);
+    const boards = await Board.find({
+        workspaceId: { $in: workspaceIds },
+    })
+        .select('workspaceId updatedAt')
+        .lean();
+
+    // Aggregate board stats per workspace
+    const boardStats = boards.reduce(
+        (acc, board) => {
+            const wid = board.workspaceId.toString();
+            if (!acc[wid]) {
+                acc[wid] = { count: 0, lastActive: new Date(0) };
+            }
+            acc[wid].count += 1;
+            if (board.updatedAt > acc[wid].lastActive) {
+                acc[wid].lastActive = board.updatedAt;
+            }
+            return acc;
+        },
+        {} as Record<string, { count: number; lastActive: Date }>
+    );
+
+    return workspaces
+        .map((w) => {
+            const wid = w._id.toString();
+            const stats = boardStats[wid] || { count: 0, lastActive: w.updatedAt };
+            return {
+                id: wid,
+                name: w.name,
+                slug: w.slug,
+                publicAccess: w.settings?.publicAccess || false,
+                accentColor: w.settings?.accentColor,
+                memberCount: w.members.length,
+                boardCount: stats.count,
+                lastActiveAt: stats.lastActive,
+            };
+        })
+        .sort((a, b) => b.lastActiveAt.getTime() - a.lastActiveAt.getTime());
 }
 
 export async function getWorkspaceBySlug(slug: string) {
@@ -247,6 +283,13 @@ export async function removeMember(slug: string, memberId: string) {
     );
 
     await workspace.save();
+
+    // Remove member from all task assignments in this workspace
+    await Task.updateMany(
+        { workspaceId: workspace._id, assignees: memberId },
+        { $pull: { assignees: memberId } }
+    );
+
     revalidatePath(`/${slug}`);
     revalidatePath(`/${slug}/team`);
 
