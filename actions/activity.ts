@@ -231,3 +231,54 @@ export async function getUnreadActivityCount(workspaceSlug: string) {
 
     return count;
 }
+
+export async function getUnreadActivityCountForBoard(workspaceSlug: string, boardSlug: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return 0;
+    }
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) return 0;
+
+    const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
+    if (!board) return 0;
+
+    const count = await ActivityLog.countDocuments({
+        workspaceId: workspace._id,
+        boardId: board._id,
+        read: false,
+    });
+
+    return count;
+}
+
+export async function markAllActivitiesAsReadForBoard(workspaceSlug: string, boardSlug: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false };
+    }
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) return { success: false };
+
+    // Verify user is a member
+    const isMember = workspace.members.some(
+        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
+    );
+    if (!isMember) return { success: false };
+
+    const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
+    if (!board) return { success: false };
+
+    await ActivityLog.updateMany(
+        { workspaceId: workspace._id, boardId: board._id, read: false },
+        { read: true }
+    );
+
+    return { success: true };
+}
