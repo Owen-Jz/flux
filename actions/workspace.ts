@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/db';
 import { Workspace } from '@/models/Workspace';
 import { Board } from '@/models/Board';
 import { Task } from '@/models/Task';
+import { ActivityLog } from '@/models/ActivityLog';
 import { User } from '@/models/User';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
@@ -100,6 +101,46 @@ export async function getWorkspaces() {
             };
         })
         .sort((a, b) => b.lastActiveAt.getTime() - a.lastActiveAt.getTime());
+}
+
+export async function getWorkspaceUnreadCounts(workspaceSlugs: string[]) {
+    const session = await auth();
+    if (!session?.user?.id || workspaceSlugs.length === 0) {
+        return {};
+    }
+
+    await connectDB();
+
+    const workspaces = await Workspace.find({
+        slug: { $in: workspaceSlugs },
+        'members.userId': session.user.id,
+    }).select('_id slug').lean();
+
+    if (workspaces.length === 0) return {};
+
+    const workspaceIds = workspaces.map(w => w._id);
+    const unreadCounts = await ActivityLog.aggregate([
+        {
+            $match: {
+                workspaceId: { $in: workspaceIds },
+                read: false,
+            },
+        },
+        {
+            $group: {
+                _id: '$workspaceId',
+                count: { $sum: 1 },
+            },
+        },
+    ]);
+
+    const slugToCount: Record<string, number> = {};
+    unreadCounts.forEach(entry => {
+        const ws = workspaces.find(w => w._id.toString() === entry._id.toString());
+        if (ws) slugToCount[ws.slug] = entry.count;
+    });
+
+    return slugToCount;
 }
 
 export async function getWorkspaceBySlug(slug: string) {
