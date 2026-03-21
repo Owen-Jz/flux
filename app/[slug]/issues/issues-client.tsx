@@ -202,7 +202,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
     };
 
     return (
-        <div className="h-full flex flex-col bg-[var(--background)]">
+        <div className="h-full flex flex-col bg-[var(--background)] overflow-x-hidden">
             {/* Error Toast */}
             {error && (
                 <div className="fixed top-4 right-4 z-50 max-w-md">
@@ -268,7 +268,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
             </div>
 
             {/* List */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6">
                 <div className="max-w-5xl mx-auto space-y-3">
                     {filteredIssues.length === 0 ? (
                         <div className="text-center py-20 text-gray-400">

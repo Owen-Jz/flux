@@ -24,7 +24,7 @@ export default async function AnalyticsPage({
     const analytics = await getWorkspaceAnalytics(workspace.id.toString());
 
     return (
-        <div className="p-4 md:p-8 max-w-5xl lg:max-w-7xl mx-auto overflow-y-auto">
+        <div className="p-4 md:p-8 max-w-5xl lg:max-w-7xl mx-auto overflow-y-auto overflow-x-hidden">
             <div className="mb-6 md:mb-8">
                 <h1 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-2">Analytics</h1>
                 <p className="text-[var(--text-secondary)]">

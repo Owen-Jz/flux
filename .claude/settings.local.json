@@ -98,7 +98,9 @@
       "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx stylelint app/globals.css 2>&1 | head -20)",
       "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/landing/scroll-animation.tsx components/landing/hero-preview.tsx --max-warnings=50 2>&1)",
       "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/landing/hero-preview.tsx --max-warnings=50 2>&1)",
-      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/dashboard/WorkspaceCard.tsx --max-warnings=50 2>&1)"
+      "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/dashboard/WorkspaceCard.tsx --max-warnings=50 2>&1)",
+      "Bash(find \"C:/Users/owen/Downloads/Projects/flux/app/[slug]\" -name \"page.tsx\" 2>/dev/null | head -20)",
+      "Bash(find \"C:/Users/owen/Downloads/Projects/flux/components\" -name \"sidebar*\" -type f 2>/dev/null | head -10)"
     ]
   }
 }

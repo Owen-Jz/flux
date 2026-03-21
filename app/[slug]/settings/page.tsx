@@ -22,8 +22,8 @@ export default async function SettingsPage({
     // Only ADMIN can access settings
     if (userRole !== 'ADMIN') {
         return (
-            <div className="p-8 max-w-3xl mx-auto">
-                <div className="card p-12 text-center">
+            <div className="p-4 md:p-8 max-w-3xl mx-auto">
+                <div className="card p-6 md:p-12 text-center">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-6">
                         <LockClosedIcon className="w-8 h-8 text-red-500" />
                     </div>

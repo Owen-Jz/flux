@@ -15,6 +15,7 @@ interface WorkspaceCardProps {
     memberCount: number;
     boardCount: number;
     lastActiveAt: Date;
+    hasUnread?: boolean;
 }
 
 // Generate a deterministic gradient from workspace name
@@ -61,6 +62,7 @@ export function WorkspaceCard({
     memberCount,
     boardCount,
     lastActiveAt,
+    hasUnread,
 }: WorkspaceCardProps) {
     const { from, to } = getGradient(name, accentColor);
     const gradient = `linear-gradient(135deg, ${from} 0%, ${to} 100%)`;
@@ -78,18 +80,23 @@ export function WorkspaceCard({
             >
                 <div className="flex items-start gap-4">
                     {/* Avatar Circle */}
-                    <div
-                        className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 text-xl font-bold shadow-lg overflow-hidden ${
-                            icon?.type === 'upload' ? '' : 'text-white'
-                        }`}
-                        style={icon?.type === 'upload' ? {} : { background: gradient }}
-                    >
-                        {icon?.type === 'emoji' ? (
-                            <span className="text-3xl">{icon.emoji}</span>
-                        ) : icon?.type === 'upload' ? (
-                            <img src={icon.url} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                            initial
+                    <div className="relative flex-shrink-0">
+                        <div
+                            className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold shadow-lg overflow-hidden ${
+                                icon?.type === 'upload' ? '' : 'text-white'
+                            }`}
+                            style={icon?.type === 'upload' ? {} : { background: gradient }}
+                        >
+                            {icon?.type === 'emoji' ? (
+                                <span className="text-3xl">{icon.emoji}</span>
+                            ) : icon?.type === 'upload' ? (
+                                <img src={icon.url} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                                initial
+                            )}
+                        </div>
+                        {hasUnread && (
+                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-[var(--error-primary)] rounded-full border-2 border-[var(--surface)]" />
                         )}
                     </div>
 

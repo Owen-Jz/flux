@@ -95,7 +95,7 @@ export default async function WorkspaceLayout({
             )}
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col relative overflow-y-auto">
+            <main className="flex-1 flex flex-col relative overflow-y-auto overflow-x-hidden">
                 {/* Note: WorkspaceHeader moved to individual pages with integrated navigation */}
 
                 {/* Public viewer banner */}

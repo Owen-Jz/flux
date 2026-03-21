@@ -3,8 +3,10 @@ import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoardBySlug } from '@/actions/board';
 import { getTasks } from '@/actions/task';
 import { getUserRole } from '@/actions/access-control';
+import { getUnreadActivityCountForBoard, markAllActivitiesAsReadForBoard } from '@/actions/activity';
 import { Board } from '@/components/board';
 import { SocketProvider } from '@/contexts/socket-context';
+import { BoardUnreadDot } from './board-unread-dot';
 
 // Prevent caching to ensure fresh category data
 export const dynamic = 'force-dynamic';
@@ -69,6 +71,7 @@ export default async function BoardPage({
                         boardColor={board.color}
                         categories={board.categories}
                         currentUserId={session?.user?.id}
+                        hasUnread={<BoardUnreadDot workspaceSlug={slug} boardSlug={boardSlug} />}
                     />
                 </SocketProvider>
             </div>

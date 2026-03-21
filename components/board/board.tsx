@@ -41,6 +41,7 @@ interface BoardProps {
     boardColor?: string;
     categories?: { id: string; name: string; color: string }[];
     currentUserId?: string;
+    hasUnread?: React.ReactNode;
 }
 
 type ColumnId = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
@@ -65,6 +66,7 @@ export function Board({
     boardColor = '#3b82f6',
     categories = [],
     currentUserId,
+    hasUnread,
 }: BoardProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterMyTasks, setFilterMyTasks] = useState(false);
@@ -618,8 +620,9 @@ export function Board({
                             className="w-3 h-3 md:w-3.5 md:h-3.5 rounded-full flex-shrink-0 ring-2 ring-[var(--background)]"
                             style={{ backgroundColor: boardColor }}
                         />
-                        <h1 className="text-lg md:text-xl font-bold text-[var(--foreground)] tracking-tight truncate">
-                            {boardName}
+                        <h1 className="text-lg md:text-xl font-bold text-[var(--foreground)] tracking-tight truncate flex items-center gap-2">
+                            <span>{boardName}</span>
+                            {hasUnread}
                         </h1>
                     </div>
                 </div>

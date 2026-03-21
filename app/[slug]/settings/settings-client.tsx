@@ -89,7 +89,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     };
 
     return (
-        <div className="p-8 pt-16 max-w-3xl mx-auto">
+        <div className="p-4 md:p-8 pt-12 md:pt-16 max-w-3xl mx-auto overflow-x-hidden">
             {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
                     <ExclamationCircleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />

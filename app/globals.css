@@ -358,6 +358,7 @@ html {
   /* Default to light if no theme is set */
   background: var(--flux-bg, #fafafa);
   color: var(--flux-fg, #18181b);
+  overflow-x: hidden;
 }
 
 /* Base body styles with smooth theme transition */
@@ -366,6 +367,7 @@ body {
   color: var(--flux-fg);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
   -moz-osx-font-smoothing: grayscale;
   /* Smooth theme transitions for colors */
   transition:

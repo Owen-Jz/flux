@@ -2,10 +2,12 @@ import { auth } from '@/lib/auth';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoards } from '@/actions/board';
 import { getUserRole, hasPendingRequest } from '@/actions/access-control';
+import { getUnreadActivityCount, markAllActivitiesAsRead } from '@/actions/activity';
 import Link from 'next/link';
 import { Squares2X2Icon, PlusIcon, EyeIcon } from '@heroicons/react/24/outline';
 import { RequestAccessButton } from '@/components/RequestAccessButton';
 import BoardGrid from '@/components/BoardGrid';
+import { WorkspaceUnreadDot } from './workspace-unread-dot';
 
 export default async function WorkspacePage({
     params,
@@ -33,10 +35,13 @@ export default async function WorkspacePage({
     const isViewer = userRole === 'VIEWER' || (!userRole && workspace.publicAccess);
 
     return (
-        <div className="p-8 max-w-5xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+        <div className="p-4 md:p-8 max-w-5xl mx-auto overflow-x-hidden">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">{workspace.name}</h1>
+                    <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2 flex items-center gap-2">
+    {workspace.name}
+    <WorkspaceUnreadDot workspaceSlug={slug} />
+</h1>
                     <div className="flex items-center gap-3">
                         <p className="text-[var(--text-secondary)]">
                             {boards.length} board{boards.length !== 1 ? 's' : ''} in this workspace

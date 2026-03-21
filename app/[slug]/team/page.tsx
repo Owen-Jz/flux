@@ -25,11 +25,11 @@ export default async function TeamPage({
     const isViewer = userRole === 'VIEWER' || (!userRole && workspace.publicAccess);
 
     return (
-        <div className="p-8 max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-8">
+        <div className="p-4 md:p-8 max-w-4xl mx-auto overflow-x-hidden">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-[var(--foreground)]">Team</h1>
-                    <p className="text-[var(--text-secondary)]">Manage your workspace collaborators</p>
+                    <p className="text-[var(--text-secondary)] hidden sm:block">Manage your workspace collaborators</p>
                 </div>
                 <div className="flex items-center gap-2">
                     {isViewer && !hasPending && session?.user && (
@@ -46,7 +46,7 @@ export default async function TeamPage({
 
             {/* Pending Access Requests - Only visible to admin */}
             {isAdmin && accessRequests.length > 0 && (
-                <div className="mb-8">
+                <div className="mb-6 md:mb-8">
                     <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                         <span className="inline-flex items-center justify-center w-6 h-6 bg-amber-500 text-white rounded-full text-xs font-bold">
                             {accessRequests.length}
@@ -60,14 +60,14 @@ export default async function TeamPage({
                 </div>
             )}
 
-            <div className="card overflow-hidden">
-                <table className="w-full text-left">
+            <div className="card overflow-x-auto">
+                <table className="w-full text-left min-w-[500px]">
                     <thead>
                         <tr className="bg-[var(--surface)] border-b border-[var(--border-subtle)]">
-                            <th className="px-6 py-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Member</th>
-                            <th className="px-6 py-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Role</th>
+                            <th className="px-4 md:px-6 py-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Member</th>
+                            <th className="px-4 md:px-6 py-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Role</th>
                             {isAdmin && (
-                                <th className="px-6 py-4 text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</th>
+                                <th className="px-4 md:px-6 py-4 text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</th>
                             )}
                         </tr>
                     </thead>
@@ -84,7 +84,7 @@ export default async function TeamPage({
                 </table>
             </div>
 
-            <div className="mt-8 p-6 rounded-2xl bg-[var(--brand-primary)]/5 border border-[var(--brand-primary)]/10">
+            <div className="mt-6 md:mt-8 p-4 md:p-6 rounded-2xl bg-[var(--brand-primary)]/5 border border-[var(--brand-primary)]/10">
                 <div className="flex items-start gap-4">
                     <div className="p-2 rounded-lg bg-[var(--brand-primary)] text-white">
                         <UsersIcon className="w-5 h-5" />

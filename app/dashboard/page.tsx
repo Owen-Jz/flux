@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { auth } from '@/lib/auth';
-import { getWorkspaces } from '@/actions/workspace';
+import { getWorkspaceUnreadCounts, getWorkspaces } from '@/actions/workspace';
 import { WorkspaceCard } from '@/components/dashboard/WorkspaceCard';
 import { EmptyWorkspaces } from '@/components/dashboard/EmptyWorkspaces';
 
@@ -13,6 +13,8 @@ export default async function DashboardPage() {
     }
 
     const workspaces = await getWorkspaces();
+
+    const unreadCounts = await getWorkspaceUnreadCounts(workspaces.map(w => w.slug));
 
     // Empty state — no workspaces
     if (workspaces.length === 0) {
@@ -27,7 +29,7 @@ export default async function DashboardPage() {
     const userName = session.user.name?.split(' ')[0] || 'there';
 
     return (
-        <div className="min-h-screen bg-[var(--background)]">
+        <div className="min-h-screen bg-[var(--background)] overflow-x-hidden">
             {/* Decorative background pattern */}
             <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
                 <div
@@ -39,17 +41,17 @@ export default async function DashboardPage() {
                 />
             </div>
 
-            <div className="max-w-6xl mx-auto px-6 py-10">
+            <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-10">
                 {/* Header */}
-                <div className="flex items-start justify-between mb-10">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 md:mb-10 gap-4">
                     <div>
                         <p className="text-sm font-medium text-[var(--flux-brand-primary)] mb-1">
                             Dashboard
                         </p>
-                        <h1 className="text-3xl font-bold text-[var(--text-primary)]">
+                        <h1 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
                             Your Workspaces
                         </h1>
-                        <p className="text-[var(--text-secondary)] mt-1">
+                        <p className="text-[var(--text-secondary)] mt-1 hidden sm:block">
                             Welcome back, {userName}. Select a workspace to continue.
                         </p>
                     </div>
@@ -67,23 +69,23 @@ export default async function DashboardPage() {
                 </div>
 
                 {/* Stats summary */}
-                <div className="grid grid-cols-3 gap-4 mb-8 max-w-md">
-                    <div className="px-4 py-3 rounded-xl bg-[var(--flux-surface)] border border-[var(--flux-border-subtle)]">
-                        <p className="text-2xl font-bold text-[var(--text-primary)]">{workspaces.length}</p>
+                <div className="grid grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8 max-w-md">
+                    <div className="px-3 md:px-4 py-3 rounded-xl bg-[var(--flux-surface)] border border-[var(--flux-border-subtle)]">
+                        <p className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">{workspaces.length}</p>
                         <p className="text-xs text-[var(--text-tertiary)]">
                             {workspaces.length === 1 ? 'Workspace' : 'Workspaces'}
                         </p>
                     </div>
-                    <div className="px-4 py-3 rounded-xl bg-[var(--flux-surface)] border border-[var(--flux-border-subtle)]">
-                        <p className="text-2xl font-bold text-[var(--text-primary)]">
+                    <div className="px-3 md:px-4 py-3 rounded-xl bg-[var(--flux-surface)] border border-[var(--flux-border-subtle)]">
+                        <p className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">
                             {workspaces.reduce((acc, w) => acc + w.boardCount, 0)}
                         </p>
                         <p className="text-xs text-[var(--text-tertiary)]">
                             {workspaces.reduce((acc, w) => acc + w.boardCount, 0) === 1 ? 'Board' : 'Boards'}
                         </p>
                     </div>
-                    <div className="px-4 py-3 rounded-xl bg-[var(--flux-surface)] border border-[var(--flux-border-subtle)]">
-                        <p className="text-2xl font-bold text-[var(--text-primary)]">
+                    <div className="px-3 md:px-4 py-3 rounded-xl bg-[var(--flux-surface)] border border-[var(--flux-border-subtle)]">
+                        <p className="text-xl md:text-2xl font-bold text-[var(--text-primary)]">
                             {workspaces.reduce((acc, w) => acc + w.memberCount, 0)}
                         </p>
                         <p className="text-xs text-[var(--text-tertiary)]">
@@ -93,7 +95,7 @@ export default async function DashboardPage() {
                 </div>
 
                 {/* Workspace Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {workspaces.map((workspace) => (
                         <WorkspaceCard
                             key={workspace.id}
@@ -104,6 +106,7 @@ export default async function DashboardPage() {
                             memberCount={workspace.memberCount}
                             boardCount={workspace.boardCount}
                             lastActiveAt={workspace.lastActiveAt}
+                            hasUnread={(unreadCounts[workspace.slug] ?? 0) > 0}
                         />
                     ))}
                 </div>
