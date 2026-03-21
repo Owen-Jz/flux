@@ -22,10 +22,10 @@ export function CTASection() {
       aria-labelledby="cta-heading"
     >
       {/* Background */}
-      <div className="absolute inset-0" aria-hidden="true">
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-br from-[var(--brand-primary)]/10 via-[var(--background-subtle)] to-[var(--info-primary)]/10" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[var(--brand-primary)]/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[var(--info-primary)]/10 rounded-full blur-[100px]" />
+        <div className="absolute top-0 right-0 w-[80vw] h-[80vw] max-w-[600px] max-h-[600px] bg-[var(--brand-primary)]/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[70vw] h-[70vw] max-w-[500px] max-h-[500px] bg-[var(--info-primary)]/10 rounded-full blur-[100px]" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
       </div>
 

@@ -449,7 +449,7 @@ export function TaskDetailModal({
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)]"
+                            className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)] overflow-x-hidden"
                         >
                             {/* Header */}
                             <div className="flex items-start justify-between p-4 md:p-6 lg:p-8 border-b border-[var(--border-subtle)] bg-[var(--surface)]">

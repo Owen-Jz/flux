@@ -61,8 +61,8 @@ export function StatsSection() {
       aria-label="Platform statistics"
     >
       {/* Background effects */}
-      <div className="absolute inset-0" aria-hidden="true">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[var(--brand-primary)]/10 rounded-full blur-[150px]" />
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] max-w-[800px] max-h-[800px] bg-[var(--brand-primary)]/10 rounded-full blur-[150px]" />
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02]" />
       </div>
 

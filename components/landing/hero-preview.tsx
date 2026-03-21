@@ -429,7 +429,7 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
           animate={{ x: 0, opacity: 1, scale: 1 }}
           transition={{ delay: 1.6, type: "spring", stiffness: 200 }}
           whileHover={{ scale: 1.05, x: 5 }}
-          className="absolute -right-2 md:-right-4 top-20 md:top-24 bg-[var(--surface)] p-2.5 md:p-3 rounded-xl md:rounded-2xl border border-[var(--border-subtle)] shadow-2xl flex items-center gap-2 md:gap-3 z-20 cursor-pointer max-w-[200px] md:max-w-none"
+          className="absolute -right-2 md:-right-4 top-20 md:top-24 bg-[var(--surface)] p-2.5 md:p-3 rounded-xl md:rounded-2xl border border-[var(--border-subtle)] shadow-2xl flex items-center gap-2 md:gap-3 z-20 cursor-pointer max-w-[160px] sm:max-w-[200px] md:max-w-none"
         >
           <div className="p-2 bg-[var(--brand-primary)]/10 rounded-xl">
             <ShieldCheckIcon className="w-4 h-4 text-[var(--brand-primary)]" />
@@ -447,7 +447,7 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
           animate={{ x: 0, opacity: 1, scale: 1 }}
           transition={{ delay: 1.8, type: "spring", stiffness: 200 }}
           whileHover={{ scale: 1.05, x: -5 }}
-          className="absolute -left-2 md:-left-4 bottom-16 md:bottom-24 bg-[var(--surface)] p-2.5 md:p-3 rounded-xl md:rounded-2xl border border-[var(--border-subtle)] shadow-2xl flex items-center gap-2 md:gap-3 z-20 cursor-pointer max-w-[180px] md:max-w-none"
+          className="absolute -left-2 md:-left-4 bottom-16 md:bottom-24 bg-[var(--surface)] p-2.5 md:p-3 rounded-xl md:rounded-2xl border border-[var(--border-subtle)] shadow-2xl flex items-center gap-2 md:gap-3 z-20 cursor-pointer max-w-[140px] sm:max-w-[180px] md:max-w-none"
         >
           <div className="relative">
             <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[var(--info-primary)] to-[var(--brand-primary)] flex items-center justify-center text-[var(--text-inverse)] font-bold text-xs shadow-lg">

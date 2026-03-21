@@ -82,8 +82,8 @@ export const PricingSection = () => {
     return (
         <section id="pricing" className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[var(--background-subtle)] relative overflow-hidden" aria-labelledby="pricing-heading">
             {/* Background effects */}
-            <div className="absolute inset-0" aria-hidden="true">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--brand-primary)]/10 rounded-full blur-[100px]" />
+            <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] max-w-[600px] max-h-[600px] bg-[var(--brand-primary)]/10 rounded-full blur-[100px]" />
             </div>
 
             <div className="max-w-7xl mx-auto relative z-10">

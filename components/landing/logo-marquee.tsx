@@ -24,9 +24,9 @@ const logos = [
 
 export const LogoMarquee = () => {
     return (
-        <div className="w-full relative overflow-hidden py-6">
+        <div className="w-full relative overflow-hidden py-6 overflow-x-hidden">
             {/* Smooth mask for fading edges */}
-            <div className="flex [mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]">
+            <div className="flex [mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)] max-w-full">
                 <motion.div
                     initial={{ x: 0 }}
                     animate={{ x: "-50%" }}
@@ -36,6 +36,7 @@ export const LogoMarquee = () => {
                         ease: "linear",
                     }}
                     className="flex items-center gap-16 pr-16 whitespace-nowrap"
+                    style={{ minWidth: "max-content" }}
                 >
                     {[...logos, ...logos, ...logos, ...logos].map((logo, idx) => (
                         <div

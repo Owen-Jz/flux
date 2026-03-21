@@ -215,6 +215,8 @@ export function Board({
             activationConstraint: {
                 distance: 8,
             },
+            delay: 200,
+            delayTolerance: 50,
         })
     );
 

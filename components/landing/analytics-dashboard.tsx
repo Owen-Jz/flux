@@ -76,9 +76,9 @@ export function AnalyticsDashboard() {
       aria-labelledby="analytics-heading"
     >
       {/* Background */}
-      <div className="absolute inset-0" aria-hidden="true">
-        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-[var(--brand-primary)]/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-200/20 dark:bg-purple-500/5 rounded-full blur-[100px]" />
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute top-0 left-1/4 w-[80vw] h-[80vw] max-w-[600px] max-h-[600px] bg-[var(--brand-primary)]/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[70vw] h-[70vw] max-w-[500px] max-h-[500px] bg-blue-200/20 dark:bg-purple-500/5 rounded-full blur-[100px]" />
       </div>
 
       <motion.div style={{ y }} className="max-w-7xl mx-auto relative z-10">

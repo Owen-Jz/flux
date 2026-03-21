@@ -41,7 +41,7 @@ export const TestimonialsSection = () => {
         <section ref={containerRef} className="py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[var(--background-subtle)] border-y border-[var(--border-subtle)]" aria-labelledby="testimonials-heading">
             {/* Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[var(--brand-primary)]/5 rounded-full blur-[120px]" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] h-[90vw] max-w-[800px] max-h-[800px] bg-[var(--brand-primary)]/5 rounded-full blur-[120px]" />
             </div>
 
             <motion.div style={{ y }} className="max-w-7xl mx-auto relative z-10">
