@@ -170,6 +170,7 @@ export function Board({
 
     const [activeTask, setActiveTask] = useState<TaskData | null>(null);
     const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
+    const [readTaskIds, setReadTaskIds] = useState<Set<string>>(new Set());
     const [isAddingTask, setIsAddingTask] = useState<ColumnId | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showAIDecomposeModal, setShowAIDecomposeModal] = useState(false);
@@ -839,7 +840,11 @@ export function Board({
                                 onUpdateTask={handleUpdateTask}
                                 onDeleteTask={handleDeleteTask}
                                 members={members}
-                                onTaskClick={(task) => setSelectedTask(task)}
+                                readTaskIds={readTaskIds}
+                                onTaskClick={(task) => {
+                                    setSelectedTask(task);
+                                    setReadTaskIds(prev => new Set([...prev, task.id]));
+                                }}
                                 categories={categories}
                             />
 

@@ -56,6 +56,7 @@ interface TaskCardProps {
     onClick?: (task: TaskData) => void;
     isOverlay?: boolean;
     categories?: { id: string; name: string; color: string }[];
+    isRead?: boolean;
 }
 
 const priorityConfig = {
@@ -82,16 +83,16 @@ const priorityLabels = {
     LOW: 'Low',
 };
 
-export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onUpdate, onDelete, members = [], onClick, isOverlay, categories = [] }: TaskCardProps) {
+export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onUpdate, onDelete, members = [], onClick, isOverlay, categories = [], isRead = false }: TaskCardProps) {
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(task.title);
     const { data: session } = useSession();
 
-    // Heuristic for unread comments: if there are comments and the last one is not by the current user
+    // Heuristic for unread comments: if there are comments, the last one is not by the current user, and the task hasn't been read yet
     const hasUnreadComments = task.comments && task.comments.length > 0 &&
-        (!session?.user?.id || task.comments[task.comments.length - 1].userId !== session.user.id);
+        (!session?.user?.id || task.comments[task.comments.length - 1].userId !== session.user.id) && !isRead;
 
     const handleToggleAssignee = (memberId: string) => {
         const isAssigned = task.assignees.some(a => a.id === memberId);
@@ -177,9 +178,8 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 }
             }}
             {...attributes}
-            {...listeners}
             className={`
-                relative group cursor-grab active:cursor-grabbing bg-[var(--surface)] rounded-lg
+                relative group bg-[var(--surface)] rounded-lg
                 border ${config.border}
                 ${isDragging
                     ? 'shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)] ring-2 ring-[var(--brand-primary)]/30 rotate-1 scale-[1.02] opacity-95 z-50 cursor-grabbing'
@@ -196,6 +196,18 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
             {task.comments && task.comments.length > 0 && !isEditing && (
                 <div className={`absolute -top-1 -right-1 z-30 ${hasUnreadComments ? 'bg-[var(--error-primary)]' : 'bg-[var(--text-tertiary)]'} text-[var(--text-inverse)] px-1 py-0.5 text-[9px] font-bold rounded-bl rounded-tr shadow-md flex items-center justify-center`}>
                     <ChatBubbleLeftIcon className="w-2.5 h-2.5" />
+                </div>
+            )}
+            {/* Drag Handle */}
+            {!isReadOnly && !isEditing && (
+                <div
+                    {...listeners}
+                    {...attributes}
+                    className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Drag to reorder"
+                >
+                    <Bars4Icon className="w-4 h-4 text-[var(--text-tertiary)]" />
                 </div>
             )}
             {/* Action Menu Button */}

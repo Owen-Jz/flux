@@ -18,6 +18,7 @@ interface ColumnProps {
     members?: Member[];
     onTaskClick?: (task: TaskData) => void;
     categories?: { id: string; name: string; color: string }[];
+    readTaskIds?: Set<string>;
 }
 
 const columnColors: Record<string, string> = {
@@ -40,6 +41,7 @@ export function Column({
     members = [],
     onTaskClick,
     categories = [],
+    readTaskIds,
 }: ColumnProps) {
     const { setNodeRef, isOver } = useDroppable({ id });
 
@@ -95,6 +97,7 @@ export function Column({
                                 members={members}
                                 onClick={onTaskClick}
                                 categories={categories}
+                                isRead={readTaskIds?.has(task.id)}
                             />
                         ))}
                     </AnimatePresence>

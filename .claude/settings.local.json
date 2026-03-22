@@ -100,7 +100,11 @@
       "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/landing/hero-preview.tsx --max-warnings=50 2>&1)",
       "Bash(cd \"C:\\\\Users\\\\owen\\\\Downloads\\\\Projects\\\\flux\" && npx eslint components/dashboard/WorkspaceCard.tsx --max-warnings=50 2>&1)",
       "Bash(find \"C:/Users/owen/Downloads/Projects/flux/app/[slug]\" -name \"page.tsx\" 2>/dev/null | head -20)",
-      "Bash(find \"C:/Users/owen/Downloads/Projects/flux/components\" -name \"sidebar*\" -type f 2>/dev/null | head -10)"
+      "Bash(find \"C:/Users/owen/Downloads/Projects/flux/components\" -name \"sidebar*\" -type f 2>/dev/null | head -10)",
+      "Bash(node -e \"const icons = require\\('@heroicons/react/24/outline'\\); console.log\\(Object.keys\\(icons\\).filter\\(k => k.toLowerCase\\(\\).includes\\('grip'\\) || k.toLowerCase\\(\\).includes\\('drag'\\) || k.toLowerCase\\(\\).includes\\('bars'\\)\\)\\)\")",
+      "Bash(node -e \"const icons = require\\('@heroicons/react/24/solid'\\); console.log\\(Object.keys\\(icons\\).filter\\(k => k.toLowerCase\\(\\).includes\\('grip'\\) || k.toLowerCase\\(\\).includes\\('bars'\\)\\)\\).join\\('\\\\n'\\)\")",
+      "Bash(ls -la *.ts 2>/dev/null | head -30)",
+      "Bash(find node_modules -name \"*react-icons*\" -type d 2>/dev/null | head -5)"
     ]
   }
 }

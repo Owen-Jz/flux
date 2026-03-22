@@ -5,9 +5,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, CalendarIcon, CheckIcon, UserPlusIcon, Bars3BottomLeftIcon, TagIcon, ClockIcon, Squares2X2Icon, PlusIcon, TrashIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, ArrowPathIcon, ExclamationCircleIcon, HeartIcon, ArrowUturnLeftIcon, FaceSmileIcon, LinkIcon, InformationCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { TaskData, Member } from './task-card';
 import { addComment, deleteComment, likeComment, replyToComment, addReaction, getWorkspaceMembers } from '@/actions/task';
+import CustomSelect from '../ui/custom-select';
 import { useSession } from 'next-auth/react';
 
 const EMOJI_LIST = ['👍', '❤️', '😂', '🎉', '😮', '😢', '🙏', '👀'];
+
+const statusOptions = [
+    { value: 'BACKLOG', label: 'Backlog' },
+    { value: 'TODO', label: 'To Do' },
+    { value: 'IN_PROGRESS', label: 'In Progress' },
+    { value: 'REVIEW', label: 'Review' },
+    { value: 'DONE', label: 'Done' },
+];
 
 interface TaskDetailModalProps {
     task: TaskData;
@@ -463,10 +472,19 @@ export function TaskDetailModal({
                                     </div>
                                 )}
                                 <div className="flex-1 mr-4">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <span className="px-2.5 py-1 rounded-md bg-[var(--background-subtle)] text-[var(--text-secondary)] font-bold text-[10px] tracking-wider uppercase border border-[var(--border-subtle)]">
-                                            {task.status.replace('_', ' ')}
-                                        </span>
+                                    <div className="flex items-center gap-3 mb-2 flex-wrap">
+                                        {!isReadOnly ? (
+                                            <CustomSelect
+                                                value={task.status}
+                                                onChange={(value) => onUpdate(task.id, { status: value as TaskData['status'] })}
+                                                options={statusOptions}
+                                                className="min-w-[120px]"
+                                            />
+                                        ) : (
+                                            <span className="px-2.5 py-1 rounded-md bg-[var(--background-subtle)] text-[var(--text-secondary)] font-bold text-[10px] tracking-wider uppercase border border-[var(--border-subtle)]">
+                                                {task.status.replace('_', ' ')}
+                                            </span>
+                                        )}
                                         <span className="text-[11px] text-[var(--text-tertiary)]">
                                             Created {new Date(task.createdAt).toLocaleString(undefined, {
                                                 month: 'short', day: 'numeric', year: 'numeric',
