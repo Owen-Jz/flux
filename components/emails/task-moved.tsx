@@ -6,6 +6,7 @@ import {
   Heading,
   Hr,
   Html,
+  Link,
   Preview,
   Section,
   Text,
@@ -85,6 +86,17 @@ export const TaskMovedEmail = ({
             <Text className="text-[#666666] text-[12px] leading-[24px]">
               Flux Board Notifications
             </Text>
+            <Section className="text-center mt-[20px]">
+              <Link href={`${process.env.APP_URL || "https://flux.app"}/unsubscribe`} className="text-[#999999] text-[11px] no-underline mx-2">
+                Unsubscribe
+              </Link>
+              <Link href={`${process.env.APP_URL || "https://flux.app"}/privacy`} className="text-[#999999] text-[11px] no-underline mx-2">
+                Privacy Policy
+              </Link>
+              <Link href={`${process.env.APP_URL || "https://flux.app"}/terms`} className="text-[#999999] text-[11px] no-underline mx-2">
+                Terms of Service
+              </Link>
+            </Section>
           </Container>
         </Body>
       </Tailwind>
