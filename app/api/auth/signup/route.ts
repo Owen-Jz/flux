@@ -13,7 +13,14 @@ export async function POST(request: NextRequest) {
     if (!rateLimitResult.success) {
         return NextResponse.json(
             { error: `Too many signup attempts. Please try again in ${rateLimitResult.resetIn} seconds` },
-            { status: 429 }
+            {
+                status: 429,
+                headers: {
+                    'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+                    'X-RateLimit-Reset': String(rateLimitResult.resetIn),
+                    'Retry-After': String(rateLimitResult.resetIn),
+                },
+            }
         );
     }
 
@@ -79,7 +86,7 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         console.error('Signup error:', error);
         return NextResponse.json(
-            { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
+            { error: 'Internal server error' },
             { status: 500 }
         );
     }

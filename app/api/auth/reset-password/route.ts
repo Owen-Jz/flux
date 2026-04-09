@@ -12,7 +12,14 @@ export async function POST(request: NextRequest) {
     if (!rateLimitResult.success) {
         return NextResponse.json(
             { error: `Too many reset requests. Please try again in ${rateLimitResult.resetIn} seconds` },
-            { status: 429 }
+            {
+                status: 429,
+                headers: {
+                    'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+                    'X-RateLimit-Reset': String(rateLimitResult.resetIn),
+                    'Retry-After': String(rateLimitResult.resetIn),
+                },
+            }
         );
     }
 
@@ -40,10 +47,6 @@ export async function POST(request: NextRequest) {
             user.passwordResetToken = resetToken;
             user.passwordResetExpires = resetExpires;
             await user.save();
-
-            // In production, send email with reset link
-            // For now, log the token (remove in production)
-            console.log(`[Password Reset] Token for ${email}: ${resetToken}`);
 
             // TODO: Send email with reset link using Resend
             // Example: await sendPasswordResetEmail(email, resetToken);

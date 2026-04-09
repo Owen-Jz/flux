@@ -8,7 +8,12 @@ import React from 'react';
 import { TaskOverdueEmail } from '@/components/emails/task-overdue';
 import { sendEmail } from '@/lib/email/resend';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  // Verify cron secret
+  if (request.headers.get('x-cron-secret') !== process.env.CRON_SECRET) {
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     await connectDB();
 
@@ -76,8 +81,8 @@ export async function POST() {
   } catch (error) {
     console.error('Error checking overdue tasks:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to check overdue tasks' },
-      { status: 500 }
+        { error: 'Failed to check overdue tasks' },
+        { status: 500 }
     );
   }
 }
