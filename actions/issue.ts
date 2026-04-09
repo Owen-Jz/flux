@@ -13,6 +13,8 @@ import { sendEmail } from '@/lib/email/resend';
 import { IssueCreatedEmail } from '@/components/emails/issue-created';
 import { render } from '@react-email/components';
 import React from 'react';
+import { isWorkspaceMember } from '@/lib/workspace-utils';
+import { TASK_ORDER_INCREMENT } from '@/lib/constants';
 
 interface CreateIssueData {
     title: string;
@@ -94,10 +96,8 @@ export async function getIssues(workspaceSlug: string) {
     if (!workspace) return [];
 
     // Verify user is a member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) return [];
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) return [];
 
     const issues = await Issue.find({ workspaceId: workspace._id })
         .populate('reporterId', 'name image')
@@ -173,7 +173,7 @@ export async function moveIssueToBoard(workspaceSlug: string, issueId: string, b
         status: 'BACKLOG',
     }).sort({ order: -1 }).select('order');
 
-    const newOrder = (highestOrder?.order ?? 0) + 1000;
+    const newOrder = (highestOrder?.order ?? 0) + TASK_ORDER_INCREMENT;
 
     // Create the task
     await Task.create({

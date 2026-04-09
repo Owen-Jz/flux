@@ -10,6 +10,7 @@ import { Issue } from '@/models/Issue';
 import { ActivityLog } from '@/models/ActivityLog';
 import { revalidatePath } from 'next/cache';
 import { Types } from 'mongoose';
+import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 
 /**
  * Request edit access to a workspace
@@ -29,12 +30,10 @@ export async function requestEditAccess(workspaceSlug: string, message?: string)
     }
 
     // Check if user is a member
-    const member = workspace.members.find(
-        (m: any) => m.userId.toString() === session.user.id
-    );
+    const member = isWorkspaceMember(workspace, session.user.id);
 
     // If already an EDITOR or ADMIN, no need to request
-    if (member && ['ADMIN', 'EDITOR'].includes(member.role)) {
+    if (hasRole(member, 'ADMIN', 'EDITOR')) {
         throw new Error('You already have edit access');
     }
 
@@ -90,11 +89,9 @@ export async function getAccessRequests(workspaceSlug: string) {
     }
 
     // Check if user is the owner
-    const member = workspace.members.find(
-        (m: any) => m.userId.toString() === session.user.id
-    );
+    const member = isWorkspaceMember(workspace, session.user.id);
 
-    if (!member || member.role !== 'ADMIN') {
+    if (!hasRole(member, 'ADMIN')) {
         return [];
     }
 
@@ -146,11 +143,9 @@ export async function handleAccessRequest(
     }
 
     // Check if user is the owner
-    const member = workspace.members.find(
-        (m: any) => m.userId.toString() === session.user.id
-    );
+    const member = isWorkspaceMember(workspace, session.user.id);
 
-    if (!member || member.role !== 'ADMIN') {
+    if (!hasRole(member, 'ADMIN')) {
         throw new Error('Only the workspace admin can approve requests');
     }
 
@@ -198,11 +193,9 @@ export async function updateMemberRole(
     }
 
     // Check if user is the owner
-    const currentMember = workspace.members.find(
-        (m: any) => m.userId.toString() === session.user.id
-    );
+    const currentMember = isWorkspaceMember(workspace, session.user.id);
 
-    if (!currentMember || currentMember.role !== 'ADMIN') {
+    if (!hasRole(currentMember, 'ADMIN')) {
         throw new Error('Only the workspace admin can update member roles');
     }
 
@@ -245,11 +238,9 @@ export async function removeMember(workspaceSlug: string, memberId: string) {
     }
 
     // Check if user is the owner
-    const currentMember = workspace.members.find(
-        (m: any) => m.userId.toString() === session.user.id
-    );
+    const currentMember = isWorkspaceMember(workspace, session.user.id);
 
-    if (!currentMember || currentMember.role !== 'ADMIN') {
+    if (!hasRole(currentMember, 'ADMIN')) {
         throw new Error('Only the workspace admin can remove members');
     }
 
@@ -342,9 +333,7 @@ export async function getUserRole(workspaceSlug: string): Promise<MemberRole | n
         return null;
     }
 
-    const member = workspace.members.find(
-        (m: any) => m.userId.toString() === session.user.id
-    );
+    const member = isWorkspaceMember(workspace, session.user.id);
 
     return member?.role || null;
 }

@@ -8,6 +8,7 @@ import { Board } from '@/models/Board';
 import { Task } from '@/models/Task';
 import { User } from '@/models/User';
 import { Types } from 'mongoose';
+import { isWorkspaceMember } from '@/lib/workspace-utils';
 
 interface LogActivityParams {
     workspaceSlug: string;
@@ -77,10 +78,8 @@ export async function getActivities(workspaceSlug: string, limit: number = 20) {
     if (!workspace) return [];
 
     // Check membership
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) return [];
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) return [];
 
     const activities = await ActivityLog.find({ workspaceId: workspace._id })
         .sort({ createdAt: -1 })
@@ -125,10 +124,8 @@ export async function getCommentActivities(workspaceSlug: string, limit: number 
     if (!workspace) return [];
 
     // Check membership
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) return [];
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) return [];
 
     const activities = await ActivityLog.find({
         workspaceId: workspace._id,
@@ -176,10 +173,8 @@ export async function markActivityAsRead(activityId: string, workspaceSlug?: str
             return { success: false };
         }
 
-        const isMember = workspace.members.some(
-            (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-        );
-        if (!isMember) {
+        const member = isWorkspaceMember(workspace, session.user.id);
+        if (!member) {
             return { success: false };
         }
     }
@@ -200,10 +195,8 @@ export async function markAllActivitiesAsRead(workspaceSlug: string) {
     if (!workspace) return { success: false };
 
     // Verify user is a member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) return { success: false };
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) return { success: false };
 
     await ActivityLog.updateMany(
         { workspaceId: workspace._id, read: false },
@@ -267,10 +260,8 @@ export async function markAllActivitiesAsReadForBoard(workspaceSlug: string, boa
     if (!workspace) return { success: false };
 
     // Verify user is a member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) return { success: false };
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) return { success: false };
 
     const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
     if (!board) return { success: false };

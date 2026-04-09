@@ -1,0 +1,1 @@
+export const TASK_ORDER_INCREMENT = 1000;

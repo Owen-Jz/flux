@@ -10,6 +10,7 @@ import { User } from '@/models/User';
 import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { Types } from 'mongoose';
+import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 
 export async function createWorkspace(data: { name: string; slug: string }) {
     const session = await auth();
@@ -200,10 +201,8 @@ export async function updateWorkspaceSettings(
         workspace.settings = { publicAccess: false };
     }
 
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
-    if (!member || member.role !== 'ADMIN') {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN')) {
         throw new Error('Only the workspace admin can modify settings');
     }
 
@@ -254,11 +253,9 @@ export async function addViewerToWorkspace(slug: string) {
     }
 
     // Check if already a member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
+    const member = isWorkspaceMember(workspace, session.user.id);
 
-    if (isMember) {
+    if (member) {
         return { success: true };
     }
 
@@ -289,11 +286,9 @@ export async function updateMemberRole(slug: string, memberId: string, newRole: 
     }
 
     // Check if requester is OWNER
-    const requester = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
+    const requester = isWorkspaceMember(workspace, session.user.id);
 
-    if (!requester || requester.role !== 'ADMIN') {
+    if (!hasRole(requester, 'ADMIN')) {
         throw new Error('Only the workspace admin can update member roles');
     }
 
@@ -333,11 +328,9 @@ export async function removeMember(slug: string, memberId: string) {
     }
 
     // Check if requester is OWNER
-    const requester = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
+    const requester = isWorkspaceMember(workspace, session.user.id);
 
-    if (!requester || requester.role !== 'ADMIN') {
+    if (!hasRole(requester, 'ADMIN')) {
         throw new Error('Only the workspace admin can remove members');
     }
 

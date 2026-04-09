@@ -9,6 +9,7 @@ import { revalidatePath } from 'next/cache';
 import { canAddMember, getUpgradeMessage } from '@/lib/plan-limits';
 import { sendWorkspaceInviteEmail } from '@/lib/email/workspace-invite';
 import crypto from 'crypto';
+import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 
 function generateInviteToken(): string {
   return crypto.randomBytes(32).toString('hex');
@@ -28,11 +29,9 @@ export async function inviteMemberToWorkspace(slug: string, email: string, role:
             return { error: 'Workspace not found' };
         }
 
-        const inviter = workspace.members.find(
-            (m: any) => m.userId.toString() === session.user.id
-        );
+        const inviter = isWorkspaceMember(workspace, session.user.id);
 
-        if (!inviter || inviter.role !== 'ADMIN') {
+        if (!hasRole(inviter, 'ADMIN')) {
             return { error: 'Only the workspace admin can invite members' };
         }
 

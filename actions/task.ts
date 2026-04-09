@@ -17,6 +17,8 @@ import { NewCommentEmail } from '@/components/emails/new-comment';
 import { SubtaskAddedEmail } from '@/components/emails/subtask-added';
 import { render } from '@react-email/components';
 import React from 'react';
+import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
+import { TASK_ORDER_INCREMENT } from '@/lib/constants';
 
 interface CreateTaskData {
     title: string;
@@ -42,10 +44,8 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
     }
 
     // Check role - only ADMIN and EDITOR can create tasks
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
-    if (!member || !['ADMIN', 'EDITOR'].includes(member.role)) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
         throw new Error('You do not have permission to create tasks');
     }
 
@@ -62,7 +62,7 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
         .sort({ order: -1 })
         .select('order');
 
-    const newOrder = (highestOrder?.order ?? 0) + 1000;
+    const newOrder = (highestOrder?.order ?? 0) + TASK_ORDER_INCREMENT;
 
     const task = await Task.create({
         workspaceId: workspace._id,
@@ -138,10 +138,8 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
     }
 
     // Verify user is a member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) {
         return [];
     }
 
@@ -224,10 +222,8 @@ export async function getArchivedTasks(workspaceSlug: string) {
     }
 
     // Check if user is member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) {
         return [];
     }
 
@@ -297,14 +293,12 @@ export async function updateTaskPosition(
     const board = await Board.findById(task.boardId);
 
     // Check role - ADMIN, EDITOR, or ASSIGNEE can update task positions
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
+    const member = isWorkspaceMember(workspace, session.user.id);
 
     // Check if user is an assignee
     const isAssignee = task.assignees.some((id: Types.ObjectId) => id.toString() === session.user.id);
 
-    if ((!member || !['ADMIN', 'EDITOR'].includes(member.role)) && !isAssignee) {
+    if (!hasRole(member, 'ADMIN', 'EDITOR') && !isAssignee) {
         throw new Error('You do not have permission to update tasks');
     }
 
@@ -394,14 +388,12 @@ export async function updateTask(
     }
 
     // Check role - ADMIN, EDITOR, or ASSIGNEE can update tasks
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
+    const member = isWorkspaceMember(workspace, session.user.id);
 
     // Check if user is an assignee
     const isAssignee = task.assignees.some((id: Types.ObjectId) => id.toString() === session.user.id);
 
-    if ((!member || !['ADMIN', 'EDITOR'].includes(member.role)) && !isAssignee) {
+    if (!hasRole(member, 'ADMIN', 'EDITOR') && !isAssignee) {
         throw new Error('You do not have permission to update tasks');
     }
 
@@ -611,10 +603,8 @@ export async function deleteTask(taskId: string) {
     }
 
     // Check role - only ADMIN and EDITOR can delete tasks
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
-    if (!member || !['ADMIN', 'EDITOR'].includes(member.role)) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
         throw new Error('You do not have permission to delete tasks');
     }
 
@@ -660,10 +650,8 @@ export async function addComment(taskId: string, content: string) {
     }
 
     // Check if user is member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) {
         throw new Error('You do not have permission to comment');
     }
 
@@ -775,10 +763,8 @@ export async function deleteComment(taskId: string, commentId: string) {
 
     // Allow author or admin to delete
     const isAuthor = comment.userId.toString() === session.user.id;
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
-    const isAdmin = member?.role === 'ADMIN';
+    const member = isWorkspaceMember(workspace, session.user.id);
+    const isAdmin = hasRole(member, 'ADMIN');
 
     if (!isAuthor && !isAdmin) {
         throw new Error('You do not have permission to delete this comment');
@@ -811,10 +797,8 @@ export async function likeComment(taskId: string, commentId: string) {
     }
 
     // Check if user is member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) {
         throw new Error('You do not have permission to like comments');
     }
 
@@ -868,10 +852,8 @@ export async function replyToComment(taskId: string, parentCommentId: string, co
     }
 
     // Check if user is member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) {
         throw new Error('You do not have permission to reply to comments');
     }
 
@@ -943,10 +925,8 @@ export async function addReaction(taskId: string, commentId: string, emoji: stri
     }
 
     // Check if user is member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) {
         throw new Error('You do not have permission to react');
     }
 

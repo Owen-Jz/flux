@@ -9,6 +9,7 @@ import { User } from '@/models/User';
 import { revalidatePath } from 'next/cache';
 import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
 import { Types } from 'mongoose';
+import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 
 interface CreateBoardData {
     name: string;
@@ -30,11 +31,9 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
     }
 
     // Check membership and role
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
+    const member = isWorkspaceMember(workspace, session.user.id);
     // Only ADMIN and EDITOR can create boards
-    if (!member || !['ADMIN', 'EDITOR'].includes(member.role)) {
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
         throw new Error('You do not have permission to create boards');
     }
 
@@ -88,10 +87,8 @@ export async function getBoards(workspaceSlug: string) {
     }
 
     // Verify user is a member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) {
         return [];
     }
 
@@ -122,10 +119,8 @@ export async function getBoardCategories(workspaceSlug: string, boardSlug: strin
     }
 
     // Verify user is a member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) {
         return [];
     }
 
@@ -155,10 +150,8 @@ export async function getBoardBySlug(workspaceSlug: string, boardSlug: string) {
     }
 
     // Verify user is a member
-    const isMember = workspace.members.some(
-        (m: { userId: { toString: () => string } }) => m.userId.toString() === session.user.id
-    );
-    if (!isMember) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) {
         return null;
     }
 
@@ -199,10 +192,8 @@ export async function updateBoard(
     }
 
     // Only ADMIN and EDITOR can update boards
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
-    if (!member || !['ADMIN', 'EDITOR'].includes(member.role)) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
         throw new Error('You do not have permission to update boards');
     }
 
@@ -236,10 +227,8 @@ export async function deleteBoard(workspaceSlug: string, boardSlug: string) {
     }
 
     // Only ADMIN can delete boards
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
-    if (!member || member.role !== 'ADMIN') {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN')) {
         throw new Error('Only the workspace admin can delete boards');
     }
 
@@ -276,10 +265,8 @@ export async function addCategory(
     }
 
     // Only ADMIN and EDITOR can manage categories
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
-    if (!member || !['ADMIN', 'EDITOR'].includes(member.role)) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
         throw new Error('You do not have permission to manage categories');
     }
 
@@ -319,10 +306,8 @@ export async function deleteCategory(workspaceSlug: string, boardSlug: string, c
         throw new Error('Workspace not found');
     }
 
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
-    if (!member || !['ADMIN', 'EDITOR'].includes(member.role)) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
         throw new Error('You do not have permission to manage categories');
     }
 
@@ -360,10 +345,8 @@ export async function updateCategory(
         throw new Error('Workspace not found');
     }
 
-    const member = workspace.members.find(
-        (m: { userId: { toString: () => string }; role: string }) => m.userId.toString() === session.user.id
-    );
-    if (!member || !['ADMIN', 'EDITOR'].includes(member.role)) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
         throw new Error('You do not have permission to manage categories');
     }
 
