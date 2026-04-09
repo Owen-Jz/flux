@@ -86,8 +86,8 @@ interface GetSubscriptionResponse {
     };
 }
 
-// Retry helper with exponential backoff
-async function withRetry<T>(
+// Retry helper with exponential backoff (exported for testing)
+export async function withRetry<T>(
     fn: () => Promise<T>,
     maxAttempts: number = 3,
     baseDelayMs: number = 1000
