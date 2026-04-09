@@ -41,7 +41,7 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>(
     {
         name: { type: String, required: true },
-        email: { type: String, required: true, unique: true },
+        email: { type: String, required: true, unique: true, match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'] },
         image: { type: String },
         password: { type: String, select: false },
         emailVerified: { type: Date },

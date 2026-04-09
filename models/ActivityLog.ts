@@ -95,5 +95,6 @@ const ActivityLogSchema = new mongoose.Schema(
 // Index for efficient queries
 ActivityLogSchema.index({ workspaceId: 1, createdAt: -1 });
 ActivityLogSchema.index({ workspaceId: 1, type: 1, createdAt: -1 });
+ActivityLogSchema.index({ workspaceId: 1, read: 1, createdAt: -1 });
 
 export const ActivityLog = mongoose.models.ActivityLog || mongoose.model<IActivityLog>('ActivityLog', ActivityLogSchema);

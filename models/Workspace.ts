@@ -24,6 +24,9 @@ export interface IWorkspace extends Document {
         };
     };
     members: IMember[];
+    archived: boolean;
+    archivedAt?: Date;
+    archivedBy?: Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -32,7 +35,7 @@ const MemberSchema = new Schema<IMember>(
     {
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         role: { type: String, enum: ['ADMIN', 'EDITOR', 'VIEWER'], default: 'VIEWER' },
-        joinedAt: { type: Date, default: Date.now },
+        joinedAt: { type: Date, default: () => Date.now() },
     },
     { _id: false }
 );
@@ -59,9 +62,12 @@ const WorkspaceSchema = new Schema<IWorkspace>(
             {
                 userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
                 role: { type: String, enum: ['ADMIN', 'EDITOR', 'VIEWER'], default: 'VIEWER' },
-                joinedAt: { type: Date, default: Date.now },
+                joinedAt: { type: Date, default: () => Date.now() },
             },
         ],
+        archived: { type: Boolean, default: false },
+        archivedAt: { type: Date },
+        archivedBy: { type: Schema.Types.ObjectId, ref: 'User' },
     },
     { timestamps: true }
 );

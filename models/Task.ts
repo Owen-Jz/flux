@@ -19,6 +19,7 @@ export interface ITask extends Document {
         _id: Types.ObjectId;
         content: string;
         userId: Types.ObjectId;
+        parentId?: Types.ObjectId;
         createdAt: Date;
         updatedAt: Date;
     }[];
@@ -49,7 +50,7 @@ const TaskSchema = new Schema<ITask>(
             {
                 title: { type: String, required: true },
                 completed: { type: Boolean, default: false },
-                createdAt: { type: Date, default: Date.now },
+                createdAt: { type: Date, default: () => Date.now() },
                 createdBy: { type: Schema.Types.ObjectId, ref: 'User' },
             },
         ],
@@ -65,6 +66,7 @@ const TaskSchema = new Schema<ITask>(
                 {
                     content: { type: String, required: true },
                     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+                    parentId: { type: Schema.Types.ObjectId, default: null },
                 },
                 { timestamps: true }
             ),
