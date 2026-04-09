@@ -27,11 +27,13 @@ export function PageHeader({ activeLink }: PageHeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           <Link href="/" className="flex items-center gap-3 group" aria-label="Flux home">
-            <img
-              src="/icon.svg"
-              alt=""
-              className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl transform group-hover:scale-105 transition-transform"
-            />
+            <span className="inline-flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-[var(--brand-primary)]">
+              <img
+                src="/icon.svg"
+                alt=""
+                className="w-6 h-6 lg:w-7 lg:h-7 text-white"
+              />
+            </span>
             <span className="font-extrabold text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
           </Link>
           <nav className="hidden lg:flex items-center gap-8">

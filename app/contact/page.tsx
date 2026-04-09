@@ -107,11 +107,13 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             <Link href="/" className="flex items-center gap-3 group" aria-label="Flux home">
-              <img
-                src="/icon.svg"
-                alt=""
-                className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl transform group-hover:scale-105 transition-transform"
-              />
+              <span className="inline-flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-[var(--brand-primary)]">
+                <img
+                  src="/icon.svg"
+                  alt=""
+                  className="w-6 h-6 text-white"
+                />
+              </span>
               <span className="font-extrabold text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
             </Link>
             <div className="flex items-center gap-3">
@@ -397,7 +399,9 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src="/icon.svg" alt="" className="w-8 h-8 rounded-lg" />
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--brand-primary)]">
+                <img src="/icon.svg" alt="" className="w-5 h-5 text-white" />
+              </span>
               <span className="font-bold text-lg text-slate-900 dark:text-white">flux</span>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">

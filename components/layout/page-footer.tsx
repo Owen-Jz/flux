@@ -34,7 +34,9 @@ export function PageFooter() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 lg:gap-12 mb-12">
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-4">
-              <img src="/icon.svg" alt="" className="w-10 h-10 rounded-xl" />
+              <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--brand-primary)]">
+                <img src="/icon.svg" alt="" className="w-6 h-6 text-white" />
+              </span>
               <span className="font-black text-2xl tracking-tight text-slate-900 dark:text-white">flux</span>
             </Link>
             <p className="text-slate-500 dark:text-slate-400 max-w-xs mb-6 leading-relaxed">

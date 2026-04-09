@@ -89,7 +89,9 @@ export default function OnboardingPage() {
                         transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
                         className="inline-flex items-center justify-center mb-4"
                     >
-                        <img src="/icon.svg" alt="Flux Logo" className="w-16 h-16 rounded-2xl" />
+                        <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--brand-primary)]">
+                            <img src="/icon.svg" alt="Flux Logo" className="w-10 h-10 text-white" />
+                        </span>
                     </motion.div>
                 </div>
 
