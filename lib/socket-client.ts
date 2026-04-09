@@ -157,6 +157,13 @@ export const emitCursorMove = (data: CursorPosition): void => {
 
 // Helper to register listeners that works whether socket is connected or not
 const registerListener = (event: string, callback: (...args: unknown[]) => void): (() => void) => {
+  // Limit pendingCallbacks size to prevent unbounded growth
+  const MAX_PENDING_CALLBACKS = 50;
+  if (pendingCallbacks.length >= MAX_PENDING_CALLBACKS) {
+    console.warn('[Socket] pendingCallbacks overflow, clearing old callbacks');
+    pendingCallbacks = pendingCallbacks.slice(-MAX_PENDING_CALLBACKS / 2);
+  }
+
   if (!socket) {
     console.log('[Socket] No socket, queuing listener for:', event);
     pendingCallbacks.push({ event, callback });

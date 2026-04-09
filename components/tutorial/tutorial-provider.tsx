@@ -18,6 +18,7 @@ export function TutorialProvider() {
     const pathname = usePathname();
     const [progress, setProgress] = useState<TutorialState | null>(null);
     const driverRef = useRef<any>(null);
+    const timeoutRef = useRef<NodeJS.Timeout>();
     const isTourActive = useRef(false);
 
     // Fetch initial progress
@@ -190,9 +191,10 @@ export function TutorialProvider() {
             });
 
             // Small delay to ensure rendering
-            setTimeout(() => {
+            timeoutRef.current = setTimeout(() => {
                 driverRef.current?.drive();
             }, 500);
+            return () => clearTimeout(timeoutRef.current);
         }
 
     }, [pathname, progress]);

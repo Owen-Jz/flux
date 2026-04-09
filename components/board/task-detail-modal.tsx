@@ -201,6 +201,7 @@ export function TaskDetailModal({
 
         setLikingCommentId(commentId);
         setError(null);
+        const previousComments = task.comments || [];
         try {
             const result = await likeComment(task.id, commentId);
             // Update local state optimistically
@@ -223,6 +224,8 @@ export function TaskDetailModal({
             onUpdate(task.id, { comments: updatedComments });
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to like comment');
+            // Rollback optimistic update
+            onUpdate(task.id, { comments: previousComments });
         } finally {
             setLikingCommentId(null);
         }

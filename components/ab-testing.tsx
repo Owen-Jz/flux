@@ -199,12 +199,14 @@ export function trackABEvent(
   // Store for later analysis (in production, send to analytics)
   try {
     const events = JSON.parse(localStorage.getItem('flux_ab_events') || '[]');
-    events.push(eventData);
-    // Keep only last 100 events
-    if (events.length > 100) {
-      events.splice(0, events.length - 100);
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    // Remove events older than 30 days and keep only last 100 events
+    const validEvents = events.filter((e: { timestamp: number }) => e.timestamp > thirtyDaysAgo);
+    validEvents.push(eventData);
+    if (validEvents.length > 100) {
+      validEvents.splice(0, validEvents.length - 100);
     }
-    localStorage.setItem('flux_ab_events', JSON.stringify(events));
+    localStorage.setItem('flux_ab_events', JSON.stringify(validEvents));
   } catch {
     // Ignore storage errors
   }
