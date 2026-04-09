@@ -86,22 +86,48 @@ interface GetSubscriptionResponse {
     };
 }
 
-async function paystackFetch<T>(endpoint: string, method: 'GET' | 'POST' | 'PUT' = 'POST', body?: object): Promise<T> {
-    const response = await fetch(`${PAYSTACK_BASE_URL}${endpoint}`, {
-        method,
-        headers: {
-            Authorization: `Bearer ${PAYSTACK_SECRET}`,
-            'Content-Type': 'application/json',
-        },
-        body: body ? JSON.stringify(body) : undefined,
-    });
+// Retry helper with exponential backoff
+async function withRetry<T>(
+    fn: () => Promise<T>,
+    maxAttempts: number = 3,
+    baseDelayMs: number = 1000
+): Promise<T> {
+    let lastError: Error | undefined;
 
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Paystack API error: ${response.status} - ${error}`);
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            return await fn();
+        } catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+            if (attempt < maxAttempts) {
+                const delay = baseDelayMs * Math.pow(2, attempt - 1);
+                console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`);
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            }
+        }
     }
 
-    return response.json();
+    throw lastError;
+}
+
+async function paystackFetch<T>(endpoint: string, method: 'GET' | 'POST' | 'PUT' = 'POST', body?: object): Promise<T> {
+    return withRetry(async () => {
+        const response = await fetch(`${PAYSTACK_BASE_URL}${endpoint}`, {
+            method,
+            headers: {
+                Authorization: `Bearer ${PAYSTACK_SECRET}`,
+                'Content-Type': 'application/json',
+            },
+            body: body ? JSON.stringify(body) : undefined,
+        });
+
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(`Paystack API error: ${response.status} - ${error}`);
+        }
+
+        return response.json();
+    });
 }
 
 // Create a Paystack customer
@@ -315,8 +341,9 @@ export async function getExchangeRate(): Promise<number> {
 
     try {
         // Using free exchange rate API
+        const exchangeRateApiUrl = process.env.EXCHANGE_RATE_API_URL || 'https://api.exchangerate-api.com/v4/latest/USD';
         const response = await fetch(
-            'https://api.exchangerate-api.com/v4/latest/USD',
+            exchangeRateApiUrl,
             { next: { revalidate: 3600 } }
         );
 

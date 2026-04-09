@@ -26,33 +26,55 @@ export class MinimaxClient {
     return this.parseResponse(response);
   }
 
+  // Retry helper with exponential backoff
+  private async withRetry<T>(fn: () => Promise<T>, maxAttempts: number = 3, baseDelayMs: number = 1000): Promise<T> {
+    let lastError: Error | undefined;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        if (attempt < maxAttempts) {
+          const delay = baseDelayMs * Math.pow(2, attempt - 1);
+          console.log(`LLM API attempt ${attempt} failed, retrying in ${delay}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    }
+
+    throw lastError;
+  }
+
   async callAPI(messages: LLMMessage[]): Promise<LLMResponse> {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
-      const response = await fetch(`${this.baseUrl}/text/chatcompletion_v2`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          model: this.model,
-          messages: messages
-        }),
-        signal: controller.signal
+      const response = await this.withRetry(async () => {
+        const res = await fetch(`${this.baseUrl}/text/chatcompletion_v2`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`
+          },
+          body: JSON.stringify({
+            model: this.model,
+            messages: messages
+          }),
+          signal: controller.signal
+        });
+
+        if (!res.ok) {
+          const error = await res.text();
+          throw new Error(`Minimax API error: ${res.status} - ${error}`);
+        }
+
+        return res.json() as Promise<LLMResponse>;
       });
 
       clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Minimax API error: ${response.status} - ${error}`);
-      }
-
-      const data = await response.json() as LLMResponse;
-      return data;
+      return response;
     } catch (error) {
       clearTimeout(timeoutId);
       if (error instanceof Error && error.name === 'AbortError') {

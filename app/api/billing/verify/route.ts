@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { auth } from '@/lib/auth';
@@ -6,6 +7,8 @@ import { verifyTransaction, PLAN_PRICES_USD, getNairaPrice } from '@/lib/paystac
 
 // Verify payment and activate subscription
 export async function POST(request: NextRequest) {
+    const mongoSession = await mongoose.startSession();
+
     try {
         const session = await auth();
 
@@ -21,8 +24,11 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
-        const user = await User.findById(session.user.id);
+        mongoSession.startTransaction();
+
+        const user = await User.findById(session.user.id).session(mongoSession);
         if (!user) {
+            await mongoSession.abortTransaction();
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
@@ -30,12 +36,14 @@ export async function POST(request: NextRequest) {
         const transaction = await verifyTransaction(reference);
 
         if (transaction.status !== 'success') {
+            await mongoSession.abortTransaction();
             return NextResponse.json({ error: 'Payment not successful' }, { status: 400 });
         }
 
         // Get expected amount in Naira based on USD price
         const usdPrice = PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD];
         if (!usdPrice) {
+            await mongoSession.abortTransaction();
             return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
         }
 
@@ -43,6 +51,7 @@ export async function POST(request: NextRequest) {
 
         // Verify amount matches (allow for minor variations due to exchange rate changes)
         if (transaction.amount < expectedAmountNaira * 0.95) {
+            await mongoSession.abortTransaction();
             return NextResponse.json({
                 error: 'Invalid amount paid',
                 expected: expectedAmountNaira,
@@ -55,7 +64,9 @@ export async function POST(request: NextRequest) {
         user.subscriptionStatus = 'active';
         user.subscriptionId = transaction.id.toString();
         user.hasUsedTrial = true;
-        await user.save();
+        await user.save({ session: mongoSession });
+
+        await mongoSession.commitTransaction();
 
         return NextResponse.json({
             success: true,
@@ -65,11 +76,14 @@ export async function POST(request: NextRequest) {
             currency: 'USD'
         });
     } catch (error) {
+        await mongoSession.abortTransaction();
         console.error('Verify subscription error:', error);
         return NextResponse.json(
             { error: error instanceof Error ? error.message : 'Failed to verify subscription' },
             { status: 500 }
         );
+    } finally {
+        mongoSession.endSession();
     }
 }
 
