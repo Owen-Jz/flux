@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import { updateWorkspaceSettings } from '@/actions/workspace';
 import { deleteWorkspace } from '@/actions/access-control';
@@ -203,7 +204,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                                     {workspace.icon?.type === 'emoji' ? (
                                         <span>{workspace.icon.emoji}</span>
                                     ) : workspace.icon?.type === 'upload' ? (
-                                        <img src={workspace.icon.url} alt="" className="w-full h-full object-cover" />
+                                        <Image src={workspace.icon.url} alt="" width={64} height={64} className="w-full h-full object-cover" />
                                     ) : (
                                         <PhotoIcon className="w-6 h-6 text-[var(--text-secondary)]" />
                                     )}

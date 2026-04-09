@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 interface WorkspaceCardProps {
@@ -90,7 +91,7 @@ export function WorkspaceCard({
                             {icon?.type === 'emoji' ? (
                                 <span className="text-3xl">{icon.emoji}</span>
                             ) : icon?.type === 'upload' ? (
-                                <img src={icon.url} alt="" className="w-full h-full object-cover" />
+                                <Image src={icon.url} alt="" width={56} height={56} className="w-full h-full object-cover" />
                             ) : (
                                 initial
                             )}

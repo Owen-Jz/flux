@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, useScroll } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -261,9 +262,11 @@ export function HeroSection() {
                     whileHover={{ scale: 1.2, zIndex: 10 }}
                     className="w-10 h-10 rounded-full border-3 border-[var(--surface)] overflow-hidden cursor-pointer shadow-md"
                   >
-                    <img
+                    <Image
                       src={person.img}
                       alt={person.alt}
+                      width={40}
+                      height={40}
                       className="w-full h-full object-cover"
                     />
                   </motion.div>

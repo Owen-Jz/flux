@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -105,9 +106,11 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                                 {currentWorkspace.icon.emoji}
                             </div>
                         ) : currentWorkspace?.icon?.type === 'upload' ? (
-                            <img
+                            <Image
                                 src={currentWorkspace.icon.url}
                                 alt=""
+                                width={32}
+                                height={32}
                                 className="w-8 h-8 rounded-lg object-cover"
                             />
                         ) : (
@@ -149,9 +152,11 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                                                 {workspace.icon.emoji}
                                             </div>
                                         ) : workspace.icon?.type === 'upload' ? (
-                                            <img
+                                            <Image
                                                 src={workspace.icon.url}
                                                 alt=""
+                                                width={24}
+                                                height={24}
                                                 className="w-6 h-6 rounded object-cover"
                                             />
                                         ) : (
@@ -234,11 +239,12 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
             <div className="p-4 border-t border-[var(--border-subtle)]">
                 <div className="flex items-center gap-3">
                     {user.image ? (
-                        <img
+                        <Image
                             src={user.image}
                             alt={user.name || ''}
+                            width={32}
+                            height={32}
                             className="w-8 h-8 rounded-full"
-                            referrerPolicy="no-referrer"
                         />
                     ) : (
                         <div className="w-8 h-8 rounded-full bg-[var(--border-subtle)] flex items-center justify-center text-sm font-medium">

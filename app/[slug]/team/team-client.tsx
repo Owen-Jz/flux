@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Image from 'next/image';
 import { CheckIcon, XMarkIcon, ArrowPathIcon, ClockIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline';
 import { handleAccessRequest } from '@/actions/access-control';
 
@@ -74,9 +75,11 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             {request.user.image ? (
-                                <img
+                                <Image
                                     src={request.user.image}
                                     alt=""
+                                    width={40}
+                                    height={40}
                                     className="w-10 h-10 rounded-full"
                                 />
                             ) : (

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Image from 'next/image';
 import { updateMemberRole, removeMember } from '@/actions/workspace';
 import { CheckIcon, XMarkIcon, ArrowPathIcon, TrashIcon } from '@heroicons/react/24/outline';
 
@@ -64,7 +65,7 @@ export function MemberRow({ member, slug, isAdmin, onError }: MemberRowProps) {
             <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
                     {member.user?.image ? (
-                        <img src={member.user.image} alt="" className="w-8 h-8 rounded-full" />
+                        <Image src={member.user.image} alt="" width={32} height={32} className="w-8 h-8 rounded-full" />
                     ) : (
                         <div className="w-8 h-8 rounded-full bg-[var(--border-subtle)] flex items-center justify-center text-xs font-medium">
                             {member.user?.name?.charAt(0) || 'U'}

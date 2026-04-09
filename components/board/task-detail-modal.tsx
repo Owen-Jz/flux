@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, CalendarIcon, CheckIcon, UserPlusIcon, Bars3BottomLeftIcon, TagIcon, ClockIcon, Squares2X2Icon, PlusIcon, TrashIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, ArrowPathIcon, ExclamationCircleIcon, HeartIcon, ArrowUturnLeftIcon, FaceSmileIcon, LinkIcon, InformationCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 import { TaskData, Member } from './task-card';
 import { addComment, deleteComment, likeComment, replyToComment, addReaction, getWorkspaceMembers } from '@/actions/task';
 import CustomSelect from '../ui/custom-select';
@@ -656,7 +657,7 @@ export function TaskDetailModal({
                                                                     <div key={subtask.id} className="flex items-center gap-3 p-2 rounded-lg bg-[var(--background-subtle)] border border-[var(--border-subtle)]">
                                                                         <div className="w-6 h-6 rounded-full bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 flex items-center justify-center overflow-hidden shadow-sm flex-shrink-0">
                                                                             {subtask.createdBy?.image ? (
-                                                                                <img src={subtask.createdBy.image} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                                                                <Image src={subtask.createdBy.image} alt="" width={24} height={24} className="w-full h-full object-cover" />
                                                                             ) : (
                                                                                 <span className="text-[9px] font-bold text-[var(--brand-primary)]">
                                                                                     {subtask.createdBy?.name?.charAt(0) || '?'}
@@ -717,11 +718,12 @@ export function TaskDetailModal({
                                                                 <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-[var(--brand-primary)] border-2 border-white dark:border-neutral-800" />
                                                                 <div className="w-9 h-9 rounded-full bg-[var(--flux-info-bg)] border border-[var(--flux-info-border)] flex-shrink-0 overflow-hidden shadow-sm">
                                                                     {comment.user?.image ? (
-                                                                        <img
+                                                                        <Image
                                                                             src={comment.user.image}
                                                                             alt=""
+                                                                            width={36}
+                                                                            height={36}
                                                                             className="w-full h-full object-cover"
-                                                                            referrerPolicy="no-referrer"
                                                                         />
                                                                     ) : (
                                                                         <div className="w-full h-full flex items-center justify-center text-[11px] font-bold text-[var(--flux-info-text-strong)] uppercase">
@@ -822,11 +824,12 @@ export function TaskDetailModal({
                                                                         <div className="mt-3 flex gap-3">
                                                                             <div className="w-8 h-8 rounded-full bg-[var(--background-subtle)] border border-[var(--border-subtle)] flex-shrink-0 overflow-hidden">
                                                                                 {session?.user?.image ? (
-                                                                                    <img
+                                                                                    <Image
                                                                                         src={session.user.image}
                                                                                         alt=""
+                                                                                        width={32}
+                                                                                        height={32}
                                                                                         className="w-full h-full object-cover"
-                                                                                        referrerPolicy="no-referrer"
                                                                                     />
                                                                                 ) : (
                                                                                     <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-[var(--text-tertiary)] uppercase">
@@ -861,11 +864,12 @@ export function TaskDetailModal({
                                                                         <div key={reply.id} className="flex gap-3 mt-4 pl-4 border-l-2 border-[var(--border-subtle)]">
                                                                             <div className="w-8 h-8 rounded-full bg-[var(--flux-info-bg)] border border-[var(--flux-info-border)] flex-shrink-0 overflow-hidden shadow-sm">
                                                                                 {reply.user?.image ? (
-                                                                                    <img
+                                                                                    <Image
                                                                                         src={reply.user.image}
                                                                                         alt=""
+                                                                                        width={32}
+                                                                                        height={32}
                                                                                         className="w-full h-full object-cover"
-                                                                                        referrerPolicy="no-referrer"
                                                                                     />
                                                                                 ) : (
                                                                                     <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-[var(--flux-info-text-strong)] uppercase">
@@ -953,11 +957,12 @@ export function TaskDetailModal({
                                                         <div className="flex gap-4 pt-2">
                                                             <div className="w-10 h-10 rounded-full bg-[var(--background-subtle)] border border-[var(--border-subtle)] flex-shrink-0 overflow-hidden shadow-sm">
                                                                 {session?.user?.image ? (
-                                                                    <img
+                                                                    <Image
                                                                         src={session.user.image}
                                                                         alt=""
+                                                                        width={40}
+                                                                        height={40}
                                                                         className="w-full h-full object-cover"
-                                                                        referrerPolicy="no-referrer"
                                                                     />
                                                                 ) : (
                                                                     <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--text-tertiary)] uppercase">
@@ -1017,7 +1022,7 @@ export function TaskDetailModal({
                                                                                     >
                                                                                         <div className="w-6 h-6 rounded-full bg-[var(--background-subtle)] overflow-hidden flex-shrink-0">
                                                                                             {member.image ? (
-                                                                                                <img src={member.image} alt="" className="w-full h-full object-cover" />
+                                                                                                <Image src={member.image} alt="" width={24} height={24} className="w-full h-full object-cover" />
                                                                                             ) : (
                                                                                                 <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-[var(--text-secondary)] uppercase">
                                                                                                     {member.name?.charAt(0) || '?'}
@@ -1251,11 +1256,12 @@ export function TaskDetailModal({
                                                             >
                                                                 <div className="w-8 h-8 rounded-full bg-[var(--background-subtle)] flex-shrink-0 overflow-hidden shadow-sm border border-[var(--surface)]">
                                                                     {member.image ? (
-                                                                        <img
+                                                                        <Image
                                                                             src={member.image}
                                                                             alt=""
+                                                                            width={32}
+                                                                            height={32}
                                                                             className="w-full h-full object-cover"
-                                                                            referrerPolicy="no-referrer"
                                                                         />
                                                                     ) : (
                                                                         <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-[var(--text-secondary)] uppercase">

@@ -6,6 +6,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bars4Icon, EllipsisVerticalIcon, TrashIcon, PencilIcon, CheckIcon, CalendarIcon, UserPlusIcon, ArchiveBoxIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 import type { TaskPriority } from '@/models/Task';
 
 export interface Member {
@@ -293,11 +294,12 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                                         <div className="flex items-center gap-2">
                                                             <div className="w-5 h-5 rounded-full bg-[var(--background-subtle)] flex items-center justify-center text-[9px] font-bold overflow-hidden">
                                                                 {member.image ? (
-                                                                    <img
+                                                                    <Image
                                                                         src={member.image}
                                                                         alt={member.name}
+                                                                        width={20}
+                                                                        height={20}
                                                                         className="w-full h-full object-cover"
-                                                                        referrerPolicy="no-referrer"
                                                                     />
                                                                 ) : (
                                                                     member.name.charAt(0)
@@ -449,11 +451,12 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                 >
                                     <div className="w-3 h-3 rounded-full bg-[var(--background-subtle)] overflow-hidden flex-shrink-0">
                                         {assignee.image ? (
-                                            <img
+                                            <Image
                                                 src={assignee.image}
                                                 alt=""
+                                                width={12}
+                                                height={12}
                                                 className="w-full h-full object-cover"
-                                                referrerPolicy="no-referrer"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-[var(--flux-info-bg)] text-[var(--flux-info-text-strong)] font-bold text-[7px]">
