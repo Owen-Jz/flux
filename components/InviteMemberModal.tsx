@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { XMarkIcon, EnvelopeIcon, ArrowPathIcon, UserPlusIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, EnvelopeIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { toast } from 'sonner';
 import { inviteMemberToWorkspace } from '@/actions/workspace-invite';
 import { updateOnboardingProgress } from '@/actions/onboarding';
 
@@ -14,29 +15,23 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
     const [email, setEmail] = useState('');
     const [role, setRole] = useState<'VIEWER' | 'EDITOR' | 'ADMIN'>('VIEWER');
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
-    const [successMessage, setSuccessMessage] = useState('');
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        setError('');
-        setSuccess(false);
 
         try {
             const res = await inviteMemberToWorkspace(slug, email, role);
             if (res?.error) {
-                setError(res.error);
+                toast.error(res.error);
                 return;
             }
             // Track onboarding progress for first member invite
             await updateOnboardingProgress('addedFirstTeamMember');
-            setSuccess(true);
-            setSuccessMessage(res?.message || 'Invitation sent successfully!');
-            setTimeout(onClose, 3000);
+            toast.success(res?.message || 'Invitation sent successfully!');
+            setTimeout(onClose, 1500);
         } catch (err: any) {
-            setError(err.message || 'Something went wrong');
+            toast.error(err.message || 'Something went wrong');
         } finally {
             setIsLoading(false);
         }
@@ -59,18 +54,7 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
                     </p>
                 </div>
 
-                {success ? (
-                    <div className="bg-[var(--success-bg)] text-[var(--success-primary)] p-4 rounded-lg flex items-center gap-3 animate-in fade-in duration-300">
-                        <div className="w-8 h-8 rounded-full bg-[var(--success-primary)]/20 flex items-center justify-center">
-                            <UserPlusIcon className="w-4 h-4" />
-                        </div>
-                        <div>
-                            <p className="font-medium text-[var(--success-text-strong)]">Invitation Sent!</p>
-                            <p className="text-xs opacity-80 text-[var(--success-text)]">{successMessage}</p>
-                        </div>
-                    </div>
-                ) : (
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium mb-1.5 text-[var(--foreground)]">Email Address</label>
                             <input
@@ -95,12 +79,6 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
                                 <option value="ADMIN">Admin - Full access including settings</option>
                             </select>
                         </div>
-
-                        {error && (
-                            <p className="text-sm text-[var(--error-primary)] bg-[var(--error-bg)] px-3 py-2 rounded-lg border border-[var(--error-border)]">
-                                {error}
-                            </p>
-                        )}
 
                         <div className="flex justify-end gap-3 pt-2">
                             <button
@@ -129,7 +107,6 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
                             </button>
                         </div>
                     </form>
-                )}
             </div>
         </div>
     );
