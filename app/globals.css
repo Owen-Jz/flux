@@ -443,6 +443,7 @@ body {
   background: var(--flux-glass-bg);
   backdrop-filter: var(--flux-backdrop-blur) var(--flux-backdrop-saturate);
   -webkit-backdrop-filter: var(--flux-backdrop-blur) var(--flux-backdrop-saturate);
+  -moz-backdrop-filter: var(--flux-backdrop-blur) var(--flux-backdrop-saturate);
   border: 1px solid var(--flux-glass-border);
 }
 

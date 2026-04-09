@@ -57,7 +57,7 @@ export function PageHeader({ activeLink }: PageHeaderProps) {
               <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-[var(--background-subtle)] transition-colors"
+                  className="flex items-center gap-2 p-2.5 rounded-xl hover:bg-[var(--background-subtle)] transition-colors"
                 >
                   {session.user.image ? (
                     <img

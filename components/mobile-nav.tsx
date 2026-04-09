@@ -57,7 +57,7 @@ export function MobileNav(props: MobileNavProps) {
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => setIsOpen(true)}
-                        className="p-2 rounded-lg hover:bg-[var(--surface)] transition-colors"
+                        className="p-2.5 rounded-lg hover:bg-[var(--surface)] transition-colors"
                     >
                         <Bars3Icon className="w-5 h-5 text-[var(--foreground)]" />
                     </button>

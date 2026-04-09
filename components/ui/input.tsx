@@ -1,6 +1,6 @@
 'use client';
 
-import { InputHTMLAttributes, forwardRef, ReactNode } from 'react';
+import { InputHTMLAttributes, forwardRef, ReactNode, useId } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
     label?: string;
@@ -10,11 +10,15 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-    ({ label, error, leftIcon, rightIcon, className = '', ...props }, ref) => {
+    ({ label, error, leftIcon, rightIcon, className = '', id: providedId, ...props }, ref) => {
+        const generatedId = useId();
+        const inputId = providedId || generatedId;
+        const errorId = `${inputId}-error`;
+
         return (
             <div className="w-full">
                 {label && (
-                    <label className="block text-sm font-medium text-[var(--text-primary)] mb-1.5">
+                    <label htmlFor={inputId} className="block text-sm font-medium text-[var(--text-primary)] mb-1.5">
                         {label}
                     </label>
                 )}
@@ -26,6 +30,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     )}
                     <input
                         ref={ref}
+                        id={inputId}
+                        aria-describedby={error ? errorId : undefined}
+                        aria-invalid={error ? 'true' : undefined}
                         className={`
                             w-full px-4 py-2.5
                             bg-[var(--surface)]
@@ -50,7 +57,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                     )}
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-sm text-[var(--error-primary)]">
+                    <p id={errorId} className="mt-1.5 text-sm text-[var(--error-primary)]">
                         {error}
                     </p>
                 )}
