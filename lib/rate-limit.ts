@@ -1,3 +1,8 @@
+/**
+ * IMPORTANT: This rate limiter uses in-memory storage.
+ * For production deployments with multiple instances, use Redis-based rate limiting.
+ * See: https://redis.io/docs/connect/clients/nodejs/redis Rate limiting
+ */
 // Simple in-memory rate limiter
 // For production, use Redis or similar distributed store
 import { NextRequest } from 'next/server';
