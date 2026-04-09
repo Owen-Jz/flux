@@ -75,10 +75,10 @@ export default function PricingPage() {
         <div className="max-w-7xl mx-auto">
           {/* Hero Section */}
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[var(--foreground)] dark:text-white mb-6 tracking-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[var(--foreground)] mb-6 tracking-tight">
               Simple, Transparent Pricing
             </h1>
-            <p className="text-xl text-[var(--text-secondary)] dark:text-slate-400 leading-relaxed">
+            <p className="text-xl text-[var(--text-secondary)] leading-relaxed">
               Choose the plan that's right for your team. All plans include a 14-day free trial.
             </p>
             <p className="text-sm text-[var(--text-tertiary)] mt-2">
@@ -94,7 +94,7 @@ export default function PricingPage() {
                 className={`relative rounded-[24px] p-8 transition-all duration-500 overflow-hidden ${
                   plan.popular
                     ? 'bg-slate-900 text-white shadow-[0_32px_64px_-12px_rgba(0,0,0,0.2)] scale-105 z-10'
-                    : 'bg-white dark:bg-slate-900 border border-[var(--border-subtle)] dark:border-slate-800 text-[var(--foreground)] dark:text-white hover:shadow-premium'
+                    : 'bg-[var(--surface)] border border-[var(--border-subtle)] text-[var(--foreground)] hover:shadow-premium'
                 }`}
               >
                 {plan.popular && (
@@ -108,18 +108,18 @@ export default function PricingPage() {
 
                 <div className="mb-10">
                   <h4 className={`text-sm font-bold uppercase tracking-[0.2em] mb-4 ${
-                    plan.popular ? 'text-indigo-400' : 'text-[var(--text-secondary)] dark:text-slate-400'
+                    plan.popular ? 'text-indigo-400' : 'text-[var(--text-secondary)]'
                   }`}>
                     {plan.name}
                   </h4>
                   <div className="flex items-baseline gap-1 mb-6">
                     <span className="text-5xl font-bold tracking-tight">{plan.price}</span>
                     <span className={`text-sm font-medium ${
-                      plan.popular ? 'text-slate-400' : 'text-[var(--text-secondary)] dark:text-slate-400'
+                      plan.popular ? 'text-slate-400' : 'text-[var(--text-secondary)]'
                     }`}>{plan.period}</span>
                   </div>
                   <p className={`text-sm leading-relaxed ${
-                    plan.popular ? 'text-slate-400' : 'text-[var(--text-secondary)] dark:text-slate-400'
+                    plan.popular ? 'text-slate-400' : 'text-[var(--text-secondary)]'
                   }`}>
                     {plan.description}
                   </p>
@@ -134,7 +134,7 @@ export default function PricingPage() {
                         }`}>
                           <CheckIcon className="w-3.5 h-3.5" />
                         </div>
-                        <span className={plan.popular ? 'text-slate-300' : 'text-[var(--text-secondary)] dark:text-slate-400'}>
+                        <span className={plan.popular ? 'text-slate-300' : 'text-[var(--text-secondary)]'}>
                           {feature}
                         </span>
                       </li>
@@ -147,7 +147,7 @@ export default function PricingPage() {
                   className={`w-full h-14 rounded-xl flex items-center justify-center font-bold transition-all duration-300 ${
                     plan.popular
                       ? 'bg-white text-slate-900 hover:bg-slate-100 shadow-xl shadow-white/5'
-                      : 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100'
+                      : 'bg-[var(--surface)] text-[var(--foreground)] hover:bg-[var(--surface-subtle)]'
                   }`}
                 >
                   {plan.cta}
@@ -158,7 +158,7 @@ export default function PricingPage() {
 
           {/* FAQ Section */}
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] dark:text-white text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] text-center mb-12">
               Frequently Asked Questions
             </h2>
             <div className="space-y-6">
@@ -182,10 +182,10 @@ export default function PricingPage() {
               ].map((faq) => (
                 <div
                   key={faq.q}
-                  className="p-6 rounded-[var(--radius)] bg-white dark:bg-slate-900 border border-[var(--border-subtle)] dark:border-slate-800"
+                  className="p-6 rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--border-subtle)]"
                 >
-                  <h3 className="font-bold text-[var(--foreground)] dark:text-white mb-2">{faq.q}</h3>
-                  <p className="text-[var(--text-secondary)] dark:text-slate-400 text-sm">{faq.a}</p>
+                  <h3 className="font-bold text-[var(--foreground)] mb-2">{faq.q}</h3>
+                  <p className="text-[var(--text-secondary)] text-sm">{faq.a}</p>
                 </div>
               ))}
             </div>

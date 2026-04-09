@@ -27,14 +27,14 @@ const cookieTypes = [
 
 export default function CookiesPage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950">
+    <div className="min-h-screen bg-[var(--surface)]">
       <PageHeader />
       <main className="pt-32 pb-20">
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-8">
+          <h1 className="text-4xl lg:text-5xl font-black text-[var(--text-primary)] tracking-tight mb-8">
             Cookie Policy
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 mb-8">
+          <p className="text-[var(--text-secondary)] mb-8">
             Last updated: March 2026
           </p>
           <div className="prose prose-lg dark:prose-invert max-w-none">
@@ -53,19 +53,19 @@ export default function CookiesPage() {
             {cookieTypes.map((cookie) => (
               <div
                 key={cookie.type}
-                className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800"
+                className="p-6 rounded-2xl border border-[var(--border-subtle)]"
               >
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">
                   {cookie.type}
                 </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                <p className="text-[var(--text-secondary)] mb-4">
                   {cookie.description}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {cookie.examples.map((example) => (
                     <span
                       key={example}
-                      className="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-sm text-slate-600 dark:text-slate-400"
+                      className="px-3 py-1 bg-[var(--surface-subtle)] rounded-full text-sm text-[var(--text-secondary)]"
                     >
                       {example}
                     </span>

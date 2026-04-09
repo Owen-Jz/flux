@@ -79,10 +79,10 @@ export default function FeaturesPage() {
         <div className="max-w-7xl mx-auto">
           {/* Hero Section */}
           <div className="text-center max-w-3xl mx-auto mb-24">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[var(--foreground)] dark:text-white mb-6 tracking-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-[var(--foreground)] mb-6 tracking-tight">
               Powerful Features for Modern Teams
             </h1>
-            <p className="text-xl text-[var(--text-secondary)] dark:text-slate-400 leading-relaxed">
+            <p className="text-xl text-[var(--text-secondary)] leading-relaxed">
               Everything you need to ship faster, collaborate better, and build the future together.
             </p>
           </div>
@@ -92,15 +92,15 @@ export default function FeaturesPage() {
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="group rounded-[var(--radius)] bg-white dark:bg-slate-900 border border-[var(--border-subtle)] dark:border-slate-800 p-8 shadow-sm hover:shadow-premium transition-all duration-500"
+                className="group rounded-[var(--radius)] bg-[var(--surface)] border border-[var(--border-subtle)] p-8 shadow-sm hover:shadow-premium transition-all duration-500"
               >
                 <div className={`w-12 h-12 rounded-xl ${feature.color} flex items-center justify-center mb-6`}>
                   <feature.icon className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-[var(--foreground)] dark:text-white mb-3">
+                <h3 className="text-xl font-bold text-[var(--foreground)] mb-3">
                   {feature.title}
                 </h3>
-                <p className="text-[var(--text-secondary)] dark:text-slate-400 leading-relaxed">
+                <p className="text-[var(--text-secondary)] leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -109,20 +109,20 @@ export default function FeaturesPage() {
 
           {/* Additional Features */}
           <div className="mb-24">
-            <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] dark:text-white text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] text-center mb-12">
               Even more ways to boost productivity
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {additionalFeatures.map((feature) => (
                 <div
                   key={feature.title}
-                  className="group rounded-[var(--radius)] bg-slate-50 dark:bg-slate-900/50 p-6 border border-slate-100 dark:border-slate-800 hover:border-[var(--brand-primary)] dark:hover:border-purple-500 transition-all duration-300"
+                  className="group rounded-[var(--radius)] bg-[var(--surface-subtle)] p-6 border border-[var(--border-subtle)] hover:border-[var(--brand-primary)] transition-all duration-300"
                 >
                   <feature.icon className="w-5 h-5 text-[var(--brand-primary)] mb-4" />
-                  <h3 className="text-lg font-bold text-[var(--foreground)] dark:text-white mb-2">
+                  <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-sm text-[var(--text-secondary)] dark:text-slate-400">
+                  <p className="text-sm text-[var(--text-secondary)]">
                     {feature.description}
                   </p>
                 </div>
@@ -132,22 +132,22 @@ export default function FeaturesPage() {
 
           {/* CTA Section */}
           <div className="text-center">
-            <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] dark:text-white mb-6">
+            <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-6">
               Ready to experience these features?
             </h2>
-            <p className="text-[var(--text-secondary)] dark:text-slate-400 mb-8 max-w-xl mx-auto">
+            <p className="text-[var(--text-secondary)] mb-8 max-w-xl mx-auto">
               Start your free trial today and see how Flux can transform your team's workflow.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <a
                 href="/signup"
-                className="px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold hover:bg-slate-800 dark:hover:bg-slate-100 transition-all"
+                className="px-8 py-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl font-bold hover:bg-[var(--surface-subtle)] transition-all"
               >
                 Start Free Trial
               </a>
               <a
                 href="/pricing"
-                className="px-8 py-4 bg-slate-100 dark:bg-slate-800 text-[var(--foreground)] dark:text-white rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                className="px-8 py-4 bg-[var(--surface-subtle)] text-[var(--foreground)] rounded-xl font-bold hover:bg-[var(--surface)] transition-all"
               >
                 View Pricing
               </a>

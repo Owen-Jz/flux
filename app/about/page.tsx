@@ -10,15 +10,15 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950">
+    <div className="min-h-screen bg-[var(--surface)]">
       <PageHeader />
       <main className="pt-32 pb-20">
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <h1 className="text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
+            <h1 className="text-4xl lg:text-5xl font-black text-[var(--text-primary)] tracking-tight mb-6">
               About Flux
             </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-400">
+            <p className="text-lg text-[var(--text-secondary)]">
               We're building the future of team collaboration.
             </p>
           </div>
