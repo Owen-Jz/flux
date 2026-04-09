@@ -221,6 +221,17 @@ export async function POST(request: NextRequest) {
                 { status: 404 }
             );
         }
+
+        // Verify user is a member of the workspace (horizontal privilege escalation fix)
+        const workspace = await Workspace.findOne({ _id: board.workspaceId, 'members.userId': session.user.id });
+        if (!workspace) {
+            logger.warn('User not a member of workspace', { boardId: data.boardId, userId: session.user.id });
+            updateMetrics(method, endpoint, 403);
+            return NextResponse.json(
+                { error: 'Forbidden' },
+                { status: 403 }
+            );
+        }
     } catch (error) {
         logger.error('Error validating board', { error: error instanceof Error ? error.message : String(error) });
         updateMetrics(method, endpoint, 500);
