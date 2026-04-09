@@ -13,7 +13,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     position="bottom-right"
                     richColors
                     closeButton
-                    theme="light"
+                    theme="system"
                 />
             </ThemeProvider>
         </SessionProvider>
