@@ -115,18 +115,9 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
   return (
     <div ref={containerRef} className="relative w-full max-w-5xl mx-auto mt-8 lg:mt-12 px-4 md:px-0 perspective-1500 overflow-hidden">
       {/* Background cards with parallax - floating around - Light mode */}
-      <motion.div
-        style={{ y: y1, rotate }}
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 0.5, x: 0 }}
-        transition={{ duration: 1, delay: 1 }}
-        className="absolute -left-4 lg:-left-16 top-8 w-[120px] md:w-[200px] lg:w-[320px] hidden md:block"
-      >
-        <motion.div
-          animate={{ y: [0, -15, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-4 shadow-2xl"
-        >
+      {/* Background floating card 1 - Desktop only (lg:), CSS animated */}
+      <div className="absolute -left-4 lg:-left-16 top-8 w-[120px] md:w-[200px] lg:w-[320px] hidden lg:block">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-4 shadow-2xl float-card-1">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-3 h-3 rounded-full bg-red-400/60" />
             <div className="w-3 h-3 rounded-full bg-yellow-400/60" />
@@ -140,21 +131,12 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
               <div className="h-12 flex-1 bg-[var(--background-subtle)] rounded" />
             </div>
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
-      <motion.div
-        style={{ y: y2 }}
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 0.4, x: 0 }}
-        transition={{ duration: 1, delay: 1.2 }}
-        className="absolute -right-2 md:-right-4 lg:-right-16 top-20 w-[100px] md:w-[180px] lg:w-[280px] hidden md:block"
-      >
-        <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-4 shadow-2xl"
-        >
+      {/* Background floating card 2 - Desktop + large tablet only (lg:), CSS animated */}
+      <div className="absolute -right-2 lg:-right-16 top-20 w-[100px] md:w-[180px] lg:w-[280px] hidden lg:block">
+        <div className="bg-[var(--surface)] rounded-2xl border border-[var(--border-subtle)] p-4 shadow-2xl float-card-2">
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
               <div key={i} className="flex items-center gap-2">
@@ -163,8 +145,8 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
               </div>
             ))}
           </div>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
 
       {/* Main dashboard with enhanced entrance */}
       <motion.div
