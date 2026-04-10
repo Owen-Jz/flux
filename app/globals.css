@@ -1149,7 +1149,7 @@ body {
 
 @keyframes heroScrollDot {
   0%, 100% { transform: translateY(0); opacity: 1; }
-  50% { transform: translateY(16px); opacity: 0.5; }
+  50% { transform: translateY(8px); opacity: 0.5; }
 }
 
 /* Scroll indicator dot animation - applied via hero-scroll-dot class */
