@@ -1192,3 +1192,13 @@ body {
 .hero-pulse {
   animation: heroPulse 2s ease-in-out infinite;
 }
+
+/* Floating card ambient animations - applied via float-card-1 / float-card-2 classes */
+.float-card-1 {
+  animation: floatCard1 4s ease-in-out infinite;
+}
+
+.float-card-2 {
+  animation: floatCard2 5s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
