@@ -30,13 +30,9 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
   };
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay, duration: 0.5 }}
-      whileHover={{ y: -4, scale: 1.02 }}
-      className="p-4 bg-[var(--surface)] rounded-xl border border-[var(--border-subtle)] shadow-md cursor-pointer group"
+      className="p-4 bg-[var(--surface)] rounded-xl border border-[var(--border-subtle)] shadow-md cursor-pointer group hover:-translate-y-1 hover:scale-[1.02] transition-all duration-200"
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
