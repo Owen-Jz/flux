@@ -1152,6 +1152,11 @@ body {
   50% { transform: translateY(16px); opacity: 0.5; }
 }
 
+/* Scroll indicator dot animation - applied via hero-scroll-dot class */
+.hero-scroll-dot {
+  animation: heroScrollDot 1.5s ease-in-out infinite;
+}
+
 /* Hero preview cursor trail - CSS only */
 @keyframes cursorTrail {
   0% { transform: translate(280px, 160px); }
