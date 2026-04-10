@@ -1158,6 +1158,10 @@ body {
 }
 
 /* Hero preview cursor trail - CSS only */
+.cursor-trail {
+  animation: cursorTrail 8s linear infinite;
+}
+
 @keyframes cursorTrail {
   0% { transform: translate(280px, 160px); }
   25% { transform: translate(340px, 120px); }

@@ -450,19 +450,8 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
           </div>
         </motion.div>
 
-        {/* Simple cursor */}
-        <motion.div
-          animate={{
-            x: [280, 340, 280],
-            y: [160, 120, 160],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          className="absolute top-0 left-0 z-30 pointer-events-none"
-        >
+        {/* Simple cursor - CSS animated, no Framer overhead */}
+<div className="absolute top-0 left-0 z-30 pointer-events-none cursor-trail">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <path
               d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19177L23.0003 11.6923L12.411 11.6923C11.7236 11.6923 11.018 11.9523 10.2523 12.3973L5.65376 12.3673Z"
@@ -471,7 +460,7 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
               strokeWidth="1"
             />
           </svg>
-        </motion.div>
+        </div>
       </motion.div>
     </div>
   );
