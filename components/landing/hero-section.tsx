@@ -60,20 +60,34 @@ function GridPattern() {
   );
 }
 
-// Animated text reveal component with enhanced effects
-function AnimatedText({ text, className, delay = 0 }: { text: string; className?: string; delay?: number }) {
+// Simplified animated text - reduces per-word spans, removes 3D rotateX
+function AnimatedText({ text, className, delay = 0, animateWords = true }: { text: string; className?: string; delay?: number; animateWords?: boolean }) {
   const words = text.split(" ");
+
+  if (!animateWords) {
+    // Single span with opacity-only animation for secondary lines
+    return (
+      <motion.span
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8, delay }}
+        className={className}
+      >
+        {text}
+      </motion.span>
+    );
+  }
 
   return (
     <span className={className}>
       {words.map((word, i) => (
         <motion.span
           key={i}
-          initial={{ opacity: 0, y: 30, rotateX: -20 }}
-          animate={{ opacity: 1, y: 0, rotateX: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{
-            duration: 0.6,
-            delay: delay + i * 0.08,
+            duration: 0.5,
+            delay: delay + i * 0.05,
             ease: [0.22, 1, 0.36, 1]
           }}
           className="inline-block mr-[0.25em]"
@@ -174,12 +188,10 @@ export function HeroSection() {
             variants={fadeInUp}
             className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black text-[var(--text-primary)] leading-[1.02] mb-8 tracking-tight max-w-5xl perspective-1000"
           >
-            <AnimatedText text="Ship faster with" delay={0.1} />
+            <AnimatedText text="Ship faster with" delay={0.1} animateWords={true} />
             <br />
             <span className="relative inline-block">
-              <span className="relative z-10 text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary)] via-[var(--info-primary)] to-[var(--brand-primary)] bg-[length:200%_auto] animate-gradient">
-                your team in flow
-              </span>
+              <AnimatedText text="your team in flow" delay={0.6} animateWords={false} />
               <svg className="absolute -bottom-3 left-0 w-full h-5 text-[var(--brand-primary)]/30 -z-10" viewBox="0 0 200 20" preserveAspectRatio="none">
                 <path d="M2 15 Q 50 5 100 12 T 198 10" stroke="currentColor" strokeWidth="8" fill="none" />
               </svg>
