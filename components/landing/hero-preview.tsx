@@ -115,10 +115,6 @@ function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Only enable parallax on desktop with reduced motion off
-  const y1 = (!prefersReducedMotion && !isMobile) ? useTransform(scrollY, (v) => v * 0.12) : useTransform(() => 0);
-  const rotate = (!prefersReducedMotion && !isMobile) ? useTransform(scrollY, (v) => v * 0.015) : useTransform(() => 0);
-
   // Simple static entrance for mobile - no parallax
   const entranceY = useTransform(scrollY, (v) => isMobile ? 0 : v * 0.08);
   const springY = useSpring(entranceY, { stiffness: 100, damping: 30 });
