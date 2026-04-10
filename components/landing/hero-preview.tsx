@@ -468,6 +468,13 @@ export function HeroPreviewSection() {
   useEffect(() => {
     if (!sectionRef.current || !contentRef.current) return;
 
+    // Only initialize GSAP on desktop (768px+)
+    if (typeof window === 'undefined' || window.innerWidth < 768) {
+      // On mobile, just show the content immediately with simple fade
+      gsap.set(contentRef.current, { opacity: 1, y: 0 });
+      return;
+    }
+
     const ctx = gsap.context(() => {
       // Fade in the background as the section comes into view
       ScrollTrigger.create({
