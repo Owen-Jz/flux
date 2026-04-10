@@ -1141,6 +1141,12 @@ body {
   50% { transform: translateX(4px); }
 }
 
+/* CTA arrow icon bounce - applied via hero-arrow-bounce class */
+.hero-arrow-bounce {
+  display: inline-flex;
+  animation: heroArrowBounce 1.5s ease-in-out infinite;
+}
+
 @keyframes heroScrollDot {
   0%, 100% { transform: translateY(0); opacity: 1; }
   50% { transform: translateY(16px); opacity: 0.5; }

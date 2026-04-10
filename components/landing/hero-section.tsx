@@ -219,12 +219,9 @@ export function HeroSection() {
               />
               <span className="relative flex items-center gap-2">
                 Start your free trial
-                <motion.span
-                  animate={{ x: [0, 4, 0] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
+                <span className="hero-arrow-bounce">
                   <ArrowRightIcon className="w-5 h-5" />
-                </motion.span>
+                </span>
               </span>
             </Link>
 
