@@ -21,8 +21,6 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
   priority?: 'low' | 'medium' | 'high';
   assignees?: string[];
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-
   const priorityColors = {
     low: 'bg-[var(--success-bg)] text-[var(--success-text-strong)] dark:bg-[var(--success-bg)] dark:text-[var(--success-text)]',
     medium: 'bg-[var(--warning-bg)] text-[var(--warning-text-strong)] dark:bg-[var(--warning-bg)] dark:text-[var(--warning-text)]',
@@ -31,7 +29,6 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
 
   return (
     <div
-      ref={ref}
       className="p-4 bg-[var(--surface)] rounded-xl border border-[var(--border-subtle)] shadow-md cursor-pointer group hover:-translate-y-1 hover:scale-[1.02] transition-all duration-200"
     >
       <div className="flex items-center justify-between mb-2">
@@ -91,7 +88,7 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
           />
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 
