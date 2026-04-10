@@ -258,14 +258,16 @@ export function HeroSection() {
                     initial={{ scale: 0, x: -20 }}
                     animate={{ scale: 1, x: 0 }}
                     transition={{ delay: 0.5 + i * 0.1, type: "spring" }}
-                    whileHover={{ scale: 1.2, zIndex: 10 }}
-                    className="w-10 h-10 rounded-full border-3 border-[var(--surface)] overflow-hidden cursor-pointer shadow-md"
+                    className="w-10 h-10 rounded-full border-3 border-[var(--surface)] overflow-hidden cursor-pointer shadow-md hover:scale-110 hover:z-10 transition-transform duration-200"
                   >
                     <Image
                       src={person.img}
                       alt={person.alt}
                       width={40}
                       height={40}
+                      loading="lazy"
+                      decoding="async"
+                      sizes="40px"
                       className="w-full h-full object-cover"
                     />
                   </motion.div>
