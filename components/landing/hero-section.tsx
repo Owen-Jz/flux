@@ -33,13 +33,13 @@ function GradientOrbs() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       {/* Light mode - opacity layering instead of blur */}
-      <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-[var(--brand-primary)]/30 via-[var(--info-primary)]/15 to-transparent rounded-full" />
-      <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-gradient-to-bl from-[var(--info-primary)]/25 via-[var(--brand-secondary)]/15 to-transparent rounded-full" />
-      <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] bg-gradient-to-tr from-[var(--brand-secondary)]/25 via-[var(--brand-primary)]/15 to-transparent rounded-full" />
+      <div className="absolute top-1/4 left-1/4 w-[min(600px,80vw)] h-[min(600px,80vw)] bg-gradient-to-br from-[var(--brand-primary)]/30 via-[var(--info-primary)]/15 to-transparent rounded-full" />
+      <div className="absolute top-1/2 right-1/4 w-[min(500px,70vw)] h-[min(500px,70vw)] bg-gradient-to-bl from-[var(--info-primary)]/25 via-[var(--brand-secondary)]/15 to-transparent rounded-full" />
+      <div className="absolute bottom-1/4 left-1/3 w-[min(400px,60vw)] h-[min(400px,60vw)] bg-gradient-to-tr from-[var(--brand-secondary)]/25 via-[var(--brand-primary)]/15 to-transparent rounded-full" />
       {/* Dark mode - slightly more opacity */}
-      <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-[var(--brand-primary)]/25 via-[var(--info-primary)]/20 to-transparent rounded-full hidden dark:block" />
-      <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-gradient-to-bl from-[var(--info-primary)]/30 via-[var(--brand-secondary)]/15 to-transparent rounded-full hidden dark:block" />
-      <div className="absolute bottom-1/4 left-1/3 w-[400px] h-[400px] bg-gradient-to-tr from-[var(--brand-secondary)]/25 via-[var(--brand-primary)]/20 to-transparent rounded-full hidden dark:block" />
+      <div className="absolute top-1/4 left-1/4 w-[min(600px,80vw)] h-[min(600px,80vw)] bg-gradient-to-br from-[var(--brand-primary)]/25 via-[var(--info-primary)]/20 to-transparent rounded-full hidden dark:block" />
+      <div className="absolute top-1/2 right-1/4 w-[min(500px,70vw)] h-[min(500px,70vw)] bg-gradient-to-bl from-[var(--info-primary)]/30 via-[var(--brand-secondary)]/15 to-transparent rounded-full hidden dark:block" />
+      <div className="absolute bottom-1/4 left-1/3 w-[min(400px,60vw)] h-[min(400px,60vw)] bg-gradient-to-tr from-[var(--brand-secondary)]/25 via-[var(--brand-primary)]/20 to-transparent rounded-full hidden dark:block" />
     </div>
   );
 }
