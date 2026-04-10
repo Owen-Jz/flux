@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useEffect } from "react";
-import { motion, useScroll, useTransform, MotionValue, useSpring } from "framer-motion";
+import { useRef, useEffect, useState } from "react";
+import { motion, useScroll, useTransform, MotionValue, useSpring, useReducedMotion } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SparklesIcon, BoltIcon, ShieldCheckIcon, UsersIcon, CheckIcon, ClockIcon } from "@heroicons/react/24/outline";
@@ -99,18 +99,29 @@ function AnimatedTaskCard({ title, category, progress, delay, description, prior
   );
 }
 
-// Floating dashboard preview with enhanced parallax and animations
+// Floating dashboard preview with conditional parallax based on device
 function FloatingDashboard({ scrollY }: { scrollY: MotionValue<number> }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  const y1 = useTransform(scrollY, (v) => v * 0.12);
-  const y2 = useTransform(scrollY, (v) => v * 0.2);
-  const y3 = useTransform(scrollY, (v) => v * 0.08);
-  const rotate = useTransform(scrollY, (v) => v * 0.015);
+  // Check for reduced motion preference and device capability
+  const prefersReducedMotion = useReducedMotion() === true;
+  const [isMobile, setIsMobile] = useState(false);
 
-  // Spring animation for smooth entrance
-  const springY = useSpring(y3, { stiffness: 100, damping: 30 });
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Only enable parallax on desktop with reduced motion off
+  const y1 = (!prefersReducedMotion && !isMobile) ? useTransform(scrollY, (v) => v * 0.12) : useTransform(() => 0);
+  const rotate = (!prefersReducedMotion && !isMobile) ? useTransform(scrollY, (v) => v * 0.015) : useTransform(() => 0);
+
+  // Simple static entrance for mobile - no parallax
+  const entranceY = useTransform(scrollY, (v) => isMobile ? 0 : v * 0.08);
+  const springY = useSpring(entranceY, { stiffness: 100, damping: 30 });
 
   return (
     <div ref={containerRef} className="relative w-full max-w-5xl mx-auto mt-8 lg:mt-12 px-4 md:px-0 perspective-1500 overflow-hidden">
