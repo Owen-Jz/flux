@@ -1120,3 +1120,59 @@ body {
 .driver-popover-arrow {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif !important;
 }
+
+/* ============================================
+   HERO SECTION CONTINUOUS ANIMATIONS
+   CSS only (zero JS overhead)
+   ============================================ */
+
+@keyframes heroPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.8; }
+}
+
+@keyframes heroScrollBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+
+@keyframes heroArrowBounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+@keyframes heroScrollDot {
+  0%, 100% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(16px); opacity: 0.5; }
+}
+
+/* Hero preview cursor trail - CSS only */
+@keyframes cursorTrail {
+  0% { transform: translate(280px, 160px); }
+  25% { transform: translate(340px, 120px); }
+  50% { transform: translate(280px, 160px); }
+  75% { transform: translate(340px, 120px); }
+  100% { transform: translate(280px, 160px); }
+}
+
+/* Floating card ambient animations - CSS only */
+@keyframes floatCard1 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+
+@keyframes floatCard2 {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
