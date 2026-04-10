@@ -1176,3 +1176,8 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Trust badge pulse dot - applied via hero-pulse class */
+.hero-pulse {
+  animation: heroPulse 2s ease-in-out infinite;
+}

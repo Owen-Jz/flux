@@ -161,11 +161,7 @@ export function HeroSection() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--surface)]/80 border border-[var(--border-subtle)] text-xs font-semibold text-[var(--text-secondary)] hover:border-[var(--brand-primary)]/50 hover:text-[var(--brand-primary)] transition-all backdrop-blur-xl group"
             >
               <span className="flex items-center gap-1.5">
-                <motion.span
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="w-2 h-2 rounded-full bg-[var(--brand-primary)]"
-                />
+                <span className="w-2 h-2 rounded-full bg-[var(--brand-primary)] hero-pulse" />
                 <span className="text-[var(--brand-primary)]">New</span>
               </span>
               <span className="text-[var(--text-tertiary)] group-hover:text-[var(--text-secondary)] transition-colors">Flux 2.0 is now available</span>
