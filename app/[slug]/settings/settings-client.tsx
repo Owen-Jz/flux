@@ -1,13 +1,15 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon, PhotoIcon, BellIcon } from '@heroicons/react/24/outline';
 import { updateWorkspaceSettings } from '@/actions/workspace';
 import { deleteWorkspace } from '@/actions/access-control';
 import { BillingSection } from '@/components/billing/billing-section';
 import { WorkspaceIconPicker } from '@/components/workspace/workspace-icon-picker';
+import { NotificationPermissionBanner } from '@/components/pwa/notification-permission-banner';
+import { subscribeToPush, unsubscribeFromPush, isPushSupported } from '@/lib/pwa/push-manager';
 
 interface SettingsClientProps {
     workspace: {
@@ -44,6 +46,11 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'general' | 'billing'>('general');
     const [showIconPicker, setShowIconPicker] = useState(false);
+    const [pushEnabled, setPushEnabled] = useState(false);
+
+    useEffect(() => {
+        isPushSupported().then(setPushEnabled);
+    }, []);
 
     const handleTogglePublicAccess = async () => {
         const newValue = !publicAccess;
@@ -87,6 +94,16 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                 setError(err instanceof Error ? err.message : 'Failed to delete workspace');
             }
         });
+    };
+
+    const handleTogglePush = async () => {
+        if (pushEnabled) {
+            await unsubscribeFromPush();
+            setPushEnabled(false);
+        } else {
+            await subscribeToPush(workspace.slug);
+            setPushEnabled(true);
+        }
     };
 
     return (
@@ -180,6 +197,35 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                                     }`}
                             />
                         </button>
+                    </div>
+                </div>
+
+                {/* Notifications */}
+                <div className="card p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <BellIcon className="w-4 h-4 text-[var(--brand-primary)]" />
+                        <h2 className="font-semibold">Notifications</h2>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-medium">Push Notifications</p>
+                            <p className="text-xs text-[var(--text-secondary)] mt-1">
+                                Receive push notifications for task updates in this workspace.
+                            </p>
+                        </div>
+                        <button
+                            onClick={handleTogglePush}
+                            className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${pushEnabled ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-subtle)]'
+                                }`}
+                        >
+                            <div
+                                className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${pushEnabled ? 'right-1' : 'left-1'
+                                    }`}
+                            />
+                        </button>
+                    </div>
+                    <div className="mt-4">
+                        <NotificationPermissionBanner workspaceId={workspace.slug} />
                     </div>
                 </div>
 
