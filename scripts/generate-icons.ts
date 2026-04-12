@@ -21,7 +21,7 @@ function createFSvg(size: number, bgColor: string, fgColor: string): Buffer {
   <g transform="translate(${padding}, ${padding})">
     <rect x="0" y="0" width="${stemWidth}" height="${innerSize}" fill="${fgColor}"/>
     <rect x="${stemWidth}" y="0" width="${barWidth}" height="${barHeight}" fill="${fgColor}"/>
-    <rect x="${stemWidth}" y="${barHeight + 8}" width="${midBarWidth}" height="${barHeight}" fill="${fgColor}"/>
+    <rect x="${stemWidth}" y="${Math.round(barHeight * 1.35)}" width="${midBarWidth}" height="${barHeight}" fill="${fgColor}"/>
   </g>
 </svg>`;
   return Buffer.from(svg);
@@ -41,7 +41,7 @@ function createMaskableSvg(size: number, bgColor: string, fgColor: string): Buff
   <g transform="translate(${outerPad}, ${outerPad})">
     <rect x="0" y="0" width="${stemWidth}" height="${innerSize}" fill="${fgColor}"/>
     <rect x="${stemWidth}" y="0" width="${barWidth}" height="${barHeight}" fill="${fgColor}"/>
-    <rect x="${stemWidth}" y="${barHeight + 8}" width="${midBarWidth}" height="${barHeight}" fill="${fgColor}"/>
+    <rect x="${stemWidth}" y="${Math.round(barHeight * 1.35)}" width="${midBarWidth}" height="${barHeight}" fill="${fgColor}"/>
   </g>
 </svg>`;
   return Buffer.from(svg);
