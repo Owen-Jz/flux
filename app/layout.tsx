@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import { PWAUpdateBanner } from "@/components/pwa/update-banner";
 
 const sans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -365,11 +366,23 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <ThemeScript />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW registration failed:', err));
+                });
+              }
+            `,
+          }}
+        />
       </head>
       <body
         className={`${sans.variable} ${mono.variable} antialiased`}
       >
         <Providers>{children}</Providers>
+        <PWAUpdateBanner />
       </body>
     </html>
   );
