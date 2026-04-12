@@ -28,11 +28,15 @@ export async function subscribeToPush(workspaceId?: string): Promise<PushSubscri
   });
 
   const subJson = subscription.toJSON();
+  const keys = subJson.keys;
+  if (!keys?.p256dh || !keys?.auth) {
+    throw new Error('Invalid push subscription keys');
+  }
   await savePushSubscription({
-    endpoint: subJson.endpoint!,
+    endpoint: subJson.endpoint ?? '',
     keys: {
-      p256dh: subJson.keys?.p256dh!,
-      auth: subJson.keys?.auth!,
+      p256dh: keys.p256dh,
+      auth: keys.auth,
     },
     workspaceId,
     createdAt: Date.now(),
@@ -47,8 +51,8 @@ export async function unsubscribeFromPush(): Promise<void> {
 
   const sub = await registration.pushManager.getSubscription();
   if (sub) {
-    await deletePushSubscription(sub.endpoint);
     await sub.unsubscribe();
+    await deletePushSubscription(sub.endpoint);
   }
 }
 
