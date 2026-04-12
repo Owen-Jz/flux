@@ -103,7 +103,7 @@ self.addEventListener('fetch', function(event) {
   }
 
   // Stale-while-revalidate: Pages
-  if (url.pathname === '/' || url.pathname === '/dashboard' || isBoardPage(url)) {
+  if (url.pathname === '/' || url.pathname === '/dashboard' || url.pathname.match(/^\/[^/]+$/) || isBoardPage(url)) {
     event.respondWith(
       caches.match(event.request).then(function(cached) {
         var networkFetch = fetch(event.request).then(function(response) {
