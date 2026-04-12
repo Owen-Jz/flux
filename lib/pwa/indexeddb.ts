@@ -86,9 +86,9 @@ export async function cacheBoard(board: CachedBoard): Promise<void> {
     const store = tx.objectStore('boards');
     const record: CachedBoard = { ...board, lastAccessed: Date.now() };
     const request = store.put(record);
-    request.onsuccess = () => resolve();
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
     request.onerror = () => reject(request.error);
-    db.close();
   });
 }
 
@@ -98,14 +98,15 @@ export async function getCachedBoards(limit = 10): Promise<CachedBoard[]> {
     const tx = db.transaction('boards', 'readonly');
     const store = tx.objectStore('boards');
     const request = store.getAll();
+    let result: CachedBoard[];
     request.onsuccess = () => {
       const boards: CachedBoard[] = request.result;
-      // Sort by lastAccessed descending, return top N
       boards.sort((a, b) => b.lastAccessed - a.lastAccessed);
-      resolve(boards.slice(0, limit));
+      result = boards.slice(0, limit);
     };
     request.onerror = () => reject(request.error);
-    db.close();
+    tx.oncomplete = () => { db.close(); resolve(result); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
   });
 }
 
@@ -134,9 +135,11 @@ export async function getTasksByBoardId(boardId: string): Promise<CachedTask[]> 
     const store = tx.objectStore('tasks');
     const index = store.index('boardId');
     const request = index.getAll(boardId);
-    request.onsuccess = () => resolve(request.result);
+    let result: CachedTask[];
+    request.onsuccess = () => { result = request.result; };
     request.onerror = () => reject(request.error);
-    db.close();
+    tx.oncomplete = () => { db.close(); resolve(result); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
   });
 }
 
@@ -146,9 +149,9 @@ export async function cacheUser(user: CachedUser): Promise<void> {
     const tx = db.transaction('user', 'readwrite');
     const store = tx.objectStore('user');
     const request = store.put(user);
-    request.onsuccess = () => resolve();
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
     request.onerror = () => reject(request.error);
-    db.close();
   });
 }
 
@@ -157,13 +160,12 @@ export async function getCachedUser(): Promise<CachedUser | undefined> {
   return new Promise((resolve, reject) => {
     const tx = db.transaction('user', 'readonly');
     const store = tx.objectStore('user');
-    const request = store.getAll();
-    request.onsuccess = () => {
-      const users: CachedUser[] = request.result;
-      resolve(users[0]);
-    };
+    const request = store.get('user');
+    let result: CachedUser | undefined;
+    request.onsuccess = () => { result = request.result; };
     request.onerror = () => reject(request.error);
-    db.close();
+    tx.oncomplete = () => { db.close(); resolve(result); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
   });
 }
 
@@ -173,9 +175,9 @@ export async function savePushSubscription(sub: PushSubscription): Promise<void>
     const tx = db.transaction('subscriptions', 'readwrite');
     const store = tx.objectStore('subscriptions');
     const request = store.put(sub);
-    request.onsuccess = () => resolve();
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
     request.onerror = () => reject(request.error);
-    db.close();
   });
 }
 
@@ -185,9 +187,11 @@ export async function getPushSubscriptions(): Promise<PushSubscription[]> {
     const tx = db.transaction('subscriptions', 'readonly');
     const store = tx.objectStore('subscriptions');
     const request = store.getAll();
-    request.onsuccess = () => resolve(request.result);
+    let result: PushSubscription[];
+    request.onsuccess = () => { result = request.result; };
     request.onerror = () => reject(request.error);
-    db.close();
+    tx.oncomplete = () => { db.close(); resolve(result); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
   });
 }
 
@@ -197,9 +201,9 @@ export async function deletePushSubscription(endpoint: string): Promise<void> {
     const tx = db.transaction('subscriptions', 'readwrite');
     const store = tx.objectStore('subscriptions');
     const request = store.delete(endpoint);
-    request.onsuccess = () => resolve();
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
     request.onerror = () => reject(request.error);
-    db.close();
   });
 }
 
