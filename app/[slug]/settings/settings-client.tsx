@@ -47,9 +47,14 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     const [activeTab, setActiveTab] = useState<'general' | 'billing'>('general');
     const [showIconPicker, setShowIconPicker] = useState(false);
     const [pushEnabled, setPushEnabled] = useState(false);
+    const [pushLoading, setPushLoading] = useState(false);
 
     useEffect(() => {
-        isPushSupported().then(setPushEnabled);
+        let cancelled = false;
+        isPushSupported().then(result => {
+            if (!cancelled) setPushEnabled(result);
+        });
+        return () => { cancelled = true; };
     }, []);
 
     const handleTogglePublicAccess = async () => {
@@ -97,12 +102,23 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     };
 
     const handleTogglePush = async () => {
-        if (pushEnabled) {
-            await unsubscribeFromPush();
-            setPushEnabled(false);
-        } else {
-            await subscribeToPush(workspace.slug);
-            setPushEnabled(true);
+        const wasEnabled = pushEnabled;
+        setPushEnabled(!wasEnabled);
+        setPushLoading(true);
+        setError(null);
+        try {
+            if (wasEnabled) {
+                await unsubscribeFromPush();
+                setPushEnabled(false);
+            } else {
+                await subscribeToPush(workspace.slug);
+                setPushEnabled(true);
+            }
+        } catch (err) {
+            setPushEnabled(wasEnabled); // revert
+            setError(err instanceof Error ? err.message : 'Failed to update notification settings');
+        } finally {
+            setPushLoading(false);
         }
     };
 
@@ -215,8 +231,9 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                         </div>
                         <button
                             onClick={handleTogglePush}
+                            disabled={pushLoading}
                             className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${pushEnabled ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-subtle)]'
-                                }`}
+                                } ${pushLoading ? 'opacity-50' : ''}`}
                         >
                             <div
                                 className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${pushEnabled ? 'right-1' : 'left-1'

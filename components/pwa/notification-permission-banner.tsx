@@ -11,16 +11,20 @@ interface Props {
 
 export function NotificationPermissionBanner({ workspaceId, onEnabled }: Props) {
   const [visible, setVisible] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   if (!canRequestPushPermission()) return null;
 
   const handleEnable = async () => {
+    setLoading(true);
     try {
       await subscribeToPush(workspaceId);
       onEnabled?.();
       setVisible(false);
     } catch (err) {
       console.error('[PWA] Push subscription failed:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,9 +43,10 @@ export function NotificationPermissionBanner({ workspaceId, onEnabled }: Props) 
         <div className="flex gap-2 mt-3">
           <button
             onClick={handleEnable}
-            className="px-3 py-1.5 bg-[var(--brand-primary)] text-white text-xs font-medium rounded-md hover:opacity-90"
+            disabled={loading}
+            className="px-3 py-1.5 bg-[var(--brand-primary)] text-white text-xs font-medium rounded-md hover:opacity-90 disabled:opacity-50"
           >
-            Enable
+            {loading ? 'Enabling...' : 'Enable'}
           </button>
           <button
             onClick={() => setVisible(false)}
