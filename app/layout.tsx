@@ -16,6 +16,7 @@ const mono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Flux | Modern Project Management",
   description: "A cutting-edge project management SaaS with real-time collaboration.",
+  manifest: "/manifest.json",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
