@@ -11,6 +11,22 @@ import { sendWorkspaceInviteEmail } from '@/lib/email/workspace-invite';
 import crypto from 'crypto';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 
+// Helper to trigger push notification (non-blocking)
+async function triggerPush(data: { title: string; body: string; url?: string; workspaceId?: string }) {
+  try {
+    await fetch('/api/notifications/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-internal-secret': process.env.INTERNAL_API_SECRET ?? '',
+      },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.error('[PWA] Push trigger failed:', err);
+  }
+}
+
 function generateInviteToken(): string {
   return crypto.randomBytes(32).toString('hex');
 }
@@ -66,6 +82,14 @@ export async function inviteMemberToWorkspace(slug: string, email: string, role:
 
             await workspace.save();
             revalidatePath(`/${slug}/team`);
+
+            // PUSH NOTIFICATION: Notify the user that they were added to the workspace
+            triggerPush({
+                title: 'Board invitation',
+                body: `You were invited to ${workspace.name}`,
+                url: `/${slug}`,
+                workspaceId: workspace._id.toString(),
+            });
 
             return { success: true, message: 'Member added successfully' };
         }

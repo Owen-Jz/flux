@@ -3,6 +3,22 @@ import { WorkspaceInvite } from '@/models/WorkspaceInvite';
 import { Workspace } from '@/models/Workspace';
 import { revalidatePath } from 'next/cache';
 
+// Helper to trigger push notification (non-blocking)
+async function triggerPush(data: { title: string; body: string; url?: string; workspaceId?: string }) {
+  try {
+    await fetch('/api/notifications/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-internal-secret': process.env.INTERNAL_API_SECRET ?? '',
+      },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.error('[PWA] Push trigger failed:', err);
+  }
+}
+
 export async function processWorkspaceInvites(email: string) {
   await connectDB();
 
@@ -87,6 +103,14 @@ export async function addUserToWorkspaceFromInvite(userId: string, email: string
 
     await workspace.save();
     addedWorkspaces.push(workspace.slug);
+
+    // PUSH NOTIFICATION: Notify the new member they joined
+    triggerPush({
+        title: 'New team member',
+        body: `You joined ${workspace.name}`,
+        url: `/${workspace.slug}`,
+        workspaceId: workspace._id.toString(),
+    });
 
     // Delete the invite after processing
     await WorkspaceInvite.deleteOne({ _id: invite._id });

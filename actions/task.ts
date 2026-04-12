@@ -20,6 +20,22 @@ import React from 'react';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { TASK_ORDER_INCREMENT } from '@/lib/constants';
 
+// Helper to trigger push notification (non-blocking)
+async function triggerPush(data: { title: string; body: string; url?: string; workspaceId?: string }) {
+  try {
+    await fetch('/api/notifications/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-internal-secret': process.env.INTERNAL_API_SECRET ?? '',
+      },
+      body: JSON.stringify(data),
+    });
+  } catch (err) {
+    console.error('[PWA] Push trigger failed:', err);
+  }
+}
+
 interface CreateTaskData {
     title: string;
     description?: string;
@@ -513,6 +529,16 @@ export async function updateTask(
                     });
                 }
             }));
+
+            // PUSH NOTIFICATION: Notify each NEW assignee
+            for (const assigneeId of newAssignees) {
+                triggerPush({
+                    title: 'Task assigned to you',
+                    body: `${task.title} in ${board?.name || 'a board'}`,
+                    url: `/${workspace.slug}/board/${boardSlug}`,
+                    workspaceId: workspace._id.toString(),
+                });
+            }
         }
     }
 
@@ -561,6 +587,14 @@ export async function updateTask(
                     }
                 }));
             }
+
+            // PUSH NOTIFICATION: Status change broadcast to members
+            triggerPush({
+                title: 'Task updated',
+                body: `${task.title} → ${data.status}`,
+                url: `/${workspace.slug}/board/${board.slug}`,
+                workspaceId: workspace._id.toString(),
+            });
         }
 
         // Log general update (title changes, etc)
@@ -712,6 +746,14 @@ export async function addComment(taskId: string, content: string) {
                     });
                 }
             }));
+
+            // PUSH NOTIFICATION: Comment added
+            triggerPush({
+                title: 'New comment',
+                body: `${session.user.name}: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
+                url: `/${workspace.slug}/board/${board.slug}`,
+                workspaceId: workspace._id.toString(),
+            });
         }
     }
 
