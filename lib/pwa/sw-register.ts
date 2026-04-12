@@ -1,3 +1,5 @@
+export { setupOfflineSync } from './offline-sync';
+
 export function onUpdateAvailable(callback: () => void): () => void {
   window.addEventListener('pwa-update-available', callback);
   return () => window.removeEventListener('pwa-update-available', callback);

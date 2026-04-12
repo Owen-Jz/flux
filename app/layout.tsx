@@ -371,7 +371,9 @@ export default function RootLayout({
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW registration failed:', err));
+                  navigator.serviceWorker.register('/sw.js').then(() => {
+                    import('@/lib/pwa/sw-register').then(({ setupOfflineSync }) => setupOfflineSync());
+                  }).catch(err => console.warn('SW registration failed:', err));
                 });
               }
             `,
