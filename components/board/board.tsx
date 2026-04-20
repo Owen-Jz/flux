@@ -431,16 +431,15 @@ export function Board({
         const task = tasks.find((t) => t.id === taskId);
         if (!task) return;
 
-        const updatedTask = { ...task, ...data };
-
         // If currently selected task is updated, update selected task state too
         if (selectedTask?.id === taskId) {
-            setSelectedTask(updatedTask);
+            setSelectedTask({ ...task, ...data });
         }
 
         startTransition(async () => {
-            dispatchOptimistic({ type: 'UPDATE', task: updatedTask });
-            setTasks((prev) => prev.map((t) => (t.id === taskId ? updatedTask : t)));
+            // Optimistic update
+            const optimisticTask = { ...task, ...data };
+            dispatchOptimistic({ type: 'UPDATE', task: optimisticTask });
 
             try {
                 await updateTask(taskId, {
@@ -458,8 +457,12 @@ export function Board({
                     dueDate: data.dueDate,
                     links: data.links,
                 });
+                // On success, sync with server state via setTasks
+                setTasks((prev) => prev.map((t) => (t.id === taskId ? optimisticTask : t)));
             } catch (error) {
                 console.error('Failed to update task:', error);
+                // Revert optimistic update by dispatching original task
+                dispatchOptimistic({ type: 'UPDATE', task });
                 setTasks((prev) => prev.map((t) => (t.id === taskId ? task : t)));
             }
         });
