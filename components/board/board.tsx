@@ -25,7 +25,6 @@ import { PlusIcon, XMarkIcon, ArrowPathIcon, MagnifyingGlassIcon, UserIcon, Cog6
 import { motion, AnimatePresence } from 'framer-motion';
 import EditBoardModal from '../EditBoardModal';
 import CustomSelect from '../ui/custom-select';
-import { useSocket } from '@/contexts/socket-context';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 
@@ -85,88 +84,6 @@ export function Board({
     useEffect(() => {
         setLocalCategories(categories);
     }, [categories]);
-
-    // Socket real-time handling
-    const {
-        isConnected,
-        onlineUsers,
-        emitTaskMoved,
-        emitTaskUpdated,
-        emitTaskCreated,
-        emitTaskDeleted,
-        onTaskMoved,
-        onTaskUpdated,
-        onTaskCreated,
-        onTaskDeleted,
-    } = useSocket();
-
-    // Listen for remote task moves
-    useEffect(() => {
-        if (!boardId || isReadOnly) return;
-
-        const unsubscribe = onTaskMoved((data) => {
-            // Don't process our own moves
-            if (data.movedBy?.id === currentUserId) return;
-
-            setTasks((prev) =>
-                prev.map((t) =>
-                    t.id === data.taskId
-                        ? { ...t, status: data.toColumn as TaskStatus, order: data.newIndex }
-                        : t
-                )
-            );
-        });
-
-        return unsubscribe;
-    }, [boardId, isReadOnly, currentUserId, onTaskMoved]);
-
-    // Listen for remote task updates
-    useEffect(() => {
-        if (!boardId || isReadOnly) return;
-
-        const unsubscribe = onTaskUpdated((data) => {
-            // Don't process our own updates
-            if (data.updatedBy?.id === currentUserId) return;
-
-            setTasks((prev) =>
-                prev.map((t) =>
-                    t.id === data.taskId ? { ...t, ...data.updates } : t
-                )
-            );
-        });
-
-        return unsubscribe;
-    }, [boardId, isReadOnly, currentUserId, onTaskUpdated]);
-
-    // Listen for remote task creation
-    useEffect(() => {
-        if (!boardId || isReadOnly) return;
-
-        const unsubscribe = onTaskCreated((data) => {
-            // Don't process our own creates
-            if (data.createdBy?.id === currentUserId) return;
-
-            if (data.task) {
-                setTasks((prev) => [...prev, data.task as unknown as TaskData]);
-            }
-        });
-
-        return unsubscribe;
-    }, [boardId, isReadOnly, currentUserId, onTaskCreated]);
-
-    // Listen for remote task deletion
-    useEffect(() => {
-        if (!boardId || isReadOnly) return;
-
-        const unsubscribe = onTaskDeleted((data) => {
-            // Don't process our own deletes
-            if (data.deletedBy?.id === currentUserId) return;
-
-            setTasks((prev) => prev.filter((t) => t.id !== data.taskId));
-        });
-
-        return unsubscribe;
-    }, [boardId, isReadOnly, currentUserId, onTaskDeleted]);
 
     const [activeTask, setActiveTask] = useState<TaskData | null>(null);
     const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
@@ -352,16 +269,6 @@ export function Board({
             try {
                 await updateTaskPosition(activeId, targetColumn as TaskStatus, newOrder);
 
-                // Emit socket event for real-time sync
-                if (boardId) {
-                    emitTaskMoved({
-                        taskId: activeId,
-                        fromColumn: activeTask.status,
-                        toColumn: targetColumn,
-                        newIndex: newOrder,
-                    });
-                }
-
                 // Track onboarding progress - drag and drop
                 await updateOnboardingProgress('completedFirstDragDrop');
             } catch (error) {
@@ -409,13 +316,6 @@ export function Board({
                     ...prev.filter((t) => t.id !== tempId),
                     { ...newTask, id: result.id },
                 ]);
-
-                // Emit socket event for real-time sync
-                if (boardId) {
-                    emitTaskCreated({
-                        task: { ...newTask, id: result.id },
-                    });
-                }
 
                 // Track onboarding progress
                 await updateOnboardingProgress('createdFirstTask');
@@ -467,13 +367,6 @@ export function Board({
                     ...prev.filter((t) => t.id !== tempId),
                     { ...newTask, id: result.id },
                 ]);
-
-                // Emit socket event for real-time sync
-                if (boardId) {
-                    emitTaskCreated({
-                        task: { ...newTask, id: result.id },
-                    });
-                }
             } catch (error) {
                 console.error('Failed to create task:', error);
                 dispatchOptimistic({ type: 'DELETE', id: tempId });
@@ -527,13 +420,6 @@ export function Board({
                     ...prev.filter((t) => t.id !== tempId),
                     { ...newTask, id: result.id },
                 ]);
-
-                // Emit socket event for real-time sync
-                if (boardId) {
-                    emitTaskCreated({
-                        task: { ...newTask, id: result.id },
-                    });
-                }
             } catch (error) {
                 console.error('Failed to create task:', error);
                 dispatchOptimistic({ type: 'DELETE', id: tempId });
@@ -569,15 +455,9 @@ export function Board({
                     })),
                     categoryId: data.categoryId,
                     status: data.status as TaskStatus,
+                    dueDate: data.dueDate,
+                    links: data.links,
                 });
-
-                // Emit socket event for real-time sync
-                if (boardId) {
-                    emitTaskUpdated({
-                        taskId,
-                        updates: data,
-                    });
-                }
             } catch (error) {
                 console.error('Failed to update task:', error);
                 setTasks((prev) => prev.map((t) => (t.id === taskId ? task : t)));
@@ -599,11 +479,6 @@ export function Board({
 
             try {
                 await deleteTask(taskId);
-
-                // Emit socket event for real-time sync
-                if (boardId) {
-                    emitTaskDeleted({ taskId });
-                }
             } catch (error) {
                 console.error('Failed to delete task:', error);
                 setTasks((prev) => [...prev, task]);
@@ -657,40 +532,6 @@ export function Board({
 
                     {/* Divider */}
                     <div className="hidden sm:block w-px h-6 bg-[var(--border-subtle)] mx-1" />
-
-                    {/* Online Users */}
-                    {onlineUsers.length > 0 && (
-                        <div className="hidden lg:flex items-center gap-2">
-                            <div className="flex items-center -space-x-2">
-                                {onlineUsers.slice(0, 4).map((user) => (
-                                    <div
-                                        key={user.socketId}
-                                        className="relative group"
-                                    >
-                                        {user.image ? (
-                                            <img
-                                                src={user.image}
-                                                alt={user.name}
-                                                className="w-7 h-7 rounded-full border-2 border-[var(--background)]"
-                                            />
-                                        ) : (
-                                            <div className="w-7 h-7 rounded-full border-2 border-[var(--background)] bg-[var(--brand-primary)] flex items-center justify-center text-white text-[10px] font-medium">
-                                                {user.name.charAt(0).toUpperCase()}
-                                            </div>
-                                        )}
-                                        <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] text-[var(--text-secondary)] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 bg-[var(--surface)] px-1.5 py-0.5 rounded">
-                                            {user.name}
-                                        </span>
-                                    </div>
-                                ))}
-                                {onlineUsers.length > 4 && (
-                                    <div className="w-7 h-7 rounded-full border-2 border-[var(--background)] bg-[var(--surface)] flex items-center justify-center text-[10px] text-[var(--text-secondary)]">
-                                        +{onlineUsers.length - 4}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
 
                     {/* Quick Actions - Icon Buttons */}
                     <div className="flex items-center gap-0.5">
