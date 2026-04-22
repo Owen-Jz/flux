@@ -245,25 +245,25 @@ useEffect(() => {
             <AnimatePresence>
               <motion.span
                 key={`badge-${headlineIndex}`}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.2 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                initial={{ opacity: 0, scale: 0.8, filter: "blur(8px)" }}
+                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                exit={{ opacity: 0, scale: 1.2, filter: "blur(8px)" }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                 className={`inline-block mb-4 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-gradient-to-r ${heroHeadlines[headlineIndex].gradient} text-white shadow-lg`}
               >
                 {heroHeadlines[headlineIndex].persona}
               </motion.span>
             </AnimatePresence>
 
-            {/* Line 1 — blows out / blows in */}
+            {/* Line 1 — blows out / blows in with blur */}
             <span className="block relative">
               <AnimatePresence mode="wait">
                 <motion.span
                   key={`line1-${headlineIndex}`}
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.3 }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ opacity: 0, scale: 0.7, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 1.3, filter: "blur(10px)" }}
+                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                   className="inline-block"
                 >
                   {heroHeadlines[headlineIndex].line1}
@@ -271,15 +271,15 @@ useEffect(() => {
               </AnimatePresence>
             </span>
 
-            {/* Line 2 with underline SVG — blows out / blows in */}
+            {/* Line 2 with underline SVG — blows out / blows in with blur */}
             <span className="relative inline-block">
               <AnimatePresence mode="wait">
                 <motion.span
                   key={`line2-${headlineIndex}`}
-                  initial={{ opacity: 0, scale: 0.7 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.3 }}
-                  transition={{ duration: 0.5, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ opacity: 0, scale: 0.7, filter: "blur(10px)" }}
+                  animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, scale: 1.3, filter: "blur(10px)" }}
+                  transition={{ duration: 0.55, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
                   className="inline-block"
                 >
                   {heroHeadlines[headlineIndex].line2}
