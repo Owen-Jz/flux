@@ -158,7 +158,7 @@ const [headlineIndex, setHeadlineIndex] = useState(0);
 useEffect(() => {
   const interval = setInterval(() => {
     setHeadlineIndex((prev) => (prev + 1) % heroHeadlines.length);
-  }, 3500);
+  }, 6000);
   return () => clearInterval(interval);
 }, []);
 
@@ -248,7 +248,7 @@ useEffect(() => {
                 initial={{ opacity: 0, scale: 0.8, filter: "blur(8px)" }}
                 animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                 exit={{ opacity: 0, scale: 1.2, filter: "blur(8px)" }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 className={`inline-block mb-4 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-gradient-to-r ${heroHeadlines[headlineIndex].gradient} text-white shadow-lg`}
               >
                 {heroHeadlines[headlineIndex].persona}
@@ -263,7 +263,7 @@ useEffect(() => {
                   initial={{ opacity: 0, scale: 0.7, filter: "blur(10px)" }}
                   animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                   exit={{ opacity: 0, scale: 1.3, filter: "blur(10px)" }}
-                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
                   className="inline-block"
                 >
                   {heroHeadlines[headlineIndex].line1}
@@ -279,7 +279,7 @@ useEffect(() => {
                   initial={{ opacity: 0, scale: 0.7, filter: "blur(10px)" }}
                   animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
                   exit={{ opacity: 0, scale: 1.3, filter: "blur(10px)" }}
-                  transition={{ duration: 0.55, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.9, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
                   className="inline-block"
                 >
                   {heroHeadlines[headlineIndex].line2}
