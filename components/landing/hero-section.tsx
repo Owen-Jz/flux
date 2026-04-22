@@ -241,14 +241,14 @@ useEffect(() => {
             variants={fadeInUp}
             className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black text-[var(--text-primary)] leading-[1.02] mb-8 tracking-tight max-w-5xl perspective-1000"
           >
-            {/* Persona badge */}
-            <AnimatePresence>
+            {/* Persona badge — fades and blurs cleanly, no competing scale */}
+            <AnimatePresence mode="popLayout">
               <motion.span
                 key={`badge-${headlineIndex}`}
-                initial={{ opacity: 0, scale: 0.8, filter: "blur(8px)" }}
-                animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                exit={{ opacity: 0, scale: 1.2, filter: "blur(8px)" }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                initial={{ opacity: 0, y: -8, filter: "blur(6px)" }}
+                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                exit={{ opacity: 0, y: 8, filter: "blur(6px)" }}
+                transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
                 className={`inline-block mb-4 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-gradient-to-r ${heroHeadlines[headlineIndex].gradient} text-white shadow-lg`}
               >
                 {heroHeadlines[headlineIndex].persona}
