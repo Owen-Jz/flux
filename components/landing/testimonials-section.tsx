@@ -6,25 +6,46 @@ import { motion, useScroll, useTransform } from "framer-motion";
 
 const testimonials = [
     {
-        quote: "Flux transformed how we build software. It's not just a tool, it's a productivity multiplier for our entire engineering team.",
+        quote: "We actually shipped our Q4 roadmap on time for the first time in years. Flux just... works.",
         author: "Sarah Jenkins",
         role: "CTO at TechFlow",
         avatar: "SJ",
         gradient: "from-blue-500 to-cyan-500"
     },
     {
-        quote: "The best project management tool we've used. The interface is stunning and the features are exactly what we needed without the bloat.",
+        quote: "I stopped getting 'I didn't know that was done' messages. That alone was worth it.",
         author: "Michael Chen",
         role: "Product Lead at Apex",
         avatar: "MC",
         gradient: "from-purple-500 to-pink-500"
     },
     {
-        quote: "Finally, a tool that keeps up with our speed. Real-time collaboration feels like magic on Flux.",
+        quote: "The moment my team saw each other's cursors on the board, they got it. No training needed.",
         author: "Jessica Williams",
         role: "Engineering Manager at Bolt",
         avatar: "JW",
         gradient: "from-purple-500 to-teal-500"
+    },
+    {
+        quote: "I send my clients a link and they can see exactly where projects stand. Fewer meetings, happier clients.",
+        author: "Alex Rivera",
+        role: "Freelance Designer",
+        avatar: "AR",
+        gradient: "from-amber-500 to-orange-500"
+    },
+    {
+        quote: "As a solo founder, I needed something that worked for me—not a team tool forced into solo use. Flux is that.",
+        author: "Sam Patel",
+        role: "Indie Hacker",
+        avatar: "SP",
+        gradient: "from-emerald-500 to-teal-500"
+    },
+    {
+        quote: "The client portal view alone changed how I run my agency. Professional without the overhead.",
+        author: "Jordan Kim",
+        role: "Agency Owner",
+        avatar: "JK",
+        gradient: "from-rose-500 to-pink-500"
     }
 ];
 
@@ -62,7 +83,7 @@ export const TestimonialsSection = () => {
                         transition={{ delay: 0.1 }}
                         className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--text-primary)] mb-6 tracking-tight"
                     >
-                        Loved by <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary)] to-[var(--info-primary)]">innovative teams</span>
+                        From teams to solo founders
                     </motion.h2>
                     <motion.p
                         initial={{ opacity: 0, y: 20 }}
@@ -71,7 +92,7 @@ export const TestimonialsSection = () => {
                         transition={{ delay: 0.2 }}
                         className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto"
                     >
-                        See why thousands of teams choose Flux to power their workflow.
+                        Teams, freelancers, and solo builders. Here's what happens when you stop the chaos.
                     </motion.p>
                 </div>
 
