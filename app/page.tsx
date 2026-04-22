@@ -12,6 +12,7 @@ import { HeroPreviewSection } from '@/components/landing/hero-preview';
 import { StatsSection } from '@/components/landing/stats-section';
 import { ValueProposition } from '@/components/landing/value-proposition';
 import { CTASection } from '@/components/landing/cta-section';
+import { WhoItsForSection } from '@/components/landing/who-its-for-section';
 import { FeaturesGrid } from '@/components/landing/features-grid';
 import { LandingPageAnimation } from '@/components/landing/scroll-animation';
 import { LogoMarquee } from '@/components/landing/logo-marquee';
@@ -56,9 +57,14 @@ function Navigation() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
+          {/* Logo with icon */}
           <Link href="/" className="flex items-center gap-3 group" aria-label="Flux home">
-            <span className="font-extrabold text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
+            <svg width="32" height="32" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+              <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+              <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+              <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+            </svg>
+            <span className="font-black text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -206,10 +212,15 @@ function Footer() {
           {/* Brand */}
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-4">
+              <svg width="32" height="32" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+                <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+                <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+              </svg>
               <span className="font-black text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
             </Link>
             <p className="text-[var(--text-tertiary)] max-w-xs mb-6 leading-relaxed">
-              The all-in-one workspace for high-performing engineering teams to ship faster.
+              One place where your engineering team collaborates, stays aligned, and ships faster—without the chaos.
             </p>
             <div className="flex gap-3">
               {/* Social icons would go here */}
@@ -295,6 +306,9 @@ export default function HomePage() {
           {/* Analytics Dashboard */}
           <AnalyticsDashboard />
 
+          {/* Who it's for */}
+          <WhoItsForSection />
+
           {/* Features */}
           <section id="features" className="py-16 md:py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[var(--background)]">
             <div className="max-w-7xl mx-auto">
@@ -303,10 +317,10 @@ export default function HomePage() {
                   Features
                 </span>
                 <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--text-primary)] tracking-tight mb-4 md:mb-6">
-                  Built for modern teams
+                  Everything your team needs
                 </h2>
                 <p className="text-base md:text-lg text-[var(--text-secondary)]">
-                  Every feature designed with performance and usability in mind.
+                  Powerful features that actually make sense—not a bloated tool with checkboxes.
                 </p>
               </div>
               <FeaturesGrid />
