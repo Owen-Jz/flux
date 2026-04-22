@@ -8,7 +8,15 @@ import Link from "next/link";
 const faqs = [
     {
         question: "Is Flux free to use?",
-        answer: "Yes, our Starter plan is completely free for individuals and small teams. It includes up to 3 projects and unlimited tasks."
+        answer: "Yes, our Free plan is completely free forever for individuals. It includes unlimited tasks and up to 3 projects."
+    },
+    {
+        question: "Can I use Flux as a solo user?",
+        answer: "Absolutely. Many of our most dedicated users are solo professionals—freelancers, indie hackers, and personal productivity enthusiasts. The Free plan has everything you need to stay organized."
+    },
+    {
+        question: "Can I share project progress with clients?",
+        answer: "Yes. With every plan, you can share a public link to a board so clients can see progress without needing to log in or be invited."
     },
     {
         question: "Can I import data from other tools?",
@@ -16,7 +24,7 @@ const faqs = [
     },
     {
         question: "How secure is my data?",
-        answer: "We take security seriously. All data is encrypted at rest and in transit. We are SOC2 Type II compliant and perform regular security audits."
+        answer: "Super secure. Your data is encrypted, protected, and we undergo regular security reviews. Think bank-level protection."
     },
     {
         question: "Do you offer discounts for non-profits?",
@@ -78,10 +86,10 @@ export const FAQSection = () => {
                         FAQ
                     </span>
                     <h2 id="faq-heading" className="text-3xl lg:text-4xl font-black text-[var(--text-primary)] mb-4 tracking-tight">
-                        Frequently Asked Questions
+                        Questions, answered
                     </h2>
                     <p className="text-lg text-[var(--text-secondary)]">
-                        Everything you need to know about Flux.
+                        The stuff you actually want to know before signing up.
                     </p>
                 </div>
 
