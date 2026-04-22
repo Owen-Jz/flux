@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useScroll } from "framer-motion";
+import { motion, useScroll, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRightIcon, PlayIcon } from "@heroicons/react/24/outline";
@@ -29,20 +29,67 @@ const staggerContainer = {
 };
 
 // Static gradient orbs - no blur, uses opacity layering instead
+// Each orb has its own floating animation for smooth hover effect
 function GradientOrbs() {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
       {/* Light mode - opacity layering instead of blur */}
-      <div className="absolute top-1/4 left-1/4 w-[min(600px,80vw)] h-[min(600px,80vw)] bg-gradient-to-br from-[var(--brand-primary)]/30 via-[var(--info-primary)]/15 to-transparent rounded-full" />
-      <div className="absolute top-1/2 right-1/4 w-[min(500px,70vw)] h-[min(500px,70vw)] bg-gradient-to-bl from-[var(--info-primary)]/25 via-[var(--brand-secondary)]/15 to-transparent rounded-full" />
-      <div className="absolute bottom-1/4 left-1/3 w-[min(400px,60vw)] h-[min(400px,60vw)] bg-gradient-to-tr from-[var(--brand-secondary)]/25 via-[var(--brand-primary)]/15 to-transparent rounded-full" />
+      <motion.div
+        className="absolute top-1/4 left-1/4 w-[min(600px,80vw)] h-[min(600px,80vw)] bg-gradient-to-br from-[var(--brand-primary)]/30 via-[var(--info-primary)]/15 to-transparent rounded-full"
+        animate={{ y: [0, -20, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute top-1/2 right-1/4 w-[min(500px,70vw)] h-[min(500px,70vw)] bg-gradient-to-bl from-[var(--info-primary)]/25 via-[var(--brand-secondary)]/15 to-transparent rounded-full"
+        animate={{ y: [0, 15, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute bottom-1/4 left-1/3 w-[min(400px,60vw)] h-[min(400px,60vw)] bg-gradient-to-tr from-[var(--brand-secondary)]/25 via-[var(--brand-primary)]/15 to-transparent rounded-full"
+        animate={{ y: [0, -12, 0] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+      />
       {/* Dark mode - slightly more opacity */}
-      <div className="absolute top-1/4 left-1/4 w-[min(600px,80vw)] h-[min(600px,80vw)] bg-gradient-to-br from-[var(--brand-primary)]/25 via-[var(--info-primary)]/20 to-transparent rounded-full hidden dark:block" />
-      <div className="absolute top-1/2 right-1/4 w-[min(500px,70vw)] h-[min(500px,70vw)] bg-gradient-to-bl from-[var(--info-primary)]/30 via-[var(--brand-secondary)]/15 to-transparent rounded-full hidden dark:block" />
-      <div className="absolute bottom-1/4 left-1/3 w-[min(400px,60vw)] h-[min(400px,60vw)] bg-gradient-to-tr from-[var(--brand-secondary)]/25 via-[var(--brand-primary)]/20 to-transparent rounded-full hidden dark:block" />
+      <motion.div
+        className="absolute top-1/4 left-1/4 w-[min(600px,80vw)] h-[min(600px,80vw)] bg-gradient-to-br from-[var(--brand-primary)]/25 via-[var(--info-primary)]/20 to-transparent rounded-full hidden dark:block"
+        animate={{ y: [0, -20, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute top-1/2 right-1/4 w-[min(500px,70vw)] h-[min(500px,70vw)] bg-gradient-to-bl from-[var(--info-primary)]/30 via-[var(--brand-secondary)]/15 to-transparent rounded-full hidden dark:block"
+        animate={{ y: [0, 15, 0] }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        className="absolute bottom-1/4 left-1/3 w-[min(400px,60vw)] h-[min(400px,60vw)] bg-gradient-to-tr from-[var(--brand-secondary)]/25 via-[var(--brand-primary)]/20 to-transparent rounded-full hidden dark:block"
+        animate={{ y: [0, -12, 0] }}
+        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+      />
     </div>
   );
 }
+
+// Rotating hero headlines — one per persona
+const heroHeadlines = [
+  {
+    persona: "Teams",
+    line1: "Your team, finally",
+    line2: "in sync",
+    gradient: "from-violet-500 to-purple-500",
+  },
+  {
+    persona: "Freelancers",
+    line1: "Clients, always",
+    line2: "in the loop",
+    gradient: "from-amber-500 to-orange-500",
+  },
+  {
+    persona: "Solo",
+    line1: "Your goals, finally",
+    line2: "in sight",
+    gradient: "from-emerald-500 to-teal-500",
+  },
+];
 
 // Grid pattern overlay
 function GridPattern() {
@@ -104,6 +151,16 @@ export function HeroSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const heroContentRef = useRef<HTMLDivElement>(null);
   const { scrollY } = useScroll();
+
+// Carousel state
+const [headlineIndex, setHeadlineIndex] = useState(0);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setHeadlineIndex((prev) => (prev + 1) % heroHeadlines.length);
+  }, 3500);
+  return () => clearInterval(interval);
+}, []);
 
   useEffect(() => {
     if (!containerRef.current || !heroContentRef.current) return;
@@ -184,10 +241,50 @@ export function HeroSection() {
             variants={fadeInUp}
             className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-black text-[var(--text-primary)] leading-[1.02] mb-8 tracking-tight max-w-5xl perspective-1000"
           >
-            <AnimatedText text="Ship faster with" delay={0.1} animateWords={true} />
-            <br />
+            {/* Persona badge */}
+            <AnimatePresence>
+              <motion.span
+                key={`badge-${headlineIndex}`}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.4 }}
+                className={`inline-block mb-4 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest bg-gradient-to-r ${heroHeadlines[headlineIndex].gradient} text-white shadow-lg`}
+              >
+                {heroHeadlines[headlineIndex].persona}
+              </motion.span>
+            </AnimatePresence>
+
+            {/* Line 1 — fades between headlines */}
+            <span className="block relative">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={`line1-${headlineIndex}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className="inline-block"
+                >
+                  {heroHeadlines[headlineIndex].line1}
+                </motion.span>
+              </AnimatePresence>
+            </span>
+
+            {/* Line 2 with underline SVG */}
             <span className="relative inline-block">
-              <AnimatedText text="your team in flow" delay={0.6} animateWords={false} />
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={`line2-${headlineIndex}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  className="inline-block"
+                >
+                  {heroHeadlines[headlineIndex].line2}
+                </motion.span>
+              </AnimatePresence>
               <svg className="absolute -bottom-3 left-0 w-full h-5 text-[var(--brand-primary)]/30 -z-10" viewBox="0 0 200 20" preserveAspectRatio="none">
                 <path d="M2 15 Q 50 5 100 12 T 198 10" stroke="currentColor" strokeWidth="8" fill="none" />
               </svg>
@@ -199,8 +296,8 @@ export function HeroSection() {
             variants={fadeInUp}
             className="text-lg sm:text-xl text-[var(--text-secondary)] max-w-2xl mb-10 leading-relaxed"
           >
-            The all-in-one workspace where engineering teams collaborate in real-time,
-            automate workflows, and deliver quality software—without the chaos.
+            Stop switching between tools. See what everyone's working on in real-time.
+            No more missed updates, no more dropped threads—just your team moving fast.
           </motion.p>
 
           {/* CTA buttons with enhanced hover effects */}
@@ -273,7 +370,7 @@ export function HeroSection() {
                   </motion.div>
                 ))}
               </div>
-              <span className="font-medium">Join <strong className="text-[var(--text-secondary)]">24,000+</strong> teams</span>
+              <span className="font-medium">Join <strong className="text-[var(--text-secondary)]">24,000+</strong> teams shipping together</span>
             </div>
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((star, i) => (
