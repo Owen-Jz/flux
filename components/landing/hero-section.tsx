@@ -296,8 +296,7 @@ useEffect(() => {
             variants={fadeInUp}
             className="text-lg sm:text-xl text-[var(--text-secondary)] max-w-2xl mb-10 leading-relaxed"
           >
-            Stop switching between tools. See what everyone's working on in real-time.
-            No more missed updates, no more dropped threads—just your team moving fast.
+            Stop switching between tools. See what everyone's working on in real-time—whether it's your team, your clients, or just your own goals.
           </motion.p>
 
           {/* CTA buttons with enhanced hover effects */}
