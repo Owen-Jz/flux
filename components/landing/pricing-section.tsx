@@ -9,7 +9,7 @@ const plans = [
         name: "Free",
         price: "$0",
         period: "/mo",
-        description: "Perfect for individuals and small side projects.",
+        description: "For individuals who want to get organized. Completely free, no credit card needed.",
         features: [
             "Up to 3 Projects",
             "Up to 3 Team Members",
@@ -25,10 +25,10 @@ const plans = [
         name: "Starter",
         price: "$10",
         period: "/mo",
-        description: "For small teams just getting started.",
+        description: "Perfect for small teams or solo freelancers managing client work.",
         features: [
             "Up to 5 Projects",
-            "Up to 10 Team Members",
+            "Up to 10 Active Members",
             "Unlimited Tasks",
             "Email Support",
             "Custom Workflows",
@@ -42,10 +42,10 @@ const plans = [
         name: "Pro",
         price: "$25",
         period: "/mo",
-        description: "For growing teams that need more power and flexibility.",
+        description: "For growing agencies and teams that need more flexibility and client-facing features.",
         features: [
             "Unlimited Projects",
-            "Up to 25 Team Members",
+            "Up to 25 Active Members",
             "Unlimited Tasks",
             "Advanced Analytics",
             "Priority Support",
@@ -61,7 +61,7 @@ const plans = [
         name: "Enterprise",
         price: "Custom",
         period: "",
-        description: "Advanced features and support for large organizations.",
+        description: "For organizations that need dedicated support, custom solutions, and enterprise security.",
         features: [
             "Unlimited Everything",
             "Unlimited Team Members",
@@ -92,10 +92,10 @@ export const PricingSection = () => {
                         Pricing
                     </span>
                     <h2 id="pricing-heading" className="text-4xl lg:text-5xl font-black text-[var(--text-primary)] mb-6 tracking-tight">
-                        Simple, transparent pricing
+                        Pick your plan
                     </h2>
                     <p className="text-lg text-[var(--text-secondary)]">
-                        Choose the plan that&apos;s right for your team. All plans include a 14-day free trial.
+                        All plans include a 14-day free trial. No credit card required to start.
                     </p>
                 </div>
 
