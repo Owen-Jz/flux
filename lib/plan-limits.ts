@@ -1,6 +1,5 @@
-import { PLAN_LIMITS } from './paystack';
-
-export type PlanType = 'free' | 'starter' | 'pro' | 'enterprise';
+import { PLAN_LIMITS, PLAN_PRICES_KOBO } from './paystack';
+import type { PlanMeta, PlanType } from './types/billing';
 
 export interface PlanLimits {
     projects: number | 'unlimited';
@@ -42,3 +41,34 @@ export function getUpgradeMessage(plan: PlanType, limitType: 'projects' | 'membe
             return '';
     }
 }
+
+export const PLAN_META: Record<PlanType, PlanMeta> = {
+    free: {
+        label: 'Free',
+        price: 0,
+        priceDisplay: 'Free',
+        projects: 3,
+        members: 3,
+    },
+    starter: {
+        label: 'Starter',
+        price: PLAN_PRICES_KOBO.starter,
+        priceDisplay: '₦10,000/mo',
+        projects: 5,
+        members: 10,
+    },
+    pro: {
+        label: 'Pro',
+        price: PLAN_PRICES_KOBO.pro,
+        priceDisplay: '₦25,000/mo',
+        projects: 'unlimited',
+        members: 25,
+    },
+    enterprise: {
+        label: 'Enterprise',
+        price: PLAN_PRICES_KOBO.enterprise,
+        priceDisplay: 'Custom',
+        projects: 'unlimited',
+        members: 'unlimited',
+    },
+};
