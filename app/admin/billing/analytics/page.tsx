@@ -15,6 +15,7 @@ export default function BillingAnalyticsPage() {
     const [mrrData, setMrrData] = useState<MrrDataPoint[]>([]);
     const [migrationFlows, setMigrationFlows] = useState<MigrationFlows>({});
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
 
     useEffect(() => {
         Promise.all([
@@ -26,6 +27,7 @@ export default function BillingAnalyticsPage() {
         }).catch(() => {
             setMrrData([]);
             setMigrationFlows({});
+            setError(true);
         }).finally(() => setLoading(false));
     }, []);
 
@@ -36,6 +38,20 @@ export default function BillingAnalyticsPage() {
                     <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
                     <span className="text-zinc-500">Loading analytics...</span>
                 </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="p-8 text-center text-red-400">
+                Failed to load analytics. Please try again.
+                <button
+                    onClick={() => window.location.reload()}
+                    className="ml-4 text-violet-400 underline hover:text-violet-300"
+                >
+                    Retry
+                </button>
             </div>
         );
     }
