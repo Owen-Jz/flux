@@ -38,13 +38,13 @@ function AnimatedNumber({ value, prefix = '', suffix = '', duration = 1500 }: Kp
     return <span>{prefix}{count.toLocaleString()}{suffix}</span>;
 }
 
-const colorMap: Record<string, { bg: string; icon: string }> = {
-    blue:    { bg: 'bg-blue-500/10',    icon: 'text-blue-400' },
-    purple:  { bg: 'bg-purple-500/10', icon: 'text-purple-400' },
-    green:   { bg: 'bg-green-500/10',  icon: 'text-green-400' },
-    orange:  { bg: 'bg-orange-500/10', icon: 'text-orange-400' },
-    red:     { bg: 'bg-red-500/10',    icon: 'text-red-400' },
-    amber:   { bg: 'bg-amber-500/10',  icon: 'text-amber-400' },
+const colorMap: Record<string, { bg: string; icon: string; gradient: string; border: string }> = {
+    blue:    { bg: 'bg-blue-500/10',    icon: 'text-blue-400',    gradient: 'from-blue-500/5',    border: 'via-blue-500/50' },
+    purple:  { bg: 'bg-purple-500/10', icon: 'text-purple-400',  gradient: 'from-purple-500/5',  border: 'via-purple-500/50' },
+    green:   { bg: 'bg-green-500/10',  icon: 'text-green-400',   gradient: 'from-green-500/5',   border: 'via-green-500/50' },
+    orange:  { bg: 'bg-orange-500/10', icon: 'text-orange-400',  gradient: 'from-orange-500/5',  border: 'via-orange-500/50' },
+    red:     { bg: 'bg-red-500/10',    icon: 'text-red-400',     gradient: 'from-red-500/5',     border: 'via-red-500/50' },
+    amber:   { bg: 'bg-amber-500/10',  icon: 'text-amber-400',   gradient: 'from-amber-500/5',   border: 'via-amber-500/50' },
 };
 
 export function KpiCard({
@@ -64,7 +64,7 @@ export function KpiCard({
             className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 relative overflow-hidden group hover:border-zinc-700 transition-all"
         >
             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className={`absolute top-0 left-0 w-full h-full bg-gradient-to-br from-${color}-500/5 to-transparent`} />
+                <div className={`absolute top-0 left-0 w-full h-full bg-gradient-to-br ${styles.gradient} to-transparent`} />
             </div>
 
             <div className="relative">
@@ -87,7 +87,7 @@ export function KpiCard({
                 <p className="text-sm text-zinc-500">{label}</p>
             </div>
 
-            <div className={`absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-${color}-500/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+            <div className={`absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent ${styles.border} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
         </motion.div>
     );
 }
