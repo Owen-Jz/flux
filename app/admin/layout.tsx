@@ -151,11 +151,11 @@ export default function AdminLayout({
                     <div className="mt-6 pt-4 border-t border-zinc-800">
                         <p className="px-4 mb-2 text-xs font-semibold text-zinc-600 uppercase tracking-wider">Billing</p>
                         {[
-                            { href: '/admin/billing', label: 'Overview' },
+                            { href: '/admin/billing', label: 'Overview', exact: true },
                             { href: '/admin/billing/subscriptions', label: 'Subscriptions' },
                             { href: '/admin/billing/analytics', label: 'Analytics' },
                         ].map((item, index) => {
-                            const active = pathname === item.href || pathname.startsWith(item.href + '/');
+                            const active = item.exact ? pathname === item.href : pathname.startsWith(item.href + '/');
                             return (
                                 <motion.div
                                     key={item.href}
