@@ -37,7 +37,6 @@ const STATUS_OPTIONS = [
 ];
 
 export function SubscriptionTable({ initialData }: SubscriptionTableProps) {
-    const router = useRouter();
     const searchParams = useSearchParams();
 
     const [data, setData] = useState(initialData);
