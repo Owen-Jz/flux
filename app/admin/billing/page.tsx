@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { CurrencyDollarIcon, UserMinusIcon, UserPlusIcon, ArrowTrendingUpIcon } from '@heroicons/react/24/outline';
 import { getBillingMetrics } from '@/actions/admin/billing';
 import { KpiCard } from '@/components/admin/billing/kpi-card';
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import type { BillingMetrics } from '@/lib/types/billing';
 
 const PLAN_COLORS = ['#71717a', '#22c55e', '#8b5cf6', '#f59e0b'];
