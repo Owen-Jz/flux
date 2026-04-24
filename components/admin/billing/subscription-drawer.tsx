@@ -30,12 +30,13 @@ function timeAgo(date: Date): string {
 export function SubscriptionDrawer({ user, onClose, onUpdated }: SubscriptionDrawerProps) {
     const [history, setHistory] = useState<SubscriptionLifecycleEvent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [historyError, setHistoryError] = useState(false);
     const [actionLoading, setActionLoading] = useState('');
 
     useEffect(() => {
         getSubscriptionHistory(user.id)
             .then(setHistory)
-            .catch(() => setHistory([]))
+            .catch(() => setHistoryError(true))
             .finally(() => setLoading(false));
     }, [user.id]);
 
@@ -96,7 +97,7 @@ export function SubscriptionDrawer({ user, onClose, onUpdated }: SubscriptionDra
                             <div className="w-14 h-14 rounded-full bg-zinc-800 overflow-hidden flex-shrink-0">
                                 {user.image
                                     ? <img src={user.image} alt="" className="w-full h-full object-cover" />
-                                    : <div className="w-full h-full flex items-center justify-center text-lg font-bold text-zinc-400">{user.name.charAt(0)}</div>
+                                    : <div className="w-full h-full flex items-center justify-center text-lg font-bold text-zinc-400">{(user.name || '?').charAt(0)}</div>
                                 }
                             </div>
                             <div>
@@ -177,6 +178,8 @@ export function SubscriptionDrawer({ user, onClose, onUpdated }: SubscriptionDra
                                         <div key={i} className="h-12 bg-zinc-800/50 rounded-xl animate-pulse" />
                                     ))}
                                 </div>
+                            ) : historyError ? (
+                                <p className="text-sm text-red-400 text-center py-4">Failed to load history</p>
                             ) : history.length === 0 ? (
                                 <p className="text-sm text-zinc-600 text-center py-4">No activity recorded</p>
                             ) : (

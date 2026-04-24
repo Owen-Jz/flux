@@ -38,6 +38,7 @@ export interface SubscriptionLifecycleEvent {
     type: 'created' | 'upgraded' | 'downgraded' | 'cancelled' | 'payment_failed' | 'trial_started' | 'trial_ended';
     fromPlan?: PlanType;
     toPlan?: PlanType;
+    reason?: string;
     createdAt: Date;
 }
 
