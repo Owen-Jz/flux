@@ -5,6 +5,7 @@ import { User } from '@/models/User';
 import { AuditLog } from '@/models/AuditLog';
 import { requireAdminPermission } from '@/lib/admin-auth';
 import { requireAdmin } from '@/lib/admin-auth';
+import mongoose from 'mongoose';
 import type { PlanChangeRequest, PlanType } from '@/lib/types/billing';
 
 export async function changeUserPlan(data: PlanChangeRequest) {
@@ -27,10 +28,10 @@ export async function changeUserPlan(data: PlanChangeRequest) {
     });
 
     await AuditLog.create({
-        adminId: admin._id,
+        adminId: new mongoose.Types.ObjectId(admin.id),
         action: 'UPDATE_USER_PLAN',
         targetType: 'user',
-        targetId: userId,
+        targetId: new mongoose.Types.ObjectId(userId),
         details: {
             fromPlan: oldPlan,
             toPlan: newPlan,
@@ -59,10 +60,10 @@ export async function extendTrial(userId: string, days: number) {
     });
 
     await AuditLog.create({
-        adminId: admin._id,
+        adminId: new mongoose.Types.ObjectId(admin.id),
         action: 'EXTEND_TRIAL',
         targetType: 'user',
-        targetId: userId,
+        targetId: new mongoose.Types.ObjectId(userId),
         details: { days, newTrialEnd: newTrialEnd.toISOString() },
     });
 
@@ -84,10 +85,10 @@ export async function forceCancelSubscription(userId: string, reason?: string) {
     });
 
     await AuditLog.create({
-        adminId: admin._id,
+        adminId: new mongoose.Types.ObjectId(admin.id),
         action: 'FORCE_CANCEL_SUBSCRIPTION',
         targetType: 'user',
-        targetId: userId,
+        targetId: new mongoose.Types.ObjectId(userId),
         details: { reason: reason || 'Admin forced cancellation' },
     });
 
