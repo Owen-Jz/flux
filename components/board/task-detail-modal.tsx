@@ -175,6 +175,15 @@ export function TaskDetailModal({
             });
             setNewComment('');
             setCommentChips([]);
+
+            // Dispatch walkthrough event for interactive onboarding
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(
+                    new CustomEvent('walkthrough:interaction', {
+                        detail: { type: 'comment_added', taskId: task.id },
+                    })
+                );
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to add comment');
         } finally {

@@ -132,17 +132,17 @@ export default function ResetPasswordPage() {
                 className="w-full max-w-md"
             >
                 {/* Logo */}
-                <div className="text-center mb-8">
-                    <div className="flex justify-center mb-4">
-                        <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[var(--brand-primary)]">
-                            <img src="/icon.svg" alt="Flux Logo" className="w-7 h-7 text-white" />
-                        </span>
-                    </div>
-                    <h1 className="text-3xl font-bold text-[var(--foreground)]">Flux</h1>
-                    <p className="text-[var(--text-secondary)] mt-2">
-                        {mode === 'request' ? 'Reset your password' : 'Create new password'}
-                    </p>
-                </div>
+                <Link href="/" className="flex items-center justify-center gap-3 mb-8">
+                    <svg width="36" height="36" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                        <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+                        <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+                        <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+                    </svg>
+                    <span className="text-3xl font-black text-[var(--foreground)]">flux</span>
+                </Link>
+                <p className="text-[var(--text-secondary)] mt-2 text-center">
+                    {mode === 'request' ? 'Reset your password' : 'Create new password'}
+                </p>
 
                 {/* Card */}
                 <div className="card p-8">

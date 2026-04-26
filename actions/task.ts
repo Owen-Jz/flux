@@ -127,9 +127,6 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
 
 export async function getTasks(workspaceSlug: string, boardSlug: string) {
     const session = await auth();
-    if (!session?.user?.id) {
-        return [];
-    }
 
     await connectDB();
 
@@ -138,9 +135,12 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
         return [];
     }
 
-    // Verify user is a member
-    const member = isWorkspaceMember(workspace, session.user.id);
-    if (!member) {
+    // Verify user is a member OR workspace allows public access
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : false;
+    const hasPublicAccess = workspace.settings?.publicAccess === true;
+
+    // Non-members can only access if workspace is publicly accessible
+    if (!member && !hasPublicAccess) {
         return [];
     }
 

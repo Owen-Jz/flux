@@ -281,10 +281,20 @@ export async function disableSubscription(subscriptionCode: string): Promise<boo
     return result.status;
 }
 
-// Verify webhook signature
+// Verify webhook signature — supports key rotation by checking both current and previous key
 export function verifyWebhookSignature(payload: string, signature: string): boolean {
-    const hash = crypto.createHmac('sha512', process.env.PAYSTACK_SECRET_KEY!).update(payload).digest('hex');
-    return hash === signature;
+    const currentKey = process.env.PAYSTACK_WEBHOOK_SECRET || process.env.PAYSTACK_SECRET_KEY;
+    const previousKey = process.env.PAYSTACK_SECRET_KEY;
+
+    const currentHash = crypto.createHmac('sha512', currentKey!).update(payload).digest('hex');
+    if (currentHash === signature) return true;
+
+    if (previousKey && previousKey !== currentKey) {
+        const previousHash = crypto.createHmac('sha512', previousKey).update(payload).digest('hex');
+        if (previousHash === signature) return true;
+    }
+
+    return false;
 }
 
 // List all subscription plans (cached)

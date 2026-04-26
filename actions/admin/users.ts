@@ -95,8 +95,10 @@ export async function getAllUsers(options: {
 
 /**
  * Get detailed user information
+ * SECURITY: Requires admin permission
  */
 export async function getUserDetails(userId: string) {
+    await getCurrentAdminId(); // Verify caller is admin
     await connectDB();
 
     const user = await User.findById(userId).select('-password').lean();

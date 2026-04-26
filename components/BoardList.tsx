@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Squares2X2Icon, PlusIcon, EllipsisVerticalIcon, PencilSquareIcon, TrashIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import CreateBoardModal from './CreateBoardModal';
 import EditBoardModal from './EditBoardModal';
+import CelebrationModal from './CelebrationModal';
 import { deleteBoard } from '@/actions/board';
 import { toast } from 'sonner';
 
@@ -30,6 +31,8 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
     const [deletingId, setDeletingId] = useState<string | null>(null);
     // Optimistic UI state for boards
     const [boardList, setBoardList] = useState<Board[]>(boards);
+    const [showCelebration, setShowCelebration] = useState(false);
+    const [showInviteModal, setShowInviteModal] = useState(false);
     const router = useRouter();
 
     // Sync state with props when boards change (e.g., after refresh)
@@ -37,6 +40,17 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
         setBoardList(boards);
     }, [boards]);
     const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        // Listen for invite modal trigger from celebration modal
+        const handleOpenInvite = (e: CustomEvent<{ workspaceSlug: string }>) => {
+            if (e.detail.workspaceSlug === workspaceSlug) {
+                setShowInviteModal(true);
+            }
+        };
+        window.addEventListener('open-invite-modal', handleOpenInvite as EventListener);
+        return () => window.removeEventListener('open-invite-modal', handleOpenInvite as EventListener);
+    }, [workspaceSlug]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -52,9 +66,15 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
     }, []);
 
     const handleBoardCreated = (board: Board) => {
+        // Check if this was the first board (show celebration if so)
+        const isFirstBoard = boardList.length === 0;
         // Optimistically add the new board to the list
         setBoardList(prev => [...prev, board]);
-        router.push(`/${workspaceSlug}/board/${board.slug}`);
+        if (isFirstBoard) {
+            setShowCelebration(true);
+        } else {
+            router.push(`/${workspaceSlug}/board/${board.slug}`);
+        }
         router.refresh();
     };
 
@@ -186,6 +206,24 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
                     onSuccess={() => {
                         router.refresh();
                     }}
+                />
+            )}
+
+            {showCelebration && (
+                <CelebrationModal
+                    isOpen={showCelebration}
+                    onClose={() => {
+                        setShowCelebration(false);
+                        router.push(`/${workspaceSlug}/board/${boardList[boardList.length - 1]?.slug}`);
+                    }}
+                    workspaceSlug={workspaceSlug}
+                />
+            )}
+
+            {showInviteModal && (
+                <InviteMemberModal
+                    slug={workspaceSlug}
+                    onClose={() => setShowInviteModal(false)}
                 />
             )}
         </>

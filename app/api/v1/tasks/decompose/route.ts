@@ -4,6 +4,7 @@ import { Types } from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { Task } from '@/models/Task';
 import { Board } from '@/models/Board';
+import { Workspace } from '@/models/Workspace';
 import { auth } from '@/lib/auth';
 import { createMinimaxClient } from '@/lib/llm/client';
 import {
@@ -21,6 +22,7 @@ interface DecomposeRequestBody {
     taskDescription: string;
     contextLinks?: string[];
     requestedCompletionDate?: string;
+    maxSubtasks?: number;
     boardId: string;
 }
 
@@ -74,6 +76,15 @@ function validateRequestBody(body: unknown): { valid: boolean; errors: Validatio
         const date = new Date(data.requestedCompletionDate);
         if (isNaN(date.getTime())) {
             errors.push({ field: 'requestedCompletionDate', message: 'requestedCompletionDate must be a valid ISO-8601 date' });
+        }
+    }
+
+    // maxSubtasks: optional, number between 1 and 20
+    if (data.maxSubtasks !== undefined) {
+        if (typeof data.maxSubtasks !== 'number' || !Number.isInteger(data.maxSubtasks)) {
+            errors.push({ field: 'maxSubtasks', message: 'maxSubtasks must be an integer' });
+        } else if (data.maxSubtasks < 1 || data.maxSubtasks > 20) {
+            errors.push({ field: 'maxSubtasks', message: 'maxSubtasks must be between 1 and 20' });
         }
     }
 
@@ -262,6 +273,7 @@ export async function POST(request: NextRequest) {
             taskDescription: data.taskDescription,
             contextLinks: data.contextLinks,
             requestedCompletionDate: data.requestedCompletionDate,
+            maxSubtasks: data.maxSubtasks,
         };
 
         llmResponse = await minimaxClient.decomposesTask(decomposeRequest);

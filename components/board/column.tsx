@@ -46,7 +46,7 @@ export function Column({
     const { setNodeRef, isOver } = useDroppable({ id });
 
     return (
-        <div className="flex flex-col board-column h-full">
+        <div className="flex flex-col board-column h-full" id={`column-${id}`}>
             {/* Header */}
             <div className="flex items-center justify-between mb-2 px-1 flex-shrink-0">
                 <div className="flex items-center gap-1.5">
@@ -62,6 +62,7 @@ export function Column({
                     <button
                         onClick={onAddTask}
                         className="add-task-btn p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
+                        id={`column-${id}-add-task`}
                     >
                         <PlusIcon className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                     </button>

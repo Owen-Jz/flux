@@ -31,6 +31,7 @@ export interface ITask extends Document {
     referenceUrls?: string[];
     requestedCompletionDate?: Date;
     isDecomposedTask?: boolean;
+    isSample?: boolean;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -77,6 +78,7 @@ const TaskSchema = new Schema<ITask>(
         referenceUrls: [{ type: String }],
         requestedCompletionDate: { type: Date },
         isDecomposedTask: { type: Boolean, default: false },
+        isSample: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

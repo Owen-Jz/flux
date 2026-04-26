@@ -180,7 +180,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
             }}
             {...attributes}
             className={`
-                relative group bg-[var(--surface)] rounded-lg
+                relative group bg-[var(--surface)] rounded-lg task-card
                 border ${config.border}
                 ${isDragging
                     ? 'shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)] ring-2 ring-[var(--brand-primary)]/30 rotate-1 scale-[1.02] opacity-95 z-50 cursor-grabbing'
@@ -204,7 +204,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 <div
                     {...listeners}
                     {...attributes}
-                    className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity z-10 task-card-drag-handle"
                     onClick={(e) => e.stopPropagation()}
                     aria-label="Drag to reorder"
                 >
@@ -442,7 +442,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 {/* Top row: Assignees + Priority */}
                 <div className="flex items-center justify-between gap-2">
                     {/* Assignees */}
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-1.5 task-card-assignees">
                         {task.assignees.length > 0 ? (
                             task.assignees.slice(0, 2).map((assignee) => (
                                 <div

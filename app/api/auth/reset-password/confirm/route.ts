@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import crypto from 'crypto';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import bcrypt from 'bcryptjs';
@@ -35,9 +36,12 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
+        // SECURITY FIX: Hash the incoming token to compare with stored hash
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
         // Find user with valid reset token
         const user = await User.findOne({
-            passwordResetToken: token,
+            passwordResetToken: hashedToken,
             passwordResetExpires: { $gt: new Date() },
         });
 

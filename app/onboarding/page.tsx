@@ -1,13 +1,44 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BuildingOffice2Icon, ArrowRightIcon, ArrowPathIcon, SparklesIcon, UserIcon } from '@heroicons/react/24/outline';
 import { createWorkspace } from '@/actions/workspace';
+import { getWorkspaces } from '@/actions/workspace';
 
 export default function OnboardingPage() {
     const router = useRouter();
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Redirect if user already has workspaces or has completed onboarding
+    useEffect(() => {
+        async function checkAccess() {
+            try {
+                const workspaces = await getWorkspaces();
+                // If user has workspaces, redirect to dashboard
+                if (workspaces.length > 0) {
+                    router.replace('/dashboard');
+                    return;
+                }
+            } catch (e) {
+                // If error, redirect to dashboard
+                router.replace('/dashboard');
+                return;
+            }
+            setIsLoading(false);
+        }
+        checkAccess();
+    }, [router]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
+                <div className="animate-pulse text-[var(--text-secondary)]">Loading...</div>
+            </div>
+        );
+    }
+
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         name: '',
@@ -15,7 +46,7 @@ export default function OnboardingPage() {
         workspaceName: '',
         workspaceSlug: '',
     });
-    const [isLoading, setIsLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
     const handleNameChange = (value: string) => {
@@ -33,7 +64,7 @@ export default function OnboardingPage() {
     const handleWorkspaceSubmit = async () => {
         if (!formData.workspaceName || !formData.workspaceSlug) return;
 
-        setIsLoading(true);
+        setIsSubmitting(true);
         setError('');
 
         try {
@@ -42,7 +73,7 @@ export default function OnboardingPage() {
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create workspace');
         } finally {
-            setIsLoading(false);
+            setIsSubmitting(false);
         }
     };
 
@@ -89,9 +120,11 @@ export default function OnboardingPage() {
                         transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
                         className="inline-flex items-center justify-center mb-4"
                     >
-                        <span className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--brand-primary)]">
-                            <img src="/icon.svg" alt="Flux Logo" className="w-10 h-10 text-white" />
-                        </span>
+                        <svg width="48" height="48" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                            <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+                            <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+                            <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+                        </svg>
                     </motion.div>
                 </div>
 
@@ -261,7 +294,7 @@ export default function OnboardingPage() {
                             </motion.div>
                         )}
 
-                        {/* Step 3: Dashboard Tour */}
+                        {/* Step 3: Interactive Board Walkthrough */}
                         {step === 3 && (
                             <motion.div
                                 key="step3"
@@ -271,22 +304,41 @@ export default function OnboardingPage() {
                                 className="space-y-6"
                             >
                                 <div className="text-center mb-6">
-                                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <SparklesIcon className="w-8 h-8 text-green-600" />
+                                    <div className="w-16 h-16 bg-gradient-to-br from-[var(--brand-primary)] to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                        <SparklesIcon className="w-8 h-8 text-white" />
                                     </div>
-                                    <h2 className="text-2xl font-bold text-[var(--foreground)]">You're all set!</h2>
-                                    <p className="text-[var(--text-secondary)]">Let's take a quick tour of your dashboard</p>
+                                    <h2 className="text-2xl font-bold text-[var(--foreground)]">Learn by doing!</h2>
+                                    <p className="text-[var(--text-secondary)]">Take a quick interactive tour of your board</p>
                                 </div>
 
-                                {/* Tour highlights */}
+                                {/* Interactive steps preview */}
                                 <div className="space-y-3">
-                                    <div className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)]">
-                                        <h3 className="font-medium text-[var(--foreground)]">Sidebar</h3>
-                                        <p className="text-sm text-[var(--text-secondary)]">Navigate between workspaces and settings</p>
+                                    <div className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)] flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-sm font-bold text-blue-600">1</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-medium text-[var(--foreground)]">Drag a task</h3>
+                                            <p className="text-sm text-[var(--text-secondary)]">Move a task between columns</p>
+                                        </div>
                                     </div>
-                                    <div className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)]">
-                                        <h3 className="font-medium text-[var(--foreground)]">Create Boards</h3>
-                                        <p className="text-sm text-[var(--text-secondary)]">Organize tasks with boards, lists, and cards</p>
+                                    <div className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)] flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-sm font-bold text-purple-600">2</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-medium text-[var(--foreground)]">Assign yourself</h3>
+                                            <p className="text-sm text-[var(--text-secondary)]">Click on a task and assign it to yourself</p>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)] flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                            <span className="text-sm font-bold text-green-600">3</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-medium text-[var(--foreground)]">Add a comment</h3>
+                                            <p className="text-sm text-[var(--text-secondary)]">Update task description or add a comment</p>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -306,6 +358,19 @@ export default function OnboardingPage() {
                                         Start Tour
                                         <ArrowRightIcon className="w-4 h-4" />
                                     </button>
+                                </div>
+
+                                {/* Trial Upgrade Prompt */}
+                                <div className="mt-6 p-4 rounded-xl bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20">
+                                    <p className="text-sm text-[var(--foreground)] mb-3 text-center">
+                                        Unlock Pro features — start your free 14-day trial
+                                    </p>
+                                    <Link
+                                        href="/settings?billing=trial"
+                                        className="block w-full py-2 px-4 rounded-lg bg-[var(--brand-primary)] text-white text-sm font-bold text-center hover:bg-[var(--brand-secondary)] transition-colors"
+                                    >
+                                        Start Free Trial
+                                    </Link>
                                 </div>
                             </motion.div>
                         )}

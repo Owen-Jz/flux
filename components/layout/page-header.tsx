@@ -27,13 +27,11 @@ export function PageHeader({ activeLink }: PageHeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
           <Link href="/" className="flex items-center gap-3 group" aria-label="Flux home">
-            <span className="inline-flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-[var(--brand-primary)]">
-              <img
-                src="/icon.svg"
-                alt=""
-                className="w-6 h-6 lg:w-7 lg:h-7 text-white"
-              />
-            </span>
+            <svg width="32" height="32" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+              <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+              <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+              <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+            </svg>
             <span className="font-extrabold text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
           </Link>
           <nav className="hidden lg:flex items-center gap-8">

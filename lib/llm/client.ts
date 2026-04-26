@@ -26,8 +26,8 @@ export class MinimaxClient {
     return this.parseResponse(response);
   }
 
-  // Retry helper with exponential backoff
-  private async withRetry<T>(fn: () => Promise<T>, maxAttempts: number = 3, baseDelayMs: number = 1000): Promise<T> {
+  // Retry helper with exponential backoff for transient failures
+  private async withRetry<T>(fn: () => Promise<T>, maxAttempts: number = 3, baseDelayMs: number = 2000): Promise<T> {
     let lastError: Error | undefined;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -35,9 +35,16 @@ export class MinimaxClient {
         return await fn();
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
+
+        // Check if it's a server overload error (529)
+        const isOverload = error instanceof Error &&
+          (error.message.includes('529') || error.message.includes('overloaded'));
+
         if (attempt < maxAttempts) {
-          const delay = baseDelayMs * Math.pow(2, attempt - 1);
-          console.log(`LLM API attempt ${attempt} failed, retrying in ${delay}ms...`);
+          const delay = isOverload
+            ? baseDelayMs * Math.pow(3, attempt - 1) // Longer backoff for server overload: 2s, 6s, 18s
+            : baseDelayMs * Math.pow(2, attempt - 1); // Normal backoff: 2s, 4s, 8s
+          console.log(`LLM API attempt ${attempt} failed (${lastError.message}), retrying in ${delay}ms...`);
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }
@@ -48,7 +55,8 @@ export class MinimaxClient {
 
   async callAPI(messages: LLMMessage[]): Promise<LLMResponse> {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    // Increased timeout from 15s to 30s to handle server overload scenarios
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
     try {
       const response = await this.withRetry(async () => {
@@ -78,7 +86,7 @@ export class MinimaxClient {
     } catch (error) {
       clearTimeout(timeoutId);
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Request timed out after 15 seconds');
+        throw new Error('Request timed out after 30 seconds');
       }
       throw error;
     }

@@ -173,8 +173,8 @@ export async function getSubscriptionHistory(userId: string) {
                 ? (isUpgrade(l.details.fromPlan, l.details.toPlan) ? 'upgraded' : 'downgraded')
                 : 'changed')
             : (l.action as any),
-        fromPlan: l.details?.fromPlan,
-        toPlan: l.details?.toPlan,
+        fromPlan: l.details?.fromPlan as PlanType | undefined,
+        toPlan: l.details?.toPlan as PlanType | undefined,
         reason: l.details?.reason,
         createdAt: l.createdAt,
     }));

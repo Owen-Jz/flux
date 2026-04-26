@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { CreditCardIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon, XMarkIcon, TrophyIcon, BoltIcon, BuildingOffice2Icon } from '@heroicons/react/24/outline';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CreditCardIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon, XMarkIcon, TrophyIcon, BoltIcon, BuildingOffice2Icon, GlobeAltIcon, ShieldCheckIcon, HandRaisedIcon, DocumentChartBarIcon, ServerIcon, ArrowPathIcon as SubmitIcon } from '@heroicons/react/24/outline';
 
 interface Subscription {
     plan: string;
@@ -10,6 +11,14 @@ interface Subscription {
     subscriptionId?: string;
     trialEndsAt?: string;
     hasUsedTrial: boolean;
+}
+
+interface GeoInfo {
+    country: string;
+    countryCode: string;
+    currency: 'NGN' | 'USD';
+    isNigeria: boolean;
+    exchangeRate: number;
 }
 
 const PLAN_FEATURES = {
@@ -35,6 +44,205 @@ const PLAN_FEATURES = {
     },
 };
 
+const PLAN_PRICES = {
+    free: 0,
+    starter: 10000,
+    pro: 25000,
+};
+
+const TEAM_SIZES = ['1-10', '11-50', '51-200', '201-500', '500+'];
+
+const ENTERPRISE_FEATURES = [
+    { icon: ShieldCheckIcon, title: 'SSO/SAML', description: 'Secure single sign-on with SAML 2.0' },
+    { icon: HandRaisedIcon, title: 'Dedicated Success Manager', description: 'Personal support to ensure your team thrives' },
+    { icon: DocumentChartBarIcon, title: 'SLA Guarantee', description: '99.99% uptime SLA' },
+    { icon: ServerIcon, title: 'On-Premise', description: 'Run on your own infrastructure' },
+];
+
+function EnterpriseModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        company: '',
+        phone: '',
+        teamSize: '',
+        message: '',
+    });
+
+    useEffect(() => {
+        if (!isOpen) {
+            setSubmitted(false);
+            setError(null);
+            setFormData({ name: '', email: '', company: '', phone: '', teamSize: '', message: '' });
+        }
+    }, [isOpen]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+        if (error) setError(null);
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!formData.name.trim()) { setError('Name is required'); return; }
+        if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) { setError('Valid email is required'); return; }
+        if (!formData.company.trim()) { setError('Company is required'); return; }
+        if (!formData.teamSize) { setError('Team size is required'); return; }
+
+        setIsSubmitting(true);
+        setError(null);
+
+        try {
+            const res = await fetch('/api/enterprise/inquiry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to submit inquiry');
+            }
+
+            setSubmitted(true);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to submit. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+                >
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)]"
+                    >
+                        <div className="flex items-center justify-between p-6 border-b border-[var(--border-subtle)]">
+                            <div>
+                                <h2 className="text-xl font-bold text-[var(--text-primary)]">Enterprise Inquiry</h2>
+                                <p className="text-sm text-[var(--text-secondary)] mt-1">Get custom pricing for your organization</p>
+                            </div>
+                            <button onClick={onClose} className="p-2 rounded-xl hover:bg-[var(--background-subtle)] text-[var(--text-tertiary)]">
+                                <XMarkIcon className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-6">
+                            <AnimatePresence mode="wait">
+                                {submitted ? (
+                                    <motion.div
+                                        key="success"
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="text-center py-8"
+                                    >
+                                        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                                            <CheckIcon className="w-8 h-8 text-green-600" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2">Thank you!</h3>
+                                        <p className="text-[var(--text-secondary)]">We&apos;ve received your inquiry and will contact you shortly.</p>
+                                    </motion.div>
+                                ) : (
+                                    <motion.form
+                                        key="form"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        onSubmit={handleSubmit}
+                                        className="space-y-4"
+                                    >
+                                        {error && (
+                                            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+                                                <ExclamationCircleIcon className="w-4 h-4 flex-shrink-0" />
+                                                {error}
+                                            </div>
+                                        )}
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Full Name <span className="text-red-500">*</span></label>
+                                                <input type="text" name="name" value={formData.name} onChange={handleChange} required className="input w-full" placeholder="John Smith" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Work Email <span className="text-red-500">*</span></label>
+                                                <input type="email" name="email" value={formData.email} onChange={handleChange} required className="input w-full" placeholder="john@company.com" />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Company <span className="text-red-500">*</span></label>
+                                            <input type="text" name="company" value={formData.company} onChange={handleChange} required className="input w-full" placeholder="Acme Corporation" />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Phone</label>
+                                                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="input w-full" placeholder="+1 (555) 000-0000" />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Team Size <span className="text-red-500">*</span></label>
+                                                <select name="teamSize" value={formData.teamSize} onChange={handleChange} required className="input w-full">
+                                                    <option value="">Select</option>
+                                                    {TEAM_SIZES.map(size => (
+                                                        <option key={size} value={size}>{size}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Message</label>
+                                            <textarea name="message" value={formData.message} onChange={handleChange} rows={3} className="input w-full resize-none" placeholder="Tell us about your requirements..." />
+                                        </div>
+
+                                        <button type="submit" disabled={isSubmitting} className="w-full btn btn-primary py-3 font-semibold disabled:opacity-50">
+                                            {isSubmitting ? (
+                                                <span className="flex items-center justify-center gap-2">
+                                                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                                                    Submitting...
+                                                </span>
+                                            ) : (
+                                                'Submit Inquiry'
+                                            )}
+                                        </button>
+                                    </motion.form>
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        <div className="p-4 border-t border-[var(--border-subtle)] bg-[var(--background)]">
+                            <div className="flex flex-wrap justify-center gap-4">
+                                {ENTERPRISE_FEATURES.map(f => (
+                                    <div key={f.title} className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+                                        <f.icon className="w-4 h-4 text-blue-500" />
+                                        {f.title}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+}
+
 export function BillingSection() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -43,6 +251,23 @@ export function BillingSection() {
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const [geoInfo, setGeoInfo] = useState<GeoInfo | null>(null);
+    const [currencyOverride, setCurrencyOverride] = useState<'NGN' | 'USD' | null>(null);
+    const [showEnterpriseModal, setShowEnterpriseModal] = useState(false);
+
+    // Fetch user's geo location for currency detection
+    useEffect(() => {
+        async function fetchGeoInfo() {
+            try {
+                const res = await fetch('/api/geo');
+                const data = await res.json();
+                setGeoInfo(data);
+            } catch (err) {
+                console.error('Failed to fetch geo info:', err);
+            }
+        }
+        fetchGeoInfo();
+    }, []);
 
     // Check for payment callback
     useEffect(() => {
@@ -104,7 +329,7 @@ export function BillingSection() {
             const res = await fetch('/api/billing/initialize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plan }),
+                body: JSON.stringify({ plan, currency: displayCurrency }),
             });
             const data = await res.json();
             if (data.authorizationUrl) {
@@ -146,7 +371,7 @@ export function BillingSection() {
         {
             id: 'free',
             name: 'Free',
-            price: '$0',
+            price: PLAN_PRICES.free,
             period: '/month',
             icon: BoltIcon,
             color: 'text-gray-500',
@@ -155,7 +380,7 @@ export function BillingSection() {
         {
             id: 'starter',
             name: 'Starter',
-            price: '$10',
+            price: PLAN_PRICES.starter,
             period: '/month',
             icon: TrophyIcon,
             color: 'text-amber-500',
@@ -164,7 +389,7 @@ export function BillingSection() {
         {
             id: 'pro',
             name: 'Pro',
-            price: '$25',
+            price: PLAN_PRICES.pro,
             period: '/month',
             icon: TrophyIcon,
             color: 'text-purple-500',
@@ -174,13 +399,27 @@ export function BillingSection() {
         {
             id: 'enterprise',
             name: 'Enterprise',
-            price: 'Custom',
+            price: null,
             period: '',
             icon: BuildingOffice2Icon,
             color: 'text-blue-500',
             bg: 'bg-blue-100',
         },
     ];
+
+    // Determine which currency to display
+    const displayCurrency = currencyOverride || geoInfo?.currency || 'NGN';
+
+    // Format price based on currency
+    const formatPrice = (priceNGN: number | null) => {
+        if (priceNGN === null) return 'Custom';
+        if (priceNGN === 0) return '₦0';
+        if (displayCurrency === 'USD') {
+            const priceUSD = Math.round(priceNGN / 1700);
+            return `$${priceUSD}`;
+        }
+        return `₦${priceNGN.toLocaleString()}`;
+    };
 
     if (loading) {
         return (
@@ -192,9 +431,33 @@ export function BillingSection() {
 
     const currentPlan = subscription?.plan || 'free';
     const isActive = subscription?.status === 'active';
+    const daysLeft = subscription?.trialEndsAt
+        ? Math.max(0, Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
+        : 0;
 
     return (
-        <div className="space-y-6">
+        <>
+            <div className="space-y-6">
+            {!loading && subscription?.trialEndsAt && subscription?.status === 'inactive' && (
+                <div className="p-4 rounded-xl bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border border-violet-500/20 mb-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-semibold text-violet-300">
+                                Your {subscription.plan?.charAt(0).toUpperCase() + subscription.plan?.slice(1)} Trial
+                            </p>
+                            <p className="text-xs text-zinc-400 mt-0.5">
+                                {daysLeft > 0 ? `${daysLeft} day${daysLeft === 1 ? '' : 's'} remaining` : 'Trial ended'}
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => handleSubscribe(subscription.plan || 'pro')}
+                            className="px-4 py-2 bg-violet-500 hover:bg-violet-600 text-white text-xs font-semibold rounded-lg transition-colors"
+                        >
+                            Upgrade Now
+                        </button>
+                    </div>
+                </div>
+            )}
             {(error || success) && (
                 <div className={`p-4 rounded-lg flex items-center gap-3 ${error ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'}`}>
                     {error ? (
@@ -260,7 +523,29 @@ export function BillingSection() {
 
             {/* Upgrade Plans */}
             <div className="card p-6">
-                <h2 className="font-semibold mb-4">Available Plans</h2>
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="font-semibold">Available Plans</h2>
+                    {/* Currency Selector */}
+                    <div className="flex items-center gap-2">
+                        <GlobeAltIcon className="w-4 h-4 text-[var(--text-secondary)]" />
+                        <span className="text-xs text-[var(--text-secondary)]">
+                            {geoInfo?.isNigeria === false ? 'Detected: ' : 'Showing prices in: '}
+                        </span>
+                        <select
+                            value={displayCurrency}
+                            onChange={(e) => setCurrencyOverride(e.target.value as 'NGN' | 'USD')}
+                            className="text-xs border border-[var(--border-subtle)] rounded-md px-2 py-1 bg-[var(--background)] text-[var(--foreground)]"
+                        >
+                            <option value="NGN">₦ NGN (Naira)</option>
+                            <option value="USD">$ USD (Dollar)</option>
+                        </select>
+                        {geoInfo && !geoInfo.isNigeria && !currencyOverride && (
+                            <span className="text-xs text-[var(--text-tertiary)]">
+                                (auto-detected: {geoInfo.country})
+                            </span>
+                        )}
+                    </div>
+                </div>
                 <div className="grid gap-4 md:grid-cols-2">
                     {plans.filter(p => p.id !== 'enterprise').map((plan) => (
                         <div
@@ -283,7 +568,7 @@ export function BillingSection() {
                                 <span className="font-semibold">{plan.name}</span>
                             </div>
                             <p className="text-2xl font-bold mb-2">
-                                {plan.price}
+                                {formatPrice(plan.price)}
                                 <span className="text-sm font-normal text-[var(--text-secondary)]">{plan.period}</span>
                             </p>
                             <ul className="space-y-1 mb-4">
@@ -325,10 +610,12 @@ export function BillingSection() {
                 <p className="text-sm text-[var(--text-secondary)] mb-4">
                     Need custom pricing, SSO, SLA guarantees, or on-premise deployment? Contact us for a custom solution.
                 </p>
-                <a href="mailto:updates@fluxboard.site?subject=Enterprise%20Pricing" className="btn btn-secondary text-sm">
+                <button onClick={() => setShowEnterpriseModal(true)} className="btn btn-secondary text-sm">
                     Contact Sales
-                </a>
+                </button>
             </div>
         </div>
+            <EnterpriseModal isOpen={showEnterpriseModal} onClose={() => setShowEnterpriseModal(false)} />
+        </>
     );
 }

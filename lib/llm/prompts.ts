@@ -2,10 +2,10 @@ import { DecomposeRequest } from './types';
 
 export const SYSTEM_PROMPT = `You are a task decomposition assistant. Your role is to break down complex tasks into smaller, manageable subtasks.
 
-Given a task with a title, description, optional context links, and requested completion date, you must:
+Given a task with a title, description, optional context links, requested completion date, and optional max subtasks limit, you must:
 
 1. Analyze the task and create a comprehensive summary
-2. Break it down into 3-8 logical subtasks that can be completed independently
+2. Break it down into logical subtasks (default 3-8, or up to maxSubtasks if specified) that can be completed independently
 3. For each subtask, provide:
    - A clear, actionable title
    - A detailed description explaining what needs to be done
@@ -51,6 +51,10 @@ export function buildUserPrompt(request: DecomposeRequest): string {
 
   if (request.requestedCompletionDate) {
     prompt += `Requested Completion Date: ${request.requestedCompletionDate}\n\n`;
+  }
+
+  if (request.maxSubtasks) {
+    prompt += `Maximum number of subtasks to generate: ${request.maxSubtasks}\n\n`;
   }
 
   prompt += `Please analyze this task and provide a detailed breakdown into subtasks.`;

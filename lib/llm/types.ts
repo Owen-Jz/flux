@@ -3,6 +3,7 @@ export interface DecomposeRequest {
   taskDescription: string;
   contextLinks?: string[];
   requestedCompletionDate?: string;
+  maxSubtasks?: number;
 }
 
 export interface SubTask {

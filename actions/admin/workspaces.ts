@@ -107,8 +107,10 @@ export async function getAllWorkspaces(options: {
 
 /**
  * Get detailed workspace information
+ * SECURITY: Requires admin permission
  */
 export async function getWorkspaceDetails(workspaceId: string) {
+    await getCurrentAdminId(); // Verify caller is admin
     await connectDB();
 
     const workspace = await Workspace.findById(workspaceId)

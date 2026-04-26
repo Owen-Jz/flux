@@ -24,7 +24,7 @@ export default async function WorkspaceLayout({
     const workspace = await getWorkspaceBySlug(slug);
 
     if (!workspace) {
-        redirect('/onboarding');
+        redirect('/dashboard');
     }
 
     // If not logged in and not public, redirect to login

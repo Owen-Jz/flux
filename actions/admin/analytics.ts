@@ -8,11 +8,14 @@ import { Task } from '@/models/Task';
 import { Admin } from '@/models/Admin';
 import { AuditLog } from '@/models/AuditLog';
 import mongoose from 'mongoose';
+import { requireAdminPermission } from '@/lib/admin-auth';
 
 /**
  * Get platform overview stats
+ * SECURITY: Requires admin permission
  */
 export async function getPlatformStats() {
+    await requireAdminPermission('analytics');
     await connectDB();
 
     const now = new Date();
@@ -91,8 +94,10 @@ export async function getPlatformStats() {
 
 /**
  * Get user growth data for charts
+ * SECURITY: Requires admin permission
  */
 export async function getUserGrowthData(days: number = 30) {
+    await requireAdminPermission('analytics');
     await connectDB();
 
     const now = new Date();
@@ -135,8 +140,10 @@ export async function getUserGrowthData(days: number = 30) {
 
 /**
  * Get workspace growth data
+ * SECURITY: Requires admin permission
  */
 export async function getWorkspaceGrowthData(days: number = 30) {
+    await requireAdminPermission('analytics');
     await connectDB();
 
     const now = new Date();
@@ -179,8 +186,10 @@ export async function getWorkspaceGrowthData(days: number = 30) {
 
 /**
  * Get task statistics
+ * SECURITY: Requires admin permission
  */
 export async function getTaskStats() {
+    await requireAdminPermission('analytics');
     await connectDB();
 
     const now = new Date();
@@ -231,8 +240,10 @@ export async function getTaskStats() {
 
 /**
  * Get top workspaces by activity
+ * SECURITY: Requires admin permission
  */
 export async function getTopWorkspaces(limit: number = 10) {
+    await requireAdminPermission('analytics');
     await connectDB();
 
     const workspaces = await Workspace.find({ archived: { $ne: true } })
@@ -268,8 +279,10 @@ export async function getTopWorkspaces(limit: number = 10) {
 
 /**
  * Get recent activity
+ * SECURITY: Requires admin permission
  */
 export async function getRecentActivity(limit: number = 20) {
+    await requireAdminPermission('analytics');
     await connectDB();
 
     const activities = await AuditLog.find()

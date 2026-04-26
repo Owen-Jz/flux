@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, SparklesIcon, ArrowPathIcon, CheckCircleIcon, BoltIcon, LinkIcon, DocumentTextIcon, PlusIcon, ArrowUturnLeftIcon } from '@heroicons/react/24/outline';
 
@@ -38,9 +38,41 @@ export function AIDecomposeModal({
     const [taskTitle, setTaskTitle] = useState('');
     const [taskDescription, setTaskDescription] = useState('');
     const [contextLinks, setContextLinks] = useState('');
+    const [maxSubtasks, setMaxSubtasks] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [result, setResult] = useState<DecomposeResponse | null>(null);
     const [error, setError] = useState('');
+    const [cyclingTextIndex, setCyclingTextIndex] = useState(0);
+    const cyclingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    const cyclingMessages = [
+        'Analyzing task...',
+        'Breaking down complexity...',
+        'Identifying subtasks...',
+        'Generating action items...',
+        'Planning execution...',
+        'Structuring workflow...',
+    ];
+
+    // Cycle through loading messages
+    useEffect(() => {
+        if (isLoading) {
+            setCyclingTextIndex(0);
+            cyclingIntervalRef.current = setInterval(() => {
+                setCyclingTextIndex((prev) => (prev + 1) % cyclingMessages.length);
+            }, 1500);
+        } else {
+            if (cyclingIntervalRef.current) {
+                clearInterval(cyclingIntervalRef.current);
+                cyclingIntervalRef.current = null;
+            }
+        }
+        return () => {
+            if (cyclingIntervalRef.current) {
+                clearInterval(cyclingIntervalRef.current);
+            }
+        };
+    }, [isLoading, cyclingMessages.length]);
 
     const handleDecompose = async () => {
         if (!taskTitle.trim() || !taskDescription.trim()) return;
@@ -65,6 +97,7 @@ export function AIDecomposeModal({
                     taskTitle: taskTitle.trim(),
                     taskDescription: taskDescription.trim(),
                     contextLinks: links.length > 0 ? links : undefined,
+                    maxSubtasks: maxSubtasks ? parseInt(maxSubtasks, 10) : undefined,
                     boardId,
                 }),
             });
@@ -107,6 +140,7 @@ export function AIDecomposeModal({
         setTaskTitle('');
         setTaskDescription('');
         setContextLinks('');
+        setMaxSubtasks('');
         setResult(null);
         setError('');
         onClose();
@@ -228,6 +262,26 @@ export function AIDecomposeModal({
                                         </p>
                                     </div>
 
+                                    {/* Max Subtasks */}
+                                    <div className="space-y-2">
+                                        <label className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
+                                            <SparklesIcon className="w-4 h-4 text-[var(--brand-primary)]" />
+                                            Max Subtasks <span className="text-[var(--text-tertiary)] font-normal">(optional)</span>
+                                        </label>
+                                        <input
+                                            type="number"
+                                            value={maxSubtasks}
+                                            onChange={(e) => setMaxSubtasks(e.target.value)}
+                                            placeholder="Leave empty for default (3-8)"
+                                            className="input text-sm"
+                                            min={1}
+                                            max={20}
+                                        />
+                                        <p className="text-xs text-[var(--text-tertiary)]">
+                                            Limit the number of subtasks (1-20). AI will generate 3-8 by default.
+                                        </p>
+                                    </div>
+
                                     {/* Error Message */}
                                     {error && (
                                         <motion.div
@@ -252,7 +306,7 @@ export function AIDecomposeModal({
                                         {isLoading ? (
                                             <>
                                                 <ArrowPathIcon className="w-5 h-5 animate-spin" />
-                                                <span>Analyzing task...</span>
+                                                <span>{cyclingMessages[cyclingTextIndex]}</span>
                                             </>
                                         ) : (
                                             <>

@@ -42,12 +42,13 @@ export default function BoardGrid({ workspaceSlug, initialBoards, canEdit }: Boa
     return (
         <>
             {boards.length === 0 ? (
-                <div className="text-center py-16">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--brand-primary)]/10 mb-6">
+                <div className="text-center py-16 px-4">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--brand-primary)]/10 mb-6 relative">
+                        <div className="absolute -inset-2 rounded-2xl border border-[var(--brand-primary)]/10" />
                         <Squares2X2Icon className="w-8 h-8 text-[var(--brand-primary)]" />
                     </div>
-                    <h2 className="text-xl font-semibold mb-2">No boards yet</h2>
-                    <p className="text-[var(--text-secondary)] mb-6 max-w-md mx-auto">
+                    <h2 className="text-xl font-semibold mb-2 text-[var(--text-primary)]">No boards yet</h2>
+                    <p className="text-[var(--text-secondary)] mb-6 max-w-md mx-auto text-sm md:text-base">
                         {canEdit
                             ? 'Create your first board to start organizing tasks. Boards help you categorize your work by project, team, or department.'
                             : 'This workspace doesn\'t have any boards yet. The workspace admin can create boards to start organizing tasks.'}
@@ -59,31 +60,40 @@ export default function BoardGrid({ workspaceSlug, initialBoards, canEdit }: Boa
                     )}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {boards.map((board) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
+                    {boards.map((board, index) => (
                         <Link
                             key={board.id}
                             href={`/${workspaceSlug}/board/${board.slug}`}
-                            className="group card p-5 hover:shadow-lg transition-all hover:-translate-y-1"
+                            className="group card p-4 md:p-5 hover:shadow-lg transition-all duration-200 hover:-translate-y-1 relative overflow-hidden animate-fade-in-up"
+                            style={{ animationDelay: `${index * 60}ms` }}
                         >
-                            <div className="flex items-start gap-4">
+                            {/* Subtle hover gradient */}
+                            <div
+                                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                                style={{
+                                    background: `linear-gradient(135deg, ${board.color}10 0%, transparent 100%)`,
+                                }}
+                            />
+
+                            <div className="flex items-start gap-3 md:gap-4 relative">
                                 <div
-                                    className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0"
+                                    className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md transition-transform duration-200 group-hover:scale-110"
                                     style={{ backgroundColor: board.color }}
                                 >
                                     <Squares2X2Icon className="w-5 h-5 text-white" />
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--brand-primary)] transition-colors truncate">
+                                    <h3 className="font-semibold text-[var(--foreground)] group-hover:text-[var(--brand-primary)] transition-colors truncate text-sm md:text-base">
                                         {board.name}
                                     </h3>
                                     {board.description && (
-                                        <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2">
+                                        <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2 hidden sm:block">
                                             {board.description}
                                         </p>
                                     )}
                                 </div>
-                                <ArrowRightIcon className="w-5 h-5 text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                                <ArrowRightIcon className="w-5 h-5 text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 translate-x-[-4px] group-hover:translate-x-0 transition-all flex-shrink-0" />
                             </div>
                         </Link>
                     ))}

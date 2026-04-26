@@ -59,9 +59,9 @@ export const FeaturesGrid = () => {
                     <div className="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] flex items-center justify-center mb-6">
                         <UsersIcon className="w-6 h-6" />
                     </div>
-                    <h3 className="text-2xl font-bold mb-4 text-[var(--text-primary)]">Real-time presence & multi-player editing</h3>
+                    <h3 className="text-2xl font-bold mb-4 text-[var(--text-primary)]">See your team working live</h3>
                     <p className="text-[var(--text-secondary)] max-w-lg leading-relaxed text-lg">
-                        See who's working on what in real-time. Avatars, cursors, and live updates make your team feel closer than ever, even when remote.
+                        Watch who's on what, in real-time. No more stepping on each other's toes or doing double work.
                     </p>
                 </div>
                 <div className="mt-8 flex gap-2">
@@ -85,15 +85,15 @@ export const FeaturesGrid = () => {
                         <div className="w-12 h-12 rounded-xl bg-white/20 text-[var(--text-inverse)] flex items-center justify-center mb-6">
                             <BoltIcon className="w-6 h-6" />
                         </div>
-                        <h3 className="text-2xl font-bold mb-4 text-[var(--text-inverse)]">Blazing fast performance</h3>
+                        <h3 className="text-2xl font-bold mb-4 text-[var(--text-inverse)]">Speed that disappears</h3>
                         <p className="text-[var(--text-inverse)] opacity-70 leading-relaxed">
-                            Under 50ms latency for every action. Flux is built for speed, keeping you in flow.
+                            Fast enough that you forget it's there. Every click, instant. Every update, immediate.
                         </p>
                     </div>
                     <div className="mt-8 pt-8 border-t border-white/20">
                         <div className="flex items-center gap-3">
-                            <div className="text-3xl font-bold font-mono text-white">50ms</div>
-                            <div className="text-xs text-white/60 uppercase tracking-widest font-bold">Latency</div>
+                            <div className="text-3xl font-bold font-mono text-white">0</div>
+                            <div className="text-xs text-white/60 uppercase tracking-widest font-bold">Second load times</div>
                         </div>
                     </div>
                 </div>
@@ -110,9 +110,9 @@ export const FeaturesGrid = () => {
                 <div className="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] flex items-center justify-center mb-4 md:mb-6">
                     <TableCellsIcon className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg md:text-xl font-bold mb-3 text-[var(--text-primary)]">Workflow Automation</h3>
+                <h3 className="text-lg md:text-xl font-bold mb-3 text-[var(--text-primary)]">Rules That Work for You</h3>
                 <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
-                    Set up custom triggers and actions. Automatically move cards based on status or assignee changes.
+                    Set up simple automations. When something changes, things move where they need to go—automatically.
                 </p>
             </motion.div>
 
@@ -130,9 +130,9 @@ export const FeaturesGrid = () => {
                     </div>
                     <div className="px-2 py-1 rounded-md bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] text-[10px] font-bold uppercase">SOC2</div>
                 </div>
-                <h3 className="text-lg md:text-xl font-bold mb-3 text-[var(--text-primary)]">Enterprise Security</h3>
+                <h3 className="text-lg md:text-xl font-bold mb-3 text-[var(--text-primary)]">Security Without the Headache</h3>
                 <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
-                    Bank-grade encryption, SSO, and granular role-based access controls to keep your data safe.
+                    Your data is encrypted and protected. You control who sees what—down to the smallest detail.
                 </p>
             </motion.div>
 
@@ -147,9 +147,9 @@ export const FeaturesGrid = () => {
                 <div className="w-12 h-12 rounded-xl bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] flex items-center justify-center mb-4 md:mb-6">
                     <ChartBarIcon className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg md:text-xl font-bold mb-3 text-[var(--text-primary)]">Deep Insights</h3>
+                <h3 className="text-lg md:text-xl font-bold mb-3 text-[var(--text-primary)]">See Where You're Stuck</h3>
                 <p className="text-[var(--text-secondary)] text-sm leading-relaxed">
-                    Visualize team velocity, burnback charts, and resource allocation with beautiful built-in charts.
+                    Beautiful charts that show you exactly where work is piling up—and how to fix it.
                 </p>
             </motion.div>
         </div>

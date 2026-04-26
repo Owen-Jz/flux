@@ -34,9 +34,11 @@ export function PageFooter() {
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 lg:gap-12 mb-12">
           <div className="col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-4">
-              <span className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[var(--brand-primary)]">
-                <img src="/icon.svg" alt="" className="w-6 h-6 text-white" />
-              </span>
+              <svg width="32" height="32" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+                <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+                <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+              </svg>
               <span className="font-black text-2xl tracking-tight text-slate-900 dark:text-white">flux</span>
             </Link>
             <p className="text-slate-500 dark:text-slate-400 max-w-xs mb-6 leading-relaxed">

@@ -1,4 +1,4 @@
-export function isWorkspaceMember(workspace: { members?: { userId?: { toString: () => string } }[] }, userId: string) {
+export function isWorkspaceMember(workspace: { members?: { userId?: { toString: () => string } }[] }, userId: string): { userId?: { toString: () => string }; role?: string } | null | undefined {
   return workspace.members?.find((m) => m.userId?.toString() === userId);
 }
 

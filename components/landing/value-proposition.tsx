@@ -7,50 +7,50 @@ import { BoltIcon, UsersIcon, ShieldCheckIcon, ChartBarIcon, GlobeAltIcon, Table
 const benefits = [
   {
     icon: BoltIcon,
-    title: "Lightning Fast",
-    description: "Sub-second response times with real-time sync across all devices. No more waiting for page loads.",
+    title: "Feels Instant",
+    description: "Every click responds right away. No spinning loaders, no waiting around.",
     gradient: "from-amber-500 to-orange-500",
   },
   {
     icon: UsersIcon,
-    title: "Built for Teams",
-    description: "Seamless collaboration with comments, mentions, and activity feeds that keep everyone aligned.",
+    title: "Everyone on the Same Page",
+    description: "See who's working on what, right now. No more 'I didn't know that was happening.'",
     gradient: "from-blue-500 to-cyan-500",
   },
   {
     icon: ShieldCheckIcon,
-    title: "Enterprise Security",
-    description: "SOC 2 Type II certified with SSO, RBAC, and end-to-end encryption. Your data stays safe.",
+    title: "Your Data is Safe",
+    description: "Enterprise-grade security that keeps your projects protected, period.",
     gradient: "from-purple-500 to-teal-500",
   },
   {
     icon: ChartBarIcon,
-    title: "Actionable Insights",
-    description: "Powerful analytics that surface bottlenecks and help you make data-driven decisions.",
+    title: "See Where Time Goes",
+    description: "Understand bottlenecks at a glance. Make decisions based on what's actually happening.",
     gradient: "from-purple-500 to-pink-500",
   },
   {
     icon: GlobeAltIcon,
-    title: "Public Sharing",
-    description: "Share your roadmap or project status with the world via a simple public link.",
+    title: "Share with One Link",
+    description: "Share your roadmap or project status externally with a simple URL.",
     gradient: "from-indigo-500 to-violet-500",
   },
   {
     icon: TableCellsIcon,
-    title: "Workflow Automation",
-    description: "Automate repetitive tasks and keep your team aligned with smart rules.",
+    title: "Less Busywork",
+    description: "Automate the repetitive stuff so your team can focus on what matters.",
     gradient: "from-rose-500 to-red-500",
   },
   {
     icon: LockClosedIcon,
-    title: "Granular Permissions",
-    description: "Control exactly who can view, edit, or comment on each piece of content.",
+    title: "Control Who Sees What",
+    description: "Set permissions for each project. Clients see only what you want them to see.",
     gradient: "from-slate-500 to-zinc-500",
   },
   {
     icon: ChatBubbleLeftRightIcon,
-    title: "Threaded Discussions",
-    description: "Keep conversations organized with nested threads and @mentions.",
+    title: "Discussions That Don't Get Lost",
+    description: "Comments attached to tasks, not buried in email threads.",
     gradient: "from-cyan-500 to-sky-500",
   },
 ];
@@ -95,9 +95,9 @@ export function ValueProposition() {
             transition={{ delay: 0.1 }}
             className="text-4xl lg:text-5xl xl:text-6xl font-black text-[var(--text-primary)] tracking-tight mb-6"
           >
-            Everything you need to
+            Why teams love using
             <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary)] to-[var(--info-primary)]">
-              ship faster
+              Flux
             </span>
           </motion.h2>
           <motion.p
@@ -107,7 +107,7 @@ export function ValueProposition() {
             transition={{ delay: 0.2 }}
             className="text-lg text-[var(--text-secondary)]"
           >
-            Stop juggling multiple tools. Flux consolidates your workflow into one powerful platform.
+            Finally, one place where your whole team collaborates without the chaos.
           </motion.p>
         </div>
 

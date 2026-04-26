@@ -158,7 +158,7 @@ const [headlineIndex, setHeadlineIndex] = useState(0);
 useEffect(() => {
   const interval = setInterval(() => {
     setHeadlineIndex((prev) => (prev + 1) % heroHeadlines.length);
-  }, 6000);
+  }, 9000);
   return () => clearInterval(interval);
 }, []);
 

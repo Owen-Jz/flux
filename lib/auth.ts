@@ -29,6 +29,10 @@ setInterval(() => {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig,
+    pages: {
+        signIn: '/login',
+        error: '/login',
+    },
     providers: [
         Google({
             clientId: process.env.GOOGLE_CLIENT_ID,
@@ -53,6 +57,26 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 if (attempts && attempts.lockoutUntil && attempts.lockoutUntil > now) {
                     console.warn(`[Auth] Login attempt on locked account: ${email}`);
                     return null;
+                }
+
+                // Check for admin credentials first (env-based)
+                const adminEmail = process.env.ADMIN_EMAIL;
+                const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
+                if (adminEmail && adminPasswordHash && email === adminEmail) {
+                    const isValidAdminPassword = await bcrypt.compare(
+                        credentials.password as string,
+                        adminPasswordHash
+                    );
+                    if (isValidAdminPassword) {
+                        // Successful admin login - reset failed attempts
+                        failedLoginAttempts.delete(email);
+                        return {
+                            id: 'admin-session',
+                            email: adminEmail,
+                            name: 'Admin',
+                            isAdmin: true,
+                        };
+                    }
                 }
 
                 try {
@@ -221,7 +245,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 if (token.email) {
                     session.user.email = token.email;
                 }
-                // Pass the access token for socket.io authentication
+                // Pass the access token
                 session.accessToken = token.accessToken as string | undefined;
             }
             return session;

@@ -72,18 +72,31 @@ export function WorkspaceCard({
     return (
         <Link href={`/${slug}`} className="block">
             <motion.div
-                className="card overflow-hidden cursor-pointer group p-5"
+                className="card overflow-hidden cursor-pointer group p-5 relative"
                 whileHover={{ y: -4 }}
                 transition={{ duration: 0.2 }}
                 style={{
                     boxShadow: 'var(--flux-shadow-sm)',
                 }}
             >
-                <div className="flex items-start gap-4">
-                    {/* Avatar Circle */}
+                {/* Subtle gradient overlay on hover */}
+                <div
+                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                    style={{
+                        background: `linear-gradient(135deg, ${from}08 0%, ${to}08 100%)`,
+                    }}
+                />
+
+                {/* Unread beacon - positioned at top-right of the card */}
+                {hasUnread && (
+                    <span className="absolute -top-2 -right-2 w-4 h-4 bg-[var(--error-primary)] rounded-full border-2 border-[var(--surface)] animate-pulse z-10" />
+                )}
+
+                <div className="flex items-start gap-4 relative">
+                    {/* Avatar Circle with glow effect */}
                     <div className="relative flex-shrink-0">
                         <div
-                            className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold shadow-lg overflow-hidden ${
+                            className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold shadow-lg overflow-hidden transition-transform duration-200 group-hover:scale-105 ${
                                 icon?.type === 'upload' ? '' : 'text-white'
                             }`}
                             style={icon?.type === 'upload' ? {} : { background: gradient }}
@@ -96,19 +109,16 @@ export function WorkspaceCard({
                                 initial
                             )}
                         </div>
-                        {hasUnread && (
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-[var(--error-primary)] rounded-full border-2 border-[var(--surface)]" />
-                        )}
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                         {/* Workspace name and arrow */}
                         <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3 className="font-semibold text-[var(--text-primary)] text-base truncate">
+                            <h3 className="font-semibold text-[var(--text-primary)] text-base truncate group-hover:text-[var(--flux-brand-primary)] transition-colors">
                                 {name}
                             </h3>
-                            <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-tertiary)] flex-shrink-0">
+                            <span className="opacity-0 group-hover:opacity-100 translate-x-[-8px] group-hover:translate-x-0 transition-all text-[var(--text-tertiary)] flex-shrink-0">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                 </svg>
@@ -116,7 +126,7 @@ export function WorkspaceCard({
                         </div>
 
                         {/* Slug */}
-                        <p className="text-xs text-[var(--text-tertiary)] mb-3 font-mono">
+                        <p className="text-xs text-[var(--text-tertiary)] mb-3 font-mono opacity-70">
                             /{slug}
                         </p>
 
@@ -139,7 +149,7 @@ export function WorkspaceCard({
                 </div>
 
                 {/* Activity indicator */}
-                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[var(--flux-border-subtle)]">
+                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[var(--flux-border-subtle)] relative">
                     <span className="relative flex h-2 w-2">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--flux-success-primary)] opacity-75" />
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--flux-success-primary)]" />

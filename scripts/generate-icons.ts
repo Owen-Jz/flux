@@ -7,57 +7,49 @@ if (!fs.existsSync(iconsDir)) {
   fs.mkdirSync(iconsDir, { recursive: true });
 }
 
-// Bold geometric F - SVG source for standard icons (192/512)
-function createFSvg(size: number, bgColor: string, fgColor: string): Buffer {
-  const padding = Math.round(size * 0.15);
-  const innerSize = size - padding * 2;
-  const stemWidth = Math.round(innerSize * 0.22);
-  const barHeight = Math.round(innerSize * 0.22);
-  const barWidth = Math.round(innerSize * 0.42);
-  const midBarWidth = Math.round(innerSize * 0.58);
+// Layered box logo - matching fluxboard_logo.svg
+function createLogoSvg(size: number, color: string): Buffer {
+  const rectSize = Math.round(size * 0.702); // 66/94 ratio
+  const offset1 = Math.round(size * 0.149);   // 14/94
+  const offset2 = Math.round(size * 0.298);   // 28/94
+  const y1 = Math.round(size * 0.3125);       // 30/96
+  const y2 = Math.round(size * 0.156);         // 15/96
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" fill="${bgColor}"/>
-  <g transform="translate(${padding}, ${padding})">
-    <rect x="0" y="0" width="${stemWidth}" height="${innerSize}" fill="${fgColor}"/>
-    <rect x="${stemWidth}" y="0" width="${barWidth}" height="${barHeight}" fill="${fgColor}"/>
-    <rect x="${stemWidth}" y="${Math.round(barHeight * 1.35)}" width="${midBarWidth}" height="${barHeight}" fill="${fgColor}"/>
-  </g>
+  <rect x="0" y="${y1}" width="${rectSize}" height="${rectSize}" rx="5" fill="${color}" fill-opacity="0.3"/>
+  <rect x="${offset1}" y="${y2}" width="${rectSize}" height="${rectSize}" rx="5" fill="${color}" fill-opacity="0.6"/>
+  <rect x="${offset2}" y="0" width="${rectSize}" height="${rectSize}" rx="5" fill="${color}"/>
 </svg>`;
   return Buffer.from(svg);
 }
 
-// Maskable icon: F centered in inner 80%
-function createMaskableSvg(size: number, bgColor: string, fgColor: string): Buffer {
+// Maskable version - centered in inner 80%
+function createMaskableSvg(size: number, color: string): Buffer {
   const outerPad = Math.round(size * 0.1);
   const innerSize = size - outerPad * 2;
-  const stemWidth = Math.round(innerSize * 0.22);
-  const barHeight = Math.round(innerSize * 0.22);
-  const barWidth = Math.round(innerSize * 0.42);
-  const midBarWidth = Math.round(innerSize * 0.58);
+  const offset1 = Math.round(innerSize * 0.149);
+  const offset2 = Math.round(innerSize * 0.298);
+  const y1 = Math.round(innerSize * 0.3125);
+  const y2 = Math.round(innerSize * 0.156);
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <rect width="${size}" height="${size}" fill="${bgColor}"/>
-  <g transform="translate(${outerPad}, ${outerPad})">
-    <rect x="0" y="0" width="${stemWidth}" height="${innerSize}" fill="${fgColor}"/>
-    <rect x="${stemWidth}" y="0" width="${barWidth}" height="${barHeight}" fill="${fgColor}"/>
-    <rect x="${stemWidth}" y="${Math.round(barHeight * 1.35)}" width="${midBarWidth}" height="${barHeight}" fill="${fgColor}"/>
-  </g>
+  <rect x="0" y="${outerPad + y1}" width="${innerSize}" height="${innerSize}" rx="5" fill="${color}" fill-opacity="0.3"/>
+  <rect x="${outerPad + offset1}" y="${outerPad + y2}" width="${innerSize}" height="${innerSize}" rx="5" fill="${color}" fill-opacity="0.6"/>
+  <rect x="${outerPad + offset2}" y="${outerPad}" width="${innerSize}" height="${innerSize}" rx="5" fill="${color}"/>
 </svg>`;
   return Buffer.from(svg);
 }
 
-const BG = '#ffffff';
-const FG = '#7c3aed';
+const COLOR = '#7E3BE9';
 
 async function generate() {
-  await sharp(createFSvg(192, BG, FG)).png().toFile(path.join(iconsDir, 'icon-192.png'));
+  await sharp(createLogoSvg(192, COLOR)).png().toFile(path.join(iconsDir, 'icon-192.png'));
   console.log('Generated icon-192.png');
 
-  await sharp(createFSvg(512, BG, FG)).png().toFile(path.join(iconsDir, 'icon-512.png'));
+  await sharp(createLogoSvg(512, COLOR)).png().toFile(path.join(iconsDir, 'icon-512.png'));
   console.log('Generated icon-512.png');
 
-  await sharp(createMaskableSvg(512, BG, FG)).png().toFile(path.join(iconsDir, 'icon-maskable.png'));
+  await sharp(createMaskableSvg(512, COLOR)).png().toFile(path.join(iconsDir, 'icon-maskable.png'));
   console.log('Generated icon-maskable.png');
 }
 

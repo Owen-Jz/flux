@@ -1,17 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { EnvelopeIcon, LockClosedIcon, UserIcon, ArrowRightIcon, ArrowPathIcon, CheckIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { FcGoogle } from 'react-icons/fc';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 import { usePasswordStrength } from '@/hooks/use-password-strength';
 import { strengthColors, strengthLabels } from '@/lib/password-strength';
 
 export default function SignupPage() {
     const router = useRouter();
+    const { data: session } = useSession();
+
+    // Redirect if already logged in
+    useEffect(() => {
+        if (session) {
+            router.replace('/dashboard');
+        }
+    }, [session, router]);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -22,6 +30,10 @@ export default function SignupPage() {
     const [emailChecking, setEmailChecking] = useState(false);
     const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+    // Get plan from URL query parameter (e.g., /signup?plan=starter)
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    const planParam = searchParams.get('plan');
 
     const { strength, score, requirements } = usePasswordStrength(password);
 
@@ -50,7 +62,7 @@ export default function SignupPage() {
             const res = await fetch('/api/auth/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password }),
+                body: JSON.stringify({ name, email, password, plan: planParam }),
             });
 
             const data = await res.json();
@@ -127,10 +139,27 @@ export default function SignupPage() {
                 className="w-full max-w-md"
             >
                 {/* Logo */}
-                <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-[var(--foreground)]">Flux</h1>
-                    <p className="text-[var(--text-secondary)] mt-2">Create your account</p>
-                </div>
+                <Link href="/" className="flex items-center justify-center gap-3 mb-8">
+                    <svg width="36" height="36" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                        <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+                        <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+                        <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+                    </svg>
+                    <span className="text-3xl font-black text-[var(--foreground)]">flux</span>
+                </Link>
+                <p className="text-[var(--text-secondary)] mt-2 text-center">Create your account</p>
+
+                {/* Trial Banner */}
+                {planParam === 'pro' && (
+                    <div className="mt-6 p-4 rounded-xl bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 text-center">
+                        <p className="text-sm text-[var(--foreground)]">
+                            Start your 14-day Pro trial — no credit card required.{' '}
+                            <Link href="/pricing" className="text-[var(--brand-primary)] font-medium hover:underline">
+                                Learn more
+                            </Link>
+                        </p>
+                    </div>
+                )}
 
                 {/* Card */}
                 <div className="card p-8">

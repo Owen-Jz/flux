@@ -1,0 +1,2294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flux Platform — Strategic Analysis Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg-base: #0F0F12;
+      --bg-surface: #1A1A20;
+      --bg-elevated: #222230;
+      --border: #2A2A35;
+      --border-light: #3A3A48;
+      --accent: #7E3BE9;
+      --accent-light: #9B6BF5;
+      --accent-glow: rgba(126, 59, 233, 0.25);
+      --accent-gradient: linear-gradient(135deg, #7E3BE9 0%, #A855F7 100%);
+      --success: #10B981;
+      --success-bg: rgba(16, 185, 129, 0.1);
+      --warning: #F59E0B;
+      --warning-bg: rgba(245, 158, 11, 0.1);
+      --danger: #EF4444;
+      --danger-bg: rgba(239, 68, 68, 0.1);
+      --info: #3B82F6;
+      --info-bg: rgba(59, 130, 246, 0.1);
+      --text-primary: #F9FAFB;
+      --text-secondary: #9CA3AF;
+      --text-muted: #6B7280;
+      --font-display: 'DM Serif Display', Georgia, serif;
+      --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --radius-lg: 16px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg-base);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ======================== COVER ======================== */
+    .cover {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 80px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cover::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 50% 40%, var(--accent-glow) 0%, transparent 60%);
+      animation: pulse-glow 8s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.5; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.05); }
+    }
+
+    .cover-content { position: relative; z-index: 1; }
+
+    .cover-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .cover-logo svg { width: 48px; height: 48px; }
+
+    .cover-logo-text {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+    }
+
+    .cover-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      margin-bottom: 16px;
+    }
+
+    .cover-heading {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      line-height: 1.1;
+      margin-bottom: 24px;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .cover-date {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 60px;
+    }
+
+    .cover-score {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 60px;
+    }
+
+    .score-ring {
+      position: relative;
+      width: 160px;
+      height: 160px;
+    }
+
+    .score-ring svg {
+      transform: rotate(-90deg);
+      width: 160px;
+      height: 160px;
+    }
+
+    .score-ring circle {
+      fill: none;
+      stroke-width: 8;
+    }
+
+    .score-ring .bg { stroke: var(--border); }
+    .score-ring .fill {
+      stroke: var(--accent);
+      stroke-linecap: round;
+      stroke-dasharray: 408;
+      stroke-dashoffset: 143;
+      transition: stroke-dashoffset 1.5s ease-out;
+    }
+
+    .score-value {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .score-number {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    .score-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .cover-metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    .metric-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: left;
+    }
+
+    .metric-card-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    .metric-card-value {
+      font-family: var(--font-mono);
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .metric-card-sub {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+
+    /* ======================== DIVIDER ======================== */
+    .section-divider {
+      height: 2px;
+      background: var(--accent-gradient);
+      margin: 0;
+      opacity: 0.4;
+    }
+
+    /* ======================== SECTION ======================== */
+    .section {
+      padding: 80px 0;
+    }
+
+    .section-header {
+      margin-bottom: 48px;
+    }
+
+    .section-number {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+
+    .section-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+    }
+
+    /* ======================== SCORE CARDS ======================== */
+    .score-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 48px;
+    }
+
+    .score-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+
+    .score-card:hover {
+      border-color: var(--border-light);
+      transform: translateY(-2px);
+    }
+
+    .score-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent-gradient);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .score-card:hover::before { opacity: 1; }
+
+    .score-card-value {
+      font-family: var(--font-mono);
+      font-size: 2.5rem;
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+
+    .score-card-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .score-card.good .score-card-value { color: var(--success); }
+    .score-card.medium .score-card-value { color: var(--warning); }
+    .score-card.bad .score-card-value { color: var(--danger); }
+    .score-card.neutral .score-card-value { color: var(--accent); }
+
+    /* ======================== VERDICT BOX ======================== */
+    .verdict-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 48px;
+    }
+
+    .verdict-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+    }
+
+    .verdict-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .verdict-badge {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .verdict-badge.yes { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+    .verdict-badge.no { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); }
+    .verdict-badge.caution { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning); }
+
+    .verdict-item-text h4 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .verdict-item-text p {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* ======================== CALLOUT ======================== */
+    .callout {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+
+    .callout.accent { border-left-color: var(--accent); }
+    .callout.success { border-left-color: var(--success); }
+    .callout.warning { border-left-color: var(--warning); }
+    .callout.danger { border-left-color: var(--danger); }
+    .callout.info { border-left-color: var(--info); }
+
+    .callout-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .callout-body {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .callout-body ul {
+      margin: 12px 0 0 20px;
+    }
+
+    .callout-body li { margin-bottom: 6px; }
+
+    /* ======================== TABLES ======================== */
+    .table-wrapper {
+      overflow-x: auto;
+      margin-bottom: 32px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    thead { background: var(--bg-elevated); }
+
+    th {
+      text-align: left;
+      padding: 14px 16px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-secondary);
+      vertical-align: top;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tbody tr:hover td { background: var(--bg-surface); }
+
+    td:first-child, th:first-child { padding-left: 20px; }
+    td:last-child, th:last-child { padding-right: 20px; }
+
+    .table-title {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .table-mono {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-success { background: var(--success-bg); color: var(--success); }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); }
+    .badge-danger { background: var(--danger-bg); color: var(--danger); }
+    .badge-accent { background: var(--accent-glow); color: var(--accent-light); }
+    .badge-neutral { background: var(--bg-elevated); color: var(--text-secondary); }
+
+    /* ======================== EXPANDABLE ======================== */
+    .expandable {
+      margin-bottom: 24px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .expandable-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      background: var(--bg-surface);
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.2s;
+    }
+
+    .expandable-header:hover { background: var(--bg-elevated); }
+
+    .expandable-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+    }
+
+    .expandable-title-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: var(--accent-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .expandable-title-icon svg { width: 16px; height: 16px; color: var(--accent); }
+
+    .expandable-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .expandable-tag {
+      font-size: 0.72rem;
+      padding: 3px 10px;
+      border-radius: 100px;
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+    }
+
+    .expandable-chevron {
+      width: 20px;
+      height: 20px;
+      color: var(--text-muted);
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .expandable.open .expandable-chevron { transform: rotate(180deg); }
+
+    .expandable-content {
+      display: none;
+      padding: 0 24px 24px;
+      background: var(--bg-base);
+    }
+
+    .expandable.open .expandable-content { display: block; }
+
+    /* ======================== CHARTS ======================== */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+      margin-bottom: 48px;
+    }
+
+    .chart-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+
+    .chart-card-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .chart-card-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .chart-container { position: relative; height: 280px; }
+
+    /* ======================== TIMELINE ======================== */
+    .timeline {
+      position: relative;
+      padding-left: 32px;
+      margin-bottom: 32px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 8px;
+      bottom: 8px;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -29px;
+      top: 6px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg-base);
+    }
+
+    .timeline-phase {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 4px;
+    }
+
+    .timeline-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+
+    .timeline-desc {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    /* ======================== GRID LAYOUTS ======================== */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-bottom: 32px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    /* ======================== RISK MATRIX ======================== */
+    .risk-matrix-container {
+      position: relative;
+      margin-bottom: 32px;
+    }
+
+    .risk-quadrant {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 2px;
+      background: var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      height: 320px;
+    }
+
+    .quadrant {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .quadrant-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .quadrant-low { background: rgba(16, 185, 129, 0.08); }
+    .quadrant-low .quadrant-label { color: var(--success); }
+    .quadrant-medium { background: rgba(245, 158, 11, 0.08); }
+    .quadrant-medium .quadrant-label { color: var(--warning); }
+    .quadrant-high { background: rgba(239, 68, 68, 0.08); }
+    .quadrant-high .quadrant-label { color: var(--danger); }
+    .quadrant-critical { background: rgba(239, 68, 68, 0.15); }
+    .quadrant-critical .quadrant-label { color: var(--danger); font-weight: 700; }
+
+    .quadrant-items { font-size: 0.75rem; color: var(--text-secondary); }
+    .quadrant-items li { margin-bottom: 4px; list-style: none; }
+
+    .risk-axis-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      position: absolute;
+    }
+
+    .risk-axis-y { left: -40px; top: 50%; transform: rotate(-90deg) translateX(-50%); transform-origin: left center; }
+    .risk-axis-x { bottom: -30px; left: 50%; transform: translateX(-50%); }
+
+    /* ======================== PHASE BOXES ======================== */
+    .phase-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+    }
+
+    .phase-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .phase-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .phase-icon.immediate { background: var(--danger-bg); color: var(--danger); }
+    .phase-icon.short { background: var(--warning-bg); color: var(--warning); }
+    .phase-icon.medium { background: var(--info-bg); color: var(--info); }
+    .phase-icon.long { background: var(--accent-glow); color: var(--accent); }
+
+    .phase-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .phase-subtitle {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .phase-list {
+      list-style: none;
+      margin: 0;
+    }
+
+    .phase-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+
+    .phase-list li:last-child { border-bottom: none; }
+
+    .phase-list li::before {
+      content: '→';
+      color: var(--accent);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ======================== TOP 3 ACTIONS ======================== */
+    .top-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 48px;
+    }
+
+    .action-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .action-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--accent-gradient);
+    }
+
+    .action-number {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      color: var(--accent);
+      opacity: 0.3;
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .action-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+    }
+
+    .action-desc {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    /* ======================== PATH TO MILLION ======================== */
+    .path-section {
+      margin-bottom: 48px;
+    }
+
+    .path-steps {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .path-steps::before {
+      content: '';
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      right: 24px;
+      height: 3px;
+      background: var(--border);
+      z-index: 0;
+    }
+
+    .path-step {
+      flex: 1;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      position: relative;
+      z-index: 1;
+      min-width: 0;
+    }
+
+    .path-step-marker {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-weight: 700;
+      font-size: 0.8rem;
+      margin-bottom: 12px;
+    }
+
+    .path-step:nth-child(1) .path-step-marker { background: var(--success-bg); color: var(--success); }
+    .path-step:nth-child(2) .path-step-marker { background: var(--warning-bg); color: var(--warning); }
+    .path-step:nth-child(3) .path-step-marker { background: var(--accent-glow); color: var(--accent-light); }
+
+    .path-step-title {
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .path-step-target {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .path-step-desc {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* ======================== FOOTER ======================== */
+    .footer {
+      text-align: center;
+      padding: 48px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .footer-watermark {
+      font-family: var(--font-display);
+      font-size: 0.7rem;
+      color: var(--border-light);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-top: 8px;
+    }
+
+    /* ======================== PRINT ======================== */
+    @media print {
+      body { background: white; color: #1a1a1a; }
+      .expandable-content { display: block !important; }
+      .expandable-chevron { display: none; }
+      .expandable { border: 1px solid #e5e5e5; break-inside: avoid; }
+      .expandable-header { background: #f5f5f5; }
+      .section { padding: 40px 0; page-break-inside: avoid; }
+      .cover { min-height: auto; padding: 60px 24px; }
+      .cover::before { display: none; }
+      .score-card-value { -webkit-text-fill-color: #1a1a1a; }
+      .callout { border-left-color: #7E3BE9; background: #f9f5ff; }
+      .callout-body { color: #4b5563; }
+      .metric-card { background: #f9f9f9; border-color: #e5e5e5; }
+      .metric-card-value { color: #1a1a1a; }
+      .metric-card-label, .metric-card-sub { color: #6b7280; }
+      .chart-card { background: #fafafa; border-color: #e5e5e5; }
+      .phase-box { background: #fafafa; border-color: #e5e5e5; }
+      .action-card { background: #fafafa; border-color: #e5e5e5; }
+      .action-card::before { background: #7E3BE9; }
+      .action-number { color: #7E3BE9; opacity: 0.2; }
+      .path-step { background: #fafafa; border-color: #e5e5e5; }
+      .path-step:nth-child(1) .path-step-marker { background: #d1fae5; color: #059669; }
+      .path-step:nth-child(2) .path-step-marker { background: #fef3c7; color: #d97706; }
+      .path-step:nth-child(3) .path-step-marker { background: #ede9fe; color: #7E3BE9; }
+      .table-wrapper { border-color: #e5e5e5; }
+      th { background: #f3f4f6; color: #374151; }
+      td { color: #4b5563; border-color: #e5e5e5; }
+      tbody tr:hover td { background: transparent; }
+      .badge-success { background: #d1fae5; color: #059669; }
+      .badge-warning { background: #fef3c7; color: #d97706; }
+      .badge-danger { background: #fee2e2; color: #dc2626; }
+      .badge-accent { background: #ede9fe; color: #7E3BE9; }
+      .badge-neutral { background: #f3f4f6; color: #6b7280; }
+      .footer { border-top-color: #e5e5e5; }
+      .footer-text, .footer-watermark { color: #9ca3af; }
+    }
+
+    @page {
+      size: A4;
+      margin: 1.5cm;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== COVER ==================== -->
+  <section class="cover">
+    <div class="cover-content">
+      <div class="cover-logo">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="48" height="48" rx="12" fill="#7E3BE9"/>
+          <path d="M24 8L38 16V32L24 40L10 32V16L24 8Z" fill="#A855F7" opacity="0.6"/>
+          <path d="M24 14L32 18.5V29.5L24 34L16 29.5V18.5L24 14Z" fill="white"/>
+        </svg>
+        <span class="cover-logo-text">Flux</span>
+      </div>
+
+      <p class="cover-title">Strategic Analysis Report</p>
+      <h1 class="cover-heading">Can Flux Survive<br>in the Long Run?</h1>
+      <p class="cover-date">April 2026 — Confidential</p>
+
+      <div class="cover-score">
+        <div class="score-ring">
+          <svg viewBox="0 0 160 160">
+            <circle class="bg" cx="80" cy="80" r="65"/>
+            <circle class="fill" cx="80" cy="80" r="65"/>
+          </svg>
+          <div class="score-value">
+            <span class="score-number">6.5</span>
+            <span class="score-label">/ 10 Viable</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cover-metrics">
+        <div class="metric-card">
+          <div class="metric-card-label">Path to $1M ARR</div>
+          <div class="metric-card-value">$960K</div>
+          <div class="metric-card-sub">2,000 paying teams @ $40/mo avg</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card-label">Target Churn</div>
+          <div class="metric-card-value">&lt;5%</div>
+          <div class="metric-card-sub">Industry avg: 5–8% monthly</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card-label">Competitive Position</div>
+          <div class="metric-card-value">#6</div>
+          <div class="metric-card-sub">Engineering PM niche, fragmented market</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-card-label">Primary USP</div>
+          <div class="metric-card-value">AI+Kanban</div>
+          <div class="metric-card-sub">PWA offline + task decomposition</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ==================== EXECUTIVE SUMMARY ==================== -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">01 / Executive Summary</div>
+        <h2 class="section-title">Overall Viability Assessment</h2>
+        <p class="section-subtitle">Flux has a defensible position in the AI-native PM space. The biggest risks are Height (direct competitor), enterprise feature gaps, and integration ecosystem.</p>
+      </div>
+
+      <div class="score-grid">
+        <div class="score-card neutral">
+          <div class="score-card-value">8<span style="font-size:1rem;color:var(--text-muted)">/10</span></div>
+          <div class="score-card-label">Product</div>
+        </div>
+        <div class="score-card medium">
+          <div class="score-card-value">5<span style="font-size:1rem;color:var(--text-muted)">/10</span></div>
+          <div class="score-card-label">Competition</div>
+        </div>
+        <div class="score-card medium">
+          <div class="score-card-value">5<span style="font-size:1rem;color:var(--text-muted)">/10</span></div>
+          <div class="score-card-label">Revenue</div>
+        </div>
+        <div class="score-card bad">
+          <div class="score-card-value">4<span style="font-size:1rem;color:var(--text-muted)">/10</span></div>
+          <div class="score-card-label">Growth</div>
+        </div>
+        <div class="score-card bad">
+          <div class="score-card-value">3<span style="font-size:1rem;color:var(--text-muted)">/10</span></div>
+          <div class="score-card-label">Risk</div>
+        </div>
+        <div class="score-card bad">
+          <div class="score-card-value">3<span style="font-size:1rem;color:var(--text-muted)">/10</span></div>
+          <div class="score-card-label">Team</div>
+        </div>
+      </div>
+
+      <div class="verdict-box">
+        <div class="verdict-grid">
+          <div class="verdict-item">
+            <div class="verdict-badge yes">YES</div>
+            <div class="verdict-item-text">
+              <h4>Can Flux Survive?</h4>
+              <p>Product works, tech is solid, $7.7B market by 2030 is large enough.</p>
+            </div>
+          </div>
+          <div class="verdict-item">
+            <div class="verdict-badge no">NO</div>
+            <div class="verdict-item-text">
+              <h4>Will It Thrive Unchanged?</h4>
+              <p>Current "another PM tool" positioning is a race to the bottom.</p>
+            </div>
+          </div>
+          <div class="verdict-item">
+            <div class="verdict-badge caution">KEY</div>
+            <div class="verdict-item-text">
+              <h4>Top Differentiator</h4>
+              <p>AI task decomposition + PWA offline — own this positioning before Height commoditizes it.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout accent">
+        <div class="callout-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Path to $1M ARR
+        </div>
+        <div class="callout-body">
+          <strong>Stage 1 ($0 → $100K):</strong> 333 paying teams at $25/mo avg — Focus on activation and onboarding.<br>
+          <strong>Stage 2 ($100K → $500K):</strong> 1,000 paying teams at $42/mo avg — Focus on trial conversion and upsells.<br>
+          <strong>Stage 3 ($500K → $1M):</strong> 2,000 paying teams at $42/mo avg — Focus on Enterprise and add-ons.
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="callout success">
+          <div class="callout-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Strengths
+          </div>
+          <div class="callout-body">
+            <ul>
+              <li>Feature-complete SaaS with real value delivered</li>
+              <li>Modern tech stack (Next.js 16, MongoDB, TypeScript)</li>
+              <li>PWA + AI task decomposition = genuine differentiators</li>
+              <li>4-tier pricing already in place with trial infrastructure</li>
+              <li>Rapid development velocity visible in codebase</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout danger">
+          <div class="callout-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            Critical Weaknesses
+          </div>
+          <div class="callout-body">
+            <ul>
+              <li>Bus factor = 1 (single developer) — business continuity risk</li>
+              <li>In-memory rate limiting — fails in multi-instance production</li>
+              <li>socket-context.tsx was DELETED — no real-time collaboration</li>
+              <li>Single AI provider (MiniMax) with no fallback</li>
+              <li>SOC2 "mentioned in code" but NOT actually implemented</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ==================== COMPETITIVE ANALYSIS ==================== -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">02 / Competitive Analysis</div>
+        <h2 class="section-title">Where Flux Stands</h2>
+        <p class="section-subtitle">Competing against Notion (30M+ users), Asana, ClickUp, Linear, and the direct rival Height. Market is fragmented — multiple winners possible.</p>
+      </div>
+
+      <!-- Competitor Table -->
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Competitor</th>
+              <th>Pricing</th>
+              <th>Flux Wins On</th>
+              <th>Flux Loses On</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="table-title">Notion</td>
+              <td class="table-mono">$12–18/user/mo</td>
+              <td>AI task decomposition, real-time Kanban, PWA offline</td>
+              <td>Brand (30M users), docs flexibility, database views</td>
+            </tr>
+            <tr>
+              <td class="table-title">Asana</td>
+              <td class="table-mono">$13.50–24.90/user/mo</td>
+              <td>50–70% cheaper, simpler UI, better real-time collab</td>
+              <td>Enterprise features (portfolios, workloads), brand trust</td>
+            </tr>
+            <tr>
+              <td class="table-title">ClickUp</td>
+              <td class="table-mono">$7–18/user/mo</td>
+              <td>Cleaner UX, faster performance, PWA support</td>
+              <td>Feature breadth (1000+ integrations), native time tracking</td>
+            </tr>
+            <tr>
+              <td class="table-title">Linear</td>
+              <td class="table-mono">$8–15/seat/mo</td>
+              <td>Visual Kanban boards, AI decomposition, stakeholder visibility</td>
+              <td>Keyboard-first UX (dev-beloved), Git integration, speed reputation</td>
+            </tr>
+            <tr>
+              <td class="table-title">Plane</td>
+              <td class="table-mono">Free self-hosted / $10/seat</td>
+              <td>Cloud-native (no DevOps), AI built-in, polished UI</td>
+              <td>Self-hosted data sovereignty, open-source no vendor lock-in</td>
+            </tr>
+            <tr>
+              <td class="table-title">Height <span class="badge badge-danger">Direct Rival</span></td>
+              <td class="table-mono">$10–20/seat/mo</td>
+              <td>PWA support, lower Pro pricing, more mature codebase</td>
+              <td>AI-first marketing (perceived as more AI-native), faster iteration</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pricing Comparison Chart -->
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-title">Pricing Comparison — Pro/Enterprise Plans</div>
+          <div class="chart-card-sub">Flux undercuts Asana but sits alongside ClickUp/Linear</div>
+          <div class="chart-container">
+            <canvas id="pricingChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">Competitive Positioning Radar</div>
+          <div class="chart-card-sub">Flux strengths vs competitors (1–5 scale)</div>
+          <div class="chart-container">
+            <canvas id="radarChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Battlecards -->
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:16px;">Battlecards — How to Win</h3>
+      <div class="grid-2">
+        <div class="callout success">
+          <div class="callout-title">vs Notion</div>
+          <div class="callout-body">
+            <strong>Win:</strong> "Notion is a wiki that added checkboxes. Flux is task management built for speed and AI."<br>
+            <strong>Win:</strong> "Real-time collaboration on Kanban boards—not just shared documents."<br>
+            <strong>Win:</strong> "PWA support means your team stays productive offline."<br>
+            <strong>Protect:</strong> Notion's flexibility for custom databases/workflows; free unlimited members pricing.
+          </div>
+        </div>
+        <div class="callout warning">
+          <div class="callout-title">vs Height (Primary Threat)</div>
+          <div class="callout-body">
+            <strong>Win:</strong> "Flux has PWA support—work offline, sync when connected."<br>
+            <strong>Win:</strong> "Battle-tested codebase with thousands of teams already using it."<br>
+            <strong>Win:</strong> "Pro plan offers more features at competitive pricing."<br>
+            <strong>Protect:</strong> Height's aggressive AI-first marketing; Height may iterate faster on AI features.
+          </div>
+        </div>
+      </div>
+
+      <!-- Market Timing -->
+      <div class="callout info">
+        <div class="callout-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+          Market Timing Assessment
+        </div>
+        <div class="callout-body">
+          <strong>NOW IS THE RIGHT TIME.</strong> AI integration momentum is at peak — teams are ready to pay for real AI use cases, not chatbots. PM tool fatigue with bloated tools (ClickUp, Jira) creates demand for simpler alternatives. Remote/hybrid teams need offline capability (PWA = rare differentiator). Engineering-focused vertical is underserved by current PM tools.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ==================== GROWTH ENGINEERING ==================== -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">03 / Growth Engineering</div>
+        <h2 class="section-title">Activation, Viral & Retention</h2>
+        <p class="section-subtitle">Get users to the "aha moment" in under 5 minutes, then engineer viral loops and retention mechanics to drive compounding growth.</p>
+      </div>
+
+      <!-- Aha Moment -->
+      <div class="callout accent">
+        <div class="callout-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          The Aha Moment
+        </div>
+        <div class="callout-body">
+          First task moved between columns (drag-drop). Current code tracks <code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg-elevated);padding:2px 6px;border-radius:4px;">completedFirstDragDrop</code> but doesn't celebrate it. <strong>Target: 4–5 min to first value</strong> (vs current ~8–10 min).
+        </div>
+      </div>
+
+      <!-- Expandable: Onboarding -->
+      <div class="expandable open">
+        <div class="expandable-header" onclick="toggleExpand(this)">
+          <div class="expandable-title">
+            <div class="expandable-title-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+            </div>
+            Onboarding Improvements (5 Priorities)
+          </div>
+          <div class="expandable-meta">
+            <span class="expandable-tag">Click to collapse</span>
+            <svg class="expandable-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <div class="expandable-content">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Priority</th>
+                  <th>Improvement</th>
+                  <th>Dev Effort</th>
+                  <th>Impact</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="badge badge-danger">P1</span></td>
+                  <td class="table-title">Add celebration modal on first board creation (confetti + "Share with team" CTA)</td>
+                  <td class="table-mono">1 day</td>
+                  <td><span class="badge badge-success">High</span></td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-danger">P1</span></td>
+                  <td class="table-title">Pre-populate first board with 3 sample tasks instead of empty state</td>
+                  <td class="table-mono">2 days</td>
+                  <td><span class="badge badge-success">High</span></td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-warning">P2</span></td>
+                  <td class="table-title">Add contextual tooltips on first board visit ("Drag tasks between columns", "Click to assign")</td>
+                  <td class="table-mono">3 days</td>
+                  <td><span class="badge badge-warning">Medium</span></td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-warning">P2</span></td>
+                  <td class="table-title">Replace Step 3 "tour" with actual interactive board walkthrough</td>
+                  <td class="table-mono">4 days</td>
+                  <td><span class="badge badge-warning">Medium</span></td>
+                </tr>
+                <tr>
+                  <td><span class="badge badge-warning">P2</span></td>
+                  <td class="table-title">Add referral prompt immediately after "aha moment" completion</td>
+                  <td class="table-mono">2 days</td>
+                  <td><span class="badge badge-warning">Medium</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expandable: Viral Loops -->
+      <div class="expandable">
+        <div class="expandable-header" onclick="toggleExpand(this)">
+          <div class="expandable-title">
+            <div class="expandable-title-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            </div>
+            3 Growth Loops with K-Factors
+          </div>
+          <div class="expandable-meta">
+            <span class="expandable-tag">Click to expand</span>
+            <svg class="expandable-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <div class="expandable-content">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Loop</th><th>Mechanism</th><th>K-Factor</th><th>Effort</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="table-title">Loop A: Public Workspace Discovery</td>
+                  <td>Public workspace → Search indexed → Prospect sees board → CTA to sign up</td>
+                  <td><span class="badge badge-warning">0.1–0.2</span></td>
+                  <td class="table-mono">Medium</td>
+                </tr>
+                <tr>
+                  <td class="table-title">Loop B: Invite-First Retention <span class="badge badge-success">Best</span></td>
+                  <td>User creates first task → "Invite your team?" prompt → Invite sent → Both locked in</td>
+                  <td><span class="badge badge-success">0.3–0.5</span></td>
+                  <td class="table-mono">Low</td>
+                </tr>
+                <tr>
+                  <td class="table-title">Loop C: Template Sharing</td>
+                  <td>User has 3+ boards → "Share as template" → Public template page → Viewer creates workspace</td>
+                  <td><span class="badge badge-warning">0.15–0.3</span></td>
+                  <td class="table-mono">Medium</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout info" style="margin-top:16px;">
+            <div class="callout-title">K-Factor Context</div>
+            <div class="callout-body">K-Factor &gt; 1 means viral growth (each user brings &gt;1 new user). Flux's best loop (Invite-First) rates 0.3–0.5 — strong for a B2B tool. Public workspace discovery compounds slowly but steadily with SEO.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expandable: Retention -->
+      <div class="expandable">
+        <div class="expandable-header" onclick="toggleExpand(this)">
+          <div class="expandable-title">
+            <div class="expandable-title-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </div>
+            Retention Mechanisms (5 to Implement)
+          </div>
+          <div class="expandable-meta">
+            <span class="expandable-tag">Click to expand</span>
+            <svg class="expandable-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <div class="expandable-content">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Mechanism</th><th>Trigger</th><th>Priority</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="table-title">Re-engagement Notification</td>
+                  <td>3+ days no activity → push notification</td>
+                  <td><span class="badge badge-danger">P1</span></td>
+                </tr>
+                <tr>
+                  <td class="table-title">"Your Team is Active" Weekly Digest</td>
+                  <td>Weekly email of workspace activity</td>
+                  <td><span class="badge badge-warning">P2</span></td>
+                </tr>
+                <tr>
+                  <td class="table-title">Onboarding Completion Celebration</td>
+                  <td>5/5 checklist items → confetti</td>
+                  <td><span class="badge badge-danger">P1</span></td>
+                </tr>
+                <tr>
+                  <td class="table-title">Milestone Achievements</td>
+                  <td>First board, 10 tasks, 5 members → badge</td>
+                  <td><span class="badge badge-neutral">P3</span></td>
+                </tr>
+                <tr>
+                  <td class="table-title">Soft Upgrade Prompts at Limits</td>
+                  <td>Near member/project limit → "Unlock more" CTA</td>
+                  <td><span class="badge badge-warning">P2</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout warning" style="margin-top:16px;">
+            <div class="callout-title">Product Engagement Score Formula</div>
+            <div class="callout-body">
+              <code style="font-family:var(--font-mono);font-size:0.85em;background:var(--bg-elevated);padding:2px 6px;border-radius:4px;">
+                PES = (0.25 × taskActions) + (0.20 × boardViews) + (0.20 × collaboratorCount) + (0.15 × featureAdoption) + (0.20 × sessionFrequency)
+              </code>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;margin:40px 0 24px;">Growth Action Timeline</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-phase">Phase 1 — 0 to 30 Days</div>
+          <div class="timeline-title">Activation First</div>
+          <div class="timeline-desc">Add celebration + confetti on board creation, pre-populate first board with 3 tasks, add "invite team" prompt after first task, implement annual pricing toggle, set up funnel analytics.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-phase">Phase 2 — 30 to 90 Days</div>
+          <div class="timeline-title">Viral & Conversion</div>
+          <div class="timeline-desc">Build referral program, implement public board sharing, build onboarding email sequence (5-email drip), add feature comparison table to pricing, implement engagement scoring dashboard.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-phase">Phase 3 — 90 to 180 Days</div>
+          <div class="timeline-title">Scale & Retention</div>
+          <div class="timeline-desc">Build integration marketplace (GitHub, Slack, Figma), create professional services package ($299 onboarding), implement usage-based API pricing, add analytics export as paid feature.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ==================== REVENUE MODEL ==================== -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">04 / Revenue Model</div>
+        <h2 class="section-title">Pricing, Conversion & Monetization</h2>
+        <p class="section-subtitle">Current model is undermonetized. Annual pricing alone could add 20–30% MRR. AI consumption billing opens a new usage-based revenue stream.</p>
+      </div>
+
+      <!-- Pricing Comparison -->
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Current Price</th>
+              <th>Recommended</th>
+              <th>Change</th>
+              <th>Key Features</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="table-title">Free</td>
+              <td class="table-mono">$0 (3 projects, 3 members)</td>
+              <td class="table-mono">$0 (1 project, 2 members)</td>
+              <td><span class="badge badge-neutral">Tighter limits</span></td>
+              <td>Unlimited tasks, basic analytics</td>
+            </tr>
+            <tr>
+              <td class="table-title">Starter</td>
+              <td class="table-mono">$10/mo</td>
+              <td class="table-mono">$15/mo</td>
+              <td><span class="badge badge-warning">+50%</span></td>
+              <td>5 projects, 10 members, AI 20 tasks/mo, API access</td>
+            </tr>
+            <tr>
+              <td class="table-title">Pro</td>
+              <td class="table-mono">$25/mo</td>
+              <td class="table-mono">$39/mo</td>
+              <td><span class="badge badge-warning">+56%</span></td>
+              <td>Unlimited projects, 50 members, Advanced Analytics, SSO</td>
+            </tr>
+            <tr>
+              <td class="table-title">Enterprise</td>
+              <td class="table-mono">Custom (black box)</td>
+              <td class="table-mono">$99–299/mo</td>
+              <td><span class="badge badge-success">Defined tiers</span></td>
+              <td>Unlimited + SSO + SAML + SLA + Dedicated support</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout accent">
+        <div class="callout-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Annual Pricing — 20% Discount (2 Months Free)
+        </div>
+        <div class="callout-body">
+          Add annual toggle: Starter = $12/mo ($144/yr), Pro = $31/mo ($372/yr). This typically reduces churn by 15–20% and increases LTV by 25–30%. <strong>Estimated impact: +20–30% MRR.</strong>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-card-title">Unit Economics Benchmarks</div>
+          <div class="chart-card-sub">Industry average vs Flux target</div>
+          <div class="chart-container">
+            <canvas id="unitEconChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">Revenue Stream Opportunities</div>
+          <div class="chart-card-sub">Estimated MRR potential by stream</div>
+          <div class="chart-container">
+            <canvas id="revenueStreamsChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expandable: New Revenue Streams -->
+      <div class="expandable">
+        <div class="expandable-header" onclick="toggleExpand(this)">
+          <div class="expandable-title">
+            <div class="expandable-title-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            New Revenue Stream Opportunities
+          </div>
+          <div class="expandable-meta">
+            <span class="expandable-tag">Click to expand</span>
+            <svg class="expandable-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <div class="expandable-content">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Revenue Stream</th><th>Model</th><th>Potential MRR</th><th>Dev Effort</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="table-title">AI Consumption Add-on</td>
+                  <td>10 free/mo, then $0.15/decomposition</td>
+                  <td class="table-mono">$3–5/user</td>
+                  <td class="table-mono">24 hrs</td>
+                </tr>
+                <tr>
+                  <td class="table-title">Annual Billing</td>
+                  <td>20% discount (2 months free)</td>
+                  <td class="table-mono">+20–30% MRR</td>
+                  <td class="table-mono">4 hrs</td>
+                </tr>
+                <tr>
+                  <td class="table-title">Professional Services</td>
+                  <td>$299 one-time onboarding package</td>
+                  <td class="table-mono">$X per deal</td>
+                  <td class="table-mono">24 hrs</td>
+                </tr>
+                <tr>
+                  <td class="table-title">Integration Marketplace</td>
+                  <td>15% revenue share on partners (GitHub, Slack)</td>
+                  <td class="table-mono">$10–30K potential</td>
+                  <td class="table-mono">80 hrs</td>
+                </tr>
+                <tr>
+                  <td class="table-title">White-label</td>
+                  <td>$49/mo for agencies (custom domain, no branding)</td>
+                  <td class="table-mono">$X per agency</td>
+                  <td class="table-mono">40 hrs</td>
+                </tr>
+                <tr>
+                  <td class="table-title">Analytics Export</td>
+                  <td>$5/mo or $0.50/export for CSV/PDF reports</td>
+                  <td class="table-mono">$500–2K</td>
+                  <td class="table-mono">16 hrs</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trial Email Sequence -->
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;margin:40px 0 24px;">Trial Email Sequence</h3>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-phase">Day 1</div>
+          <div class="timeline-title">"3 Steps to Get Started" Email</div>
+          <div class="timeline-desc">Guide users through creating workspace → board → first task. Include tip about AI task decomposition.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-phase">Day 3</div>
+          <div class="timeline-title">"How's Your First Board?" Email + Tip</div>
+          <div class="timeline-desc">Soft check-in with actionable tip about invite functionality. "Working with a team?" CTA.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-phase">Day 7</div>
+          <div class="timeline-title">"Unlock More Power" Email</div>
+          <div class="timeline-desc">Highlight Pro features: unlimited projects, SSO, advanced analytics. Include social proof.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-phase">Day 12</div>
+          <div class="timeline-title">"3 Days Left" Urgency Email</div>
+          <div class="timeline-desc">Trial expiring soon. Special offer or urgency copy. Don't be pushy.</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-phase">Day 16</div>
+          <div class="timeline-title">Churn Recovery — 20% Off</div>
+          <div class="timeline-desc">Last chance. Offer 20% off annual plan. "We'd love to have you back."</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ==================== RISK ANALYSIS ==================== -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">05 / Risk Analysis</div>
+        <h2 class="section-title">Critical Risks & Mitigations</h2>
+        <p class="section-subtitle">Several CRITICAL risks require immediate action. Technical gaps (rate limiting, real-time collab) and competitive risks (Not commoditizing AI) are the top concerns.</p>
+      </div>
+
+      <!-- Risk Matrix Visual -->
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:16px;">Risk Matrix — Severity × Likelihood</h3>
+      <div class="risk-matrix-container" style="padding-left:50px;padding-bottom:40px;">
+        <div class="risk-quadrant">
+          <div class="quadrant quadrant-low">
+            <div class="quadrant-label">Low Risk</div>
+            <ul class="quadrant-items">
+              <li>Next.js 16 beta instability</li>
+              <li>ClickUp price war</li>
+            </ul>
+          </div>
+          <div class="quadrant quadrant-medium">
+            <div class="quadrant-label">Medium Risk</div>
+            <ul class="quadrant-items">
+              <li>LLM API cost volatility</li>
+              <li>GDPR non-compliance</li>
+              <li>False SOC2 claims</li>
+              <li>Open source competition</li>
+            </ul>
+          </div>
+          <div class="quadrant quadrant-medium">
+            <div class="quadrant-label">Medium Risk</div>
+            <ul class="quadrant-items">
+              <li>ClickUp price war</li>
+              <li>UploadThing dependency</li>
+              <li>Resend email dependency</li>
+            </ul>
+          </div>
+          <div class="quadrant quadrant-critical">
+            <div class="quadrant-label">CRITICAL</div>
+            <ul class="quadrant-items">
+              <li>In-memory rate limiting (R-01)</li>
+              <li>No real-time collab (R-02)</li>
+              <li>Notion adds AI decomp (R-03)</li>
+              <li>Bus factor = 1 (R-04)</li>
+              <li>Single AI provider (R-05)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="risk-axis-label risk-axis-y">LIKELIHOOD →</div>
+        <div class="risk-axis-label risk-axis-x">SEVERITY →</div>
+      </div>
+
+      <!-- Top 10 Risk Register -->
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:16px;">Top 10 Risk Register</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Category</th>
+              <th>Risk</th>
+              <th>Severity</th>
+              <th>Likelihood</th>
+              <th>Score</th>
+              <th>Owner</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="table-mono" style="color:var(--danger);font-weight:700;">R-01</td>
+              <td>Technical</td>
+              <td>In-memory rate limiting fails in multi-instance deployment</td>
+              <td><span class="badge badge-danger">5</span></td>
+              <td><span class="badge badge-danger">5</span></td>
+              <td class="table-mono" style="color:var(--danger);font-weight:700;">25</td>
+              <td>DevOps</td>
+            </tr>
+            <tr>
+              <td class="table-mono" style="color:var(--danger);font-weight:700;">R-02</td>
+              <td>Technical</td>
+              <td>No real-time collaboration (socket-context.tsx DELETED)</td>
+              <td><span class="badge badge-danger">5</span></td>
+              <td><span class="badge badge-warning">4</span></td>
+              <td class="table-mono" style="color:var(--danger);font-weight:700;">20</td>
+              <td>Backend</td>
+            </tr>
+            <tr>
+              <td class="table-mono" style="color:var(--danger);font-weight:700;">R-03</td>
+              <td>Competitive</td>
+              <td>Notion adds AI task decomposition (commoditizes primary USP)</td>
+              <td><span class="badge badge-danger">5</span></td>
+              <td><span class="badge badge-danger">5</span></td>
+              <td class="table-mono" style="color:var(--danger);font-weight:700;">25</td>
+              <td>Product</td>
+            </tr>
+            <tr>
+              <td class="table-mono" style="color:var(--danger);font-weight:700;">R-04</td>
+              <td>Operational</td>
+              <td>Bus factor = 1 (single developer — business continuity risk)</td>
+              <td><span class="badge badge-danger">5</span></td>
+              <td><span class="badge badge-danger">5</span></td>
+              <td class="table-mono" style="color:var(--danger);font-weight:700;">25</td>
+              <td>Leadership</td>
+            </tr>
+            <tr>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">R-05</td>
+              <td>Technical</td>
+              <td>Single AI provider (MiniMax) with no OpenAI fallback</td>
+              <td><span class="badge badge-warning">4</span></td>
+              <td><span class="badge badge-warning">4</span></td>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">16</td>
+              <td>Backend</td>
+            </tr>
+            <tr>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">R-06</td>
+              <td>Compliance</td>
+              <td>False SOC2 claims (legal risk — not actually implemented)</td>
+              <td><span class="badge badge-warning">4</span></td>
+              <td><span class="badge badge-warning">3</span></td>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">12</td>
+              <td>Legal</td>
+            </tr>
+            <tr>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">R-07</td>
+              <td>Technical</td>
+              <td>PWA offline sync gaps (offline task creates fail silently)</td>
+              <td><span class="badge badge-warning">3</span></td>
+              <td><span class="badge badge-warning">4</span></td>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">12</td>
+              <td>Frontend</td>
+            </tr>
+            <tr>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">R-08</td>
+              <td>Financial</td>
+              <td>LLM API cost volatility (MiniMax pricing unclear, could spike)</td>
+              <td><span class="badge badge-warning">4</span></td>
+              <td><span class="badge badge-warning">3</span></td>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">12</td>
+              <td>Finance</td>
+            </tr>
+            <tr>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">R-09</td>
+              <td>Compliance</td>
+              <td>GDPR non-compliance (no data export/delete endpoints)</td>
+              <td><span class="badge badge-warning">4</span></td>
+              <td><span class="badge badge-warning">3</span></td>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">12</td>
+              <td>Legal</td>
+            </tr>
+            <tr>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">R-10</td>
+              <td>Market</td>
+              <td>Linear goes freemium (loses price differentiation)</td>
+              <td><span class="badge badge-warning">4</span></td>
+              <td><span class="badge badge-warning">3</span></td>
+              <td class="table-mono" style="color:var(--warning);font-weight:700;">12</td>
+              <td>Product</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Dependency Risk -->
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:16px;">Dependency Risk Matrix</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Dependency</th><th>Risk Level</th><th>Reason</th><th>Mitigation</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="table-title">MiniMax (LLM)</td>
+              <td><span class="badge badge-danger">CRITICAL</span></td>
+              <td>Single AI provider, no fallback</td>
+              <td>Implement OpenAI failover</td>
+            </tr>
+            <tr>
+              <td class="table-title">next-auth v5 beta</td>
+              <td><span class="badge badge-warning">MEDIUM</span></td>
+              <td>Beta version instability</td>
+              <td>Monitor releases, have rollback plan</td>
+            </tr>
+            <tr>
+              <td class="table-title">@uploadthing</td>
+              <td><span class="badge badge-warning">MEDIUM</span></td>
+              <td>Startup could fail</td>
+              <td>Monitor status, have S3 fallback</td>
+            </tr>
+            <tr>
+              <td class="table-title">resend</td>
+              <td><span class="badge badge-warning">MEDIUM</span></td>
+              <td>Email critical, no backup</td>
+              <td>Implement Sendgrid/SES backup</td>
+            </tr>
+            <tr>
+              <td class="table-title">Paystack</td>
+              <td><span class="badge badge-success">LOW</span></td>
+              <td>Established African fintech</td>
+              <td>Add Stripe for international expansion</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Fix Now vs Monitor -->
+      <div class="grid-2">
+        <div class="phase-box">
+          <div class="phase-header">
+            <div class="phase-icon immediate">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <div>
+              <div class="phase-title">Fix NOW (This Week)</div>
+              <div class="phase-subtitle">Critical production risks</div>
+            </div>
+          </div>
+          <ul class="phase-list">
+            <li>Replace in-memory rate limiter with Redis</li>
+            <li>Document architecture (reduce bus factor)</li>
+            <li>Add OpenAI fallback for LLM</li>
+            <li>Remove SOC2 marketing claims (legal risk)</li>
+            <li>Add GDPR data export/delete endpoints</li>
+          </ul>
+        </div>
+        <div class="phase-box">
+          <div class="phase-header">
+            <div class="phase-icon short">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </div>
+            <div>
+              <div class="phase-title">Monitor (No Action Yet)</div>
+              <div class="phase-subtitle">Watch for changes</div>
+            </div>
+          </div>
+          <ul class="phase-list">
+            <li>Next.js 16 stable release announcements</li>
+            <li>ClickUp pricing changes</li>
+            <li>Height feature announcements</li>
+            <li>SOC2 certification path (when enterprise leads arrive)</li>
+            <li>Open source adoption trends</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ==================== STRATEGIC RECOMMENDATIONS ==================== -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">06 / Strategic Recommendations</div>
+        <h2 class="section-title">What to Do and When</h2>
+        <p class="section-subtitle">A phased approach from immediate fixes to long-term platform building. Focus resources on the highest-leverage activities at each stage.</p>
+      </div>
+
+      <!-- Top 3 Actions -->
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;margin-bottom:20px;">Top 3 Immediate Actions</h3>
+      <div class="top-actions">
+        <div class="action-card">
+          <div class="action-number">#1</div>
+          <div class="action-title">Fix the Rate Limiting</div>
+          <div class="action-desc">In-memory Map fails in multi-instance deployment. Migrate to Redis immediately — one bad actor can take down production.</div>
+        </div>
+        <div class="action-card">
+          <div class="action-number">#2</div>
+          <div class="action-title">Add Annual Pricing</div>
+          <div class="action-desc">Leaving 20–30% revenue on the table. Add a toggle with 20% discount (2 months free). Takes 4 hours, impact is immediate.</div>
+        </div>
+        <div class="action-card">
+          <div class="action-number">#3</div>
+          <div class="action-title">Double Down on AI Differentiation</div>
+          <div class="action-desc">Before Notion or Height commoditizes "AI task decomposition," own this space aggressively. Deepen AI integration everywhere.</div>
+        </div>
+      </div>
+
+      <!-- Phased Approach -->
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;margin:40px 0 24px;">Phased Roadmap</h3>
+
+      <div class="phase-box">
+        <div class="phase-header">
+          <div class="phase-icon immediate">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div>
+            <div class="phase-title">Immediate — 0 to 30 Days</div>
+            <div class="phase-subtitle">Product & Technical Critical Fixes</div>
+          </div>
+        </div>
+        <ul class="phase-list">
+          <li>Add celebration modal on first board creation (confetti + "Share with team" CTA)</li>
+          <li>Pre-populate first board with 3 sample tasks</li>
+          <li>Add "Invite team" prompt after first task</li>
+          <li>Add annual pricing toggle (Starter $12/mo, Pro $31/mo)</li>
+          <li>Increase Starter to $15, Pro to $39</li>
+          <li>Set up funnel analytics (signup → activation → conversion)</li>
+          <li>Replace in-memory rate limiter with Redis — <strong>CRITICAL</strong></li>
+          <li>Add OpenAI fallback for LLM — <strong>CRITICAL</strong></li>
+          <li>Remove SOC2 claims from marketing — <strong>LEGAL RISK</strong></li>
+          <li>Add GDPR data export endpoint</li>
+        </ul>
+      </div>
+
+      <div class="phase-box">
+        <div class="phase-header">
+          <div class="phase-icon short">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          </div>
+          <div>
+            <div class="phase-title">Short-term — 30 to 90 Days</div>
+            <div class="phase-subtitle">Growth & Conversion Engine</div>
+          </div>
+        </div>
+        <ul class="phase-list">
+          <li>Implement WebSocket real-time collaboration (Pusher/Ably or Supabase Realtime)</li>
+          <li>Build AI consumption-based billing (metered decompositions)</li>
+          <li>Create onboarding email sequence (5-email drip)</li>
+          <li>Add feature comparison table to pricing page</li>
+          <li>Build engagement scoring dashboard</li>
+          <li>Add referral program ("invite = unlock bonus")</li>
+          <li>Implement trial-to-paid funnel tracking</li>
+          <li>Build onboarding email sequence — +30% trial conversion</li>
+          <li>Add "success metrics" to admin analytics (LTV, churn, MRR)</li>
+        </ul>
+      </div>
+
+      <div class="phase-box">
+        <div class="phase-header">
+          <div class="phase-icon medium">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/></svg>
+          </div>
+          <div>
+            <div class="phase-title">Medium-term — 90 to 180 Days</div>
+            <div class="phase-subtitle">Scale & Ecosystem</div>
+          </div>
+        </div>
+        <ul class="phase-list">
+          <li>Build integration marketplace (GitHub, Slack, Figma — 15% rev share)</li>
+          <li>Create professional services package ($299 onboarding)</li>
+          <li>Implement usage-based API pricing</li>
+          <li>Build white-label option ($49/mo for agencies)</li>
+          <li>Add analytics export as paid feature</li>
+          <li>Implement upgrade path for growing teams (reduce churn 2%)</li>
+          <li>Pursue SOC2 Type I certification (when enterprise leads arrive)</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ==================== PATH TO $1M ARR ==================== -->
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-number">07 / Path to $1M ARR</div>
+        <h2 class="section-title">The Revenue Roadmap</h2>
+        <p class="section-subtitle">2,000 paying teams at ~$40/mo average = $960K ARR. Achievable in 18 months with right execution on activation, conversion, and upsells.</p>
+      </div>
+
+      <div class="path-section">
+        <div class="path-steps">
+          <div class="path-step">
+            <div class="path-step-marker">$100K</div>
+            <div class="path-step-title">Stage 1: Foundation</div>
+            <div class="path-step-target">333 paying teams @ $25/mo</div>
+            <div class="path-step-desc">Focus: Activation and onboarding. Get users to aha moment in under 5 min. Implement annual pricing. Target: 12% trial conversion.</div>
+          </div>
+          <div class="path-step">
+            <div class="path-step-marker">$500K</div>
+            <div class="path-step-title">Stage 2: Growth</div>
+            <div class="path-step-target">1,000 paying teams @ $42/mo avg</div>
+            <div class="path-step-desc">Focus: Trial conversion and upsells. 5-email drip sequence. Referral program. Soft upgrade prompts. Target: 15% trial conversion.</div>
+          </div>
+          <div class="path-step">
+            <div class="path-step-marker">$1M</div>
+            <div class="path-step-title">Stage 3: Scale</div>
+            <div class="path-step-target">2,000 paying teams @ $42/mo avg</div>
+            <div class="path-step-desc">Focus: Enterprise and add-ons. AI consumption billing. Professional services. Integration marketplace. Target: 20% trial conversion.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-card" style="max-width:600px;margin:0 auto 48px;">
+        <div class="chart-card-title" style="text-align:center;">Cumulative Revenue Target</div>
+        <div class="chart-card-sub" style="text-align:center;">$0 → $1M ARR trajectory over 18 months</div>
+        <div class="chart-container" style="height:200px;">
+          <canvas id="pathToMillionChart"></canvas>
+        </div>
+      </div>
+
+      <div class="callout accent">
+        <div class="callout-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          Success Metrics
+        </div>
+        <div class="callout-body">
+          <strong>18-month targets:</strong> 2,000 paying teams | 20% trial conversion | &lt;4% monthly churn | 4:1 LTV:CAC ratio | NPS 45+<br><br>
+          <strong>Unit economics:</strong> ARPU $40/mo | CAC payback &lt;14 months | LTV $480–960 | MRR growth 15%/mo
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== FOOTER ==================== -->
+  <footer class="footer">
+    <div class="footer-text">Flux Platform Strategic Analysis Report — Generated April 2026</div>
+    <div class="footer-watermark">Confidential — For Internal Use Only</div>
+  </footer>
+
+  <script>
+    // ======================== EXPANDABLE ========================
+    function toggleExpand(header) {
+      const expandable = header.parentElement;
+      expandable.classList.toggle('open');
+      const tag = header.querySelector('.expandable-tag');
+      if (expandable.classList.contains('open')) {
+        tag.textContent = 'Click to collapse';
+      } else {
+        tag.textContent = 'Click to expand';
+      }
+    }
+
+    // ======================== CHARTS ========================
+    // Shared Chart.js defaults
+    Chart.defaults.color = '#9CA3AF';
+    Chart.defaults.borderColor = '#2A2A35';
+    Chart.defaults.font.family = "'IBM Plex Sans', sans-serif";
+
+    // 1. Pricing Comparison Bar
+    new Chart(document.getElementById('pricingChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Flux Starter', 'Flux Pro', 'Notion Plus', 'Asana Premium', 'ClickUp Business', 'Linear Pro', 'Height Starter'],
+        datasets: [{
+          label: 'Monthly Price ($)',
+          data: [15, 39, 12, 13.50, 12, 15, 10],
+          backgroundColor: [
+            'rgba(126,59,233,0.8)',
+            'rgba(126,59,233,0.8)',
+            'rgba(59,130,246,0.5)',
+            'rgba(245,158,11,0.5)',
+            'rgba(59,130,246,0.5)',
+            'rgba(16,185,129,0.5)',
+            'rgba(239,68,68,0.5)'
+          ],
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `$${ctx.raw}/mo`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: '#2A2A35' },
+            ticks: { callback: (v) => `$${v}` }
+          },
+          y: {
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+    // 2. Competitive Positioning Radar
+    new Chart(document.getElementById('radarChart'), {
+      type: 'radar',
+      data: {
+        labels: ['AI Features', 'UX Simplicity', 'Pricing Value', 'PWA/Offline', 'Real-time Collab', 'Enterprise Ready'],
+        datasets: [{
+          label: 'Flux',
+          data: [4.5, 4, 4, 5, 3, 3],
+          backgroundColor: 'rgba(126,59,233,0.2)',
+          borderColor: '#7E3BE9',
+          borderWidth: 2,
+          pointBackgroundColor: '#7E3BE9'
+        }, {
+          label: 'Notion',
+          data: [3, 3, 3, 1, 3, 4],
+          backgroundColor: 'rgba(59,130,246,0.1)',
+          borderColor: '#3B82F6',
+          borderWidth: 2,
+          pointBackgroundColor: '#3B82F6'
+        }, {
+          label: 'Height',
+          data: [4.5, 3.5, 4, 1, 3.5, 2.5],
+          backgroundColor: 'rgba(239,68,68,0.1)',
+          borderColor: '#EF4444',
+          borderWidth: 2,
+          pointBackgroundColor: '#EF4444'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          r: {
+            min: 0,
+            max: 5,
+            ticks: { stepSize: 1, display: false },
+            grid: { color: '#2A2A35' },
+            pointLabels: { font: { size: 11 } },
+            angleLines: { color: '#2A2A35' }
+          }
+        }
+      }
+    });
+
+    // 3. Unit Economics Benchmark
+    new Chart(document.getElementById('unitEconChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Churn Rate\n(%/mo)', 'Trial Conv.\n(%)', 'CAC Payback\n(mo)', 'LTV:CAC'],
+        datasets: [{
+          label: 'Industry Avg',
+          data: [6.5, 12, 15, 3],
+          backgroundColor: 'rgba(107,114,128,0.4)',
+          borderRadius: 4,
+          borderSkipped: false
+        }, {
+          label: 'Top Quartile',
+          data: [3, 20, 12, 5],
+          backgroundColor: 'rgba(16,185,129,0.6)',
+          borderRadius: 4,
+          borderSkipped: false
+        }, {
+          label: 'Flux Target',
+          data: [5, 12, 14, 4],
+          backgroundColor: 'rgba(126,59,233,0.8)',
+          borderRadius: 4,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const labels = ['6.5%', '12%', '15 mo', '3:1', '3%', '20%', '12 mo', '5:1', '5%', '12%', '14 mo', '4:1'];
+                return `${ctx.dataset.label}: ${labels[ctx.dataIndex] || ctx.raw}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+          y: { grid: { color: '#2A2A35' } }
+        }
+      }
+    });
+
+    // 4. Revenue Streams
+    new Chart(document.getElementById('revenueStreamsChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Annual Billing', 'AI Add-on', 'Pro Services', 'Integrations', 'White-label', 'Analytics Export'],
+        datasets: [{
+          label: 'Est. MRR Impact',
+          data: [1500, 800, 500, 300, 200, 100],
+          backgroundColor: 'rgba(126,59,233,0.7)',
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: { label: (ctx) => `$${ctx.raw}+ MRR` }
+          }
+        },
+        scales: {
+          x: { grid: { color: '#2A2A35' }, ticks: { callback: (v) => `$${v}` } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+
+    // 5. Path to $1M ARR
+    new Chart(document.getElementById('pathToMillionChart'), {
+      type: 'line',
+      data: {
+        labels: ['Month 0', 'Month 3', 'Month 6', 'Month 9', 'Month 12', 'Month 15', 'Month 18'],
+        datasets: [{
+          label: 'Cumulative ARR',
+          data: [0, 20000, 60000, 150000, 300000, 550000, 960000],
+          borderColor: '#7E3BE9',
+          backgroundColor: 'rgba(126,59,233,0.1)',
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#7E3BE9',
+          pointRadius: 5
+        }, {
+          label: 'Target Trajectory',
+          data: [0, 15000, 60000, 130000, 280000, 520000, 900000],
+          borderColor: 'rgba(16,185,129,0.6)',
+          borderDash: [5, 5],
+          fill: false,
+          tension: 0.4,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom' },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `$${(ctx.raw / 1000).toFixed(0)}K ARR`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { color: '#2A2A35' } },
+          y: {
+            grid: { color: '#2A2A35' },
+            ticks: { callback: (v) => `$${(v/1000).toFixed(0)}K` }
+          }
+        }
+      }
+    });
+
+    // Animate score ring on load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.querySelector('.score-ring .fill').style.strokeDashoffset = '143';
+      }, 500);
+    });
+  </script>
+</body>
+</html>

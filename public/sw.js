@@ -20,16 +20,13 @@ function isBillingApi(url) {
   return url.pathname.startsWith('/api/billing');
 }
 
-function isSocketIO(url) {
-  return url.pathname.startsWith('/socket.io');
-}
-
 function isNextStatic(url) {
   return url.pathname.startsWith('/_next/static');
 }
 
 function isStaticAsset(url) {
-  return url.pathname.match(/\.(js|css|woff2?|ttf|eot|image|png|jpg|jpeg|svg|ico|webp)$/);
+  return url.protocol !== 'chrome-extension:' &&
+         url.pathname.match(/\.(js|css|woff2?|ttf|eot|image|png|jpg|jpeg|svg|ico|webp)$/);
 }
 
 function isPagesRoute(url) {
@@ -75,8 +72,13 @@ self.addEventListener('activate', function(event) {
 self.addEventListener('fetch', function(event) {
   var url = new URL(event.request.url);
 
-  // Network-only: Auth API, Billing API, Socket.IO, Next.js static
-  if (isAuthApi(url) || isBillingApi(url) || isSocketIO(url) || isNextStatic(url)) {
+  // Skip non-http(s) requests (chrome-extension://, etc.)
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
+  // Network-only: Auth API, Billing API, Next.js static
+  if (isAuthApi(url) || isBillingApi(url) || isNextStatic(url)) {
     return;
   }
 

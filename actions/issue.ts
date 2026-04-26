@@ -136,6 +136,17 @@ export async function updateIssueStatus(workspaceSlug: string, issueId: string, 
 
     await connectDB();
 
+    // SECURITY FIX: Verify issue belongs to user's workspace before updating
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) throw new Error('Workspace not found');
+
+    const issue = await Issue.findOne({ _id: issueId, workspaceId: workspace._id });
+    if (!issue) throw new Error('Issue not found');
+
+    // Verify user is a member of the workspace
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) throw new Error('Unauthorized');
+
     await Issue.findByIdAndUpdate(issueId, { status });
     revalidatePath(`/${workspaceSlug}/issues`);
     return { success: true };
@@ -146,6 +157,17 @@ export async function updateIssue(workspaceSlug: string, issueId: string, data: 
     if (!session?.user?.id) throw new Error('Unauthorized');
 
     await connectDB();
+
+    // SECURITY FIX: Verify issue belongs to user's workspace before updating
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) throw new Error('Workspace not found');
+
+    const issue = await Issue.findOne({ _id: issueId, workspaceId: workspace._id });
+    if (!issue) throw new Error('Issue not found');
+
+    // Verify user is a member of the workspace
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) throw new Error('Unauthorized');
 
     await Issue.findByIdAndUpdate(issueId, data);
     revalidatePath(`/${workspaceSlug}/issues`);

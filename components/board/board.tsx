@@ -20,6 +20,8 @@ import { CreateTaskModal } from './create-task-modal';
 import { AIDecomposeModal } from './ai-decompose-modal';
 import { updateTaskPosition, createTask, updateTask, deleteTask } from '@/actions/task';
 import { updateOnboardingProgress } from '@/actions/onboarding';
+import { InteractiveBoardWalkthrough, dispatchWalkthroughEvent } from '@/components/onboarding/interactive-board-walkthrough';
+import { BoardContextualTooltips } from './board-contextual-tooltips';
 import type { TaskStatus, TaskPriority } from '@/models/Task';
 import { PlusIcon, XMarkIcon, ArrowPathIcon, MagnifyingGlassIcon, UserIcon, Cog6ToothIcon, UsersIcon, BellIcon, ChatBubbleLeftRightIcon, MoonIcon, SunIcon, ChevronDownIcon, EllipsisHorizontalIcon, SparklesIcon, FunnelIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -41,6 +43,7 @@ interface BoardProps {
     categories?: { id: string; name: string; color: string }[];
     currentUserId?: string;
     hasUnread?: React.ReactNode;
+    isInWalkthrough?: boolean;
 }
 
 type ColumnId = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
@@ -66,6 +69,7 @@ export function Board({
     categories = [],
     currentUserId,
     hasUnread,
+    isInWalkthrough = false,
 }: BoardProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [filterMyTasks, setFilterMyTasks] = useState(false);
@@ -99,6 +103,20 @@ export function Board({
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [isPending, startTransition] = useTransition();
     const { theme, setTheme } = useTheme();
+    const [showWalkthrough, setShowWalkthrough] = useState(false);
+    const [walkthroughStarted, setWalkthroughStarted] = useState(false);
+
+    // Check if walkthrough should be shown (eligible for onboarding, not completed)
+    useEffect(() => {
+        if (isInWalkthrough && !walkthroughStarted && tasks.length > 0) {
+            // Small delay to let the board render first
+            const timer = setTimeout(() => {
+                setShowWalkthrough(true);
+                setWalkthroughStarted(true);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [isInWalkthrough, walkthroughStarted, tasks.length]);
 
     type OptimisticAction =
         | { type: 'ADD'; task: TaskData }
@@ -271,6 +289,9 @@ export function Board({
 
                 // Track onboarding progress - drag and drop
                 await updateOnboardingProgress('completedFirstDragDrop');
+
+                // Dispatch walkthrough event for interactive onboarding
+                dispatchWalkthroughEvent('task_moved', { taskId: activeId, fromStatus: activeTask.status, toStatus: targetColumn });
             } catch (error) {
                 console.error('Failed to update task position:', error);
                 // Revert on error
@@ -459,6 +480,18 @@ export function Board({
                 });
                 // On success, sync with server state via setTasks
                 setTasks((prev) => prev.map((t) => (t.id === taskId ? optimisticTask : t)));
+
+                // Dispatch walkthrough events for interactive onboarding
+                const previousAssignees = task.assignees.map(a => a.id);
+                const newAssignees = data.assignees?.map((a) => a.id) || previousAssignees;
+                const addedSelf = data.assignees?.some(a => a.id === currentUserId && !previousAssignees.includes(a.id));
+                if (addedSelf && currentUserId) {
+                    dispatchWalkthroughEvent('self_assigned', { taskId, userId: currentUserId });
+                }
+
+                if (data.description !== undefined && data.description !== task.description) {
+                    dispatchWalkthroughEvent('description_updated', { taskId });
+                }
             } catch (error) {
                 console.error('Failed to update task:', error);
                 // Revert optimistic update by dispatching original task
@@ -909,6 +942,23 @@ export function Board({
                     </div>
                 </>
             )}
+
+            {/* Interactive Board Walkthrough for Onboarding */}
+            {showWalkthrough && (
+                <InteractiveBoardWalkthrough
+                    workspaceSlug={workspaceSlug}
+                    onComplete={async () => {
+                        setShowWalkthrough(false);
+                        await updateOnboardingProgress('completedTutorial');
+                    }}
+                    onSkip={() => {
+                        setShowWalkthrough(false);
+                    }}
+                />
+            )}
+
+            {/* Contextual Tooltips for First Board Visit */}
+            <BoardContextualTooltips />
         </div>
     );
 }

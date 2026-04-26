@@ -154,3 +154,98 @@ export async function isEligibleForOnboarding(): Promise<boolean> {
         return false;
     }
 }
+
+// Check if user has completed the "aha moment" (first board + first task)
+export async function hasCompletedAhaMoment(): Promise<boolean> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return false;
+    }
+
+    try {
+        await connectDB();
+        const user = await User.findById(session.user.id).select('onboardingProgress').lean();
+
+        if (!user?.onboardingProgress) {
+            return false;
+        }
+
+        return !!(user.onboardingProgress.createdFirstBoard && user.onboardingProgress.createdFirstTask);
+    } catch (error) {
+        console.error('Failed to check aha moment:', error);
+        return false;
+    }
+}
+
+// Mark referral prompt as shown
+export async function markReferralPromptShown(): Promise<{ success: boolean; error?: string }> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: 'Unauthorized' };
+    }
+
+    try {
+        await connectDB();
+
+        await User.findByIdAndUpdate(session.user.id, {
+            $set: { 'onboardingProgress.referralPromptShown': true },
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to mark referral prompt shown:', error);
+        return { success: false, error: 'Failed to update' };
+    }
+}
+
+// Check if referral prompt should be shown (aha moment complete + not yet shown)
+export async function shouldShowReferralPrompt(): Promise<boolean> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return false;
+    }
+
+    try {
+        await connectDB();
+        const user = await User.findById(session.user.id).select('onboardingProgress').lean();
+
+        if (!user?.onboardingProgress) {
+            return false;
+        }
+
+        // Must have completed aha moment
+        if (!user.onboardingProgress.createdFirstBoard || !user.onboardingProgress.createdFirstTask) {
+            return false;
+        }
+
+        // Must not have been shown yet
+        if (user.onboardingProgress.referralPromptShown) {
+            return false;
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Failed to check referral prompt status:', error);
+        return false;
+    }
+}
+
+export async function dismissTrialPrompt(): Promise<{ success: boolean; error?: string }> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: 'Unauthorized' };
+    }
+
+    try {
+        await connectDB();
+
+        await User.findByIdAndUpdate(session.user.id, {
+            $set: { trialPromptDismissedAt: new Date() },
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to dismiss trial prompt:', error);
+        return { success: false, error: 'Failed to dismiss trial prompt' };
+    }
+}

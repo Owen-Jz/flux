@@ -38,10 +38,10 @@ function AnimatedCounter({ value, suffix = "", prefix = "", duration = 2 }: { va
 
 // Stats data
 const stats = [
-  { label: "Daily Active Users", value: 240000, suffix: "+", icon: UsersIcon, color: "from-blue-500 to-cyan-500" },
-  { label: "Tasks Completed", value: 12000000, suffix: "+", icon: CheckCircleIcon, color: "from-purple-500 to-teal-500" },
-  { label: "Uptime SLA", value: 99.999, suffix: "%", prefix: "", icon: ShieldCheckIcon, color: "from-purple-500 to-pink-500", isDecimal: true },
-  { label: "Hours Saved/Week", value: 8, suffix: "hrs", icon: BoltIcon, color: "from-amber-500 to-orange-500" },
+  { label: "Teams using Flux", value: 240000, suffix: "+", icon: UsersIcon, color: "from-blue-500 to-cyan-500" },
+  { label: "Tasks completed", value: 12000000, suffix: "+", icon: CheckCircleIcon, color: "from-purple-500 to-teal-500" },
+  { label: "Guaranteed uptime", value: 99.999, suffix: "%", prefix: "", icon: ShieldCheckIcon, color: "from-purple-500 to-pink-500", isDecimal: true },
+  { label: "Hours saved per week", value: 8, suffix: "hrs", icon: BoltIcon, color: "from-amber-500 to-orange-500" },
 ];
 
 export function StatsSection() {

@@ -9,6 +9,8 @@ export interface IUser extends Document {
     image?: string;
     password?: string;
     emailVerified?: Date;
+    emailVerificationToken?: string;
+    emailVerificationExpires?: Date;
     passwordResetToken?: string;
     passwordResetExpires?: Date;
     createdAt: Date;
@@ -26,6 +28,7 @@ export interface IUser extends Document {
         completedFirstDragDrop: boolean;
         completedTutorial: boolean;
         dismissedAt?: Date;
+        referralPromptShown?: boolean;
     };
     // Billing fields
     plan: PlanType;
@@ -36,6 +39,8 @@ export interface IUser extends Document {
     billingEmail?: string;
     trialEndsAt?: Date;
     hasUsedTrial: boolean;
+    trialWarningSent: boolean;
+    trialPromptDismissedAt?: Date;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -45,6 +50,8 @@ const UserSchema = new Schema<IUser>(
         image: { type: String },
         password: { type: String, select: false },
         emailVerified: { type: Date },
+        emailVerificationToken: { type: String },
+        emailVerificationExpires: { type: Date },
         passwordResetToken: { type: String },
         passwordResetExpires: { type: Date },
         tutorialProgress: {
@@ -60,6 +67,7 @@ const UserSchema = new Schema<IUser>(
             completedFirstDragDrop: { type: Boolean, default: false },
             completedTutorial: { type: Boolean, default: false },
             dismissedAt: { type: Date },
+            referralPromptShown: { type: Boolean, default: false },
         },
         // Billing fields
         plan: { type: String, enum: ['free', 'starter', 'pro', 'enterprise'], default: 'free' },
@@ -70,6 +78,8 @@ const UserSchema = new Schema<IUser>(
         billingEmail: { type: String },
         trialEndsAt: { type: Date },
         hasUsedTrial: { type: Boolean, default: false },
+        trialWarningSent: { type: Boolean, default: false },
+        trialPromptDismissedAt: { type: Date },
     },
     { timestamps: true }
 );

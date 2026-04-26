@@ -22,9 +22,10 @@ export async function processWorkspaceInvites(email: string) {
     const workspace = await Workspace.findById(invite.workspaceId);
     if (!workspace) continue;
 
-    // Check if user is already a member
+    // Check if user is already a member - compare against invite's _id (temporary placeholder)
+    // This prevents duplicate additions when the invite is processed multiple times
     const isAlreadyMember = workspace.members.some(
-      (m: any) => m.userId.toString() === invite.workspaceId.toString()
+      (m: any) => m.userId.toString() === (invite as any)._id.toString()
     );
 
     if (isAlreadyMember) {

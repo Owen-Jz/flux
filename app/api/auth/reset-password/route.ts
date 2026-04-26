@@ -44,7 +44,11 @@ export async function POST(request: NextRequest) {
             const resetToken = crypto.randomBytes(32).toString('hex');
             const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
-            user.passwordResetToken = resetToken;
+            // SECURITY FIX: Hash the reset token before storing
+            // The token sent to user is plain text, but stored hash cannot be reversed
+            const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+            user.passwordResetToken = hashedToken;
             user.passwordResetExpires = resetExpires;
             await user.save();
 

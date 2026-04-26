@@ -1,11 +1,13 @@
 'use client';
 
-import Link from 'next/link';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
+import CreateWorkspaceModal from '@/components/CreateWorkspaceModal';
 
 export function EmptyWorkspaces() {
+    const [isModalOpen, setIsModalOpen] = useState(false);
     return (
-        <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 relative overflow-hidden">
+        <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4 py-12 relative overflow-hidden">
             {/* Decorative background */}
             <div
                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] opacity-20 pointer-events-none"
@@ -17,14 +19,14 @@ export function EmptyWorkspaces() {
 
             {/* Icon container */}
             <motion.div
-                className="w-24 h-24 mb-8 rounded-2xl bg-gradient-to-br from-[var(--flux-brand-primary)] to-[var(--flux-brand-secondary)] flex items-center justify-center relative"
+                className="w-20 h-20 md:w-24 md:h-24 mb-8 rounded-2xl bg-gradient-to-br from-[var(--flux-brand-primary)] to-[var(--flux-brand-secondary)] flex items-center justify-center relative shadow-xl shadow-[var(--flux-brand-primary)]/20"
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
             >
                 {/* Inner icon */}
                 <svg
-                    className="w-12 h-12 text-white"
+                    className="w-10 h-10 md:w-12 md:h-12 text-white"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -37,9 +39,9 @@ export function EmptyWorkspaces() {
                     />
                 </svg>
 
-                {/* Decorative ring */}
-                <div className="absolute -inset-3 rounded-3xl border-2 border-[var(--flux-brand-primary)]/20" />
-                <div className="absolute -inset-6 rounded-3xl border border-[var(--flux-brand-primary)]/10" />
+                {/* Decorative rings */}
+                <div className="absolute -inset-3 rounded-3xl border-2 border-[var(--flux-brand-primary)]/20 hidden md:block" />
+                <div className="absolute -inset-6 rounded-3xl border border-[var(--flux-brand-primary)]/10 hidden md:block" />
             </motion.div>
 
             {/* Text content */}
@@ -48,13 +50,13 @@ export function EmptyWorkspaces() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
             >
-                <p className="text-sm font-medium text-[var(--flux-brand-primary)] mb-2">
+                <p className="text-sm font-medium text-[var(--flux-brand-primary)] mb-2 tracking-wide uppercase text-xs">
                     Get Started
                 </p>
-                <h2 className="text-3xl font-bold text-[var(--text-primary)] mb-3">
+                <h2 className="text-2xl md:text-3xl font-bold text-[var(--text-primary)] mb-3">
                     No workspaces yet
                 </h2>
-                <p className="text-[var(--text-secondary)] mb-8 max-w-md">
+                <p className="text-[var(--text-secondary)] mb-8 max-w-md text-sm md:text-base px-4 md:px-0">
                     Create your first workspace to start organizing your projects, boards, and tasks with your team.
                 </p>
             </motion.div>
@@ -65,9 +67,9 @@ export function EmptyWorkspaces() {
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
             >
-                <Link
-                    href="/onboarding"
-                    className="btn btn-primary btn-lg inline-flex items-center gap-2"
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="btn btn-primary btn-lg inline-flex items-center gap-2 shadow-lg shadow-[var(--flux-brand-primary)]/20 hover:shadow-xl hover:shadow-[var(--flux-brand-primary)]/30 transition-shadow"
                 >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -76,12 +78,21 @@ export function EmptyWorkspaces() {
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
-                </Link>
+                </button>
             </motion.div>
 
-            {/* Feature hints */}
+            {isModalOpen && (
+                <CreateWorkspaceModal
+                    onClose={() => setIsModalOpen(false)}
+                    onSuccess={(slug) => {
+                        // Redirect happens inside the modal via router.push
+                    }}
+                />
+            )}
+
+            {/* Feature hints - responsive wrapping */}
             <motion.div
-                className="flex items-center gap-8 mt-12 text-sm text-[var(--text-tertiary)]"
+                className="flex flex-wrap justify-center gap-4 md:gap-8 mt-12 text-sm text-[var(--text-tertiary)]"
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.5, delay: 0.3 }}

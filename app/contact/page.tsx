@@ -107,14 +107,12 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
             <Link href="/" className="flex items-center gap-3 group" aria-label="Flux home">
-              <span className="inline-flex items-center justify-center w-9 h-9 lg:w-10 lg:h-10 rounded-xl bg-[var(--brand-primary)]">
-                <img
-                  src="/icon.svg"
-                  alt=""
-                  className="w-6 h-6 text-white"
-                />
-              </span>
-              <span className="font-extrabold text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
+              <svg width="32" height="32" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+                <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+                <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+              </svg>
+              <span className="font-black text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
             </Link>
             <div className="flex items-center gap-3">
               <Link 
@@ -399,9 +397,11 @@ export default function ContactPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-[var(--brand-primary)]">
-                <img src="/icon.svg" alt="" className="w-5 h-5 text-white" />
-              </span>
+              <svg width="28" height="28" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+                <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+                <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+              </svg>
               <span className="font-bold text-lg text-slate-900 dark:text-white">flux</span>
             </div>
             <p className="text-sm text-slate-500 dark:text-slate-400">

@@ -22,13 +22,13 @@ export function LandingPageAnimation() {
             <div className="max-w-7xl mx-auto flex flex-col items-center">
                 <div className="text-center max-w-2xl mb-12 lg:mb-20">
                     <span className="inline-block px-3 py-1 rounded-full bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] text-xs font-bold uppercase tracking-widest mb-4">
-                        How It Works
+                        See It In Action
                     </span>
                     <h2 id="how-it-works-heading" className="text-3xl lg:text-5xl font-black text-[var(--text-primary)] mb-6 tracking-tight">
-                        Designed for the way you work
+                        From chaos to clarity
                     </h2>
                     <p className="text-lg text-[var(--text-secondary)]">
-                        A workspace that balances power with simplicity. No configuration required, just focus on what matters.
+                        No complex setup. No endless configuration. Just add your team and start shipping.
                     </p>
                 </div>
 

@@ -33,6 +33,28 @@ export async function getCurrentAdmin(): Promise<AdminUser | null> {
         return null;
     }
 
+    // Check for env-based admin credentials login
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (adminEmail && session.user.email === adminEmail && session.user.id === 'admin-session') {
+        return {
+            id: 'env-admin',
+            userId: 'admin-session',
+            role: 'SUPER_ADMIN',
+            permissions: {
+                users: true,
+                workspaces: true,
+                analytics: true,
+                settings: true,
+                billing: true,
+            },
+            user: {
+                name: 'Admin',
+                email: adminEmail,
+                image: null,
+            },
+        };
+    }
+
     await connectDB();
 
     const admin = await Admin.findOne({ userId: session.user.id }).populate('userId', 'name email image');

@@ -44,22 +44,21 @@ export function CTASection() {
           </span>
 
           <h2 id="cta-heading" className="text-4xl lg:text-5xl xl:text-6xl font-black text-[var(--text-primary)] mb-6 tracking-tight">
-            Ready to transform
+            Ready to stop the
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary)] to-[var(--info-primary)]">
-              your workflow?
+              chaos?
             </span>
           </h2>
 
           <p className="text-lg text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto leading-relaxed">
-            Join thousands of high-performing teams who rely on Flux to ship faster.
-            No credit card required. Setup in minutes.
+            Join thousands of teams who finally got organized. Get started in minutes.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
             {/* Primary CTA */}
             <Link
-              href="/signup"
+              href="/signup?plan=pro"
               className="group relative px-8 py-4 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary)] text-[var(--text-inverse)] rounded-2xl text-base font-extrabold shadow-xl shadow-[var(--brand-primary)]/25 hover:shadow-2xl hover:shadow-[var(--brand-primary)]/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
             >
               <span className="flex items-center gap-2">

@@ -104,7 +104,11 @@
       "Bash(node -e \"const icons = require\\('@heroicons/react/24/outline'\\); console.log\\(Object.keys\\(icons\\).filter\\(k => k.toLowerCase\\(\\).includes\\('grip'\\) || k.toLowerCase\\(\\).includes\\('drag'\\) || k.toLowerCase\\(\\).includes\\('bars'\\)\\)\\)\")",
       "Bash(node -e \"const icons = require\\('@heroicons/react/24/solid'\\); console.log\\(Object.keys\\(icons\\).filter\\(k => k.toLowerCase\\(\\).includes\\('grip'\\) || k.toLowerCase\\(\\).includes\\('bars'\\)\\)\\).join\\('\\\\n'\\)\")",
       "Bash(ls -la *.ts 2>/dev/null | head -30)",
-      "Bash(find node_modules -name \"*react-icons*\" -type d 2>/dev/null | head -5)"
+      "Bash(find node_modules -name \"*react-icons*\" -type d 2>/dev/null | head -5)",
+      "Bash(cd \"C:/Users/owen/Downloads/Projects/flux\" && grep -A2 '\"web-push\"' package.json)",
+      "Bash(netstat -ano | grep \":3000\" | head -5 2>/dev/null || ss -tlnp | grep 3000 2>/dev/null || echo \"Port check tool not available\")",
+      "Bash(mkdir -p \"C:/Users/owen/.claude/plans\")",
+      "Read(//c/Users/owen/.claude/plans/**)"
     ]
   }
 }

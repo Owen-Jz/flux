@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { auth } from '@/lib/auth';
-import { createCustomer, getCustomer, initializeSubscription, PLAN_CODES, PLAN_PRICES_KOBO, PLAN_PRICES_USD, getNairaPrice, getExchangeRate } from '@/lib/paystack';
+import { createCustomer, getCustomer, initializeSubscription, initializeTransaction, PLAN_CODES, PLAN_PRICES_KOBO, PLAN_PRICES_USD, getNairaPrice, getExchangeRate } from '@/lib/paystack';
 
 // Initialize subscription checkout
 export async function POST(request: NextRequest) {
@@ -13,10 +13,14 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { plan } = await request.json();
+        const { plan, currency = 'NGN' } = await request.json();
 
         if (!plan || !['starter', 'pro'].includes(plan)) {
             return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
+        }
+
+        if (!['NGN', 'USD'].includes(currency)) {
+            return NextResponse.json({ error: 'Invalid currency. Must be NGN or USD' }, { status: 400 });
         }
 
         await connectDB();
@@ -50,20 +54,34 @@ export async function POST(request: NextRequest) {
             await user.save();
         }
 
-        // Initialize the subscription
-        const planCode = PLAN_CODES[plan as keyof typeof PLAN_CODES];
-        const amountKobo = PLAN_PRICES_KOBO[plan as keyof typeof PLAN_PRICES_KOBO];
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const callbackUrl = `${baseUrl}/settings?billing=success&plan=${plan}&currency=${currency}`;
 
-        // Build callback URL - redirect to settings page after payment
-        const callbackUrl = `${baseUrl}/settings?billing=success&plan=${plan}`;
+        let transaction;
 
-        const transaction = await initializeSubscription(
-            user.email,
-            planCode,
-            amountKobo,
-            callbackUrl
-        );
+        if (currency === 'USD') {
+            // For USD, use initializeTransaction with amount in USD cents
+            const usdPrice = PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD];
+
+            transaction = await initializeTransaction(
+                user.email,
+                usdPrice,
+                'USD',
+                undefined,
+                callbackUrl
+            );
+        } else {
+            // For NGN, use the subscription-based flow
+            const planCode = PLAN_CODES[plan as keyof typeof PLAN_CODES];
+            const amountKobo = PLAN_PRICES_KOBO[plan as keyof typeof PLAN_PRICES_KOBO];
+
+            transaction = await initializeSubscription(
+                user.email,
+                planCode,
+                amountKobo,
+                callbackUrl
+            );
+        }
 
         // Store Paystack's reference for verification
         user.subscriptionPlanId = plan;
@@ -78,11 +96,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             authorizationUrl: transaction.data.authorization_url,
             reference: transaction.data.reference,
+            currency: currency,
             pricing: {
                 USD: usdPrice,
                 NGN: nairaPrice,
                 exchangeRate: exchangeRate,
-                display: `$${usdPrice}/month (≈₦${nairaPrice.toLocaleString()})`
+                display: currency === 'USD'
+                    ? `$${usdPrice}/month`
+                    : `₦${nairaPrice.toLocaleString()}/month (≈$${usdPrice})`
             }
         });
     } catch (error) {

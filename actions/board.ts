@@ -3,13 +3,34 @@
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Board } from '@/models/Board';
-import { Task } from '@/models/Task';
+import { Task, TaskStatus } from '@/models/Task';
 import { Workspace } from '@/models/Workspace';
 import { User } from '@/models/User';
 import { revalidatePath } from 'next/cache';
 import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
 import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
+
+const SAMPLE_TASKS = [
+    {
+        title: 'Welcome to your board!',
+        description: 'This is a sample task to get you started. You can edit or delete it anytime.',
+        status: 'BACKLOG' as TaskStatus,
+        priority: 'MEDIUM' as const,
+    },
+    {
+        title: 'Invite a team member',
+        description: 'Click on your workspace settings to invite teammates and collaborate together.',
+        status: 'TODO' as TaskStatus,
+        priority: 'HIGH' as const,
+    },
+    {
+        title: 'Create your first real task',
+        description: 'Replace this sample task with your actual work. Click the + button to add tasks.',
+        status: 'IN_PROGRESS' as TaskStatus,
+        priority: 'LOW' as const,
+    },
+];
 
 interface CreateBoardData {
     name: string;
@@ -63,6 +84,24 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
         color: data.color || '#6366f1',
     });
 
+    // Pre-populate first board with 3 sample tasks
+    const isFirstBoard = (await Board.countDocuments({ workspaceId: workspace._id })) === 1;
+    if (isFirstBoard) {
+        await Task.insertMany(
+            SAMPLE_TASKS.map((taskData, index) => ({
+                workspaceId: workspace._id,
+                boardId: board._id,
+                title: taskData.title,
+                description: taskData.description,
+                status: taskData.status,
+                priority: taskData.priority,
+                order: (index + 1) * 1000,
+                assignees: [session.user.id],
+                isSample: true,
+            }))
+        );
+    }
+
     revalidatePath(`/${workspaceSlug}`);
     return {
         id: board._id.toString(),
@@ -75,9 +114,6 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
 
 export async function getBoards(workspaceSlug: string) {
     const session = await auth();
-    if (!session?.user?.id) {
-        return [];
-    }
 
     await connectDB();
 
@@ -86,9 +122,12 @@ export async function getBoards(workspaceSlug: string) {
         return [];
     }
 
-    // Verify user is a member
-    const member = isWorkspaceMember(workspace, session.user.id);
-    if (!member) {
+    // Verify user is a member OR workspace allows public access
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : false;
+    const hasPublicAccess = workspace.settings?.publicAccess === true;
+
+    // Non-members can only access if workspace is publicly accessible
+    if (!member && !hasPublicAccess) {
         return [];
     }
 
@@ -107,9 +146,6 @@ export async function getBoards(workspaceSlug: string) {
 
 export async function getBoardCategories(workspaceSlug: string, boardSlug: string) {
     const session = await auth();
-    if (!session?.user?.id) {
-        return [];
-    }
 
     await connectDB();
 
@@ -118,9 +154,12 @@ export async function getBoardCategories(workspaceSlug: string, boardSlug: strin
         return [];
     }
 
-    // Verify user is a member
-    const member = isWorkspaceMember(workspace, session.user.id);
-    if (!member) {
+    // Verify user is a member OR workspace allows public access
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : false;
+    const hasPublicAccess = workspace.settings?.publicAccess === true;
+
+    // Non-members can only access if workspace is publicly accessible
+    if (!member && !hasPublicAccess) {
         return [];
     }
 
@@ -138,9 +177,6 @@ export async function getBoardCategories(workspaceSlug: string, boardSlug: strin
 
 export async function getBoardBySlug(workspaceSlug: string, boardSlug: string) {
     const session = await auth();
-    if (!session?.user?.id) {
-        return null;
-    }
 
     await connectDB();
 
@@ -149,9 +185,12 @@ export async function getBoardBySlug(workspaceSlug: string, boardSlug: string) {
         return null;
     }
 
-    // Verify user is a member
-    const member = isWorkspaceMember(workspace, session.user.id);
-    if (!member) {
+    // Verify user is a member OR workspace allows public access
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : false;
+    const hasPublicAccess = workspace.settings?.publicAccess === true;
+
+    // Non-members can only access if workspace is publicly accessible
+    if (!member && !hasPublicAccess) {
         return null;
     }
 
