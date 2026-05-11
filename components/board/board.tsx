@@ -18,7 +18,7 @@ import { TaskCard, TaskData, Member } from './task-card';
 import { TaskDetailModal } from './task-detail-modal';
 import { CreateTaskModal } from './create-task-modal';
 import { AIDecomposeModal } from './ai-decompose-modal';
-import { updateTaskPosition, createTask, updateTask, deleteTask } from '@/actions/task';
+import { updateTaskPosition, createTask, updateTask, deleteTask, archiveTasks } from '@/actions/task';
 import { updateOnboardingProgress } from '@/actions/onboarding';
 import { InteractiveBoardWalkthrough, dispatchWalkthroughEvent } from '@/components/onboarding/interactive-board-walkthrough';
 import { BoardContextualTooltips } from './board-contextual-tooltips';
@@ -522,6 +522,26 @@ export function Board({
         });
     };
 
+    const handleArchiveAllDone = async (taskIds: string[]) => {
+        if (taskIds.length === 0) return;
+
+        const tasksToArchive = tasks.filter((t) => taskIds.includes(t.id));
+
+        startTransition(async () => {
+            // Optimistic: remove archived tasks from view
+            dispatchOptimistic({ type: 'DELETE', id: taskIds[0] });
+            setTasks((prev) => prev.filter((t) => !taskIds.includes(t.id)));
+
+            try {
+                await archiveTasks(taskIds);
+            } catch (error) {
+                console.error('Failed to archive tasks:', error);
+                // Revert on error
+                setTasks((prev) => [...prev, ...tasksToArchive]);
+            }
+        });
+    };
+
     return (
         <div className="min-h-full p-3 md:p-4 overflow-x-auto md:overflow-x-hidden flex flex-col">
             {/* Enhanced Navigation Bar */}
@@ -716,6 +736,7 @@ export function Board({
                                 onAddTask={() => setIsAddingTask(column.id)}
                                 onUpdateTask={handleUpdateTask}
                                 onDeleteTask={handleDeleteTask}
+                                onArchiveAll={column.id === 'DONE' ? handleArchiveAllDone : undefined}
                                 members={members}
                                 readTaskIds={readTaskIds}
                                 onTaskClick={(task) => {

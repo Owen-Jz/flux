@@ -20,6 +20,7 @@ import React from 'react';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { TASK_ORDER_INCREMENT } from '@/lib/constants';
 import { triggerNotification } from '@/lib/pwa/trigger-notification';
+import { emitEvent } from '@/lib/webhook-emitter';
 
 interface CreateTaskData {
     title: string;
@@ -122,6 +123,17 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
     }
 
     revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
+
+    // Emit webhook - fire and forget
+    emitEvent(
+        workspace.members.find((m: { userId: { toString: () => string } }) =>
+            workspace.members[0]?.userId?.toString()
+        )?.userId?.toString() || session.user.id,
+        'task.created',
+        workspace._id.toString(),
+        { taskId: task._id.toString(), boardId: board._id.toString(), workspaceId: workspace._id.toString(), title: task.title, status: task.status, priority: task.priority }
+    ).catch(console.error);
+
     return { id: task._id.toString() };
 }
 
@@ -351,6 +363,14 @@ export async function updateTaskPosition(
                 }
             }));
         }
+
+        // Emit webhook for task moved
+        emitEvent(
+            session.user.id,
+            'task.moved',
+            workspace._id.toString(),
+            { taskId: task._id.toString(), boardId: task.boardId.toString(), workspaceId: workspace._id.toString(), oldStatus: previousStatus, newStatus, title: task.title }
+        ).catch(console.error);
     }
 
     revalidatePath(`/${workspace.slug}`);
@@ -598,6 +618,16 @@ export async function updateTask(
         }
     }
 
+    // Emit webhook for task updated (any significant field change)
+    if (data.title || data.description || data.status || data.priority || data.assignees || data.tags) {
+        emitEvent(
+            session.user.id,
+            'task.updated',
+            workspace._id.toString(),
+            { taskId: task._id.toString(), boardId: task.boardId.toString(), workspaceId: workspace._id.toString(), title: task.title, status: task.status, priority: task.priority }
+        ).catch(console.error);
+    }
+
     revalidatePath(`/${workspace.slug}`);
     revalidatePath(`/${workspace.slug}/archive`);
     return { success: true };
@@ -629,6 +659,8 @@ export async function deleteTask(taskId: string) {
 
     // Log activity before deleting
     const board = await Board.findById(task.boardId);
+    const taskTitle = task.title;
+    const taskWorkspaceId = workspace._id.toString();
     if (board) {
         await logActivity({
             workspaceSlug: workspace.slug,
@@ -643,11 +675,86 @@ export async function deleteTask(taskId: string) {
         });
     }
 
+    // Emit webhook for task deleted
+    emitEvent(
+        session.user.id,
+        'task.deleted',
+        taskWorkspaceId,
+        { taskId: task._id.toString(), boardId: task.boardId.toString(), workspaceId: taskWorkspaceId, title: taskTitle }
+    ).catch(console.error);
+
     await Task.findByIdAndDelete(taskId);
 
     revalidatePath(`/${workspace.slug}`);
     revalidatePath(`/${workspace.slug}/archive`);
     return { success: true };
+}
+
+export async function archiveTasks(taskIds: string[]) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('Unauthorized');
+    }
+
+    if (!taskIds || taskIds.length === 0) {
+        return { success: true, archivedCount: 0 };
+    }
+
+    await connectDB();
+
+    // Get tasks to archive with workspace info
+    const tasks = await Task.find({ _id: { $in: taskIds } });
+    if (tasks.length === 0) {
+        throw new Error('Tasks not found');
+    }
+
+    const workspace = await Workspace.findById(tasks[0].workspaceId);
+    if (!workspace) {
+        throw new Error('Workspace not found');
+    }
+
+    // Check role - only ADMIN and EDITOR can archive tasks
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
+        throw new Error('You do not have permission to archive tasks');
+    }
+
+    const board = await Board.findById(tasks[0].boardId);
+
+    // Archive all tasks
+    await Task.updateMany(
+        { _id: { $in: taskIds } },
+        { $set: { status: 'ARCHIVED' as TaskStatus } }
+    );
+
+    // Log activity for each archived task
+    await Promise.all(tasks.map(async (task) => {
+        await logActivity({
+            workspaceSlug: workspace.slug,
+            boardSlug: board?.slug || '',
+            taskId: task._id.toString(),
+            type: 'TASK_UPDATED',
+            title: 'Tasks Archived',
+            description: `Archived task "${task.title}"`,
+            metadata: {
+                taskTitle: task.title,
+            },
+        });
+    }));
+
+    // Emit webhook for each archived task
+    await Promise.all(tasks.map(async (task) => {
+        emitEvent(
+            session.user.id,
+            'task.updated',
+            workspace._id.toString(),
+            { taskId: task._id.toString(), boardId: task.boardId.toString(), workspaceId: workspace._id.toString(), title: task.title, status: 'ARCHIVED' }
+        ).catch(console.error);
+    }));
+
+    revalidatePath(`/${workspace.slug}`);
+    revalidatePath(`/${workspace.slug}/archive`);
+    return { success: true, archivedCount: tasks.length };
 }
 
 export async function addComment(taskId: string, content: string) {

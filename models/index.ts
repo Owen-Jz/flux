@@ -8,3 +8,5 @@ export * from './WorkspaceInvite';
 export * from './Contact';
 export * from './IdempotencyKey';
 export * from './FailedWebhook';
+export * from './ApiKey';
+export * from './WebhookEndpoint';

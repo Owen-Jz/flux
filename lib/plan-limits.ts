@@ -32,11 +32,11 @@ export function hasFeature(plan: PlanType, feature: string): boolean {
 export function getUpgradeMessage(plan: PlanType, limitType: 'projects' | 'members'): string {
     switch (plan) {
         case 'free':
-            return `Upgrade to Starter to create more ${limitType}. Starter plan allows up to ${PLAN_LIMITS.starter[limitType]} ${limitType}.`;
+            return `Upgrade to Individual to create more ${limitType}. Individual plan allows up to ${PLAN_LIMITS.starter[limitType]} ${limitType}.`;
         case 'starter':
-            return `Upgrade to Pro to create more ${limitType}. Pro plan allows up to ${PLAN_LIMITS.pro[limitType]} ${limitType}.`;
+            return `Upgrade to Entrepreneur to create more ${limitType}. Entrepreneur plan allows up to ${PLAN_LIMITS.pro[limitType]} ${limitType}.`;
         case 'pro':
-            return `Contact sales for Enterprise to create unlimited ${limitType}.`;
+            return `Contact sales for Business to create unlimited ${limitType}.`;
         default:
             return '';
     }
@@ -51,21 +51,21 @@ export const PLAN_META: Record<PlanType, PlanMeta> = {
         members: 3,
     },
     starter: {
-        label: 'Starter',
+        label: 'Individual',
         price: PLAN_PRICES_KOBO.starter,
         priceDisplay: '₦10,000/mo',
         projects: 5,
         members: 10,
     },
     pro: {
-        label: 'Pro',
+        label: 'Entrepreneur',
         price: PLAN_PRICES_KOBO.pro,
         priceDisplay: '₦25,000/mo',
         projects: 'unlimited',
         members: 25,
     },
     enterprise: {
-        label: 'Enterprise',
+        label: 'Business',
         price: PLAN_PRICES_KOBO.enterprise,
         priceDisplay: 'Custom',
         projects: 'unlimited',

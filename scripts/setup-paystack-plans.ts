@@ -4,10 +4,13 @@ const projectDir = process.cwd();
 loadEnvConfig(projectDir);
 
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
-const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
+const mode = process.argv.includes('--mode=test') ? 'test' : 'live';
+const SECRET_KEY = mode === 'test'
+    ? process.env.PAYSTACK_TEST_SECRET_KEY || process.env.PAYSTACK_SECRET_KEY
+    : process.env.PAYSTACK_SECRET_KEY;
 
-if (!PAYSTACK_SECRET) {
-    console.error('Error: PAYSTACK_SECRET_KEY environment variable is not set');
+if (!SECRET_KEY) {
+    console.error(`Error: PAYSTACK_${mode === 'test' ? 'TEST_' : ''}SECRET_KEY environment variable is not set`);
     process.exit(1);
 }
 
@@ -60,7 +63,7 @@ async function paystackFetch<T>(endpoint: string, method: 'GET' | 'POST' | 'PUT'
         const response = await fetch(`${PAYSTACK_BASE_URL}${endpoint}`, {
             method,
             headers: {
-                Authorization: `Bearer ${PAYSTACK_SECRET}`,
+                Authorization: `Bearer ${SECRET_KEY}`,
                 'Content-Type': 'application/json',
             },
             body: body ? JSON.stringify(body) : undefined,
@@ -124,7 +127,8 @@ const plans: PlanDefinition[] = [
 ];
 
 async function main() {
-    console.log('Setting up Paystack subscription plans...\n');
+    const prefix = mode === 'test' ? 'TEST_' : '';
+    console.log(`Setting up Paystack subscription plans (${mode} mode)...\n`);
 
     const results: { name: string; planCode: string; isExisting: boolean }[] = [];
 
@@ -138,14 +142,14 @@ async function main() {
     console.log('\n--- Summary ---');
     console.log('Environment variables to set:\n');
     for (const r of results) {
-        const envVar = `PAYSTACK_${r.name.toUpperCase()}_PLAN_CODE`;
+        const envVar = `PAYSTACK_${prefix}${r.name.toUpperCase()}_PLAN_CODE`;
         console.log(`${envVar}=${r.planCode}`);
     }
 
     console.log('\nAdd these to your .env.local file:');
     console.log('---');
     for (const r of results) {
-        console.log(`PAYSTACK_${r.name.toUpperCase()}_PLAN_CODE=${r.planCode}`);
+        console.log(`PAYSTACK_${prefix}${r.name.toUpperCase()}_PLAN_CODE=${r.planCode}`);
     }
     console.log('---\n');
 

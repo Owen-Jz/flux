@@ -322,10 +322,17 @@ export async function getPlanCodes(): Promise<Map<string, string>> {
 }
 
 // Predefined plan codes (these would be created in Paystack dashboard)
+const isTestMode = process.env.NODE_ENV === 'test' || process.env.PAYSTACK_TEST_MODE === 'true';
 export const PLAN_CODES = {
-    starter: process.env.PAYSTACK_STARTER_PLAN_CODE || 'PLN_starter_monthly',
-    pro: process.env.PAYSTACK_PRO_PLAN_CODE || 'PLN_pro_monthly',
-    enterprise: process.env.PAYSTACK_ENTERPRISE_PLAN_CODE || 'PLN_enterprise_monthly',
+    starter: isTestMode
+        ? (process.env.PAYSTACK_TEST_STARTER_PLAN_CODE || process.env.PAYSTACK_STARTER_PLAN_CODE || 'PLN_starter_monthly')
+        : (process.env.PAYSTACK_STARTER_PLAN_CODE || 'PLN_starter_monthly'),
+    pro: isTestMode
+        ? (process.env.PAYSTACK_TEST_PRO_PLAN_CODE || process.env.PAYSTACK_PRO_PLAN_CODE || 'PLN_pro_monthly')
+        : (process.env.PAYSTACK_PRO_PLAN_CODE || 'PLN_pro_monthly'),
+    enterprise: isTestMode
+        ? (process.env.PAYSTACK_TEST_ENTERPRISE_PLAN_CODE || process.env.PAYSTACK_ENTERPRISE_PLAN_CODE || 'PLN_enterprise_monthly')
+        : (process.env.PAYSTACK_ENTERPRISE_PLAN_CODE || 'PLN_enterprise_monthly'),
 };
 
 // Plan pricing in USD (display prices)

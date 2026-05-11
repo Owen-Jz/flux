@@ -9,6 +9,7 @@ import { PlanChangeModal } from './plan-change-modal';
 import { SubscriptionDrawer } from './subscription-drawer';
 import type { SubscriptionRow, PlanType } from '@/lib/types/billing';
 import type { Column } from '@/components/admin/data-table';
+import { PLAN_META } from '@/lib/plan-limits';
 
 interface SubscriptionTableProps {
     initialData: {
@@ -21,10 +22,10 @@ interface SubscriptionTableProps {
 
 const PLAN_OPTIONS = [
     { value: '', label: 'All Plans' },
-    { value: 'free', label: 'Free' },
-    { value: 'starter', label: 'Starter' },
-    { value: 'pro', label: 'Pro' },
-    { value: 'enterprise', label: 'Enterprise' },
+    { value: 'free', label: PLAN_META.free.label },
+    { value: 'starter', label: PLAN_META.starter.label },
+    { value: 'pro', label: PLAN_META.pro.label },
+    { value: 'enterprise', label: PLAN_META.enterprise.label },
 ];
 
 const STATUS_OPTIONS = [

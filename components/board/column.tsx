@@ -2,8 +2,8 @@
 
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { AnimatePresence } from 'framer-motion';
-import { PlusIcon } from '@heroicons/react/24/outline';
+import { AnimatePresence, motion } from 'framer-motion';
+import { PlusIcon, ArchiveBoxIcon } from '@heroicons/react/24/outline';
 import { TaskCard, TaskData, Member } from './task-card';
 
 interface ColumnProps {
@@ -15,6 +15,7 @@ interface ColumnProps {
     onAddTask?: () => void;
     onUpdateTask?: (taskId: string, data: Partial<TaskData>) => void;
     onDeleteTask?: (taskId: string) => void;
+    onArchiveAll?: (taskIds: string[]) => void;
     members?: Member[];
     onTaskClick?: (task: TaskData) => void;
     categories?: { id: string; name: string; color: string }[];
@@ -38,6 +39,7 @@ export function Column({
     onAddTask,
     onUpdateTask,
     onDeleteTask,
+    onArchiveAll,
     members = [],
     onTaskClick,
     categories = [],
@@ -58,15 +60,26 @@ export function Column({
                         {tasks.length}
                     </span>
                 </div>
-                {!isReadOnly && (
-                    <button
-                        onClick={onAddTask}
-                        className="add-task-btn p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
-                        id={`column-${id}-add-task`}
-                    >
-                        <PlusIcon className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                    </button>
-                )}
+                <div className="flex items-center gap-1">
+                    {id === 'DONE' && tasks.length > 0 && !isReadOnly && (
+                        <button
+                            onClick={() => onArchiveAll?.(tasks.map(t => t.id))}
+                            className="p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors group"
+                            title="Archive all tasks"
+                        >
+                            <ArchiveBoxIcon className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-emerald-600 transition-colors" />
+                        </button>
+                    )}
+                    {!isReadOnly && (
+                        <button
+                            onClick={onAddTask}
+                            className="add-task-btn p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
+                            id={`column-${id}-add-task`}
+                        >
+                            <PlusIcon className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Task List - scrollable container */}

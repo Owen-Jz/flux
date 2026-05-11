@@ -10,6 +10,7 @@ import { revalidatePath } from 'next/cache';
 import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
 import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
+import { emitEvent } from '@/lib/webhook-emitter';
 
 const SAMPLE_TASKS = [
     {
@@ -103,6 +104,13 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
     }
 
     revalidatePath(`/${workspaceSlug}`);
+    // Emit webhook for board created
+    emitEvent(
+        session.user.id,
+        'board.created',
+        workspace._id.toString(),
+        { boardId: board._id.toString(), workspaceId: workspace._id.toString(), name: board.name, slug: board.slug, color: board.color }
+    ).catch(console.error);
     return {
         id: board._id.toString(),
         name: board.name,
@@ -280,6 +288,14 @@ export async function deleteBoard(workspaceSlug: string, boardSlug: string) {
     await Task.deleteMany({ boardId: board._id });
 
     await Board.findByIdAndDelete(board._id);
+
+    // Emit webhook for board deleted
+    emitEvent(
+        session.user.id,
+        'board.deleted',
+        workspace._id.toString(),
+        { boardId: board._id.toString(), workspaceId: workspace._id.toString(), name: board.name }
+    ).catch(console.error);
 
     revalidatePath(`/${workspaceSlug}`);
     revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);

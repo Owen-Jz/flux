@@ -11,6 +11,7 @@ import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
+import { emitEvent } from '@/lib/webhook-emitter';
 
 export async function createWorkspace(data: { name: string; slug: string }) {
     const session = await auth();
@@ -234,6 +235,14 @@ export async function updateWorkspaceSettings(
         { new: true }
     );
 
+    // Emit webhook for workspace settings changed
+    emitEvent(
+        session.user.id,
+        'workspace.settings_changed',
+        workspace._id.toString(),
+        { workspaceId: workspace._id.toString(), ...settings }
+    ).catch(console.error);
+
     revalidatePath(`/${slug}`);
 
     return { success: true };
@@ -268,6 +277,14 @@ export async function addViewerToWorkspace(slug: string) {
 
     await workspace.save();
     revalidatePath(`/${slug}`);
+
+    // Emit webhook for member added
+    emitEvent(
+        session.user.id,
+        'workspace.member_added',
+        workspace._id.toString(),
+        { workspaceId: workspace._id.toString(), userId: session.user.id, role: 'VIEWER' }
+    ).catch(console.error);
 
     return { success: true };
 }
@@ -350,6 +367,14 @@ export async function removeMember(slug: string, memberId: string) {
         { workspaceId: workspace._id, assignees: memberId },
         { $pull: { assignees: memberId } }
     );
+
+    // Emit webhook for member removed
+    emitEvent(
+        session.user.id,
+        'workspace.member_removed',
+        workspace._id.toString(),
+        { workspaceId: workspace._id.toString(), userId: memberId, role: 'EDITOR' }
+    ).catch(console.error);
 
     revalidatePath(`/${slug}`);
     revalidatePath(`/${slug}/team`);

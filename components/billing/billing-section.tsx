@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditCardIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon, XMarkIcon, TrophyIcon, BoltIcon, BuildingOffice2Icon, GlobeAltIcon, ShieldCheckIcon, HandRaisedIcon, DocumentChartBarIcon, ServerIcon, ArrowPathIcon as SubmitIcon } from '@heroicons/react/24/outline';
+import { PLAN_META } from '@/lib/plan-limits';
 
 interface Subscription {
     plan: string;
@@ -379,7 +380,7 @@ export function BillingSection() {
         },
         {
             id: 'starter',
-            name: 'Starter',
+            name: 'Individual',
             price: PLAN_PRICES.starter,
             period: '/month',
             icon: TrophyIcon,
@@ -388,7 +389,7 @@ export function BillingSection() {
         },
         {
             id: 'pro',
-            name: 'Pro',
+            name: 'Entrepreneur',
             price: PLAN_PRICES.pro,
             period: '/month',
             icon: TrophyIcon,
@@ -398,7 +399,7 @@ export function BillingSection() {
         },
         {
             id: 'enterprise',
-            name: 'Enterprise',
+            name: 'Business',
             price: null,
             period: '',
             icon: BuildingOffice2Icon,
@@ -443,7 +444,7 @@ export function BillingSection() {
                     <div className="flex items-center justify-between">
                         <div>
                             <p className="text-sm font-semibold text-violet-300">
-                                Your {subscription.plan?.charAt(0).toUpperCase() + subscription.plan?.slice(1)} Trial
+                                Your {PLAN_META[subscription.plan as keyof typeof PLAN_META]?.label || subscription.plan?.charAt(0).toUpperCase() + subscription.plan?.slice(1)} Trial
                             </p>
                             <p className="text-xs text-zinc-400 mt-0.5">
                                 {daysLeft > 0 ? `${daysLeft} day${daysLeft === 1 ? '' : 's'} remaining` : 'Trial ended'}

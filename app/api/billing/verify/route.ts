@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { auth } from '@/lib/auth';
-import { verifyTransaction, PLAN_PRICES_USD, getNairaPrice } from '@/lib/paystack';
+import { verifyTransaction, PLAN_PRICES_USD, getNairaPrice, getSubscription } from '@/lib/paystack';
 
 // Verify payment and activate subscription
 export async function POST(request: NextRequest) {
@@ -33,11 +33,32 @@ export async function POST(request: NextRequest) {
         }
 
         // Verify the transaction
-        const transaction = await verifyTransaction(reference);
+        let transactionStatus: string;
+        let transactionId: string;
+        let transactionAmount: number | undefined;
 
-        if (transaction.status !== 'success') {
-            await mongoSession.abortTransaction();
-            return NextResponse.json({ error: 'Payment not successful' }, { status: 400 });
+        if (reference.startsWith('sub_')) {
+            // For subscription payments (NGN), Paystack ignores the reference param
+            // We need to use getSubscription with the subscription code
+            try {
+                const subscription = await getSubscription(reference);
+                transactionStatus = subscription.status === 'active' ? 'success' : subscription.status;
+                transactionId = reference;
+                transactionAmount = undefined; // Subscriptions don't return amount in same way
+            } catch (error) {
+                await mongoSession.abortTransaction();
+                return NextResponse.json({ error: 'Failed to verify subscription' }, { status: 400 });
+            }
+        } else {
+            // For regular transactions (USD), verify the transaction reference
+            const transaction = await verifyTransaction(reference);
+            if (transaction.status !== 'success') {
+                await mongoSession.abortTransaction();
+                return NextResponse.json({ error: 'Payment not successful' }, { status: 400 });
+            }
+            transactionStatus = transaction.status;
+            transactionId = transaction.id.toString();
+            transactionAmount = transaction.amount;
         }
 
         // Get expected amount in Naira based on USD price
@@ -47,22 +68,23 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
         }
 
-        const expectedAmountNaira = await getNairaPrice(usdPrice) * 100; // Convert to kobo
-
-        // Verify amount matches (allow for minor variations due to exchange rate changes)
-        if (transaction.amount < expectedAmountNaira * 0.95) {
-            await mongoSession.abortTransaction();
-            return NextResponse.json({
-                error: 'Invalid amount paid',
-                expected: expectedAmountNaira,
-                paid: transaction.amount
-            }, { status: 400 });
+        // For non-subscription transactions, verify amount matches
+        if (transactionAmount !== undefined) {
+            const expectedAmountNaira = await getNairaPrice(usdPrice) * 100; // Convert to kobo
+            if (transactionAmount < expectedAmountNaira * 0.95) {
+                await mongoSession.abortTransaction();
+                return NextResponse.json({
+                    error: 'Invalid amount paid',
+                    expected: expectedAmountNaira,
+                    paid: transactionAmount
+                }, { status: 400 });
+            }
         }
 
         // Update user subscription
         user.plan = plan as 'starter' | 'pro';
         user.subscriptionStatus = 'active';
-        user.subscriptionId = transaction.id.toString();
+        user.subscriptionId = transactionId;
         user.hasUsedTrial = true;
         await user.save({ session: mongoSession });
 

@@ -384,6 +384,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${sans.variable} ${mono.variable} antialiased`}
+        suppressHydrationWarning
       >
         <Providers>{children}</Providers>
         <PWAUpdateBanner />

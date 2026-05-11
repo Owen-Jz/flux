@@ -35,7 +35,7 @@ const plansData = [
         popular: false
     },
     {
-        name: "Starter",
+        name: "Individual",
         period: "/mo",
         description: "Perfect for small teams or solo freelancers managing client work.",
         features: [
@@ -51,7 +51,7 @@ const plansData = [
         popular: false
     },
     {
-        name: "Pro",
+        name: "Entrepreneur",
         period: "/mo",
         description: "For growing agencies and teams that need more flexibility and client-facing features.",
         features: [
@@ -69,7 +69,7 @@ const plansData = [
         popular: true
     },
     {
-        name: "Enterprise",
+        name: "Business",
         period: "",
         description: "For organizations that need dedicated support, custom solutions, and enterprise security.",
         features: [
@@ -119,7 +119,7 @@ export const PricingSection = () => {
 
     const plans = plansData.map(plan => ({
         ...plan,
-        price: plan.name === 'Enterprise' ? 'Custom' : formatPrice(PLAN_PRICES[plan.name.toLowerCase() as keyof typeof PLAN_PRICES] || 0)
+        price: plan.name === 'Business' ? 'Custom' : formatPrice(PLAN_PRICES[plan.href.split('plan=')[1] as keyof typeof PLAN_PRICES] || 0)
     }));
 
     return (

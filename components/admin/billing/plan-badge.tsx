@@ -1,6 +1,7 @@
 'use client';
 
 import type { PlanType } from '@/lib/types/billing';
+import { PLAN_META } from '@/lib/plan-limits';
 
 const planStyles: Record<PlanType, { bg: string; text: string; dot: string }> = {
     free:     { bg: 'bg-zinc-800', text: 'text-zinc-400', dot: 'bg-zinc-500' },
@@ -17,7 +18,7 @@ interface PlanBadgeProps {
 
 export function PlanBadge({ plan, showDot = true, className = '' }: PlanBadgeProps) {
     const styles = planStyles[plan] || planStyles.free;
-    const label = plan.charAt(0).toUpperCase() + plan.slice(1);
+    const label = PLAN_META[plan].label;
 
     return (
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${styles.bg} ${styles.text} ${className}`}>

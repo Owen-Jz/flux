@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
         switch (event.event) {
             case 'subscription.created': {
                 const { customer, subscription } = event.data;
-                const user = await User.findOne({ paystackCustomerCode: customer });
+                const customerCode = typeof customer === 'string' ? customer : customer.customer_code;
+                const user = await User.findOne({ paystackCustomerCode: customerCode });
 
                 if (user) {
                     user.subscriptionId = subscription.subscription_code;
@@ -94,7 +95,8 @@ export async function POST(request: NextRequest) {
 
             case 'charge.success': {
                 const { customer, amount, reference } = event.data;
-                const user = await User.findOne({ paystackCustomerCode: customer });
+                const customerCode = typeof customer === 'string' ? customer : customer.customer_code;
+                const user = await User.findOne({ paystackCustomerCode: customerCode });
 
                 if (user) {
                     if (user.subscriptionStatus !== 'active') {
@@ -111,7 +113,8 @@ export async function POST(request: NextRequest) {
 
             case 'invoice.payment_failed': {
                 const { customer } = event.data;
-                const user = await User.findOne({ paystackCustomerCode: customer });
+                const customerCode = typeof customer === 'string' ? customer : customer.customer_code;
+                const user = await User.findOne({ paystackCustomerCode: customerCode });
 
                 if (user) {
                     user.subscriptionStatus = 'past_due';

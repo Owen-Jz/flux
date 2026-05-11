@@ -3,13 +3,15 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon, PhotoIcon, BellIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon, PhotoIcon, BellIcon, KeyIcon, PuzzlePieceIcon } from '@heroicons/react/24/outline';
 import { updateWorkspaceSettings } from '@/actions/workspace';
 import { deleteWorkspace } from '@/actions/access-control';
 import { BillingSection } from '@/components/billing/billing-section';
 import { WorkspaceIconPicker } from '@/components/workspace/workspace-icon-picker';
 import { NotificationPermissionBanner } from '@/components/pwa/notification-permission-banner';
 import { subscribeToPush, unsubscribeFromPush, isPushSupported } from '@/lib/pwa/push-manager';
+import { ApiKeysTable } from '@/components/settings/api-keys-table';
+import { WebhooksTable } from '@/components/settings/webhooks-table';
 
 interface SettingsClientProps {
     workspace: {
@@ -44,7 +46,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'general' | 'billing'>('general');
+    const [activeTab, setActiveTab] = useState<'general' | 'billing' | 'api-keys' | 'webhooks'>('general');
     const [showIconPicker, setShowIconPicker] = useState(false);
     const [pushEnabled, setPushEnabled] = useState(false);
     const [pushLoading, setPushLoading] = useState(false);
@@ -162,9 +164,35 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                     <CreditCardIcon className="w-4 h-4" />
                     Billing
                 </button>
+                <button
+                    onClick={() => setActiveTab('api-keys')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        activeTab === 'api-keys'
+                            ? 'bg-[var(--brand-primary)] text-white'
+                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
+                    }`}
+                >
+                    <KeyIcon className="w-4 h-4" />
+                    API Keys
+                </button>
+                <button
+                    onClick={() => setActiveTab('webhooks')}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        activeTab === 'webhooks'
+                            ? 'bg-[var(--brand-primary)] text-white'
+                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
+                    }`}
+                >
+                    <PuzzlePieceIcon className="w-4 h-4" />
+                    Webhooks
+                </button>
             </div>
 
-            {activeTab === 'billing' ? (
+            {activeTab === 'webhooks' ? (
+                <WebhooksTable />
+            ) : activeTab === 'api-keys' ? (
+                <ApiKeysTable />
+            ) : activeTab === 'billing' ? (
                 <BillingSection />
             ) : (
             <div className="space-y-6">

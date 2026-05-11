@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 import { auth } from '@/lib/auth';
 import { getWorkspaceUnreadCounts, getWorkspaces } from '@/actions/workspace';
 import { WorkspaceCard } from '@/components/dashboard/WorkspaceCard';
@@ -17,6 +18,11 @@ export default async function DashboardPage() {
     }
 
     const workspaces = await getWorkspaces();
+
+    // Redirect to onboarding if user has no workspaces
+    if (workspaces.length === 0) {
+        redirect('/onboarding');
+    }
 
     const unreadCounts = await getWorkspaceUnreadCounts(workspaces.map(w => w.slug));
 
@@ -80,7 +86,16 @@ export default async function DashboardPage() {
                             </p>
                         </div>
 
-                        <NewWorkspaceButton />
+                        <div className="flex items-center gap-3">
+                            <NewWorkspaceButton />
+                            <Link
+                                href="/settings"
+                                className="p-3 rounded-xl bg-[var(--surface)] border border-[var(--border-subtle)] hover:border-[var(--brand-primary)]/30 transition-colors"
+                                aria-label="Settings"
+                            >
+                                <Cog6ToothIcon className="w-5 h-5 text-[var(--text-secondary)]" />
+                            </Link>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8 max-w-xl">

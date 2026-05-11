@@ -32,7 +32,7 @@ vi.mock('@/models/FailedWebhook', () => ({
 
 // Import after mocks
 import { NextRequest } from 'next/server';
-import { POST } from '../../app/api/billing/webhook/route';
+import { POST } from '../app/api/billing/webhook/route';
 import { User } from '@/models/User';
 import { ProcessedWebhook } from '@/models/ProcessedWebhook';
 import { FailedWebhook } from '@/models/FailedWebhook';

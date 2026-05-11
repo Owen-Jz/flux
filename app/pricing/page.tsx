@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 const plans = [
   {
-    name: 'Starter',
+    name: 'Individual',
     price: '$10',
     period: '/month',
     description: 'Perfect for individuals and small side projects.',
@@ -28,7 +28,7 @@ const plans = [
     popular: false,
   },
   {
-    name: 'Pro',
+    name: 'Entrepreneur',
     price: '$25',
     period: '/month',
     description: 'For growing teams that need more power and flexibility.',
@@ -46,7 +46,7 @@ const plans = [
     popular: true,
   },
   {
-    name: 'Enterprise',
+    name: 'Business',
     price: 'Custom',
     period: '',
     description: 'Advanced features and support for large organizations.',
@@ -82,7 +82,7 @@ export default function PricingPage() {
               Choose the plan that's right for your team. All plans include a 14-day free trial.
             </p>
             <p className="text-sm text-[var(--text-tertiary)] mt-2">
-              Approximate pricing: Starter ≈ ₦10,000/mo, Pro ≈ ₦25,000/mo (USD based)
+              Approximate pricing: Individual ≈ ₦10,000/mo, Entrepreneur ≈ ₦25,000/mo (USD based)
             </p>
           </div>
 

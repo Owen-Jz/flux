@@ -16,6 +16,7 @@ import {
 import { isValidUUID, getCachedResponse, cacheResponse, hashPayload } from '@/lib/idempotency';
 import { createLogger } from '@/lib/logger';
 import { requestsTotal, rateLimitedTotal, llmErrorsTotal } from '@/lib/metrics';
+import { emitEvent } from '@/lib/webhook-emitter';
 
 interface DecomposeRequestBody {
     taskTitle: string;
@@ -370,6 +371,15 @@ export async function POST(request: NextRequest) {
         });
 
         updateMetrics(method, endpoint, 200);
+
+        // Emit webhook for task decomposed
+        emitEvent(
+            session.user.id,
+            'task.decomposed',
+            board.workspaceId.toString(),
+            { taskId: parentTask._id.toString(), workspaceId: board.workspaceId.toString(), title: data.taskTitle, summary: llmResponse.summary, subtaskCount: llmResponse.subtasks.length }
+        ).catch(console.error);
+
         return NextResponse.json(responseData);
     } catch (error) {
         logger.error('Failed to save decomposed task', { error: error instanceof Error ? error.message : String(error) });
