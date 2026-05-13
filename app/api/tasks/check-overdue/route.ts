@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { Task } from '@/models/Task';
 import { Workspace } from '@/models/Workspace';
@@ -7,6 +7,7 @@ import { render } from '@react-email/components';
 import React from 'react';
 import { TaskOverdueEmail } from '@/components/emails/task-overdue';
 import { sendEmail } from '@/lib/email/resend';
+import { getAppUrl } from '@/lib/port';
 
 export async function POST(request: NextRequest) {
   // Verify cron secret
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const taskUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/${workspace.slug}/board/${board.slug}?task=${task._id}`;
+      const taskUrl = `${process.env.NEXT_PUBLIC_APP_URL || getAppUrl()}/${workspace.slug}/board/${board.slug}?task=${task._id}`;
 
       // Send email to each assignee
       const assigneeEmails = (task.assignees as any[]).filter((a) => a.email);
