@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { auth } from '@/lib/auth';
 import { createCustomer, getCustomer, initializeSubscription, initializeTransaction, PLAN_CODES, PLAN_PRICES_KOBO, PLAN_PRICES_USD, getNairaPrice, getExchangeRate } from '@/lib/paystack';
+import { getAppUrl } from '@/lib/port';
 
 // Initialize subscription checkout
 export async function POST(request: NextRequest) {
@@ -54,7 +55,7 @@ export async function POST(request: NextRequest) {
             await user.save();
         }
 
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || getAppUrl();
         const callbackUrl = `${baseUrl}/settings?billing=success&plan=${plan}&currency=${currency}`;
 
         let transaction;
