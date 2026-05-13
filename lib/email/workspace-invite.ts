@@ -1,6 +1,7 @@
 import { sendEmail } from './resend';
+import { getAppUrl } from '@/lib/port';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || getAppUrl();
 
 export async function sendWorkspaceInviteEmail({
   to,
