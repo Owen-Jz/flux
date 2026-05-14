@@ -95,3 +95,42 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ hasCompletedOnboarding: false }, { status: 200 });
+  }
+
+  try {
+    await connectDB();
+    const user = await User.findById(session.user.id);
+    return NextResponse.json({
+      hasCompletedOnboarding: user?.hasCompletedOnboarding ?? false,
+    });
+  } catch (error) {
+    console.error('[Onboarding] Error checking status:', error);
+    return NextResponse.json({ hasCompletedOnboarding: false }, { status: 200 });
+  }
+}
+
+// Mark onboarding as completed/skipped
+export async function PATCH() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    await connectDB();
+    await User.findByIdAndUpdate(session.user.id, {
+      $set: { hasCompletedOnboarding: true },
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[Onboarding] Error marking complete:', error);
+    return NextResponse.json({ error: 'Failed to update onboarding status' }, { status: 500 });
+  }
+}

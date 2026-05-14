@@ -30,6 +30,7 @@ export interface IUser extends Document {
         dismissedAt?: Date;
         referralPromptShown?: boolean;
     };
+    hasCompletedOnboarding: boolean;
     // Billing fields
     plan: PlanType;
     paystackCustomerCode?: string;
@@ -41,6 +42,7 @@ export interface IUser extends Document {
     hasUsedTrial: boolean;
     trialWarningSent: boolean;
     trialPromptDismissedAt?: Date;
+    lastUpgradeAt?: Date;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -69,6 +71,7 @@ const UserSchema = new Schema<IUser>(
             dismissedAt: { type: Date },
             referralPromptShown: { type: Boolean, default: false },
         },
+        hasCompletedOnboarding: { type: Boolean, default: false },
         // Billing fields
         plan: { type: String, enum: ['free', 'starter', 'pro', 'enterprise'], default: 'free' },
         paystackCustomerCode: { type: String },
@@ -80,6 +83,7 @@ const UserSchema = new Schema<IUser>(
         hasUsedTrial: { type: Boolean, default: false },
         trialWarningSent: { type: Boolean, default: false },
         trialPromptDismissedAt: { type: Date },
+        lastUpgradeAt: { type: Date },
     },
     { timestamps: true }
 );

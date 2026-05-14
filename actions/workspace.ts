@@ -44,6 +44,11 @@ export async function createWorkspace(data: { name: string; slug: string }) {
         ],
     });
 
+    // Mark user as having completed onboarding since they created a workspace
+    await User.findByIdAndUpdate(session.user.id, {
+        $set: { hasCompletedOnboarding: true },
+    });
+
     revalidatePath('/dashboard');
     return { slug: workspace.slug };
 }
