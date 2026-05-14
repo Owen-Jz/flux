@@ -31,14 +31,18 @@ interface UserSettingsClientProps {
         trialEndsAt: string | null;
         hasUsedTrial: boolean;
     };
+    billingParam?: string | null;
+    actionParam?: string | null;
 }
 
-export function UserSettingsClient({ user }: UserSettingsClientProps) {
+export function UserSettingsClient({ user, billingParam, actionParam }: UserSettingsClientProps) {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'profile' | 'billing' | 'notifications' | 'danger'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'billing' | 'notifications' | 'danger'>(
+        billingParam === 'trial' || actionParam === 'activate-trial' ? 'billing' : 'profile'
+    );
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
@@ -65,9 +69,18 @@ export function UserSettingsClient({ user }: UserSettingsClientProps) {
                 </div>
             )}
 
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-[var(--foreground)]">Account Settings</h1>
-                <p className="text-[var(--text-secondary)]">Manage your account preferences and billing</p>
+            <div className="mb-8 flex items-start justify-between">
+                <div>
+                    <h1 className="text-2xl font-bold text-[var(--foreground)]">Account Settings</h1>
+                    <p className="text-[var(--text-secondary)]">Manage your account preferences and billing</p>
+                </div>
+                <button
+                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    className="px-4 py-2 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg text-sm font-medium hover:bg-[var(--background)] transition-colors text-[var(--text-secondary)] flex items-center gap-2"
+                >
+                    <ArrowPathIcon className="w-4 h-4" />
+                    Logout
+                </button>
             </div>
 
             {/* Tab Navigation */}
