@@ -6,7 +6,7 @@ const getResendClient = () => {
   return new Resend(key);
 };
 
-const FROM_EMAIL = 'Flux Board <updates@mail.fluxboard.site>';
+const FROM_EMAIL = 'Flux <noreply@cresiolabs.rg>';
 
 // Simple in-memory retry queue for failed emails
 const emailRetryQueue: Array<{ to: string; subject: string; html: string; attempts: number; lastError?: string }> = [];
@@ -22,7 +22,7 @@ async function processEmailRetryQueue() {
   try {
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
-      replyTo: 'updates@fluxboard.site',
+      replyTo: 'noreply@cresiolabs.rg',
       to: email.to,
       subject: email.subject,
       html: email.html,
@@ -56,7 +56,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
   try {
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
-      replyTo: 'updates@fluxboard.site',
+      replyTo: 'noreply@cresiolabs.rg',
       to,
       subject,
       html,
