@@ -15,6 +15,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: process.env.NEXT_PUBLIC_BASE_URL ? new URL(process.env.NEXT_PUBLIC_BASE_URL) : undefined,
   title: "Flux | Modern Project Management",
   description: "A cutting-edge project management SaaS with real-time collaboration.",
   manifest: "/manifest.json",

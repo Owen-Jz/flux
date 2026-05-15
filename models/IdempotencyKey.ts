@@ -14,7 +14,7 @@ const IdempotencyKeySchema = new Schema<IIdempotencyKey>({
   userId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
   responseHash: { type: String, required: true },
   response: { type: Schema.Types.Mixed, required: true },
-  expiresAt: { type: Date, required: true, index: true },
+  expiresAt: { type: Date, required: true },
 }, { timestamps: true });
 
 // TTL index for auto-cleanup
