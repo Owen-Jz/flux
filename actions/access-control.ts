@@ -335,7 +335,7 @@ export async function getUserRole(workspaceSlug: string): Promise<MemberRole | n
 
     const member = isWorkspaceMember(workspace, session.user.id);
 
-    return member?.role || null;
+    return (member?.role as MemberRole) || null;
 }
 
 /**

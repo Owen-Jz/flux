@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
     if (!result.success) {
       return NextResponse.json(
-        { available: false, message: result.error.errors[0].message },
+        { available: false, message: result.error.issues[0].message },
         { status: 400 }
       );
     }

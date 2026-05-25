@@ -7,6 +7,7 @@ import { Squares2X2Icon, PlusIcon, EllipsisVerticalIcon, PencilSquareIcon, Trash
 import CreateBoardModal from './CreateBoardModal';
 import EditBoardModal from './EditBoardModal';
 import CelebrationModal from './CelebrationModal';
+import InviteMemberModal from './InviteMemberModal';
 import { deleteBoard } from '@/actions/board';
 import { toast } from 'sonner';
 

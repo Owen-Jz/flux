@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
         const newSecret = crypto.randomBytes(32).toString('hex');
         const newSecretHash = crypto.createHash('sha256').update(newSecret).digest('hex');
 
-        const currentHash = crypto.createHash('sha256').update(currentSecret).digest('hex');
+        const currentHash = crypto.createHash('sha256').update(currentSecret || '').digest('hex');
 
         let previousHash = '';
         const existing = await WebhookKeyRotation.findOne().sort({ rotatedAt: -1 });

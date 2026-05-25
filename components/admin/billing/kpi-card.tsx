@@ -15,7 +15,7 @@ interface KpiCardProps {
     index?: number;
 }
 
-function AnimatedNumber({ value, prefix = '', suffix = '', duration = 1500 }: KpiCardProps & { value: number }) {
+function AnimatedNumber({ value, prefix = '', suffix = '', duration = 1500 }: { value: number; prefix?: string; suffix?: string; duration?: number }) {
     const [count, setCount] = useState(0);
 
     useEffect(() => {

@@ -170,9 +170,9 @@ export async function getSubscriptionHistory(userId: string) {
         id: l._id.toString(),
         type: l.action === 'UPDATE_USER_PLAN'
             ? (l.details?.fromPlan && l.details?.toPlan
-                ? (isUpgrade(l.details.fromPlan, l.details.toPlan) ? 'upgraded' : 'downgraded')
+                ? (isUpgrade(l.details.fromPlan as PlanType, l.details.toPlan as PlanType) ? 'upgraded' : 'downgraded')
                 : 'changed')
-            : (l.action as any),
+            : (l.action as string),
         fromPlan: l.details?.fromPlan as PlanType | undefined,
         toPlan: l.details?.toPlan as PlanType | undefined,
         reason: l.details?.reason,

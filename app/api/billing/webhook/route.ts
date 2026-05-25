@@ -56,8 +56,19 @@ export async function POST(request: NextRequest) {
                 if (user) {
                     user.subscriptionId = subscription.subscription_code;
                     user.subscriptionStatus = 'active';
+
+                    // Update the user's plan based on the subscription's plan code
+                    // Extract plan type from Paystack plan code (e.g., "PLN_starter_monthly" -> "starter")
+                    if (subscription.plan) {
+                        const planCode = subscription.plan;
+                        const planMatch = planCode.match(/_(starter|pro|enterprise)_/i);
+                        if (planMatch && planMatch[1]) {
+                            user.plan = planMatch[1].toLowerCase() as 'starter' | 'pro' | 'enterprise';
+                        }
+                    }
+
                     await user.save();
-                    sendSubscriptionActivatedEmail(user, subscription.plan || 'Pro').catch((error) => {
+                    sendSubscriptionActivatedEmail(user, user.plan || 'Pro').catch((error) => {
                         console.error('Failed to send subscription activated email:', error);
                     });
                 }
@@ -99,13 +110,22 @@ export async function POST(request: NextRequest) {
                 const user = await User.findOne({ paystackCustomerCode: customerCode });
 
                 if (user) {
-                    if (user.subscriptionStatus !== 'active') {
-                        user.subscriptionStatus = 'active';
+                    const wasInactive = user.subscriptionStatus !== 'active';
+
+                    // Update subscription status
+                    user.subscriptionStatus = 'active';
+                    user.subscriptionId = reference;
+
+                    // Update plan from subscriptionPlanId if set (set during payment initialization)
+                    if (user.subscriptionPlanId) {
+                        user.plan = user.subscriptionPlanId as 'starter' | 'pro' | 'enterprise';
+                    }
+
+                    if (wasInactive) {
                         sendSubscriptionActivatedEmail(user, user.plan || 'Pro').catch((error) => {
                             console.error('Failed to send subscription activated email:', error);
                         });
                     }
-                    user.subscriptionId = reference;
                     await user.save();
                 }
                 break;

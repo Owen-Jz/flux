@@ -31,8 +31,12 @@ export async function GET(
         .populate('members.userId', 'name email image')
         .lean();
 
+    if (!populated) {
+        return NextResponse.json({ error: 'Workspace not found' }, { status: 404 });
+    }
+
     return NextResponse.json({
-        members: populated.members.map((m: { userId: { _id: { toString: () => string }; name: string; email: string; image?: string }; role: string }) => ({
+        members: (populated.members as unknown as { userId: { _id: { toString: () => string }; name: string; email: string; image?: string }; role: string }[]).map((m) => ({
             userId: m.userId._id.toString(),
             role: m.role,
             user: {
@@ -97,15 +101,19 @@ export async function POST(
 
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: Promise<{ workspaceId: string; userId: string }> }
+    { params }: { params: Promise<{ workspaceId: string }> }
 ) {
     const auth = await verifyApiKey(request);
     if (!auth) {
         return NextResponse.json({ error: 'Invalid or expired API key' }, { status: 401 });
     }
 
-    const { workspaceId, userId } = await params;
+    const { workspaceId } = await params;
     const body = await request.json();
+    const userId = body.userId;
+    if (!userId) {
+        return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+    }
     await connectDB();
 
     const workspace = await Workspace.findById(workspaceId);
@@ -137,14 +145,19 @@ export async function PATCH(
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: Promise<{ workspaceId: string; userId: string }> }
+    { params }: { params: Promise<{ workspaceId: string }> }
 ) {
     const auth = await verifyApiKey(request);
     if (!auth) {
         return NextResponse.json({ error: 'Invalid or expired API key' }, { status: 401 });
     }
 
-    const { workspaceId, userId } = await params;
+    const { workspaceId } = await params;
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+    if (!userId) {
+        return NextResponse.json({ error: 'userId query parameter is required' }, { status: 400 });
+    }
     await connectDB();
 
     const workspace = await Workspace.findById(workspaceId);

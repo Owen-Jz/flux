@@ -107,7 +107,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                             </div>
                         ) : currentWorkspace?.icon?.type === 'upload' ? (
                             <Image
-                                src={currentWorkspace.icon.url}
+                                src={currentWorkspace.icon.url || ''}
                                 alt=""
                                 width={32}
                                 height={32}
@@ -153,7 +153,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                                             </div>
                                         ) : workspace.icon?.type === 'upload' ? (
                                             <Image
-                                                src={workspace.icon.url}
+                                                src={workspace.icon.url || ''}
                                                 alt=""
                                                 width={24}
                                                 height={24}

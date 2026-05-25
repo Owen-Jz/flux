@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/db";
-import { AnalyticsEvent } from "@/models/AnalyticsEvent";
 
 export async function POST(request: NextRequest) {
   try {

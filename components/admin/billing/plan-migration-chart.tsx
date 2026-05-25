@@ -59,7 +59,7 @@ export function PlanMigrationChart({ flows }: PlanMigrationChartProps) {
                         borderRadius: '12px',
                         color: '#e4e4e7',
                     }}
-                    formatter={(value: number) => [value, 'Transitions']}
+                    formatter={((value: number) => [String(value), 'Transitions']) as any}
                     labelFormatter={(label) => ` ${label}`}
                 />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>

@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { auth } from '@/lib/auth';
 import { verifyTransaction, PLAN_PRICES_USD, getNairaPrice, getSubscription } from '@/lib/paystack';
+import { sendSubscriptionActivatedEmail } from '@/lib/email/subscription-notifications';
 
 // Verify payment and activate subscription
 export async function POST(request: NextRequest) {
@@ -37,17 +38,31 @@ export async function POST(request: NextRequest) {
         let transactionId: string;
         let transactionAmount: number | undefined;
 
+        // For NGN payments, we use initializeSubscription which creates a transaction (not a subscription)
+        // The reference returned starts with 'sub_' but is a transaction reference, NOT a subscription code
+        // So we should verify the transaction, not call getSubscription
         if (reference.startsWith('sub_')) {
-            // For subscription payments (NGN), Paystack ignores the reference param
-            // We need to use getSubscription with the subscription code
+            // Try to verify as a transaction first (NGN flow)
             try {
-                const subscription = await getSubscription(reference);
-                transactionStatus = subscription.status === 'active' ? 'success' : subscription.status;
-                transactionId = reference;
-                transactionAmount = undefined; // Subscriptions don't return amount in same way
-            } catch (error) {
-                await mongoSession.abortTransaction();
-                return NextResponse.json({ error: 'Failed to verify subscription' }, { status: 400 });
+                const transaction = await verifyTransaction(reference);
+                if (transaction.status !== 'success') {
+                    await mongoSession.abortTransaction();
+                    return NextResponse.json({ error: 'Payment not successful' }, { status: 400 });
+                }
+                transactionStatus = transaction.status;
+                transactionId = transaction.id.toString();
+                transactionAmount = transaction.amount;
+            } catch (verifyError) {
+                // If transaction verification fails, it might be an actual subscription code (rare case)
+                try {
+                    const subscription = await getSubscription(reference);
+                    transactionStatus = subscription.status === 'active' ? 'success' : subscription.status;
+                    transactionId = reference;
+                    transactionAmount = undefined;
+                } catch (subError) {
+                    await mongoSession.abortTransaction();
+                    return NextResponse.json({ error: 'Failed to verify payment' }, { status: 400 });
+                }
             }
         } else {
             // For regular transactions (USD), verify the transaction reference
@@ -86,9 +101,15 @@ export async function POST(request: NextRequest) {
         user.subscriptionStatus = 'active';
         user.subscriptionId = transactionId;
         user.hasUsedTrial = true;
+        user.lastUpgradeAt = new Date();
         await user.save({ session: mongoSession });
 
         await mongoSession.commitTransaction();
+
+        // Send upgrade confirmation email after commit
+        sendSubscriptionActivatedEmail(user, user.plan).catch((error) => {
+            console.error('Failed to send subscription activated email:', error);
+        });
 
         return NextResponse.json({
             success: true,

@@ -132,11 +132,15 @@ class Marketing {
   }
 
   trackLead(source: string, campaign?: string) {
-    this.trackConversion("lead", { source, campaign });
+    const data: Record<string, string> = { source };
+    if (campaign) data.campaign = campaign;
+    this.trackConversion("lead", data);
   }
 
   trackSignup(source: string, plan?: string) {
-    this.trackConversion("signup", { source, plan });
+    const data: Record<string, string> = { source };
+    if (plan) data.plan = plan;
+    this.trackConversion("signup", data);
   }
 }
 

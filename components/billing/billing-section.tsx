@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CreditCardIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon, XMarkIcon, TrophyIcon, BoltIcon, BuildingOffice2Icon, GlobeAltIcon, ShieldCheckIcon, HandRaisedIcon, DocumentChartBarIcon, ServerIcon, ArrowPathIcon as SubmitIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon, XMarkIcon, TrophyIcon, BoltIcon, BuildingOffice2Icon, GlobeAltIcon, ShieldCheckIcon, HandRaisedIcon, DocumentChartBarIcon, ServerIcon, ArrowPathIcon as SubmitIcon, SparklesIcon, StarIcon, FireIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid';
 import { PLAN_META } from '@/lib/plan-limits';
+import { startTrial } from '@/actions/billing/start-trial';
 
 interface Subscription {
     plan: string;
@@ -255,6 +257,9 @@ export function BillingSection() {
     const [geoInfo, setGeoInfo] = useState<GeoInfo | null>(null);
     const [currencyOverride, setCurrencyOverride] = useState<'NGN' | 'USD' | null>(null);
     const [showEnterpriseModal, setShowEnterpriseModal] = useState(false);
+    const [showTrialActivation, setShowTrialActivation] = useState(false);
+    const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);
+    const [upgradedPlan, setUpgradedPlan] = useState<string | null>(null);
 
     // Fetch user's geo location for currency detection
     useEffect(() => {
@@ -288,6 +293,20 @@ export function BillingSection() {
         fetchSubscription();
     }, []);
 
+    // Check for trial activation action
+    useEffect(() => {
+        const action = searchParams.get('action');
+        const billing = searchParams.get('billing');
+        if ((action === 'activate-trial' || billing === 'trial') && !loading && subscription) {
+            if (!subscription.hasUsedTrial && subscription.status !== 'active') {
+                setShowTrialActivation(true);
+            } else if (subscription.hasUsedTrial || subscription.status === 'active') {
+                // User already has trial or subscription - redirect to dashboard
+                router.replace('/dashboard');
+            }
+        }
+    }, [searchParams, loading, subscription, router]);
+
     const fetchSubscription = async () => {
         try {
             const res = await fetch('/api/billing/verify', { method: 'GET' });
@@ -311,7 +330,8 @@ export function BillingSection() {
             });
             const data = await res.json();
             if (data.success) {
-                setSuccess('Payment successful! Your subscription is now active.');
+                setUpgradedPlan(plan);
+                setShowUpgradeSuccess(true);
                 fetchSubscription();
             } else {
                 setError(data.error || 'Payment verification failed');
@@ -363,6 +383,26 @@ export function BillingSection() {
             }
         } catch (err) {
             setError('Failed to cancel subscription');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    const handleActivateTrial = async (plan: 'starter' | 'pro' = 'pro') => {
+        setProcessing(true);
+        setError(null);
+        try {
+            const result = await startTrial(plan);
+            if (result.success) {
+                setSuccess('Your free trial has been activated! Enjoy 14 days of Pro features.');
+                setShowTrialActivation(false);
+                // Redirect to dashboard to start the guided tutorial
+                router.push('/dashboard');
+            } else {
+                setError(result.error || 'Failed to activate trial');
+            }
+        } catch (err) {
+            setError('Failed to activate trial');
         } finally {
             setProcessing(false);
         }
@@ -480,127 +520,228 @@ export function BillingSection() {
                     <h2 className="font-semibold">Current Plan</h2>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)]">
-                    <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${plans.find(p => p.id === currentPlan)?.bg}`}>
+                <div className={`relative overflow-hidden rounded-xl border-2 ${
+                    currentPlan === 'pro'
+                        ? 'border-purple-500 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5'
+                        : currentPlan === 'starter'
+                        ? 'border-amber-500 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5'
+                        : 'border-[var(--border-subtle)] bg-[var(--surface)]'
+                } p-5`}>
+                    {/* Pro Badge */}
+                    {currentPlan === 'pro' && (
+                        <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs font-bold shadow-lg shadow-purple-500/25">
+                            <SparklesIconSolid className="w-3 h-3" />
+                            PRO
+                        </div>
+                    )}
+                    {currentPlan === 'starter' && (
+                        <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-white text-xs font-bold shadow-lg shadow-amber-500/25">
+                            <StarIcon className="w-3 h-3" />
+                            INDIVIDUAL
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-xl ${plans.find(p => p.id === currentPlan)?.bg} ${currentPlan === 'pro' ? 'shadow-lg shadow-purple-500/20' : ''}`}>
                             {(() => {
                                 const PlanIcon = plans.find(p => p.id === currentPlan)?.icon || BoltIcon;
-                                return <PlanIcon className={`w-5 h-5 ${plans.find(p => p.id === currentPlan)?.color}`} />;
+                                return <PlanIcon className={`w-6 h-6 ${plans.find(p => p.id === currentPlan)?.color}`} />;
                             })()}
                         </div>
-                        <div>
-                            <p className="font-semibold capitalize">{currentPlan}</p>
-                            <p className="text-xs text-[var(--text-secondary)]">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                                <p className="text-lg font-bold capitalize">{PLAN_META[currentPlan as keyof typeof PLAN_META]?.label || currentPlan}</p>
                                 {isActive ? (
-                                    <span className="text-green-600">Active</span>
+                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-green-500/10 text-green-600 text-xs font-medium rounded-full">
+                                        <CheckCircleIcon className="w-3 h-3" />
+                                        Active
+                                    </span>
                                 ) : (
-                                    <span>Inactive</span>
+                                    <span className="px-2 py-0.5 bg-gray-500/10 text-gray-500 text-xs font-medium rounded-full">
+                                        Inactive
+                                    </span>
                                 )}
+                            </div>
+                            <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+                                {PLAN_META[currentPlan as keyof typeof PLAN_META]?.projects === 'unlimited'
+                                    ? 'Unlimited Projects'
+                                    : `${PLAN_META[currentPlan as keyof typeof PLAN_META]?.projects || 0} Projects`} • {' '}
+                                {PLAN_META[currentPlan as keyof typeof PLAN_META]?.members === 'unlimited'
+                                    ? 'Unlimited Members'
+                                    : `${PLAN_META[currentPlan as keyof typeof PLAN_META]?.members || 0} Team Members`}
                             </p>
                         </div>
                     </div>
+
                     {currentPlan !== 'free' && isActive && (
-                        <button
-                            onClick={handleCancelSubscription}
-                            disabled={processing}
-                            className="text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
-                        >
-                            Cancel
-                        </button>
+                        <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
+                            <button
+                                onClick={handleCancelSubscription}
+                                disabled={processing}
+                                className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                                Cancel Subscription
+                            </button>
+                        </div>
                     )}
                 </div>
-
-                {currentPlan !== 'free' && (
-                    <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                        {Object.entries(PLAN_FEATURES[currentPlan as keyof typeof PLAN_FEATURES] || {}).map(([key, value]) => (
-                            <div key={key}>
-                                <p className="text-[var(--text-secondary)] capitalize">{key}</p>
-                                <p className="font-medium">{Array.isArray(value) ? value.join(', ') : value}</p>
-                            </div>
-                        ))}
-                    </div>
-                )}
             </div>
 
-            {/* Upgrade Plans */}
+            {/* Available Plans */}
             <div className="card p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="font-semibold">Available Plans</h2>
-                    {/* Currency Selector */}
                     <div className="flex items-center gap-2">
                         <GlobeAltIcon className="w-4 h-4 text-[var(--text-secondary)]" />
-                        <span className="text-xs text-[var(--text-secondary)]">
-                            {geoInfo?.isNigeria === false ? 'Detected: ' : 'Showing prices in: '}
-                        </span>
                         <select
                             value={displayCurrency}
                             onChange={(e) => setCurrencyOverride(e.target.value as 'NGN' | 'USD')}
-                            className="text-xs border border-[var(--border-subtle)] rounded-md px-2 py-1 bg-[var(--background)] text-[var(--foreground)]"
+                            className="text-xs border border-[var(--border-subtle)] rounded-lg px-2 py-1 bg-[var(--background)]"
                         >
-                            <option value="NGN">₦ NGN (Naira)</option>
-                            <option value="USD">$ USD (Dollar)</option>
+                            <option value="NGN">₦ NGN</option>
+                            <option value="USD">$ USD</option>
                         </select>
-                        {geoInfo && !geoInfo.isNigeria && !currencyOverride && (
-                            <span className="text-xs text-[var(--text-tertiary)]">
-                                (auto-detected: {geoInfo.country})
-                            </span>
-                        )}
                     </div>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                    {plans.filter(p => p.id !== 'enterprise').map((plan) => (
-                        <div
-                            key={plan.id}
-                            className={`relative p-4 rounded-lg border-2 transition-all ${
-                                currentPlan === plan.id
-                                    ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/5'
-                                    : 'border-[var(--border-subtle)] hover:border-[var(--brand-primary)]/50'
-                            }`}
-                        >
-                            {plan.popular && (
-                                <span className="absolute -top-2 -right-2 bg-[var(--brand-primary)] text-white text-xs px-2 py-0.5 rounded-full">
-                                    Popular
-                                </span>
-                            )}
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className={`p-1.5 rounded ${plan.bg}`}>
-                                    <plan.icon className={`w-4 h-4 ${plan.color}`} />
-                                </div>
-                                <span className="font-semibold">{plan.name}</span>
-                            </div>
-                            <p className="text-2xl font-bold mb-2">
-                                {formatPrice(plan.price)}
-                                <span className="text-sm font-normal text-[var(--text-secondary)]">{plan.period}</span>
-                            </p>
-                            <ul className="space-y-1 mb-4">
-                                {PLAN_FEATURES[plan.id as keyof typeof PLAN_FEATURES]?.features?.map((feature: string) => (
-                                    <li key={feature} className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-                                        <CheckIcon className="w-3 h-3 text-green-500" />
-                                        {feature}
-                                    </li>
-                                ))}
-                            </ul>
-                            {currentPlan === plan.id ? (
-                                <button disabled className="w-full btn btn-secondary text-sm" style={{ backgroundColor: 'var(--brand-primary)', color: 'white' }}>
-                                    Current Plan
-                                </button>
-                            ) : (
-                                <button
-                                    onClick={() => handleSubscribe(plan.id)}
-                                    disabled={processing}
-                                    className="w-full btn btn-primary text-sm"
-                                >
-                                    {processing ? (
-                                        <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                        `Upgrade to ${plan.name}`
+                <div className="grid gap-4 md:grid-cols-3">
+                    {plans.filter(p => p.id !== 'enterprise').map((plan) => {
+                        const isCurrentPlan = currentPlan === plan.id;
+                        const isBlurred = plan.id === 'free' && currentPlan !== 'free';
+
+                        return (
+                            <div
+                                key={plan.id}
+                                className={`relative p-4 rounded-lg border-2 transition-all ${
+                                    isCurrentPlan
+                                        ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/5'
+                                        : isBlurred
+                                            ? 'border-[var(--border-subtle)] opacity-50 grayscale'
+                                            : 'border-[var(--border-subtle)] hover:border-[var(--brand-primary)]/50'
+                                }`}
+                            >
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className={`p-1.5 rounded ${plan.bg}`}>
+                                        <plan.icon className={`w-4 h-4 ${plan.color}`} />
+                                    </div>
+                                    <span className="font-semibold">{plan.name}</span>
+                                    {plan.id === 'pro' && !isCurrentPlan && (
+                                        <span className="ml-auto text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full font-medium">PRO</span>
                                     )}
-                                </button>
-                            )}
-                        </div>
-                    ))}
+                                </div>
+
+                                <p className="text-2xl font-bold mb-3">
+                                    {formatPrice(plan.price)}
+                                    {plan.price !== null && plan.price > 0 && (
+                                        <span className="text-sm font-normal text-[var(--text-secondary)]">/{plan.period}</span>
+                                    )}
+                                </p>
+
+                                <ul className="space-y-1 mb-4">
+                                    {PLAN_FEATURES[plan.id as keyof typeof PLAN_FEATURES]?.features?.map((feature: string) => (
+                                        <li key={feature} className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
+                                            <CheckIcon className="w-3 h-3 text-green-500" />
+                                            {feature}
+                                        </li>
+                                    ))}
+                                </ul>
+
+                                {isCurrentPlan ? (
+                                    <button disabled className="w-full btn btn-secondary text-sm" style={{ backgroundColor: 'var(--brand-primary)', color: 'white' }}>
+                                        Current Plan
+                                    </button>
+                                ) : isBlurred ? (
+                                    <button disabled className="w-full btn btn-secondary text-sm bg-gray-100 text-gray-400 cursor-not-allowed">
+                                        Current
+                                    </button>
+                                ) : (
+                                    <button
+                                        onClick={() => handleSubscribe(plan.id)}
+                                        disabled={processing}
+                                        className="w-full btn btn-primary text-sm"
+                                    >
+                                        {processing ? (
+                                            <ArrowPathIcon className="w-4 h-4 animate-spin mx-auto" />
+                                        ) : (
+                                            `Upgrade`
+                                        )}
+                                    </button>
+                                )}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
+
+            {/* Trial Activation Modal */}
+            <AnimatePresence>
+                {showTrialActivation && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setShowTrialActivation(false)}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-[var(--border-subtle)]"
+                        >
+                            <div className="p-6 text-center border-b border-[var(--border-subtle)]">
+                                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mx-auto mb-4">
+                                    <SparklesIcon className="w-8 h-8 text-white" />
+                                </div>
+                                <h2 className="text-xl font-bold text-[var(--foreground)]">Start Your Free Trial</h2>
+                                <p className="text-sm text-[var(--text-secondary)] mt-2">
+                                    Get 14 days of full Pro access — no credit card required
+                                </p>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                <div className="space-y-3">
+                                    {['Unlimited Projects', '25 Team Members', 'Priority Support', 'Advanced Analytics', 'Admin Controls'].map((feature) => (
+                                        <div key={feature} className="flex items-center gap-3 text-sm">
+                                            <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                                                <CheckIcon className="w-3 h-3 text-green-600" />
+                                            </div>
+                                            <span className="text-[var(--text-secondary)]">{feature}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                                {error && (
+                                    <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2">
+                                        <ExclamationCircleIcon className="w-4 h-4 flex-shrink-0" />
+                                        {error}
+                                    </div>
+                                )}
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => setShowTrialActivation(false)}
+                                        className="flex-1 px-4 py-2.5 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg text-sm font-medium hover:bg-[var(--background)] transition-colors"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={() => handleActivateTrial('pro')}
+                                        disabled={processing}
+                                        className="flex-1 px-4 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                                    >
+                                        {processing ? (
+                                            <span className="flex items-center justify-center gap-2">
+                                                <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                                                Activating...
+                                            </span>
+                                        ) : (
+                                            'Start 14-Day Trial'
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Enterprise Contact */}
             <div className="card p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
@@ -616,6 +757,58 @@ export function BillingSection() {
                 </button>
             </div>
         </div>
+            {/* Upgrade Success Modal */}
+            <AnimatePresence>
+                {showUpgradeSuccess && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => {
+                            setShowUpgradeSuccess(false);
+                            router.push('/dashboard');
+                        }}
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+                    >
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-[var(--border-subtle)]"
+                        >
+                            <div className="p-8 text-center">
+                                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-green-500/30">
+                                    <CheckIcon className="w-10 h-10 text-white" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-[var(--foreground)] mb-2">
+                                    Upgrade Successful!
+                                </h2>
+                                <p className="text-[var(--text-secondary)] mb-2">
+                                    You're now on the
+                                </p>
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white font-bold mb-6 shadow-lg">
+                                    <TrophyIcon className="w-5 h-5" />
+                                    {PLAN_META[upgradedPlan as keyof typeof PLAN_META]?.label || upgradedPlan} Plan
+                                </div>
+                                <p className="text-sm text-[var(--text-secondary)] mb-6">
+                                    Enjoy your new features and unlimited possibilities!
+                                </p>
+                                <button
+                                    onClick={() => {
+                                        setShowUpgradeSuccess(false);
+                                        router.push('/dashboard');
+                                    }}
+                                    className="w-full py-3 bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white font-semibold rounded-xl transition-all shadow-lg shadow-green-500/25"
+                                >
+                                    Go to Workspace
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <EnterpriseModal isOpen={showEnterpriseModal} onClose={() => setShowEnterpriseModal(false)} />
         </>
     );

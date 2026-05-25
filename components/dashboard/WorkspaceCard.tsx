@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid';
+import { StarIcon } from '@heroicons/react/24/outline';
 
 interface WorkspaceCardProps {
     name: string;
@@ -17,6 +19,7 @@ interface WorkspaceCardProps {
     boardCount: number;
     lastActiveAt: Date;
     hasUnread?: boolean;
+    userPlan?: string;
 }
 
 // Generate a deterministic gradient from workspace name
@@ -64,6 +67,7 @@ export function WorkspaceCard({
     boardCount,
     lastActiveAt,
     hasUnread,
+    userPlan,
 }: WorkspaceCardProps) {
     const { from, to } = getGradient(name, accentColor);
     const gradient = `linear-gradient(135deg, ${from} 0%, ${to} 100%)`;
@@ -87,9 +91,25 @@ export function WorkspaceCard({
                     }}
                 />
 
-                {/* Unread beacon - positioned at top-right of the card */}
+                {/* Unread beacon - positioned at top-right of the card, offset for plan badge */}
                 {hasUnread && (
-                    <span className="absolute -top-2 -right-2 w-4 h-4 bg-[var(--error-primary)] rounded-full border-2 border-[var(--surface)] animate-pulse z-10" />
+                    <span className="absolute -top-2 w-4 h-4 bg-[var(--error-primary)] rounded-full border-2 border-[var(--surface)] animate-pulse z-10"
+                        style={{ right: userPlan && userPlan !== 'free' ? '3.5rem' : '-0.5rem' }}
+                    />
+                )}
+
+                {/* Plan badge for premium users */}
+                {(userPlan === 'pro' || userPlan === 'enterprise') && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs font-bold shadow-lg shadow-purple-500/25">
+                        <SparklesIconSolid className="w-3 h-3" />
+                        PRO
+                    </div>
+                )}
+                {userPlan === 'starter' && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-white text-xs font-bold shadow-lg shadow-amber-500/25">
+                        <StarIcon className="w-3 h-3" />
+                        INDIVIDUAL
+                    </div>
                 )}
 
                 <div className="flex items-start gap-4 relative">
@@ -104,7 +124,7 @@ export function WorkspaceCard({
                             {icon?.type === 'emoji' ? (
                                 <span className="text-3xl">{icon.emoji}</span>
                             ) : icon?.type === 'upload' ? (
-                                <Image src={icon.url} alt="" width={56} height={56} className="w-full h-full object-cover" />
+                                <Image src={icon.url || ''} alt="" width={56} height={56} className="w-full h-full object-cover" />
                             ) : (
                                 initial
                             )}

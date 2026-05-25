@@ -39,8 +39,8 @@ export function PlanChangeModal({ user, onClose, onSuccess }: PlanChangeModalPro
         });
 
         setLoading(false);
-        if (result.error) {
-            setError(result.error);
+        if ('error' in result && result.error) {
+            setError(String(result.error));
         } else {
             onSuccess();
         }

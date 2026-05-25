@@ -56,10 +56,14 @@ export async function POST(request: NextRequest) {
         break;
     }
 
+    if (!schema) {
+      return NextResponse.json({ error: 'Invalid step' }, { status: 400 });
+    }
+
     const result = schema.safeParse(body);
     if (!result.success) {
       return NextResponse.json(
-        { error: result.error.errors[0].message },
+        { error: result.error.issues[0].message },
         { status: 400 }
       );
     }
@@ -69,10 +73,11 @@ export async function POST(request: NextRequest) {
 
     if (step === 1) {
       // Update user profile
+      const stepData = result.data.data as { name: string; image?: string };
       await User.findByIdAndUpdate(userId, {
         $set: {
-          name: result.data.data.name,
-          image: result.data.data.image,
+          name: stepData.name,
+          image: stepData.image,
           'tutorialProgress.hasSeenWelcome': true,
         },
       });

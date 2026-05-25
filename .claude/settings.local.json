@@ -108,7 +108,8 @@
       "Bash(cd \"C:/Users/owen/Downloads/Projects/flux\" && grep -A2 '\"web-push\"' package.json)",
       "Bash(netstat -ano | grep \":3000\" | head -5 2>/dev/null || ss -tlnp | grep 3000 2>/dev/null || echo \"Port check tool not available\")",
       "Bash(mkdir -p \"C:/Users/owen/.claude/plans\")",
-      "Read(//c/Users/owen/.claude/plans/**)"
+      "Read(//c/Users/owen/.claude/plans/**)",
+      "Bash(pkill -f \"next dev\")"
     ]
   }
 }

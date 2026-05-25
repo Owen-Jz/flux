@@ -12,27 +12,6 @@ import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { emitEvent } from '@/lib/webhook-emitter';
 
-const SAMPLE_TASKS = [
-    {
-        title: 'Welcome to your board!',
-        description: 'This is a sample task to get you started. You can edit or delete it anytime.',
-        status: 'BACKLOG' as TaskStatus,
-        priority: 'MEDIUM' as const,
-    },
-    {
-        title: 'Invite a team member',
-        description: 'Click on your workspace settings to invite teammates and collaborate together.',
-        status: 'TODO' as TaskStatus,
-        priority: 'HIGH' as const,
-    },
-    {
-        title: 'Create your first real task',
-        description: 'Replace this sample task with your actual work. Click the + button to add tasks.',
-        status: 'IN_PROGRESS' as TaskStatus,
-        priority: 'LOW' as const,
-    },
-];
-
 interface CreateBoardData {
     name: string;
     description?: string;
@@ -84,24 +63,6 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
         description: data.description,
         color: data.color || '#6366f1',
     });
-
-    // Pre-populate first board with 3 sample tasks
-    const isFirstBoard = (await Board.countDocuments({ workspaceId: workspace._id })) === 1;
-    if (isFirstBoard) {
-        await Task.insertMany(
-            SAMPLE_TASKS.map((taskData, index) => ({
-                workspaceId: workspace._id,
-                boardId: board._id,
-                title: taskData.title,
-                description: taskData.description,
-                status: taskData.status,
-                priority: taskData.priority,
-                order: (index + 1) * 1000,
-                assignees: [session.user.id],
-                isSample: true,
-            }))
-        );
-    }
 
     revalidatePath(`/${workspaceSlug}`);
     // Emit webhook for board created

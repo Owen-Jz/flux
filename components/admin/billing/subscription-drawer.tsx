@@ -35,7 +35,7 @@ export function SubscriptionDrawer({ user, onClose, onUpdated }: SubscriptionDra
 
     useEffect(() => {
         getSubscriptionHistory(user.id)
-            .then(setHistory)
+            .then((data) => setHistory(data as SubscriptionLifecycleEvent[]))
             .catch(() => setHistoryError(true))
             .finally(() => setLoading(false));
     }, [user.id]);
@@ -45,7 +45,7 @@ export function SubscriptionDrawer({ user, onClose, onUpdated }: SubscriptionDra
         try {
             await extendTrial(user.id, days);
             const updated = await getSubscriptionHistory(user.id);
-            setHistory(updated);
+            setHistory(updated as SubscriptionLifecycleEvent[]);
             onUpdated();
         } finally {
             setActionLoading('');

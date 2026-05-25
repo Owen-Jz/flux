@@ -1,7 +1,7 @@
 /* Flux PWA Service Worker */
-var STATIC_CACHE = 'flux-static-v1';
-var PAGES_CACHE = 'flux-pages-v1';
-var DATA_CACHE = 'flux-data-v1';
+var STATIC_CACHE = 'flux-static-v2';
+var PAGES_CACHE = 'flux-pages-v2';
+var DATA_CACHE = 'flux-data-v2';
 
 var STATIC_ASSETS = [
   '/',
@@ -11,6 +11,10 @@ var STATIC_ASSETS = [
   '/icons/icon-512.png',
   '/icons/icon-maskable.png',
 ];
+
+// Check for new SW version every 30 seconds
+var SW_CHECK_INTERVAL = 30000;
+var lastCheck = 0;
 
 function isAuthApi(url) {
   return url.pathname.startsWith('/api/auth');
@@ -39,7 +43,6 @@ function isPagesRoute(url) {
 function isBoardPage(url) {
   var pathname = url.pathname;
   var parts = pathname.split('/');
-  // /[slug]/board/[boardSlug]
   return parts.length === 4 && parts[1] && parts[2] === 'board' && parts[3];
 }
 
@@ -69,6 +72,47 @@ self.addEventListener('activate', function(event) {
   );
 });
 
+// Check for SW updates periodically to detect build changes
+self.addEventListener('message', function(event) {
+  var data = event.data || {};
+
+  if (data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
+
+  // Client asking to check for updates
+  if (data.type === 'CHECK_FOR_UPDATE') {
+    self.registration.update().then(function() {
+      // Notify client of update available
+      self.clients.matchAll({ type: 'window' }).then(function(clients) {
+        clients.forEach(function(client) {
+          client.postMessage({ type: 'UPDATE_AVAILABLE' });
+        });
+      });
+    }).catch(function(err) {
+      console.warn('SW update check failed:', err);
+    });
+  }
+});
+
+// Listen for updates from the server
+self.addEventListener('updatefound', function(event) {
+  var newWorker = event.target.installing;
+  if (!newWorker) return;
+
+  newWorker.addEventListener('statechange', function() {
+    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+      // New SW available - notify all clients
+      self.clients.matchAll({ type: 'window' }).then(function(clients) {
+        clients.forEach(function(client) {
+          client.postMessage({ type: 'UPDATE_AVAILABLE' });
+        });
+      });
+    }
+  });
+});
+
 self.addEventListener('fetch', function(event) {
   var url = new URL(event.request.url);
 
@@ -77,8 +121,15 @@ self.addEventListener('fetch', function(event) {
     return;
   }
 
-  // Network-only: Auth API, Billing API, Next.js static
-  if (isAuthApi(url) || isBillingApi(url) || isNextStatic(url)) {
+  // Network-only: Auth API, Billing API
+  if (isAuthApi(url) || isBillingApi(url)) {
+    return;
+  }
+
+  // ALWAYS fetch fresh for Next.js static chunks (build-dependent assets)
+  // This prevents the "stale chunk" error - chunks are keyed by build hash
+  if (isNextStatic(url)) {
+    event.respondWith(fetch(event.request));
     return;
   }
 
@@ -125,25 +176,6 @@ self.addEventListener('fetch', function(event) {
   }
 
   // Everything else: Network-only
-});
-
-self.addEventListener('message', function(event) {
-  var data = event.data || {};
-
-  if (data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-
-  if (data.type === 'CACHE_BOARD_DATA') {
-    var board = data.board;
-    var tasks = data.tasks;
-    if (board) {
-      caches.open(DATA_CACHE).then(function(cache) {
-        var url = new URL('/api/boards/' + board.id, self.location.origin);
-        cache.put(url, new Response(JSON.stringify({ board: board, tasks: tasks })));
-      });
-    }
-  }
 });
 
 self.addEventListener('push', function(event) {

@@ -33,7 +33,7 @@ export async function createWebhookEndpoint(
         url: data.url,
         signingSecret,
         events: data.events,
-        workspaceFilter: data.workspaceFilter || null,
+        workspaceFilter: data.workspaceFilter || undefined,
         active: true,
     });
 
@@ -117,7 +117,8 @@ export async function testWebhook(webhookId: string) {
     const payloadStr = JSON.stringify(testPayload);
     const wh = new Webhook(endpoint.signingSecret);
     const timestamp = Math.floor(Date.now() / 1000).toString();
-    const signature = wh.create(payloadStr, { 'svix-id': crypto.randomUUID(), 'svix-timestamp': timestamp } as Record<string, string>);
+    const msgId = crypto.randomUUID();
+    const signature = wh.sign(msgId, new Date(parseInt(timestamp) * 1000), payloadStr);
 
     const response = await fetch(endpoint.url, {
         method: 'POST',

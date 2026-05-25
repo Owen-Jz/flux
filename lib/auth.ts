@@ -158,7 +158,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     if (userId && user.email) {
                         const addedWorkspaces = await addUserToWorkspaceFromInvite(userId, user.email);
                         if (addedWorkspaces.length > 0) {
-                            console.log(`[Auth] Added user to workspaces: ${addedWorkspaces.join(', ')}`);
+                            console.log(`[Auth] Added user to workspaces: ${addedWorkspaces.map(w => w.slug).join(', ')}`);
                         }
                     }
                 } else if (account?.provider === 'credentials' && user.email && user.id) {
@@ -166,7 +166,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     await connectDB();
                     const addedWorkspaces = await addUserToWorkspaceFromInvite(user.id, user.email);
                     if (addedWorkspaces.length > 0) {
-                        console.log(`[Auth] Added user to workspaces: ${addedWorkspaces.join(', ')}`);
+                        console.log(`[Auth] Added user to workspaces: ${addedWorkspaces.map(w => w.slug).join(', ')}`);
                     }
                 }
                 return true;

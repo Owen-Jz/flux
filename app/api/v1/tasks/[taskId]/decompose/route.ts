@@ -48,10 +48,10 @@ export async function POST(
 
     task.summary = result.summary;
     task.isDecomposedTask = true;
-    task.subtasks = result.subtasks.map((s) => ({
+    task.subtasks = result.subtasks.map((s: { title: string }) => ({
         title: s.title,
         completed: false,
-    }));
+    })) as typeof task.subtasks;
     await task.save();
 
     const subtasks = await Task.find({ parentTaskId: task._id });

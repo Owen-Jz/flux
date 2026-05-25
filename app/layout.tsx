@@ -372,11 +372,13 @@ export default function RootLayout({
             __html: `
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/sw.js').then(() => {
-                    import('/lib/pwa/sw-register').then(({ setupOfflineSync }) => {
-                      window.pwaCleanup = setupOfflineSync();
-                    });
-                  }).catch(err => console.warn('SW registration failed:', err));
+                  // Setup offline sync immediately — does not need SW context
+                  import('/lib/pwa/sw-register').then(({ setupOfflineSync }) => {
+                    window.pwaCleanup = setupOfflineSync();
+                  }).catch(err => console.warn('sw-register import failed:', err));
+
+                  // Register SW separately so failures don't block sync setup
+                  navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW registration failed:', err));
                 });
               }
             `,

@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { LucideIcon } from '@heroicons/react/24/outline';
+import type { ComponentType, SVGProps } from 'react';
+
+type HeroIcon = ComponentType<SVGProps<SVGSVGElement>>;
 import { suspendUser, unsuspendUser, deleteUser, updateUserPlan } from '@/actions/admin/users';
 import { toast } from 'sonner';
 
@@ -9,7 +11,7 @@ interface UserActionButtonProps {
     userId: string;
     action: 'view' | 'suspend' | 'delete' | 'change-plan';
     label: string;
-    icon: LucideIcon;
+    icon: HeroIcon;
     destructive?: boolean;
 }
 

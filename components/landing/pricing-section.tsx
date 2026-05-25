@@ -10,6 +10,7 @@ interface GeoInfo {
     currency: 'NGN' | 'USD';
     isNigeria: boolean;
     exchangeRate: number;
+    country?: string;
 }
 
 const PLAN_PRICES = {

@@ -7,6 +7,7 @@ import { WorkspaceCard } from '@/components/dashboard/WorkspaceCard';
 import { EmptyWorkspaces } from '@/components/dashboard/EmptyWorkspaces';
 import NewWorkspaceButton from '@/components/dashboard/NewWorkspaceButton';
 import { TrialPromptWrapper } from '@/components/onboarding/TrialPromptWrapper';
+import { UpgradeWelcomeWrapper } from '@/components/billing/upgrade-welcome-wrapper';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 
@@ -30,15 +31,19 @@ export default async function DashboardPage() {
     let subscriptionStatus: string | null = null;
     let hasUsedTrial = false;
     let trialPromptDismissedAt: string | null = null;
+    let lastUpgradeAt: string | null = null;
+    let userPlan: string = 'free';
 
     try {
         await connectDB();
-        const user = await User.findById(session.user.id).select('trialEndsAt subscriptionStatus hasUsedTrial trialPromptDismissedAt').lean();
+        const user = await User.findById(session.user.id).select('trialEndsAt subscriptionStatus hasUsedTrial trialPromptDismissedAt lastUpgradeAt plan').lean();
         if (user) {
             trialEndsAt = user.trialEndsAt ? user.trialEndsAt.toISOString() : null;
             subscriptionStatus = user.subscriptionStatus || null;
             hasUsedTrial = user.hasUsedTrial || false;
             trialPromptDismissedAt = user.trialPromptDismissedAt ? user.trialPromptDismissedAt.toISOString() : null;
+            lastUpgradeAt = user.lastUpgradeAt ? user.lastUpgradeAt.toISOString() : null;
+            userPlan = user.plan || 'free';
         }
     } catch (error) {
         console.error('Failed to fetch trial status:', error);
@@ -53,6 +58,10 @@ export default async function DashboardPage() {
                 subscriptionStatus={subscriptionStatus}
                 hasUsedTrial={hasUsedTrial}
                 trialPromptDismissedAt={trialPromptDismissedAt}
+            />
+            <UpgradeWelcomeWrapper
+                lastUpgradeAt={lastUpgradeAt}
+                plan={userPlan}
             />
             <div className="min-h-screen bg-[var(--background)] overflow-x-hidden">
                 <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
@@ -139,6 +148,7 @@ export default async function DashboardPage() {
                                     boardCount={workspace.boardCount}
                                     lastActiveAt={workspace.lastActiveAt}
                                     hasUnread={(unreadCounts[workspace.slug] ?? 0) > 0}
+                                    userPlan={userPlan}
                                 />
                             </div>
                         ))}

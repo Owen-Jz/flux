@@ -9,6 +9,9 @@ import { RequestAccessButton } from '@/components/RequestAccessButton';
 import BoardGrid from '@/components/BoardGrid';
 import { WorkspaceUnreadDot } from './workspace-unread-dot';
 import { ReferralPromptWrapper } from '@/components/onboarding/referral-prompt-wrapper';
+import { TrialPromptWrapper } from '@/components/onboarding/TrialPromptWrapper';
+import { connectDB } from '@/lib/db';
+import { User } from '@/models/User';
 
 export default async function WorkspacePage({
     params,
@@ -31,12 +34,37 @@ export default async function WorkspacePage({
     const userRole = await getUserRole(slug);
     const hasPending = session?.user ? await hasPendingRequest(slug) : false;
 
+    // Fetch trial status for the trial prompt modal
+    let trialEndsAt: string | null = null;
+    let subscriptionStatus: string | null = null;
+    let hasUsedTrial = false;
+    let trialPromptDismissedAt: string | null = null;
+
+    try {
+        await connectDB();
+        const user = await User.findById(session?.user?.id).select('trialEndsAt subscriptionStatus hasUsedTrial trialPromptDismissedAt').lean();
+        if (user) {
+            trialEndsAt = user.trialEndsAt ? user.trialEndsAt.toISOString() : null;
+            subscriptionStatus = user.subscriptionStatus || null;
+            hasUsedTrial = user.hasUsedTrial || false;
+            trialPromptDismissedAt = user.trialPromptDismissedAt ? user.trialPromptDismissedAt.toISOString() : null;
+        }
+    } catch (error) {
+        console.error('Failed to fetch trial status:', error);
+    }
+
     // Determine user's access level
     const canEdit = userRole === 'ADMIN' || userRole === 'EDITOR';
     const isViewer = userRole === 'VIEWER' || (!userRole && workspace.publicAccess);
 
     return (
         <>
+            <TrialPromptWrapper
+                trialEndsAt={trialEndsAt}
+                subscriptionStatus={subscriptionStatus}
+                hasUsedTrial={hasUsedTrial}
+                trialPromptDismissedAt={trialPromptDismissedAt}
+            />
             <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto overflow-x-hidden">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
                     <div>

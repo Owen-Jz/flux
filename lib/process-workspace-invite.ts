@@ -3,6 +3,7 @@ import { WorkspaceInvite } from '@/models/WorkspaceInvite';
 import { Workspace } from '@/models/Workspace';
 import { revalidatePath } from 'next/cache';
 import { triggerNotification } from '@/lib/pwa/trigger-notification';
+import { Types } from 'mongoose';
 
 export async function processWorkspaceInvites(email: string) {
   await connectDB();
@@ -52,7 +53,7 @@ export async function processWorkspaceInvites(email: string) {
   return addedWorkspaces;
 }
 
-export async function addUserToWorkspaceFromInvite(userId: string, email: string) {
+export async function addUserToWorkspaceFromInvite(userId: string, email: string): Promise<Array<{ slug: string; name: string; role: string }>> {
   await connectDB();
 
   const pendingInvites = await WorkspaceInvite.find({
@@ -64,7 +65,7 @@ export async function addUserToWorkspaceFromInvite(userId: string, email: string
     return [];
   }
 
-  const addedWorkspaces: string[] = [];
+  const addedWorkspaces: Array<{ slug: string; name: string; role: string }> = [];
 
   for (const invite of pendingInvites) {
     const workspace = await Workspace.findById(invite.workspaceId);
@@ -82,13 +83,13 @@ export async function addUserToWorkspaceFromInvite(userId: string, email: string
 
     // Add user to workspace
     workspace.members.push({
-      userId,
+      userId: new Types.ObjectId(userId),
       role: invite.role,
       joinedAt: new Date(),
     });
 
     await workspace.save();
-    addedWorkspaces.push(workspace.slug);
+    addedWorkspaces.push({ slug: workspace.slug, name: workspace.name, role: invite.role });
 
     // PUSH NOTIFICATION: Notify the new member they joined
     triggerNotification({

@@ -39,19 +39,16 @@ export async function emitEvent(
     const deliveryPromises = endpoints.map(async (endpoint) => {
         try {
             const wh = new Webhook(endpoint.signingSecret);
-            // Svix expects raw body + headers signature verification
-            // We send as JSON string
             const payloadStr = JSON.stringify(payload);
+            const msgId = crypto.randomUUID();
+            const timestamp = new Date();
+            const signature = wh.sign(msgId, timestamp, payloadStr);
             const headers = {
                 'Content-Type': 'application/json',
-                'svix-id': crypto.randomUUID(),
-                'svix-timestamp': Math.floor(Date.now() / 1000).toString(),
-                'svix-signature': '',
+                'svix-id': msgId,
+                'svix-timestamp': Math.floor(timestamp.getTime() / 1000).toString(),
+                'svix-signature': signature,
             };
-
-            // Create signature
-            const signature = wh.create(payloadStr, headers);
-            headers['svix-signature'] = signature;
 
             const response = await fetch(endpoint.url, {
                 method: 'POST',

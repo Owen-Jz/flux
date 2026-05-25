@@ -7,7 +7,7 @@ import { User } from '@/models/User';
 import { WorkspaceInvite } from '@/models/WorkspaceInvite';
 import { revalidatePath } from 'next/cache';
 import { canAddMember, getUpgradeMessage } from '@/lib/plan-limits';
-import { sendWorkspaceInviteEmail } from '@/lib/email/workspace-invite';
+import { sendWorkspaceInviteEmail, sendMemberAddedEmail } from '@/lib/email/workspace-invite';
 import crypto from 'crypto';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { triggerNotification } from '@/lib/pwa/trigger-notification';
@@ -57,6 +57,15 @@ export async function inviteMemberToWorkspace(slug: string, email: string, role:
             if (isMember) {
                 return { error: 'User is already a member of this workspace' };
             }
+
+            // Send notification email BEFORE adding to workspace
+            await sendMemberAddedEmail({
+                to: user.email,
+                invitedByName: inviterUser?.name || 'A team member',
+                workspaceName: workspace.name,
+                workspaceSlug: workspace.slug,
+                role,
+            });
 
             // Add existing user directly to workspace
             workspace.members.push({

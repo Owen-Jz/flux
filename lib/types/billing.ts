@@ -35,7 +35,7 @@ export interface PlanChangeRequest {
 
 export interface SubscriptionLifecycleEvent {
     id: string;
-    type: 'created' | 'upgraded' | 'downgraded' | 'cancelled' | 'payment_failed' | 'trial_started' | 'trial_ended';
+    type: 'created' | 'upgraded' | 'downgraded' | 'cancelled' | 'payment_failed' | 'trial_started' | 'trial_ended' | 'changed' | string;
     fromPlan?: PlanType;
     toPlan?: PlanType;
     reason?: string;

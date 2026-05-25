@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 
-interface Column {
+export interface Column {
     key: string;
     label: string;
     sortable?: boolean;

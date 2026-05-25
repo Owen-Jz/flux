@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
         // Validate input using Zod schema
         const validationResult = signupSchema.safeParse(body);
         if (!validationResult.success) {
-            const errors = validationResult.error.errors.map(e => e.message);
+            const errors = validationResult.error.issues.map(e => e.message);
             return NextResponse.json(
                 { error: errors[0], errors },
                 { status: 400 }
@@ -43,9 +43,10 @@ export async function POST(request: NextRequest) {
         const { name, email, password, plan } = validationResult.data;
 
         // Default to free, but if a plan is specified and it's a valid trial plan, set up the trial
-        const trialPlans = ['starter', 'pro'];
-        const initialPlan = trialPlans.includes(plan) ? plan : 'free';
-        const trialEndsAt = trialPlans.includes(plan)
+        const trialPlans = ['starter', 'pro'] as const;
+        const isTrialPlan = plan && trialPlans.includes(plan);
+        const initialPlan = isTrialPlan ? plan : 'free';
+        const trialEndsAt = isTrialPlan
             ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000) // 14 days
             : undefined;
 
@@ -75,7 +76,7 @@ export async function POST(request: NextRequest) {
             emailVerificationExpires,
             plan: initialPlan,
             trialEndsAt,
-            hasUsedTrial: trialPlans.includes(plan) ? true : false,
+            hasUsedTrial: isTrialPlan ? true : false,
         });
 
         if (trialEndsAt) {

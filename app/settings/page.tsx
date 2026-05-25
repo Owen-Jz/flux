@@ -2,9 +2,13 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
-import { SettingsClient } from './settings-client';
+import { UserSettingsClient } from './settings-client';
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ billing?: string; action?: string; [key: string]: string | undefined }>;
+}) {
     const session = await auth();
 
     if (!session?.user?.id) {
@@ -14,13 +18,14 @@ export default async function SettingsPage() {
     await connectDB();
 
     const user = await User.findById(session.user.id).lean();
+    const params = await searchParams;
 
     if (!user) {
         redirect('/login');
     }
 
     return (
-        <SettingsClient
+        <UserSettingsClient
             user={{
                 id: user._id.toString(),
                 name: user.name,
@@ -31,6 +36,8 @@ export default async function SettingsPage() {
                 trialEndsAt: user.trialEndsAt ? user.trialEndsAt.toISOString() : null,
                 hasUsedTrial: user.hasUsedTrial || false,
             }}
+            billingParam={params.billing}
+            actionParam={params.action}
         />
     );
 }

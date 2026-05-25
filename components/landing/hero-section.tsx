@@ -166,21 +166,18 @@ useEffect(() => {
     if (!containerRef.current || !heroContentRef.current) return;
 
     const ctx = gsap.context(() => {
-      // Create the pinned scroll trigger
+      // Simplified scroll effect - no pinning to avoid pointer event issues
       const scrollTriggerInstance = ScrollTrigger.create({
         trigger: containerRef.current,
         start: "top top",
-        end: "+=100%", // Pin for the height of the viewport
-        pin: true,
-        pinSpacing: false, // Don't add spacing, let content flow over
-        scrub: 1, // Smooth scrubbing with 1 second lag
+        end: "+=50%", // Lighter pin only for initial section
+        pin: false,
+        scrub: 1,
         onUpdate: (self) => {
-          // Fade out the hero content as we scroll
           const progress = self.progress;
           gsap.to(heroContentRef.current, {
-            opacity: 1 - progress,
-            scale: 1 - progress * 0.1,
-            y: -progress * 50,
+            opacity: 1 - progress * 0.5,
+            y: -progress * 30,
             ease: "power2.out",
             duration: 0.1
           });
@@ -302,11 +299,11 @@ useEffect(() => {
           {/* CTA buttons with enhanced hover effects */}
           <motion.div
             variants={fadeInUp}
-            className="flex flex-col sm:flex-row items-center gap-4 mb-12"
+            className="flex flex-col sm:flex-row items-center gap-4 mb-12 relative z-20"
           >
             <Link
               href="/signup"
-              className="group relative px-8 py-4 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary)] text-[var(--text-inverse)] rounded-2xl text-base font-extrabold shadow-xl shadow-[var(--brand-primary)]/25 hover:shadow-2xl hover:shadow-[var(--brand-primary)]/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center overflow-hidden"
+              className="group relative px-8 py-4 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary)] text-[var(--text-inverse)] rounded-2xl text-base font-extrabold shadow-xl shadow-[var(--brand-primary)]/25 hover:shadow-2xl hover:shadow-[var(--brand-primary)]/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center overflow-hidden z-20"
             >
               <motion.span
                 className="absolute inset-0 bg-gradient-to-r from-[var(--brand-secondary)] to-[var(--brand-primary)] opacity-0 group-hover:opacity-100 transition-opacity"
@@ -321,18 +318,7 @@ useEffect(() => {
               </span>
             </Link>
 
-            <Link
-              href="#demo"
-              className="group px-8 py-4 bg-[var(--surface)] border border-[var(--border-subtle)] text-[var(--text-secondary)] rounded-2xl text-base font-bold hover:bg-[var(--background-subtle)] hover:border-[var(--border-default)] transition-all flex items-center gap-2 backdrop-blur-xl"
-            >
-              <motion.span
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <PlayIcon className="w-5 h-5 text-[var(--info-primary)]" />
-              </motion.span>
-              Watch demo
-            </Link>
+{/* Watch demo button - temporarily hidden */}
           </motion.div>
 
           {/* Social proof with animations */}

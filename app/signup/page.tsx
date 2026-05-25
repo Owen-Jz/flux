@@ -34,8 +34,22 @@ export default function SignupPage() {
     // Get plan from URL query parameter (e.g., /signup?plan=starter)
     const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
     const planParam = searchParams.get('plan');
+    const inviteToken = searchParams.get('invite');
 
     const { strength, score, requirements } = usePasswordStrength(password);
+
+    const getOnboardingUrl = (addedWorkspaces: Array<{ slug: string; name: string; role: string }> | undefined) => {
+        const base = '/onboarding';
+        const params = new URLSearchParams();
+        if (addedWorkspaces && addedWorkspaces.length > 0) {
+            params.set('invited', encodeURIComponent(JSON.stringify(addedWorkspaces)));
+        }
+        if (inviteToken) {
+            params.set('invite', inviteToken);
+        }
+        const query = params.toString();
+        return query ? `${base}?${query}` : base;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -62,7 +76,7 @@ export default function SignupPage() {
             const res = await fetch('/api/auth/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password, plan: planParam }),
+                body: JSON.stringify({ name, email, password, ...(planParam && { plan: planParam }) }),
             });
 
             const data = await res.json();
@@ -84,7 +98,9 @@ export default function SignupPage() {
                 return;
             }
 
-            router.push('/onboarding');
+            // Pass invited workspaces to onboarding if any
+            const addedWorkspaces = data.addedWorkspaces as Array<{ slug: string; name: string; role: string }> | undefined;
+            router.push(getOnboardingUrl(addedWorkspaces));
         } catch {
             setError('Something went wrong');
         } finally {
@@ -95,7 +111,9 @@ export default function SignupPage() {
     const handleGoogleSignIn = async () => {
         setIsGoogleLoading(true);
         try {
-            await signIn('google', { callbackUrl: '/onboarding' });
+            // Preserve invite token in callback URL for Google OAuth
+            const callbackUrl = inviteToken ? `/onboarding?invite=${inviteToken}` : '/onboarding';
+            await signIn('google', { callbackUrl });
         } finally {
             // Loading will persist until redirect
         }

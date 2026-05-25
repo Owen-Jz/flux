@@ -385,7 +385,7 @@ export async function updateTask(
         priority?: TaskPriority;
         status?: TaskStatus;
         assignees?: string[];
-        subtasks?: { id?: string; title: string; completed: boolean }[];
+        subtasks?: { id?: string; title: string; completed: boolean; createdAt?: string; createdBy?: string | Types.ObjectId }[];
         categoryId?: string | null;
         dueDate?: string | null;
         links?: { id: string; url: string; title: string }[];
@@ -619,7 +619,7 @@ export async function updateTask(
     }
 
     // Emit webhook for task updated (any significant field change)
-    if (data.title || data.description || data.status || data.priority || data.assignees || data.tags) {
+    if (data.title || data.description || data.status || data.priority || data.assignees || data.categoryId) {
         emitEvent(
             session.user.id,
             'task.updated',

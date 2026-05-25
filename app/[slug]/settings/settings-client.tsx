@@ -50,6 +50,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     const [showIconPicker, setShowIconPicker] = useState(false);
     const [pushEnabled, setPushEnabled] = useState(false);
     const [pushLoading, setPushLoading] = useState(false);
+    const [userPlan, setUserPlan] = useState<string>('free');
 
     useEffect(() => {
         let cancelled = false;
@@ -58,6 +59,21 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
         });
         return () => { cancelled = true; };
     }, []);
+
+    useEffect(() => {
+        async function fetchUserPlan() {
+            try {
+                const res = await fetch('/api/v1/api-keys?plan-check=1');
+                if (res.ok) {
+                    const data = await res.json();
+                    setUserPlan(data.plan || 'free');
+                }
+            } catch {}
+        }
+        fetchUserPlan();
+    }, []);
+
+    const isPro = userPlan === 'pro' || userPlan === 'enterprise';
 
     const handleTogglePublicAccess = async () => {
         const newValue = !publicAccess;
@@ -164,28 +180,32 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                     <CreditCardIcon className="w-4 h-4" />
                     Billing
                 </button>
-                <button
-                    onClick={() => setActiveTab('api-keys')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        activeTab === 'api-keys'
-                            ? 'bg-[var(--brand-primary)] text-white'
-                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
-                    }`}
-                >
-                    <KeyIcon className="w-4 h-4" />
-                    API Keys
-                </button>
-                <button
-                    onClick={() => setActiveTab('webhooks')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        activeTab === 'webhooks'
-                            ? 'bg-[var(--brand-primary)] text-white'
-                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
-                    }`}
-                >
-                    <PuzzlePieceIcon className="w-4 h-4" />
-                    Webhooks
-                </button>
+                {isPro && (
+                    <>
+                        <button
+                            onClick={() => setActiveTab('api-keys')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                activeTab === 'api-keys'
+                                    ? 'bg-[var(--brand-primary)] text-white'
+                                    : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
+                            }`}
+                        >
+                            <KeyIcon className="w-4 h-4" />
+                            API Keys
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('webhooks')}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                activeTab === 'webhooks'
+                                    ? 'bg-[var(--brand-primary)] text-white'
+                                    : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
+                            }`}
+                        >
+                            <PuzzlePieceIcon className="w-4 h-4" />
+                            Webhooks
+                        </button>
+                    </>
+                )}
             </div>
 
             {activeTab === 'webhooks' ? (
@@ -295,7 +315,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                                     {workspace.icon?.type === 'emoji' ? (
                                         <span>{workspace.icon.emoji}</span>
                                     ) : workspace.icon?.type === 'upload' ? (
-                                        <Image src={workspace.icon.url} alt="" width={64} height={64} className="w-full h-full object-cover" />
+                                        <Image src={workspace.icon.url || ''} alt="" width={64} height={64} className="w-full h-full object-cover" />
                                     ) : (
                                         <PhotoIcon className="w-6 h-6 text-[var(--text-secondary)]" />
                                     )}

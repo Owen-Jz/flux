@@ -105,7 +105,7 @@ export default function BillingAnalyticsPage() {
                                 <YAxis tick={axisStyle} tickFormatter={(v: number) => `₦${(v/1000).toFixed(0)}k`} />
                                 <Tooltip
                                     contentStyle={tooltipStyle}
-                                    formatter={(v: number) => [`₦${v.toLocaleString()}`, 'MRR']}
+                                    formatter={((v: number) => [`₦${v.toLocaleString()}`, 'MRR']) as any}
                                     labelFormatter={(label) => ` ${label}`}
                                 />
                                 <Area type="monotone" dataKey="mrr" stroke="#8b5cf6" fill="url(#mrrGradient)" strokeWidth={2} />

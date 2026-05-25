@@ -343,7 +343,7 @@ export const PLAN_PRICES_USD = {
 };
 
 // Cache for exchange rate (refreshes every hour)
-let cachedExchangeRate: number | null = null;
+let cachedExchangeRate: number = 0;
 let exchangeRateCacheTime: number = 0;
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 

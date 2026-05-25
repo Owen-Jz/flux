@@ -131,7 +131,7 @@ export default function BillingDashboardPage() {
                                         borderRadius: '12px',
                                         color: '#e4e4e7',
                                     }}
-                                    formatter={(value: number) => [value, 'Users']}
+                                    formatter={((value: number) => [String(value), 'Users']) as any}
                                 />
                             </PieChart>
                         </ResponsiveContainer>

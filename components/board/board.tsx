@@ -724,7 +724,7 @@ export function Board({
                 modifiers={searchQuery ? [] : undefined}
             >
                 {/* Responsive columns container - horizontal scroll on mobile, grid on desktop */}
-                <div className="flex gap-2 md:gap-3 w-full min-w-0 overflow-x-auto pb-4 md:pb-0 md:overflow-visible snap-x snap-mandatory md:snap-none scroll-px-4 md:scroll-px-0 -mx-4 px-4 md:mx-0 md:px-0 mask-gradient">
+                <div className="flex gap-2 md:gap-3 w-full min-w-0 overflow-x-auto pb-4 md:pb-0 md:overflow-visible snap-x snap-mandatory md:snap-none scroll-px-4 md:scroll-px-0 -mx-4 px-4 md:mx-0 md:px-0">
                     {columns.map((column) => (
                         <div key={column.id} className="flex flex-col flex-shrink-0 w-[280px] md:flex-1 md:min-w-[160px] md:max-w-[320px] snap-start first:snap-none">
                             <Column
@@ -828,6 +828,7 @@ export function Board({
                         isOpen={!!selectedTask}
                         onClose={() => setSelectedTask(null)}
                         onUpdate={handleUpdateTask}
+                        onDelete={handleDeleteTask}
                         members={members}
                         isReadOnly={isReadOnly}
                         categories={localCategories}

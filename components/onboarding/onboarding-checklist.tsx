@@ -15,6 +15,7 @@ import {
     XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { getOnboardingProgress, updateOnboardingProgress, dismissOnboarding, isEligibleForOnboarding } from '@/actions/onboarding';
+import { GuidedSessionModal, GuidedStepId } from './guided-session-modal';
 
 interface OnboardingChecklistProps {
     workspaceSlug?: string;
@@ -73,10 +74,40 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
     const [progress, setProgress] = useState<Progress | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [justCompleted, setJustCompleted] = useState(false);
+    const [activeGuidedStep, setActiveGuidedStep] = useState<GuidedStepId | null>(null);
+    const [firstBoardSlug, setFirstBoardSlug] = useState<string | null>(null);
 
     useEffect(() => {
         checkEligibility();
     }, []);
+
+    // Listen for board-created events to get the first board slug
+    useEffect(() => {
+        const handleBoardCreated = (e: CustomEvent) => {
+            const board = e.detail as { slug?: string };
+            if (board?.slug) {
+                setFirstBoardSlug(board.slug);
+            }
+        };
+        window.addEventListener('board-created', handleBoardCreated as EventListener);
+        return () => {
+            window.removeEventListener('board-created', handleBoardCreated as EventListener);
+        };
+    }, []);
+
+    // Load boards to find first board slug for task creation step
+    useEffect(() => {
+        if (workspaceSlug && !firstBoardSlug) {
+            fetch(`/api/v1/workspaces/${workspaceSlug}/boards`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.boards && data.boards.length > 0) {
+                        setFirstBoardSlug(data.boards[0].slug);
+                    }
+                })
+                .catch(console.error);
+        }
+    }, [workspaceSlug, firstBoardSlug]);
 
     const checkEligibility = async () => {
         try {
@@ -129,12 +160,17 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
     };
 
     const handleItemClick = async (item: (typeof checklistItems)[0]) => {
-        if (!progress) return;
+        // Instead of marking complete immediately, open the guided session
+        setActiveGuidedStep(item.id as GuidedStepId);
+    };
 
-        // Mark as complete if not already
-        if (!progress[item.id as keyof Progress]) {
-            await updateOnboardingProgress(item.id as any);
-            const newProgress = { ...progress, [item.id]: true };
+    const handleGuidedSessionComplete = async () => {
+        if (!activeGuidedStep || !progress) return;
+
+        // Mark as complete in database if not already
+        if (!progress[activeGuidedStep as keyof Progress]) {
+            await updateOnboardingProgress(activeGuidedStep as any);
+            const newProgress = { ...progress, [activeGuidedStep]: true };
             setProgress(newProgress);
 
             // Check if this completes the checklist
@@ -146,17 +182,11 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
             }
         }
 
-        // Navigate to the appropriate page
-        if (workspaceSlug) {
-            if (item.id === 'completedTutorial') {
-                // Trigger tutorial - just close the panel
-                setIsOpen(false);
-            } else if (item.href) {
-                router.push(`/${workspaceSlug}/${item.href}`);
-            } else {
-                router.push(`/${workspaceSlug}`);
-            }
-        }
+        setActiveGuidedStep(null);
+    };
+
+    const handleGuidedSessionClose = () => {
+        setActiveGuidedStep(null);
     };
 
     const handleDismiss = async () => {
@@ -311,6 +341,16 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
                     </motion.button>
                 )}
             </AnimatePresence>
+
+            {/* Guided Session Modal */}
+            <GuidedSessionModal
+                isOpen={activeGuidedStep !== null}
+                stepId={activeGuidedStep}
+                workspaceSlug={workspaceSlug || ''}
+                boardSlug={firstBoardSlug || undefined}
+                onClose={handleGuidedSessionClose}
+                onComplete={handleGuidedSessionComplete}
+            />
         </div>
     );
 }

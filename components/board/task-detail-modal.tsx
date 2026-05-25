@@ -2,7 +2,7 @@
 // @ts-nocheck
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { XMarkIcon, CalendarIcon, CheckIcon, UserPlusIcon, Bars3BottomLeftIcon, TagIcon, ClockIcon, Squares2X2Icon, PlusIcon, TrashIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, ArrowPathIcon, ExclamationCircleIcon, HeartIcon, ArrowUturnLeftIcon, FaceSmileIcon, LinkIcon, InformationCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, CalendarIcon, CheckIcon, UserPlusIcon, Bars3BottomLeftIcon, TagIcon, ClockIcon, Squares2X2Icon, PlusIcon, TrashIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, ArrowPathIcon, ExclamationCircleIcon, HeartIcon, ArrowUturnLeftIcon, FaceSmileIcon, LinkIcon, InformationCircleIcon, ChevronDownIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
 import { TaskData, Member } from './task-card';
 import { addComment, deleteComment, likeComment, replyToComment, addReaction, getWorkspaceMembers } from '@/actions/task';
@@ -24,6 +24,7 @@ interface TaskDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
     onUpdate: (taskId: string, data: Partial<TaskData>) => void;
+    onDelete?: (taskId: string) => void;
     members?: Member[];
     isReadOnly?: boolean;
     categories?: { id: string; name: string; color: string }[];
@@ -40,6 +41,7 @@ export function TaskDetailModal({
     isOpen,
     onClose,
     onUpdate,
+    onDelete,
     members = [],
     isReadOnly = false,
     categories = [],
@@ -65,6 +67,7 @@ export function TaskDetailModal({
     const [showSubtaskDetails, setShowSubtaskDetails] = useState(false);
     const [commentChips, setCommentChips] = useState<{ type: 'subtask' | 'user'; id: string; title: string; completed?: boolean }[]>([]);
     const [replyChips, setReplyChips] = useState<{ type: 'subtask' | 'user'; id: string; title: string; completed?: boolean }[]>([]);
+    const [showMoreMenu, setShowMoreMenu] = useState(false);
 
     useEffect(() => {
         setTitle(task.title);
@@ -247,10 +250,10 @@ export function TaskDetailModal({
         setError(null);
         try {
             const content = buildCommentContent(replyContent, replyChips);
-            const reply = await replyToComment(task.id, parentCommentId, content);
+            const reply = await replyToComment(task.id, parentCommentId, content) as any;
             if (reply && 'id' in reply) {
                 onUpdate(task.id, {
-                    comments: [...(task.comments || []), reply]
+                    comments: [...(task.comments || []), reply as any]
                 });
             }
             setReplyContent('');
@@ -515,12 +518,47 @@ export function TaskDetailModal({
                                         placeholder="Task Title"
                                     />
                                 </div>
-                                <button
-                                    onClick={onClose}
-                                    className="p-2 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
-                                >
-                                    <XMarkIcon className="w-6 h-6" />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    {onDelete && !isReadOnly && (
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setShowMoreMenu(!showMoreMenu)}
+                                                className="p-2 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                                            >
+                                                <EllipsisHorizontalIcon className="w-6 h-6" />
+                                            </button>
+                                            {showMoreMenu && (
+                                                <>
+                                                    <div
+                                                        className="fixed inset-0 z-10"
+                                                        onClick={() => setShowMoreMenu(false)}
+                                                    />
+                                                    <div className="absolute right-0 top-full mt-1 w-48 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg shadow-xl z-20 py-1">
+                                                        <button
+                                                            onClick={() => {
+                                                                if (confirm('Delete this task? This action cannot be undone.')) {
+                                                                    onDelete(task.id);
+                                                                    onClose();
+                                                                }
+                                                                setShowMoreMenu(false);
+                                                            }}
+                                                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                                                        >
+                                                            <TrashIcon className="w-4 h-4" />
+                                                            Delete Task
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={onClose}
+                                        className="p-2 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                                    >
+                                        <XMarkIcon className="w-6 h-6" />
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Body */}
@@ -720,7 +758,7 @@ export function TaskDetailModal({
                                                         const repliesMap = (task.comments || []).reduce((acc, c) => {
                                                             if (c.parentId) {
                                                                 if (!acc[c.parentId]) acc[c.parentId] = [];
-                                                                acc[c.parentId].push(c);
+                                                                acc[c.parentId]!.push(c);
                                                             }
                                                             return acc;
                                                         }, {} as Record<string, typeof task.comments>);

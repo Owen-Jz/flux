@@ -89,7 +89,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState(task.title);
-    const { data: session } = useSession();
+    const { data: session } = useSession({ required: false });
 
     // Heuristic for unread comments: if there are comments, the last one is not by the current user, and the task hasn't been read yet
     const hasUnreadComments = task.comments && task.comments.length > 0 &&
@@ -183,10 +183,10 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 relative group bg-[var(--surface)] rounded-lg task-card
                 border ${config.border}
                 ${isDragging
-                    ? 'shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)] ring-2 ring-[var(--brand-primary)]/30 rotate-1 scale-[1.02] opacity-95 z-50 cursor-grabbing'
+                    ? 'shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)] ring-2 ring-[var(--brand-primary)]/30 rotate-1 scale-[1.02] opacity-95 z-[100] cursor-grabbing overflow-hidden'
                     : isMenuOpen
-                        ? 'shadow-md z-40'
-                        : 'shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:scale-[1.01] focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-all duration-200'
+                        ? 'shadow-md z-[60] overflow-visible'
+                        : 'shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:scale-[1.01] focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-all duration-200 overflow-visible'
                 }
                 ${isDone ? 'opacity-60 grayscale hover:opacity-80 hover:grayscale-0' : ''}
                 p-3.5 flex flex-col gap-2 origin-center outline-none
