@@ -46,7 +46,5 @@ export async function GET(request: NextRequest) {
     sendTrialExpiredEmail({ email: user.email, name: user.name });
   }
 
-  await mongoose.disconnect();
-
   return NextResponse.json({ expired: expiredTrials.length });
 }

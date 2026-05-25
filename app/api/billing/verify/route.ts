@@ -89,9 +89,7 @@ export async function POST(request: NextRequest) {
             if (transactionAmount < expectedAmountNaira * 0.95) {
                 await mongoSession.abortTransaction();
                 return NextResponse.json({
-                    error: 'Invalid amount paid',
-                    expected: expectedAmountNaira,
-                    paid: transactionAmount
+                    error: 'Payment amount does not match the expected price. Please contact support.',
                 }, { status: 400 });
             }
         }

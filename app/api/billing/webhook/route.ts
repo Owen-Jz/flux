@@ -35,16 +35,16 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
-        // Check for webhook idempotency - prevent replay attacks
         const eventId = event.data?.id;
         if (eventId) {
-            const existingEvent = await ProcessedWebhook.findOne({ eventId });
-            if (existingEvent) {
-                // Event already processed, return success to Paystack
+            const result = await ProcessedWebhook.findOneAndUpdate(
+                { eventId },
+                { $setOnInsert: { eventId, processedAt: new Date() } },
+                { upsert: true, new: false }
+            );
+            if (result) {
                 return NextResponse.json({ received: true, duplicate: true });
             }
-            // Mark event as processed
-            await ProcessedWebhook.create({ eventId });
         }
 
         switch (event.event) {

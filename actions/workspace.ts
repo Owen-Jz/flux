@@ -12,6 +12,8 @@ import { revalidatePath } from 'next/cache';
 import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { emitEvent } from '@/lib/webhook-emitter';
+import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
+import type { PlanType } from '@/lib/types/billing';
 
 export async function createWorkspace(data: { name: string; slug: string }) {
     const session = await auth();
@@ -21,7 +23,15 @@ export async function createWorkspace(data: { name: string; slug: string }) {
 
     await connectDB();
 
-    // Check if slug is taken
+    const user = await User.findById(session.user.id).select('plan').lean();
+    const userPlan = (user?.plan || 'free') as PlanType;
+    const currentWorkspaceCount = await Workspace.countDocuments({
+        'members.userId': new Types.ObjectId(session.user.id),
+    });
+    if (!canCreateProject(userPlan, currentWorkspaceCount)) {
+        throw new Error(getUpgradeMessage(userPlan, 'projects'));
+    }
+
     const existing = await Workspace.findOne({ slug: data.slug });
     if (existing) {
         throw new Error('Workspace slug already taken');
@@ -266,14 +276,16 @@ export async function addViewerToWorkspace(slug: string) {
         throw new Error('Workspace not found');
     }
 
-    // Check if already a member
+    if (!workspace.settings?.publicAccess) {
+        throw new Error('This workspace is not public');
+    }
+
     const member = isWorkspaceMember(workspace, session.user.id);
 
     if (member) {
         return { success: true };
     }
 
-    // Add as viewer
     workspace.members.push({
         userId: new Types.ObjectId(session.user.id),
         role: 'VIEWER',

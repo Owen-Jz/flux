@@ -3,7 +3,11 @@
 import { Task } from "@/models/Task";
 import { ActivityLog } from "@/models/ActivityLog";
 import { Board } from "@/models/Board";
+import { Workspace } from "@/models/Workspace";
 import mongoose from "mongoose";
+import { auth } from "@/lib/auth";
+import { isWorkspaceMember } from "@/lib/workspace-utils";
+import { connectDB } from "@/lib/db";
 
 export interface TaskTrendData {
     day: string;
@@ -59,9 +63,19 @@ function getTimeAgo(date: Date): string {
 }
 
 export async function getWorkspaceAnalytics(workspaceId: string): Promise<WorkspaceAnalytics> {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error('Unauthorized');
+
+    await connectDB();
+
+    const workspace = await Workspace.findById(workspaceId);
+    if (!workspace) throw new Error('Workspace not found');
+
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) throw new Error('Access denied');
+
     const objectId = new mongoose.Types.ObjectId(workspaceId);
 
-    // Get all boards in workspace
     const boards = await Board.find({ workspaceId: objectId }).select("_id").lean();
     const boardIds = boards.map(b => b._id);
 

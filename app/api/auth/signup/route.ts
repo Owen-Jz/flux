@@ -7,6 +7,7 @@ import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { addUserToWorkspaceFromInvite } from '@/lib/process-workspace-invite';
 import { signupSchema } from '@/lib/validations/auth';
 import { sendTrialStartedEmail } from '@/lib/email/subscription-notifications';
+import { sendEmail } from '@/lib/email/resend';
 
 export async function POST(request: NextRequest) {
     // Apply rate limiting - 5 signup attempts per 15 minutes per IP
@@ -89,8 +90,12 @@ export async function POST(request: NextRequest) {
             email
         );
 
-        // TODO: Send verification email with the token
-        // await sendEmailVerification(email, emailVerificationToken);
+        const verifyUrl = `${process.env.NEXTAUTH_URL || 'https://fluxboard.site'}/api/auth/verify-email?token=${emailVerificationToken}&email=${encodeURIComponent(email)}`;
+        sendEmail({
+            to: email,
+            subject: 'Verify your Flux account',
+            html: `<p>Hi ${name},</p><p>Welcome to Flux! Please verify your email address by clicking the link below:</p><p><a href="${verifyUrl}" style="background:#6366f1;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block">Verify Email</a></p><p>This link expires in 24 hours.</p><p>If you didn't create this account, you can safely ignore this email.</p>`,
+        }).catch(console.error);
 
         return NextResponse.json(
             {

@@ -856,7 +856,7 @@ export function Board({
                 <EditBoardModal
                     workspaceSlug={workspaceSlug}
                     board={{
-                        id: 'board-id',
+                        id: boardId || '',
                         name: boardName,
                         slug: boardSlug || '',
                         description: boardDescription,

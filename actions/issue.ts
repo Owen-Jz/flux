@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Issue, IssueStatus, IssuePriority, IssueType } from '@/models/Issue';
 import { Workspace } from '@/models/Workspace';
+import { isWorkspaceMember } from '@/lib/workspace-utils';
 import { User } from '@/models/User';
 import { Task } from '@/models/Task';
 import { Board } from '@/models/Board';
@@ -13,7 +14,6 @@ import { sendEmail } from '@/lib/email/resend';
 import { IssueCreatedEmail } from '@/components/emails/issue-created';
 import { render } from '@react-email/components';
 import React from 'react';
-import { isWorkspaceMember } from '@/lib/workspace-utils';
 import { TASK_ORDER_INCREMENT } from '@/lib/constants';
 
 interface CreateIssueData {
@@ -32,6 +32,10 @@ export async function createIssue(workspaceSlug: string, data: CreateIssueData) 
 
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) throw new Error('Workspace not found');
+
+    if (!isWorkspaceMember(workspace, session.user.id)) {
+        throw new Error('Access denied');
+    }
 
     const issue = await Issue.create({
         workspaceId: workspace._id,

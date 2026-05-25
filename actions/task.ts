@@ -1111,11 +1111,18 @@ function extractMentions(content: string): string[] {
 
 // Get workspace members for @mention autocomplete
 export async function getWorkspaceMembers(workspaceSlug: string) {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error('Unauthorized');
+
     await connectDB();
 
     const workspace = await Workspace.findOne({ slug: workspaceSlug }).populate('members.userId', 'name email image');
     if (!workspace) {
         throw new Error('Workspace not found');
+    }
+
+    if (!isWorkspaceMember(workspace, session.user.id)) {
+        throw new Error('Access denied');
     }
 
     return workspace.members.map((m: any) => ({

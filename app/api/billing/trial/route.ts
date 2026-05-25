@@ -22,32 +22,38 @@ export async function POST(request: Request) {
 
         await connectDB();
 
-        const user = await User.findById(session.user.id);
-
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
-        }
-
-        if (user.hasUsedTrial) {
-            return NextResponse.json({ error: 'You have already used your free trial' }, { status: 400 });
-        }
-
-        if (user.trialEndsAt && user.trialEndsAt > new Date()) {
-            return NextResponse.json({ error: 'You already have an active trial' }, { status: 400 });
-        }
-
-        if (user.subscriptionStatus === 'active') {
-            return NextResponse.json({ error: 'You already have an active subscription' }, { status: 400 });
-        }
-
         const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
-        user.plan = plan as 'starter' | 'pro';
-        user.trialEndsAt = trialEndsAt;
-        user.hasUsedTrial = true;
-        user.subscriptionStatus = 'inactive';
+        const user = await User.findOneAndUpdate(
+            {
+                _id: session.user.id,
+                hasUsedTrial: { $ne: true },
+                subscriptionStatus: { $ne: 'active' },
+            },
+            {
+                $set: {
+                    plan: plan as 'starter' | 'pro',
+                    trialEndsAt,
+                    hasUsedTrial: true,
+                    subscriptionStatus: 'inactive',
+                },
+            },
+            { new: true }
+        );
 
-        await user.save();
+        if (!user) {
+            const existingUser = await User.findById(session.user.id).select('hasUsedTrial subscriptionStatus').lean();
+            if (!existingUser) {
+                return NextResponse.json({ error: 'User not found' }, { status: 404 });
+            }
+            if (existingUser.hasUsedTrial) {
+                return NextResponse.json({ error: 'You have already used your free trial' }, { status: 400 });
+            }
+            if (existingUser.subscriptionStatus === 'active') {
+                return NextResponse.json({ error: 'You already have an active subscription' }, { status: 400 });
+            }
+            return NextResponse.json({ error: 'Trial activation failed' }, { status: 400 });
+        }
 
         await sendTrialStartedEmail(
             { email: user.email, name: user.name || 'there' },
