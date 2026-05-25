@@ -286,7 +286,7 @@ describe('Authorization Security', () => {
     });
 
     it('should return false for null role', () => {
-      const member = { role: null };
+      const member = { role: null as any };
       expect(hasRole(member, 'ADMIN', 'EDITOR', 'VIEWER')).toBe(false);
     });
 

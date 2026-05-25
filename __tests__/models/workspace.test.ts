@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { MemberRole } from '../../models/Workspace';
 
 vi.mock('mongoose', async () => {
   const actual = await vi.importActual('mongoose');
@@ -42,8 +43,7 @@ describe('Workspace model validation', () => {
   });
 
   describe('Workspace type exports', () => {
-    it('should export MemberRole with correct values', async () => {
-      const { MemberRole } = await import('../../models/Workspace');
+    it('should have MemberRole with correct values', () => {
       const roleValues: MemberRole[] = ['ADMIN', 'EDITOR', 'VIEWER'];
       roleValues.forEach(role => {
         expect(['ADMIN', 'EDITOR', 'VIEWER']).toContain(role);

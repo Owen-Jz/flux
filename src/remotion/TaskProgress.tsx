@@ -3,15 +3,15 @@ import { AbsoluteFill, interpolate, spring } from 'remotion';
 import { useMemo } from 'react';
 
 // Task type matching Flux schema.ts
-type TaskStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE' | 'ARCHIVED';
-type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type TaskStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE' | 'ARCHIVED';
+export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
 
-interface Subtask {
+export interface Subtask {
   title: string;
   completed: boolean;
 }
 
-interface Task {
+export interface Task {
   title: string;
   status: TaskStatus;
   priority: TaskPriority;

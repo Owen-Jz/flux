@@ -4,7 +4,7 @@ const MONGODB_URI = 'mongodb://new_owen_user:0lLdhFMmLK582IDp@ac-8fpezwt-shard-0
 
 async function listUsers() {
     await mongoose.connect(MONGODB_URI);
-    const users = await mongoose.connection.db.collection('users').find({}).limit(10).toArray();
+    const users = await mongoose.connection.db!.collection('users').find({}).limit(10).toArray();
     console.log('\n=== Users in database ===');
     console.log('Total found:', users.length);
     users.forEach(u => {

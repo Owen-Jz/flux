@@ -263,10 +263,10 @@ test.describe('Board', () => {
     // Look for delete option
     await page.waitForTimeout(500);
     const deleteBtn = page.locator('button:has-text("Delete Board"), button:has-text("Delete"), [data-delete-board]').first();
-    await deleteBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {
+    await deleteBtn.waitFor({ state: 'visible', timeout: 5000 }).catch(async () => {
       // Try alternative - look in a dropdown menu
       const dropdownDelete = page.locator('text="Delete"').first();
-      if (dropdownDelete.isVisible()) {
+      if (await dropdownDelete.isVisible()) {
         throw deleteBtn;
       }
     });

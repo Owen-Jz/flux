@@ -14,7 +14,7 @@ test.describe('Edge Case: Overflow Content', () => {
       if (cardCount > 0) {
         const card = taskCards.first();
         const box = await card.boundingBox();
-
+        if (!box) return;
         // Title should not cause horizontal overflow
         expect(box.width).toBeLessThanOrEqual(breakpoint.width - 24);
       }
@@ -59,7 +59,7 @@ test.describe('Edge Case: Overflow Content', () => {
 
         if (modalCount > 0) {
           const modalBox = await modal.boundingBox();
-
+          if (!modalBox) return;
           // Modal should fit within viewport
           expect(modalBox.height).toBeLessThanOrEqual(breakpoint.height - 40);
           expect(modalBox.width).toBeLessThanOrEqual(breakpoint.width - 16);

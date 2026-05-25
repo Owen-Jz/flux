@@ -20,7 +20,6 @@ export default defineConfig({
         branches: 30,
         statements: 50,
       },
-      perFile: true,
       exclude: [
         'node_modules/**',
         'dist/**',

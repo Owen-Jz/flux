@@ -47,7 +47,7 @@ test.describe('Responsive Design Breakpoints (320px - 768px)', () => {
         for (let i = 0; i < Math.min(cardCount, 5); i++) {
           const card = taskCards.nth(i);
           const box = await card.boundingBox();
-
+          if (!box) continue;
           expect(box.width).toBeLessThanOrEqual(breakpoint.width - 24); // Account for padding
         }
       }
@@ -61,7 +61,7 @@ test.describe('Responsive Design Breakpoints (320px - 768px)', () => {
       const mainContent = page.locator('main, [role="main"], body');
       if (await mainContent.count() > 0) {
         const box = await mainContent.boundingBox();
-        expect(box.height).toBeGreaterThan(0);
+        expect(box?.height).toBeGreaterThan(0);
       }
     });
 

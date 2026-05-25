@@ -57,8 +57,8 @@ describe('Billing Webhook Handler', () => {
         vi.clearAllMocks();
         vi.mocked(verifyWebhookSignature).mockReturnValue(true);
         vi.mocked(ProcessedWebhook.findOne).mockResolvedValue(null);
-        vi.mocked(ProcessedWebhook.create).mockResolvedValue({ eventId: 'evt_123456' });
-        vi.mocked(FailedWebhook.create).mockResolvedValue({});
+        vi.mocked(ProcessedWebhook.create).mockResolvedValue({ eventId: 'evt_123456' } as any);
+        vi.mocked(FailedWebhook.create).mockResolvedValue({} as any);
     });
 
     afterEach(() => {

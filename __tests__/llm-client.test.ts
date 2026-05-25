@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { MinimaxClient, createMinimaxClient } from '../lib/llm/client';
+import type { LLMMessage } from '../lib/llm/types';
 
 // Mock crypto.randomUUID
 vi.mock('crypto', () => ({
@@ -231,7 +232,7 @@ describe('MinimaxClient', () => {
       abortError.name = 'AbortError';
       vi.mocked(fetch).mockRejectedValue(abortError);
 
-      const messages = [
+      const messages: LLMMessage[] = [
         { role: 'system', content: 'You are a helpful assistant' },
         { role: 'user', content: 'Hello' }
       ];
@@ -248,7 +249,7 @@ describe('MinimaxClient', () => {
         text: vi.fn().mockResolvedValue('Unauthorized')
       } as any);
 
-      const messages = [
+      const messages: LLMMessage[] = [
         { role: 'system', content: 'You are a helpful assistant' },
         { role: 'user', content: 'Hello' }
       ];

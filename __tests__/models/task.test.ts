@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { TaskStatus, TaskPriority } from '../../models/Task';
 
 vi.mock('mongoose', async () => {
   const actual = await vi.importActual('mongoose');
@@ -58,16 +59,14 @@ describe('Task model validation', () => {
   });
 
   describe('Task type exports', () => {
-    it('should export TaskStatus type with correct values', async () => {
-      const { TaskStatus } = await import('../../models/Task');
+    it('should have TaskStatus type with correct values', () => {
       const statusValues: TaskStatus[] = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'REVIEW', 'DONE', 'ARCHIVED'];
       statusValues.forEach(status => {
         expect(['BACKLOG', 'TODO', 'IN_PROGRESS', 'REVIEW', 'DONE', 'ARCHIVED']).toContain(status);
       });
     });
 
-    it('should export TaskPriority type with correct values', async () => {
-      const { TaskPriority } = await import('../../models/Task');
+    it('should have TaskPriority type with correct values', () => {
       const priorityValues: TaskPriority[] = ['LOW', 'MEDIUM', 'HIGH'];
       priorityValues.forEach(priority => {
         expect(['LOW', 'MEDIUM', 'HIGH']).toContain(priority);

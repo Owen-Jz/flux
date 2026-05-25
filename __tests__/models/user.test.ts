@@ -1,4 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
+import type { PlanType } from '../../models/User';
 
 vi.mock('mongoose', async () => {
   const actual = await vi.importActual('mongoose');
@@ -68,8 +69,7 @@ describe('User model validation', () => {
   });
 
   describe('User type exports', () => {
-    it('should export PlanType with correct values', async () => {
-      const { PlanType } = await import('../../models/User');
+    it('should have PlanType with correct values', () => {
       const planValues: PlanType[] = ['free', 'starter', 'pro', 'enterprise'];
       planValues.forEach(plan => {
         expect(['free', 'starter', 'pro', 'enterprise']).toContain(plan);

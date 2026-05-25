@@ -6,7 +6,7 @@ export const RemotionRoot: React.FC = () => {
     <>
       <Composition
         id="TaskProgress"
-        component={TaskProgress}
+        component={TaskProgress as any}
         durationInFrames={150}
         fps={30}
         width={800}

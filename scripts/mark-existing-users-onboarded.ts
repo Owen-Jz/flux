@@ -11,7 +11,7 @@ async function markExistingUsersOnboarded() {
     await mongoose.connect(MONGODB_URI);
 
     console.log('Updating all users to mark hasCompletedOnboarding = true...');
-    const result = await mongoose.connection.db.collection('users').updateMany(
+    const result = await mongoose.connection.db!.collection('users').updateMany(
         { hasCompletedOnboarding: { $ne: true } },
         { $set: { hasCompletedOnboarding: true } }
     );
@@ -20,8 +20,8 @@ async function markExistingUsersOnboarded() {
     console.log(`Matched ${result.matchedCount} users total`);
 
     // Verify the update
-    const usersWithOnboarding = await mongoose.connection.db.collection('users').countDocuments({ hasCompletedOnboarding: true });
-    const usersWithoutOnboarding = await mongoose.connection.db.collection('users').countDocuments({ hasCompletedOnboarding: { $ne: true } });
+    const usersWithOnboarding = await mongoose.connection.db!.collection('users').countDocuments({ hasCompletedOnboarding: true });
+    const usersWithoutOnboarding = await mongoose.connection.db!.collection('users').countDocuments({ hasCompletedOnboarding: { $ne: true } });
 
     console.log(`\nVerification:`);
     console.log(`  Users with hasCompletedOnboarding = true: ${usersWithOnboarding}`);

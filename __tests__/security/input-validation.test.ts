@@ -143,7 +143,7 @@ describe('SQL/NoSQL Injection Prevention', () => {
     it('should return false for invalid role types', () => {
       // Even if role is not a string, hasRole should handle it safely
       expect(hasRole({ role: 123 as any }, 'ADMIN')).toBe(false);
-      expect(hasRole({ role: null }, 'ADMIN')).toBe(false);
+      expect(hasRole({ role: null as any }, 'ADMIN')).toBe(false);
       expect(hasRole({ role: undefined }, 'ADMIN')).toBe(false);
     });
   });

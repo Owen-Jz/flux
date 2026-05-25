@@ -11,7 +11,7 @@ describe('isWorkspaceMember', () => {
     };
     const result = isWorkspaceMember(workspace, 'user-123');
     expect(result).toEqual({ userId: { toString: expect.any(Function) }, role: 'ADMIN' });
-    expect(result?.userId.toString()).toBe('user-123');
+    expect(result?.userId?.toString()).toBe('user-123');
   });
 
   it('returns undefined when user is not found', () => {

@@ -12,7 +12,7 @@ async function createAdmin() {
     console.log(`Creating admin for user: ${email} (ID: ${userId})`);
 
     // Check if already an admin
-    const existingAdmin = await mongoose.connection.db.collection('admins').findOne({ userId: new mongoose.Types.ObjectId(userId) });
+    const existingAdmin = await mongoose.connection.db!.collection('admins').findOne({ userId: new mongoose.Types.ObjectId(userId) });
     if (existingAdmin) {
         console.log('User is already an admin!');
         console.log('Role:', existingAdmin.role);
@@ -21,7 +21,7 @@ async function createAdmin() {
     }
 
     // Create admin
-    const admin = await mongoose.connection.db.collection('admins').insertOne({
+    const admin = await mongoose.connection.db!.collection('admins').insertOne({
         userId: new mongoose.Types.ObjectId(userId),
         role: 'SUPER_ADMIN',
         permissions: {
