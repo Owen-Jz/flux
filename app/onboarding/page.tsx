@@ -3,47 +3,52 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import { BuildingOffice2Icon, ArrowRightIcon, SparklesIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { BuildingOffice2Icon, ArrowRightIcon, SparklesIcon, UsersIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { createWorkspace } from '@/actions/workspace';
 import { getWorkspaces } from '@/actions/workspace';
 
 export default function OnboardingPage() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
-    const [step, setStep] = useState(1); // 1=Welcome, 1.5=InvitePrompt, 2=CreateWorkspace, 3=Tour
-    const [formData, setFormData] = useState({
-        workspaceName: '',
-        workspaceSlug: '',
-    });
+    // Steps: 1=Welcome, 2=CreateWorkspace, 3=Tour, 4=InviteSwitch (only for invited users)
+    const [step, setStep] = useState(1);
+    const [formData, setFormData] = useState({ workspaceName: '', workspaceSlug: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
     const [invitedWorkspaces, setInvitedWorkspaces] = useState<Array<{ slug: string; name: string; role: string }>>([]);
-    const [joinedWorkspace, setJoinedWorkspace] = useState<{ slug: string; name: string } | null>(null);
+    const [ownWorkspaceSlug, setOwnWorkspaceSlug] = useState<string | null>(null);
 
     useEffect(() => {
         async function checkAccess() {
             try {
-                const workspaces = await getWorkspaces();
-                if (workspaces.length > 0) {
-                    router.replace('/dashboard');
-                    return;
-                }
-
-                // Parse invited workspaces from URL
                 const params = new URLSearchParams(window.location.search);
                 const invitedParam = params.get('invited');
+
+                // Parse invited workspaces first
+                let invited: Array<{ slug: string; name: string; role: string }> = [];
                 if (invitedParam) {
                     try {
                         const parsed = JSON.parse(decodeURIComponent(invitedParam));
                         if (Array.isArray(parsed) && parsed.length > 0) {
+                            invited = parsed;
                             setInvitedWorkspaces(parsed);
                         }
-                    } catch (e) {
-                        console.error('Failed to parse invited workspaces');
+                    } catch {
+                        // ignore parse errors
                     }
                 }
-            } catch (e) {
+
+                // Only redirect to dashboard if user already has workspaces AND
+                // they didn't arrive from an invite link. Invited users must always
+                // go through onboarding so they see the workspace-switch prompt.
+                if (invited.length === 0) {
+                    const workspaces = await getWorkspaces();
+                    if (workspaces.length > 0) {
+                        router.replace('/dashboard');
+                        return;
+                    }
+                }
+            } catch {
                 router.replace('/dashboard');
                 return;
             }
@@ -52,7 +57,7 @@ export default function OnboardingPage() {
         checkAccess();
     }, [router]);
 
-    // Check if user has already completed onboarding - if so, redirect to dashboard
+    // Skip onboarding if already completed (manual navigation guard)
     useEffect(() => {
         async function checkOnboardingStatus() {
             try {
@@ -61,11 +66,10 @@ export default function OnboardingPage() {
                     const data = await res.json();
                     if (data.hasCompletedOnboarding) {
                         router.replace('/dashboard');
-                        return;
                     }
                 }
-            } catch (e) {
-                // If error checking status, allow onboarding to proceed
+            } catch {
+                // allow onboarding to proceed
             }
         }
         checkOnboardingStatus();
@@ -80,35 +84,27 @@ export default function OnboardingPage() {
     }
 
     const handleNameChange = (value: string) => {
-        setFormData(prev => ({
-            ...prev,
+        setFormData({
             workspaceName: value,
             workspaceSlug: value
                 .toLowerCase()
                 .replace(/[^a-z0-9\s-]/g, '')
                 .replace(/\s+/g, '-')
-                .substring(0, 30)
-        }));
+                .substring(0, 30),
+        });
     };
 
+    // Step 3 → creates workspace, then either goes to Step 4 (invited) or navigates
     const handleWorkspaceSubmit = async () => {
         if (!formData.workspaceName || !formData.workspaceSlug) return;
-
         setIsSubmitting(true);
         setError('');
-
         try {
-            if (joinedWorkspace) {
-                // User joined an invited workspace, redirect there after tour completes
-                // Mark onboarding as complete since they have a workspace now
-                try {
-                    await fetch('/api/auth/onboarding', { method: 'PATCH' });
-                } catch (e) {
-                    // Ignore errors
-                }
-                router.push(`/${joinedWorkspace.slug}`);
+            const result = await createWorkspace({ name: formData.workspaceName, slug: formData.workspaceSlug });
+            if (invitedWorkspaces.length > 0) {
+                setOwnWorkspaceSlug(result.slug);
+                setStep(4);
             } else {
-                const result = await createWorkspace({ name: formData.workspaceName, slug: formData.workspaceSlug });
                 router.push(`/${result.slug}`);
             }
         } catch (err) {
@@ -118,24 +114,18 @@ export default function OnboardingPage() {
         }
     };
 
-    const handleJoinWorkspace = (workspace: { slug: string; name: string; role: string }) => {
-        setJoinedWorkspace({ slug: workspace.slug, name: workspace.name });
-        setStep(3); // Skip to tour, then route to joined workspace
+    const markOnboardingComplete = async () => {
+        try { await fetch('/api/auth/onboarding', { method: 'PATCH' }); } catch { /* ignore */ }
     };
 
-    const handleSkipInvite = () => {
-        setInvitedWorkspaces([]);
-        setStep(2);
-    };
+    const hasInvite = invitedWorkspaces.length > 0;
+    const totalSteps = hasInvite ? 4 : 3;
 
-    // Determine which steps to show in progress indicator
-    const showInviteStep = invitedWorkspaces.length > 0;
-    const totalSteps = showInviteStep ? 4 : 3;
     const getProgressStep = () => {
         if (step === 1) return 1;
-        if (step === 1.5) return 2;
-        if (step === 2) return showInviteStep ? 3 : 2;
-        if (step === 3) return showInviteStep ? 4 : 3;
+        if (step === 2) return 2;
+        if (step === 3) return 3;
+        if (step === 4) return 4;
         return 1;
     };
 
@@ -147,7 +137,7 @@ export default function OnboardingPage() {
                 transition={{ duration: 0.5 }}
                 className="w-full max-w-lg"
             >
-                {/* Header */}
+                {/* Logo */}
                 <div className="text-center mb-8">
                     <motion.div
                         initial={{ scale: 0 }}
@@ -163,7 +153,7 @@ export default function OnboardingPage() {
                     </motion.div>
                 </div>
 
-                {/* Progress indicator */}
+                {/* Progress dots */}
                 <div className="flex justify-center gap-2 mb-6">
                     {Array.from({ length: totalSteps }, (_, i) => i + 1).map((s) => (
                         <div
@@ -179,9 +169,9 @@ export default function OnboardingPage() {
                     ))}
                 </div>
 
-                {/* Card */}
                 <div className="card p-8">
                     <AnimatePresence mode="wait">
+
                         {/* Step 1: Welcome */}
                         {step === 1 && (
                             <motion.div
@@ -208,7 +198,7 @@ export default function OnboardingPage() {
                                             </svg>
                                         </div>
                                         <div>
-                                            <h3 className="font-medium text-[var(--foreground)]">Boards & Tasks</h3>
+                                            <h3 className="font-medium text-[var(--foreground)]">Boards &amp; Tasks</h3>
                                             <p className="text-sm text-[var(--text-secondary)]">Visualize work with kanban boards and track progress</p>
                                         </div>
                                     </div>
@@ -238,77 +228,12 @@ export default function OnboardingPage() {
 
                                 <button
                                     type="button"
-                                    onClick={() => {
-                                        if (showInviteStep) {
-                                            setStep(1.5);
-                                        } else {
-                                            setStep(2);
-                                        }
-                                    }}
+                                    onClick={() => setStep(2)}
                                     className="btn btn-primary w-full"
                                 >
                                     Get Started
                                     <ArrowRightIcon className="w-4 h-4" />
                                 </button>
-                            </motion.div>
-                        )}
-
-                        {/* Step 1.5: Invite Prompt (NEW) */}
-                        {step === 1.5 && (
-                            <motion.div
-                                key="step-invite"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
-                            >
-                                <div className="text-center mb-6">
-                                    <div className="w-16 h-16 bg-gradient-to-br from-[var(--brand-primary)] to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                        <UsersIcon className="w-8 h-8 text-white" />
-                                    </div>
-                                    <h2 className="text-2xl font-bold text-[var(--foreground)]">
-                                        You&apos;ve been invited!
-                                    </h2>
-                                    <p className="text-[var(--text-secondary)]">
-                                        You were invited to join the following workspace(s)
-                                    </p>
-                                </div>
-
-                                <div className="space-y-3">
-                                    {invitedWorkspaces.map((workspace) => (
-                                        <div
-                                            key={workspace.slug}
-                                            className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)]"
-                                        >
-                                            <h3 className="font-bold text-lg text-[var(--foreground)]">{workspace.name}</h3>
-                                            <p className="text-sm text-[var(--text-secondary)]">
-                                                Role: <span className="font-medium">{workspace.role}</span>
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="flex gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleJoinWorkspace(invitedWorkspaces[0])}
-                                        className="btn btn-primary flex-1"
-                                    >
-                                        Join {invitedWorkspaces[0].name}
-                                        <ArrowRightIcon className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={handleSkipInvite}
-                                        className="btn btn-secondary flex-1"
-                                    >
-                                        Skip, create my own
-                                    </button>
-                                </div>
-
-                                <p className="text-xs text-[var(--text-secondary)] text-center">
-                                    You can create your own workspace and join this one later from your dashboard.
-                                </p>
                             </motion.div>
                         )}
 
@@ -358,9 +283,7 @@ export default function OnboardingPage() {
                                         Workspace URL
                                     </label>
                                     <div className="flex items-center gap-2 p-3 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)]">
-                                        <span className="text-[var(--text-secondary)] text-sm">
-                                            flux.com/
-                                        </span>
+                                        <span className="text-[var(--text-secondary)] text-sm">flux.com/</span>
                                         <input
                                             type="text"
                                             value={formData.workspaceSlug}
@@ -370,7 +293,7 @@ export default function OnboardingPage() {
                                                     workspaceSlug: e.target.value
                                                         .toLowerCase()
                                                         .replace(/[^a-z0-9-]/g, '')
-                                                        .substring(0, 30)
+                                                        .substring(0, 30),
                                                 }))
                                             }
                                             className="flex-1 bg-transparent border-none outline-none text-sm font-medium"
@@ -384,11 +307,7 @@ export default function OnboardingPage() {
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setStep(1)}
-                                        className="btn btn-secondary flex-1"
-                                    >
+                                    <button type="button" onClick={() => setStep(1)} className="btn btn-secondary flex-1">
                                         Back
                                     </button>
                                     <button
@@ -421,56 +340,29 @@ export default function OnboardingPage() {
                                     <p className="text-[var(--text-secondary)]">Take a quick interactive tour of your board</p>
                                 </div>
 
-                                {/* Interactive steps preview */}
                                 <div className="space-y-3">
-                                    <div className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)] flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-sm font-bold text-blue-600">1</span>
+                                    {[
+                                        { num: '1', color: 'blue', title: 'Drag a task', desc: 'Move a task between columns' },
+                                        { num: '2', color: 'purple', title: 'Assign yourself', desc: 'Click on a task and assign it to yourself' },
+                                        { num: '3', color: 'green', title: 'Add a comment', desc: 'Update task description or add a comment' },
+                                    ].map(({ num, color, title, desc }) => (
+                                        <div key={num} className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)] flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-full bg-${color}-100 flex items-center justify-center flex-shrink-0`}>
+                                                <span className={`text-sm font-bold text-${color}-600`}>{num}</span>
+                                            </div>
+                                            <div>
+                                                <h3 className="font-medium text-[var(--foreground)]">{title}</h3>
+                                                <p className="text-sm text-[var(--text-secondary)]">{desc}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="font-medium text-[var(--foreground)]">Drag a task</h3>
-                                            <p className="text-sm text-[var(--text-secondary)]">Move a task between columns</p>
-                                        </div>
-                                    </div>
-                                    <div className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)] flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-sm font-bold text-purple-600">2</span>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-medium text-[var(--foreground)]">Assign yourself</h3>
-                                            <p className="text-sm text-[var(--text-secondary)]">Click on a task and assign it to yourself</p>
-                                        </div>
-                                    </div>
-                                    <div className="p-4 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)] flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                                            <span className="text-sm font-bold text-green-600">3</span>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-medium text-[var(--foreground)]">Add a comment</h3>
-                                            <p className="text-sm text-[var(--text-secondary)]">Update task description or add a comment</p>
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
-
-                                {/* Multi-workspace explanation */}
-                                {joinedWorkspace && (
-                                    <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <p className="text-sm text-blue-800">
-                                            <strong>Note:</strong> You can work in multiple workspaces — the one you were invited to ({joinedWorkspace.name}) and any you create yourself. Your dashboard will show all your workspaces.
-                                        </p>
-                                    </div>
-                                )}
 
                                 <div className="flex gap-3">
                                     <button
                                         type="button"
                                         onClick={async () => {
-                                            // Mark onboarding as skipped
-                                            try {
-                                                await fetch('/api/auth/onboarding', { method: 'PATCH' });
-                                            } catch (e) {
-                                                // Ignore errors
-                                            }
+                                            await markOnboardingComplete();
                                             router.push('/dashboard');
                                         }}
                                         className="btn btn-secondary flex-1"
@@ -479,7 +371,7 @@ export default function OnboardingPage() {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => handleWorkspaceSubmit()}
+                                        onClick={handleWorkspaceSubmit}
                                         disabled={isSubmitting}
                                         className="btn btn-primary flex-1"
                                     >
@@ -495,6 +387,83 @@ export default function OnboardingPage() {
                                 </div>
                             </motion.div>
                         )}
+
+                        {/* Step 4: Invited workspace switch prompt (only for invited users) */}
+                        {step === 4 && invitedWorkspaces.length > 0 && (
+                            <motion.div
+                                key="step4"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="space-y-6"
+                            >
+                                <div className="text-center mb-6">
+                                    <motion.div
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ type: 'spring', damping: 14, stiffness: 220 }}
+                                        className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+                                    >
+                                        <CheckCircleIcon className="w-8 h-8 text-white" />
+                                    </motion.div>
+                                    <h2 className="text-2xl font-bold text-[var(--foreground)]">You&apos;re all set!</h2>
+                                    <p className="text-[var(--text-secondary)] mt-1">
+                                        Your workspace is ready. One more thing —
+                                    </p>
+                                </div>
+
+                                <div className="p-4 rounded-xl bg-gradient-to-r from-[var(--brand-primary)]/10 to-purple-500/10 border border-[var(--brand-primary)]/20">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <UsersIcon className="w-5 h-5 text-[var(--brand-primary)]" />
+                                        <p className="font-semibold text-[var(--foreground)]">You were also added to a team</p>
+                                    </div>
+                                    {invitedWorkspaces.map((ws) => (
+                                        <div key={ws.slug} className="ml-8">
+                                            <p className="text-lg font-bold text-[var(--foreground)]">{ws.name}</p>
+                                            <p className="text-sm text-[var(--text-secondary)]">
+                                                Your role: <span className="font-medium capitalize">{ws.role.toLowerCase()}</span>
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <p className="text-sm text-center text-[var(--text-secondary)]">
+                                    Where would you like to go first?
+                                </p>
+
+                                <div className="space-y-3">
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            await markOnboardingComplete();
+                                            router.push(`/${invitedWorkspaces[0].slug}`);
+                                        }}
+                                        className="btn btn-primary w-full"
+                                    >
+                                        <UsersIcon className="w-4 h-4" />
+                                        Go to {invitedWorkspaces[0].name}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            await markOnboardingComplete();
+                                            router.push(ownWorkspaceSlug ? `/${ownWorkspaceSlug}` : '/dashboard');
+                                        }}
+                                        className="btn btn-secondary w-full"
+                                    >
+                                        Go to my workspace
+                                        {ownWorkspaceSlug && (
+                                            <span className="ml-1 text-xs opacity-70">({formData.workspaceName})</span>
+                                        )}
+                                    </button>
+                                </div>
+
+                                <p className="text-xs text-center text-[var(--text-tertiary)]">
+                                    You can switch between workspaces anytime from the sidebar.
+                                </p>
+                            </motion.div>
+                        )}
+
                     </AnimatePresence>
                 </div>
             </motion.div>
