@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { TrialPromptModal } from './TrialPromptModal';
+import { TrialActivatedModal } from './TrialActivatedModal';
 import { startTrial } from '@/actions/billing/start-trial';
 import { dismissTrialPrompt, isEligibleForOnboarding } from '@/actions/onboarding';
 import { useRouter } from 'next/navigation';
@@ -23,6 +24,8 @@ export function TrialPromptWrapper({
     const router = useRouter();
     const [isEligible, setIsEligible] = useState(false);
     const [showOfferModal, setShowOfferModal] = useState(false);
+    const [showActivatedModal, setShowActivatedModal] = useState(false);
+    const [activatedTrialEndsAt, setActivatedTrialEndsAt] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
     const [isOnboardingEligible, setIsOnboardingEligible] = useState(false);
@@ -115,13 +118,11 @@ export function TrialPromptWrapper({
         setIsProcessing(true);
         try {
             const result = await startTrial('pro');
-            if (result.success) {
+            if (result.success && result.trialEndsAt) {
                 setShowOfferModal(false);
                 justActivatedRef.current = true;
-                toast.success('Your 14-day Pro trial is now active!', {
-                    description: 'All Pro features are unlocked. Check your email for details.',
-                    duration: 6000,
-                });
+                setActivatedTrialEndsAt(result.trialEndsAt);
+                setShowActivatedModal(true);
                 router.refresh();
             } else {
                 toast.error(result.error || 'Failed to activate trial. Please try again.');
@@ -138,6 +139,16 @@ export function TrialPromptWrapper({
         await dismissTrialPrompt();
         setShowOfferModal(false);
     };
+
+    // Show celebration modal immediately after activation
+    if (showActivatedModal && activatedTrialEndsAt) {
+        return (
+            <TrialActivatedModal
+                trialEndsAt={activatedTrialEndsAt}
+                onClose={() => setShowActivatedModal(false)}
+            />
+        );
+    }
 
     // Show trial reminder for users who already have a trial
     if (isEligible && trialEndsAt) {
