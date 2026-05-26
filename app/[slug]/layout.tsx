@@ -59,18 +59,18 @@ export default async function WorkspaceLayout({
         icon: workspace.icon,
     };
 
+    const accentStyle = workspace.accentColor
+        ? ({
+              '--brand-primary': workspace.accentColor,
+              '--brand-primary-rgb': hexToRgb(workspace.accentColor),
+          } as React.CSSProperties)
+        : undefined;
+
     return (
-        <div className="flex flex-col md:flex-row h-screen bg-[var(--background)]">
-            {workspace.accentColor && (
-                <style dangerouslySetInnerHTML={{
-                    __html: `
-                        :root {
-                            --brand-primary: ${workspace.accentColor};
-                            --brand-primary-rgb: ${hexToRgb(workspace.accentColor)};
-                        }
-                    `
-                }} />
-            )}
+        <div
+            className="flex flex-col md:flex-row h-screen bg-[var(--background)]"
+            style={accentStyle}
+        >
             <TutorialProvider />
             {/* Only show sidebar for authenticated users */}
             {session?.user && (

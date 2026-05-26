@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CreditCardIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon, XMarkIcon, TrophyIcon, BoltIcon, BuildingOffice2Icon, GlobeAltIcon, ShieldCheckIcon, HandRaisedIcon, DocumentChartBarIcon, ServerIcon, ArrowPathIcon as SubmitIcon, SparklesIcon, StarIcon, FireIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
@@ -260,6 +260,7 @@ export function BillingSection() {
     const [showTrialActivation, setShowTrialActivation] = useState(false);
     const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);
     const [upgradedPlan, setUpgradedPlan] = useState<string | null>(null);
+    const trialActivating = useRef(false);
 
     // Fetch user's geo location for currency detection
     useEffect(() => {
@@ -389,6 +390,8 @@ export function BillingSection() {
     };
 
     const handleActivateTrial = async (plan: 'starter' | 'pro' = 'starter') => {
+        if (trialActivating.current) return;
+        trialActivating.current = true;
         setProcessing(true);
         setError(null);
         try {
@@ -405,6 +408,7 @@ export function BillingSection() {
             setError('Failed to activate trial');
         } finally {
             setProcessing(false);
+            trialActivating.current = false;
         }
     };
 
