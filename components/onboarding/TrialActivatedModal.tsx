@@ -9,13 +9,13 @@ interface TrialActivatedModalProps {
     onClose: () => void;
 }
 
-const PRO_FEATURES = [
-    { icon: '∞', label: 'Unlimited boards & projects' },
-    { icon: '👥', label: '25 team members per workspace' },
-    { icon: '📊', label: 'Advanced analytics & reporting' },
-    { icon: '🔑', label: 'API access & webhooks' },
-    { icon: '⚡', label: 'Priority support' },
-    { icon: '🛡️', label: 'Admin controls & audit logs' },
+const INDIVIDUAL_FEATURES = [
+    { icon: '📋', label: 'Up to 5 projects' },
+    { icon: '👥', label: '10 team members' },
+    { icon: '✉️', label: 'Email support' },
+    { icon: '⚙️', label: 'Custom workflows' },
+    { icon: '🔗', label: 'API access' },
+    { icon: '📊', label: 'Basic analytics' },
 ];
 
 export function TrialActivatedModal({ trialEndsAt, onClose }: TrialActivatedModalProps) {
@@ -126,10 +126,10 @@ export function TrialActivatedModal({ trialEndsAt, onClose }: TrialActivatedModa
                                 Trial Activated
                             </p>
                             <h2 className="text-2xl font-extrabold text-[var(--foreground)] leading-tight mb-1">
-                                You&apos;re on Pro!
+                                You&apos;re on Individual!
                             </h2>
                             <p className="text-sm text-[var(--text-secondary)]">
-                                14 days free &mdash; expires <strong>{expiryLabel}</strong>
+                                14-day free trial &mdash; expires <strong>{expiryLabel}</strong>
                             </p>
                         </motion.div>
 
@@ -140,7 +140,7 @@ export function TrialActivatedModal({ trialEndsAt, onClose }: TrialActivatedModa
                             transition={{ delay: 0.35 }}
                             className="mt-6 grid grid-cols-2 gap-2 text-left"
                         >
-                            {PRO_FEATURES.map((f, i) => (
+                            {INDIVIDUAL_FEATURES.map((f, i) => (
                                 <motion.div
                                     key={f.label}
                                     initial={{ opacity: 0, x: -8 }}

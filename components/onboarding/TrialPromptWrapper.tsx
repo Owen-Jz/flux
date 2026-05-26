@@ -117,7 +117,7 @@ export function TrialPromptWrapper({
     const handleActivateTrial = async () => {
         setIsProcessing(true);
         try {
-            const result = await startTrial('pro');
+            const result = await startTrial('starter');
             if (result.success && result.trialEndsAt) {
                 setShowOfferModal(false);
                 justActivatedRef.current = true;

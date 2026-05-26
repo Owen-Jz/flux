@@ -44,7 +44,7 @@ export function getUpgradeMessage(plan: PlanType, limitType: 'projects' | 'membe
 
 export const PLAN_META: Record<PlanType, PlanMeta> = {
     free: {
-        label: 'Free',
+        label: 'Individual',
         price: 0,
         priceDisplay: 'Free',
         projects: 3,

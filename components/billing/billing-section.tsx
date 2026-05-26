@@ -388,13 +388,13 @@ export function BillingSection() {
         }
     };
 
-    const handleActivateTrial = async (plan: 'starter' | 'pro' = 'pro') => {
+    const handleActivateTrial = async (plan: 'starter' | 'pro' = 'starter') => {
         setProcessing(true);
         setError(null);
         try {
             const result = await startTrial(plan);
             if (result.success) {
-                setSuccess('Your free trial has been activated! Enjoy 14 days of Pro features.');
+                setSuccess('Your free trial has been activated! Enjoy 14 days of Individual plan features.');
                 setShowTrialActivation(false);
                 // Redirect to dashboard to start the guided tutorial
                 router.push('/dashboard');
@@ -479,26 +479,6 @@ export function BillingSection() {
     return (
         <>
             <div className="space-y-6">
-            {!loading && subscription?.trialEndsAt && subscription?.status === 'inactive' && (
-                <div className="p-4 rounded-xl bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border border-violet-500/20 mb-4">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-semibold text-violet-300">
-                                Your {PLAN_META[subscription.plan as keyof typeof PLAN_META]?.label || subscription.plan?.charAt(0).toUpperCase() + subscription.plan?.slice(1)} Trial
-                            </p>
-                            <p className="text-xs text-zinc-400 mt-0.5">
-                                {daysLeft > 0 ? `${daysLeft} day${daysLeft === 1 ? '' : 's'} remaining` : 'Trial ended'}
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => handleSubscribe(subscription.plan || 'pro')}
-                            className="px-4 py-2 bg-violet-500 hover:bg-violet-600 text-white text-xs font-semibold rounded-lg transition-colors"
-                        >
-                            Upgrade Now
-                        </button>
-                    </div>
-                </div>
-            )}
             {(error || success) && (
                 <div className={`p-4 rounded-lg flex items-center gap-3 ${error ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'}`}>
                     {error ? (
@@ -520,21 +500,51 @@ export function BillingSection() {
                     <h2 className="font-semibold">Current Plan</h2>
                 </div>
 
+                {/* Trial active banner */}
+                {subscription?.trialEndsAt && subscription?.status !== 'active' && daysLeft > 0 && (
+                    <div className="mb-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-violet-500/15 to-pink-500/15 border border-violet-500/30">
+                        <SparklesIconSolid className="w-5 h-5 text-violet-500 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-violet-600 dark:text-violet-400">
+                                Free Trial Active
+                            </p>
+                            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+                                {daysLeft} day{daysLeft === 1 ? '' : 's'} remaining &mdash; trial ends{' '}
+                                {new Date(subscription.trialEndsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => handleSubscribe(subscription.plan || 'starter')}
+                            className="flex-shrink-0 px-3 py-1.5 bg-violet-500 hover:bg-violet-600 text-white text-xs font-semibold rounded-lg transition-colors"
+                        >
+                            Upgrade
+                        </button>
+                    </div>
+                )}
+
                 <div className={`relative overflow-hidden rounded-xl border-2 ${
-                    currentPlan === 'pro'
+                    subscription?.trialEndsAt && subscription?.status !== 'active' && daysLeft > 0
+                        ? 'border-violet-400 bg-gradient-to-br from-violet-500/5 via-transparent to-pink-500/5'
+                        : currentPlan === 'pro'
                         ? 'border-purple-500 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5'
                         : currentPlan === 'starter'
                         ? 'border-amber-500 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5'
                         : 'border-[var(--border-subtle)] bg-[var(--surface)]'
                 } p-5`}>
-                    {/* Pro Badge */}
-                    {currentPlan === 'pro' && (
+                    {/* Trial pill */}
+                    {subscription?.trialEndsAt && subscription?.status !== 'active' && daysLeft > 0 && (
+                        <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full text-white text-xs font-bold shadow-lg shadow-violet-500/25 animate-pulse">
+                            <SparklesIconSolid className="w-3 h-3" />
+                            TRIAL
+                        </div>
+                    )}
+                    {!subscription?.trialEndsAt && currentPlan === 'pro' && (
                         <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs font-bold shadow-lg shadow-purple-500/25">
                             <SparklesIconSolid className="w-3 h-3" />
                             PRO
                         </div>
                     )}
-                    {currentPlan === 'starter' && (
+                    {!subscription?.trialEndsAt && currentPlan === 'starter' && (
                         <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-white text-xs font-bold shadow-lg shadow-amber-500/25">
                             <StarIcon className="w-3 h-3" />
                             INDIVIDUAL
@@ -551,14 +561,19 @@ export function BillingSection() {
                         <div className="flex-1">
                             <div className="flex items-center gap-2">
                                 <p className="text-lg font-bold capitalize">{PLAN_META[currentPlan as keyof typeof PLAN_META]?.label || currentPlan}</p>
-                                {isActive ? (
+                                {subscription?.trialEndsAt && subscription?.status !== 'active' && daysLeft > 0 ? (
+                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-violet-500/10 text-violet-600 dark:text-violet-400 text-xs font-semibold rounded-full">
+                                        <SparklesIconSolid className="w-3 h-3" />
+                                        Trial — {daysLeft}d left
+                                    </span>
+                                ) : isActive ? (
                                     <span className="flex items-center gap-1 px-2 py-0.5 bg-green-500/10 text-green-600 text-xs font-medium rounded-full">
                                         <CheckCircleIcon className="w-3 h-3" />
                                         Active
                                     </span>
                                 ) : (
                                     <span className="px-2 py-0.5 bg-gray-500/10 text-gray-500 text-xs font-medium rounded-full">
-                                        Inactive
+                                        Free
                                     </span>
                                 )}
                             </div>
@@ -723,7 +738,7 @@ export function BillingSection() {
                                         Cancel
                                     </button>
                                     <button
-                                        onClick={() => handleActivateTrial('pro')}
+                                        onClick={() => handleActivateTrial('starter')}
                                         disabled={processing}
                                         className="flex-1 px-4 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                                     >

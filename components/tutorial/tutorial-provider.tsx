@@ -149,8 +149,8 @@ export function TutorialProvider() {
                 {
                     element: '#settings-danger',
                     popover: {
-                        title: 'Danger Zone',
-                        description: 'Delete your workspace if needed. Be careful!',
+                        title: 'Delete Workspace',
+                        description: 'Permanently remove this workspace and all its data if needed.',
                         side: 'top',
                         align: 'start',
                     },

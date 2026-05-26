@@ -375,11 +375,11 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                     </p>
                 </div>
 
-                {/* Danger Zone */}
-                <div id="settings-danger" className="card p-6 border-red-200 bg-red-50/30">
-                    <div className="flex items-center gap-2 mb-4 text-red-600">
+                {/* Delete workspace */}
+                <div id="settings-danger" className="card p-6 border-[var(--border-subtle)]">
+                    <div className="flex items-center gap-2 mb-4 text-[var(--text-secondary)]">
                         <TrashIcon className="w-4 h-4" />
-                        <h2 className="font-semibold">Danger Zone</h2>
+                        <h2 className="font-semibold text-[var(--foreground)]">Delete Workspace</h2>
                     </div>
 
                     {!showDeleteConfirm ? (
