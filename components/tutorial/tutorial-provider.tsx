@@ -190,10 +190,10 @@ export function TutorialProvider() {
                 },
             });
 
-            // Small delay to ensure rendering
+            // Delay so the trial prompt is visible before the tutorial starts
             timeoutRef.current = setTimeout(() => {
                 driverRef.current?.drive();
-            }, 500);
+            }, 15000);
             return () => clearTimeout(timeoutRef.current);
         }
 
