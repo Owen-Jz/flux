@@ -48,14 +48,8 @@ export async function requestEditAccess(workspaceSlug: string, message?: string)
         throw new Error('You already have a pending request');
     }
 
-    // If not a member at all, add them as a viewer first
     if (!member) {
-        workspace.members.push({
-            userId: new Types.ObjectId(session.user.id),
-            role: 'VIEWER',
-            joinedAt: new Date(),
-        });
-        await workspace.save();
+        throw new Error('You must be a member of this workspace to request edit access');
     }
 
     // Create access request

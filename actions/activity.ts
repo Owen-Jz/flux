@@ -166,17 +166,20 @@ export async function markActivityAsRead(activityId: string, workspaceSlug?: str
 
     await connectDB();
 
-    // If workspaceSlug is provided, verify membership
-    if (workspaceSlug) {
-        const workspace = await Workspace.findOne({ slug: workspaceSlug });
-        if (!workspace) {
-            return { success: false };
-        }
+    const activity = await ActivityLog.findById(activityId);
+    if (!activity) {
+        return { success: false };
+    }
 
-        const member = isWorkspaceMember(workspace, session.user.id);
-        if (!member) {
-            return { success: false };
-        }
+    const workspace = workspaceSlug
+        ? await Workspace.findOne({ slug: workspaceSlug })
+        : await Workspace.findById(activity.workspaceId);
+    if (!workspace) {
+        return { success: false };
+    }
+
+    if (!isWorkspaceMember(workspace, session.user.id)) {
+        return { success: false };
     }
 
     await ActivityLog.findByIdAndUpdate(activityId, { read: true });
@@ -217,6 +220,8 @@ export async function getUnreadActivityCount(workspaceSlug: string) {
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) return 0;
 
+    if (!isWorkspaceMember(workspace, session.user.id)) return 0;
+
     const count = await ActivityLog.countDocuments({
         workspaceId: workspace._id,
         read: false
@@ -235,6 +240,8 @@ export async function getUnreadActivityCountForBoard(workspaceSlug: string, boar
 
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) return 0;
+
+    if (!isWorkspaceMember(workspace, session.user.id)) return 0;
 
     const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
     if (!board) return 0;

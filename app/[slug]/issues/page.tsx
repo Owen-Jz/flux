@@ -1,4 +1,5 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { auth } from '@/lib/auth';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getIssues } from '@/actions/issue';
 import { getBoards } from '@/actions/board';
@@ -11,6 +12,11 @@ interface IssuesPageProps {
 }
 
 export default async function IssuesPage({ params }: IssuesPageProps) {
+    const session = await auth();
+    if (!session?.user) {
+        redirect('/login');
+    }
+
     const { slug } = await params;
     const workspace = await getWorkspaceBySlug(slug);
 

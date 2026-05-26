@@ -1,4 +1,5 @@
 import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoardBySlug } from '@/actions/board';
 import { getTasks } from '@/actions/task';
@@ -18,6 +19,10 @@ export default async function BoardPage({
 }) {
     const session = await auth();
     const { slug, boardSlug } = await params;
+
+    if (!session?.user) {
+        redirect('/login');
+    }
 
     const workspace = await getWorkspaceBySlug(slug);
     if (!workspace) {

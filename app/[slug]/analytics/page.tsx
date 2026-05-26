@@ -1,4 +1,5 @@
 import { auth } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getWorkspaceAnalytics } from '@/actions/analytics';
 import { AnalyticsSection } from '@/components/analytics/analytics-section';
@@ -10,6 +11,10 @@ export default async function AnalyticsPage({
 }) {
     const session = await auth();
     const { slug } = await params;
+
+    if (!session?.user) {
+        redirect('/login');
+    }
 
     const workspace = await getWorkspaceBySlug(slug);
     if (!workspace) {

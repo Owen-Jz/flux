@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
         }
 
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Webhook processing failed' },
+            { error: 'Webhook processing failed' },
             { status: 500 }
         );
     }

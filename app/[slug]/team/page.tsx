@@ -1,4 +1,5 @@
 import { auth } from '@/lib/auth';
+import { redirect, notFound } from 'next/navigation';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getAccessRequests, getUserRole, hasPendingRequest } from '@/actions/access-control';
 import { UsersIcon } from '@heroicons/react/24/outline';
@@ -14,12 +15,19 @@ export default async function TeamPage({
 }) {
     const session = await auth();
     const { slug } = await params;
+
+    if (!session?.user) {
+        redirect('/login');
+    }
+
     const workspace = await getWorkspaceBySlug(slug);
+    if (!workspace) {
+        notFound();
+    }
+
     const userRole = await getUserRole(slug);
     const accessRequests = await getAccessRequests(slug);
     const hasPending = await hasPendingRequest(slug);
-
-    if (!workspace) return null;
 
     const isAdmin = userRole === 'ADMIN';
     const isViewer = userRole === 'VIEWER' || (!userRole && workspace.publicAccess);

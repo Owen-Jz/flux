@@ -187,6 +187,10 @@ export async function moveIssueToBoard(workspaceSlug: string, issueId: string, b
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) throw new Error('Workspace not found');
 
+    if (!isWorkspaceMember(workspace, session.user.id)) {
+        throw new Error('Access denied');
+    }
+
     const issue = await Issue.findOne({ _id: issueId, workspaceId: workspace._id });
     if (!issue) throw new Error('Issue not found');
 
