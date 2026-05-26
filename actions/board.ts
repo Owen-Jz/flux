@@ -47,19 +47,20 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
         throw new Error(getUpgradeMessage(plan, 'projects'));
     }
 
-    // Generate slug from name (consistent with workspace slug normalization)
-    const slug = data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-
-    // Check if board with this slug exists in this workspace
-    const existing = await Board.findOne({ workspaceId: workspace._id, slug });
-    if (existing) {
-        throw new Error('A board with this name already exists');
+    // Generate a unique slug — append -2, -3 … on collision
+    const baseSlug = data.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    let resolvedSlug = baseSlug;
+    for (let attempt = 2; attempt <= 10; attempt++) {
+        const collision = await Board.findOne({ workspaceId: workspace._id, slug: resolvedSlug });
+        if (!collision) break;
+        resolvedSlug = `${baseSlug}-${attempt}`;
+        if (attempt === 10) throw new Error('Could not generate a unique board slug. Please choose a different name.');
     }
 
     const board = await Board.create({
         workspaceId: workspace._id,
         name: data.name,
-        slug,
+        slug: resolvedSlug,
         description: data.description,
         color: data.color || '#6366f1',
     });

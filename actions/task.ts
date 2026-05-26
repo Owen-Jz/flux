@@ -51,6 +51,12 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
         throw new Error('You do not have permission to create tasks');
     }
 
+    // Validate title — reject blank/whitespace-only
+    if (!data.title || !data.title.trim()) {
+        throw new Error('Task title cannot be empty');
+    }
+    data.title = data.title.trim();
+
     const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
     if (!board) {
         throw new Error('Board not found');
@@ -775,9 +781,9 @@ export async function addComment(taskId: string, content: string) {
         throw new Error('Workspace not found');
     }
 
-    // Check if user is member
+    // Only ADMIN and EDITOR can comment; VIEWERs are read-only
     const member = isWorkspaceMember(workspace, session.user.id);
-    if (!member) {
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
         throw new Error('You do not have permission to comment');
     }
 

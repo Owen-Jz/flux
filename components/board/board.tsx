@@ -265,6 +265,10 @@ export function Board({
             }
         }
 
+        // Snapshot the task's original position before the optimistic update
+        const originalStatus = activeTask.status;
+        const originalOrder = activeTask.order;
+
         // Optimistic update
         setTasks((prev) =>
             prev.map((t) =>
@@ -294,8 +298,12 @@ export function Board({
                 dispatchWalkthroughEvent('task_moved', { taskId: activeId, fromStatus: activeTask.status, toStatus: targetColumn });
             } catch (error) {
                 console.error('Failed to update task position:', error);
-                // Revert on error
-                setTasks(initialTasks);
+                // Revert only the moved task — don't blow away other in-session changes
+                setTasks((prev) =>
+                    prev.map((t) =>
+                        t.id === activeId ? { ...t, status: originalStatus, order: originalOrder } : t
+                    )
+                );
             }
         });
     };

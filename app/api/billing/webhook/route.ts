@@ -37,13 +37,24 @@ export async function POST(request: NextRequest) {
 
         const eventId = event.data?.id;
         if (eventId) {
-            const result = await ProcessedWebhook.findOneAndUpdate(
-                { eventId },
-                { $setOnInsert: { eventId, processedAt: new Date() } },
-                { upsert: true, new: false }
-            );
-            if (result) {
-                return NextResponse.json({ received: true, duplicate: true });
+            try {
+                const result = await ProcessedWebhook.findOneAndUpdate(
+                    { eventId },
+                    { $setOnInsert: { eventId, processedAt: new Date() } },
+                    { upsert: true, new: false }
+                );
+                // If result is non-null, the doc already existed before this request
+                if (result) {
+                    return NextResponse.json({ received: true, duplicate: true });
+                }
+            } catch (err: unknown) {
+                // Duplicate key error (code 11000) means a concurrent request won the race —
+                // this request is the duplicate.
+                const mongoErr = err as { code?: number };
+                if (mongoErr.code === 11000) {
+                    return NextResponse.json({ received: true, duplicate: true });
+                }
+                throw err;
             }
         }
 

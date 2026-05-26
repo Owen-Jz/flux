@@ -32,14 +32,19 @@ export async function createWorkspace(data: { name: string; slug: string }) {
         throw new Error(getUpgradeMessage(userPlan, 'projects'));
     }
 
-    const existing = await Workspace.findOne({ slug: data.slug });
-    if (existing) {
-        throw new Error('Workspace slug already taken');
+    // Resolve a unique slug — append -2, -3 … on collision (race-safe)
+    const baseSlug = data.slug.toLowerCase().replace(/\s+/g, '-');
+    let resolvedSlug = baseSlug;
+    for (let attempt = 2; attempt <= 10; attempt++) {
+        const collision = await Workspace.findOne({ slug: resolvedSlug });
+        if (!collision) break;
+        resolvedSlug = `${baseSlug}-${attempt}`;
+        if (attempt === 10) throw new Error('Could not generate a unique workspace slug. Please choose a different name.');
     }
 
     const workspace = await Workspace.create({
         name: data.name,
-        slug: data.slug.toLowerCase().replace(/\s+/g, '-'),
+        slug: resolvedSlug,
         ownerId: session.user.id,
         inviteCode: nanoid(10),
         settings: {
@@ -373,17 +378,18 @@ export async function removeMember(slug: string, memberId: string) {
         throw new Error('Cannot remove workspace owner');
     }
 
+    // Remove from all task assignments first (including archived tasks) — do this
+    // before mutating workspace.members so a partial failure leaves data consistent.
+    await Task.updateMany(
+        { workspaceId: workspace._id, assignees: memberId },
+        { $pull: { assignees: memberId } }
+    );
+
     workspace.members = workspace.members.filter(
         (m: { userId: { toString: () => string } }) => m.userId.toString() !== memberId
     );
 
     await workspace.save();
-
-    // Remove member from all task assignments in this workspace
-    await Task.updateMany(
-        { workspaceId: workspace._id, assignees: memberId },
-        { $pull: { assignees: memberId } }
-    );
 
     // Emit webhook for member removed
     emitEvent(

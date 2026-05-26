@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BuildingOffice2Icon, ArrowRightIcon, SparklesIcon, UsersIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { createWorkspace } from '@/actions/workspace';
 import { getWorkspaces } from '@/actions/workspace';
+import { updateOnboardingProgress } from '@/actions/onboarding';
 
 export default function OnboardingPage() {
     const router = useRouter();
@@ -375,6 +376,9 @@ export default function OnboardingPage() {
                                     <button
                                         type="button"
                                         onClick={async () => {
+                                            // Mark tutorial as completed so the interactive
+                                            // walkthrough doesn't re-appear on the board.
+                                            await updateOnboardingProgress('completedTutorial').catch(() => {});
                                             await markOnboardingComplete();
                                             router.push('/dashboard');
                                         }}

@@ -17,9 +17,11 @@ export async function GET(request: NextRequest) {
 
   const now = new Date();
 
+  // Catch all expired trial users regardless of subscriptionStatus,
+  // but only those who don't have an active paid subscription.
   const expiredTrials = await User.find({
     trialEndsAt: { $exists: true, $ne: null, $lt: now },
-    subscriptionStatus: 'inactive',
+    subscriptionStatus: { $nin: ['active'] },
     plan: { $ne: 'free' },
   });
 

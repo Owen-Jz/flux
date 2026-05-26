@@ -1,5 +1,5 @@
 import { auth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoardBySlug } from '@/actions/board';
 import { getTasks } from '@/actions/task';
@@ -35,14 +35,7 @@ export default async function BoardPage({
 
     const board = await getBoardBySlug(slug, boardSlug);
     if (!board) {
-        return (
-            <div className="flex items-center justify-center h-full">
-                <div className="text-center">
-                    <h2 className="text-xl font-semibold mb-2">Board not found</h2>
-                    <p className="text-[var(--text-secondary)]">This board may have been deleted or does not exist.</p>
-                </div>
-            </div>
-        );
+        notFound();
     }
 
     const tasks = await getTasks(slug, boardSlug);

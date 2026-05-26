@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       return NextResponse.json({
         available: false,
-        message: 'An account with this email already exists. Try signing in instead.',
+        message: 'This email is not available.',
       });
     }
 
