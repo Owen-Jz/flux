@@ -50,9 +50,8 @@ export default function LoginPage() {
     const handleGoogleSignIn = async () => {
         setIsGoogleLoading(true);
         try {
-            await signIn('google', { callbackUrl: '/dashboard', redirect: false });
-            // Loading will persist until redirect happens
-        } catch (error) {
+            await signIn('google', { callbackUrl: '/dashboard' });
+        } catch {
             setIsGoogleLoading(false);
             setError('Failed to start Google sign in. Please try again.');
         }
