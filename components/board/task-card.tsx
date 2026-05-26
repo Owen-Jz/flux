@@ -185,8 +185,8 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 ${isDragging
                     ? 'shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)] ring-2 ring-[var(--brand-primary)]/30 rotate-1 scale-[1.02] opacity-95 z-[100] cursor-grabbing overflow-hidden'
                     : isMenuOpen
-                        ? 'shadow-md z-[60] overflow-visible'
-                        : 'shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:scale-[1.01] focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-all duration-200 overflow-visible'
+                        ? 'cursor-pointer shadow-md z-[60] overflow-visible'
+                        : 'cursor-pointer shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:scale-[1.01] focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-all duration-200 overflow-visible'
                 }
                 ${isDone ? 'opacity-60 grayscale hover:opacity-80 hover:grayscale-0' : ''}
                 p-3.5 flex flex-col gap-2 origin-center outline-none
@@ -219,7 +219,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                             e.stopPropagation();
                             setIsMenuOpen(!isMenuOpen);
                         }}
-                        className={`p-1 rounded-lg transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-1 ${isMenuOpen
+                        className={`p-1.5 rounded-lg transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-1 ${isMenuOpen
                             ? 'bg-[var(--background-subtle)] text-[var(--text-primary)] opacity-100'
                             : 'text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100 hover:bg-[var(--background-subtle)] hover:text-[var(--text-primary)] focus-visible:opacity-100'
                             }`}
@@ -252,7 +252,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
 
                                     {/* Priority Section */}
                                     <div className="px-3 py-2">
-                                        <p className="text-[10px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold mb-2">Priority</p>
+                                        <p className="text-[11px] uppercase tracking-wider text-[var(--text-tertiary)] font-semibold mb-2">Priority</p>
                                         <div className="flex gap-2">
                                             {(['LOW', 'MEDIUM', 'HIGH'] as const).map((p) => (
                                                 <button
@@ -415,10 +415,10 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 {subtaskCount > 0 && !isEditing && (
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-semibold text-[var(--text-secondary)]">
+                            <span className="text-[11px] font-semibold text-[var(--text-secondary)]">
                                 {completedSubtaskCount}/{subtaskCount} subtasks
                             </span>
-                            <span className="text-[9px] font-bold text-[var(--brand-primary)]">
+                            <span className="text-[11px] font-bold text-[var(--brand-primary)]">
                                 {Math.round(subtaskProgress)}%
                             </span>
                         </div>
@@ -468,17 +468,17 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                 </div>
                             ))
                         ) : (
-                            <div className="text-[9px] text-[var(--text-tertiary)] italic">Unassigned</div>
+                            <div className="text-[11px] text-[var(--text-tertiary)] italic">Unassigned</div>
                         )}
                         {task.assignees.length > 2 && (
-                            <div className="px-1 py-0.5 rounded-full bg-[var(--background-subtle)] text-[9px] font-semibold text-[var(--text-secondary)]">
+                            <div className="px-1 py-0.5 rounded-full bg-[var(--background-subtle)] text-[11px] font-semibold text-[var(--text-secondary)]">
                                 +{task.assignees.length - 2}
                             </div>
                         )}
                     </div>
 
                     {/* Priority Badge */}
-                    <div className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-md ${config.badge}`}>
+                    <div className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${config.badge}`}>
                         {priorityLabels[task.priority]}
                     </div>
                 </div>

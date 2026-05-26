@@ -64,7 +64,7 @@ export function Column({
                     {id === 'DONE' && tasks.length > 0 && !isReadOnly && (
                         <button
                             onClick={() => onArchiveAll?.(tasks.map(t => t.id))}
-                            className="p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors group"
+                            className="p-2 rounded-lg hover:bg-[var(--background-subtle)] transition-colors group"
                             title="Archive all tasks"
                         >
                             <ArchiveBoxIcon className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-emerald-600 transition-colors" />
@@ -73,7 +73,7 @@ export function Column({
                     {!isReadOnly && (
                         <button
                             onClick={onAddTask}
-                            className="add-task-btn p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
+                            className="add-task-btn p-2 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
                             id={`column-${id}-add-task`}
                         >
                             <PlusIcon className="w-3.5 h-3.5 text-[var(--text-secondary)]" />

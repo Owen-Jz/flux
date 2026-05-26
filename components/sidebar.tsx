@@ -216,7 +216,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                                 <Link
                                     id={id}
                                     href={item.href}
-                                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive
+                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive
                                         ? 'bg-[var(--brand-primary)] text-white'
                                         : 'text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
                                         }`}
@@ -259,7 +259,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                     </div>
                     <button
                         onClick={() => signOut({ callbackUrl: '/login' })}
-                        className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--background)] transition-colors"
+                        className="p-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--background)] transition-colors"
                         title="Sign out"
                     >
                         <ArrowRightOnRectangleIcon className="w-4 h-4" />
