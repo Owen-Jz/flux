@@ -38,20 +38,7 @@ export default function SignupPage() {
 
     const { strength, score, requirements } = usePasswordStrength(password);
 
-    const getOnboardingUrl = (addedWorkspaces: Array<{ slug: string; name: string; role: string }> | undefined) => {
-        const base = '/onboarding';
-        const params = new URLSearchParams();
-        if (addedWorkspaces && addedWorkspaces.length > 0) {
-            params.set('invited', encodeURIComponent(JSON.stringify(addedWorkspaces)));
-        }
-        if (inviteToken) {
-            params.set('invite', inviteToken);
-        }
-        const query = params.toString();
-        return query ? `${base}?${query}` : base;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         // Validate email format first
@@ -86,21 +73,8 @@ export default function SignupPage() {
                 return;
             }
 
-            // Auto sign in after signup
-            const signInResult = await signIn('credentials', {
-                email,
-                password,
-                redirect: false,
-            });
-
-            if (signInResult?.error) {
-                setError('Failed to sign in after registration. Please try logging in.');
-                return;
-            }
-
-            // Pass invited workspaces to onboarding if any
-            const addedWorkspaces = data.addedWorkspaces as Array<{ slug: string; name: string; role: string }> | undefined;
-            router.push(getOnboardingUrl(addedWorkspaces));
+            // Email requires verification before login is allowed — redirect to OTP page
+            router.push(`/verify-email?email=${encodeURIComponent(email)}`);
         } catch {
             setError('Something went wrong');
         } finally {

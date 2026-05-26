@@ -24,17 +24,30 @@ export default function OnboardingPage() {
                 const params = new URLSearchParams(window.location.search);
                 const invitedParam = params.get('invited');
 
-                // Parse invited workspaces first
+                // Parse and strictly validate invited workspaces
                 let invited: Array<{ slug: string; name: string; role: string }> = [];
                 if (invitedParam) {
                     try {
                         const parsed = JSON.parse(decodeURIComponent(invitedParam));
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            invited = parsed;
-                            setInvitedWorkspaces(parsed);
+                        if (Array.isArray(parsed)) {
+                            // Sanitize each entry — only accept string fields with bounded length
+                            invited = parsed
+                                .filter((w: unknown) => w && typeof w === 'object')
+                                .map((w: unknown) => {
+                                    const entry = w as Record<string, unknown>;
+                                    return {
+                                        slug: String(entry.slug ?? '').replace(/[^a-z0-9-]/g, '').slice(0, 80),
+                                        name: String(entry.name ?? '').replace(/[<>"'&]/g, '').slice(0, 100),
+                                        role: ['ADMIN', 'EDITOR', 'VIEWER'].includes(String(entry.role))
+                                            ? String(entry.role)
+                                            : 'VIEWER',
+                                    };
+                                })
+                                .filter(w => w.slug && w.name);
+                            if (invited.length > 0) setInvitedWorkspaces(invited);
                         }
                     } catch {
-                        // ignore parse errors
+                        // ignore parse errors — treat as no invite
                     }
                 }
 

@@ -11,8 +11,12 @@ export interface IUser extends Document {
     emailVerified?: Date;
     emailVerificationToken?: string;
     emailVerificationExpires?: Date;
+    emailOtp?: string;
+    emailOtpExpires?: Date;
     passwordResetToken?: string;
     passwordResetExpires?: Date;
+    failedLoginAttempts: number;
+    lockoutUntil?: Date;
     createdAt: Date;
     updatedAt: Date;
     tutorialProgress?: {
@@ -54,8 +58,12 @@ const UserSchema = new Schema<IUser>(
         emailVerified: { type: Date },
         emailVerificationToken: { type: String },
         emailVerificationExpires: { type: Date },
+        emailOtp: { type: String },
+        emailOtpExpires: { type: Date },
         passwordResetToken: { type: String },
         passwordResetExpires: { type: Date },
+        failedLoginAttempts: { type: Number, default: 0 },
+        lockoutUntil: { type: Date },
         tutorialProgress: {
             hasSeenWelcome: { type: Boolean, default: false },
             hasSeenDashboard: { type: Boolean, default: false },

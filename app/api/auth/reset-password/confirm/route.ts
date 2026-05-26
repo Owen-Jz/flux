@@ -5,8 +5,16 @@ import { User } from '@/models/User';
 import bcrypt from 'bcryptjs';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
 
+function meetsPasswordComplexity(password: string): boolean {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+    return password.length >= 8 &&
+        [hasUpperCase, hasLowerCase, hasNumber, hasSymbol].filter(Boolean).length >= 3;
+}
+
 export async function POST(request: NextRequest) {
-    // Apply rate limiting - 5 reset attempts per 15 minutes per IP
     const ip = getClientIp(request);
     const rateLimitResult = rateLimit(`reset-confirm-${ip}`, 5, 15 * 60);
 
@@ -27,19 +35,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        if (password.length < 6) {
+        if (!meetsPasswordComplexity(password)) {
             return NextResponse.json(
-                { error: 'Password must be at least 6 characters' },
+                { error: 'Password must be at least 8 characters and contain at least 3 of: uppercase, lowercase, numbers, symbols' },
                 { status: 400 }
             );
         }
 
         await connectDB();
 
-        // SECURITY FIX: Hash the incoming token to compare with stored hash
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
-        // Find user with valid reset token
         const user = await User.findOne({
             passwordResetToken: hashedToken,
             passwordResetExpires: { $gt: new Date() },
@@ -52,17 +58,18 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Hash new password
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        // Update user password and clear reset token
         user.password = hashedPassword;
         user.passwordResetToken = undefined;
         user.passwordResetExpires = undefined;
+        // Clear any active lockout so the user can log in immediately after reset
+        user.failedLoginAttempts = 0;
+        user.lockoutUntil = undefined;
         await user.save();
 
         return NextResponse.json({
-            message: 'Password has been reset successfully',
+            message: 'Password has been reset successfully. Please log in with your new password.',
         });
     } catch (error) {
         console.error('[Password Reset Confirm] Error:', error);

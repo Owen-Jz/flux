@@ -17,7 +17,9 @@ export const authConfig = {
                 request.nextUrl.pathname === '/' ||
                 request.nextUrl.pathname === '/login' ||
                 request.nextUrl.pathname === '/signup' ||
-                request.nextUrl.pathname === '/reset-password';
+                request.nextUrl.pathname === '/reset-password' ||
+                request.nextUrl.pathname === '/verify-email' ||
+                request.nextUrl.pathname.startsWith('/api/auth/');
 
             const isAuthRoute = request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup' || request.nextUrl.pathname === '/reset-password';
 

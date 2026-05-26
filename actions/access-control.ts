@@ -198,13 +198,21 @@ export async function updateMemberRole(
         throw new Error('Cannot change the owner\'s role');
     }
 
-    // Find and update the member
+    // Find the member to update
     const memberToUpdate = workspace.members.find(
         (m: any) => m.userId.toString() === memberId
     );
 
     if (!memberToUpdate) {
         throw new Error('Member not found');
+    }
+
+    // Prevent removing the last ADMIN — workspace would become unmanageable
+    if (memberToUpdate.role === 'ADMIN' && newRole !== 'ADMIN') {
+        const adminCount = workspace.members.filter((m: any) => m.role === 'ADMIN').length;
+        if (adminCount <= 1) {
+            throw new Error('Cannot remove the last admin. Promote another member to admin first.');
+        }
     }
 
     memberToUpdate.role = newRole;

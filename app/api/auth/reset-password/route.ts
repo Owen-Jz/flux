@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { sendPasswordResetEmail } from '@/lib/email/auth-emails';
 
 export async function POST(request: NextRequest) {
     // Apply rate limiting - 3 reset requests per 15 minutes per IP
@@ -52,8 +53,7 @@ export async function POST(request: NextRequest) {
             user.passwordResetExpires = resetExpires;
             await user.save();
 
-            // TODO: Send email with reset link using Resend
-            // Example: await sendPasswordResetEmail(email, resetToken);
+            sendPasswordResetEmail(user.email, user.name, resetToken).catch(console.error);
         }
 
         // Return generic success message

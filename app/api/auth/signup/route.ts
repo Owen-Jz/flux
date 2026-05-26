@@ -7,7 +7,7 @@ import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import { addUserToWorkspaceFromInvite } from '@/lib/process-workspace-invite';
 import { signupSchema } from '@/lib/validations/auth';
 import { sendTrialStartedEmail } from '@/lib/email/subscription-notifications';
-import { sendEmail } from '@/lib/email/resend';
+import { sendOtpEmail } from '@/lib/email/auth-emails';
 
 export async function POST(request: NextRequest) {
     // Apply rate limiting - 5 signup attempts per 15 minutes per IP
@@ -63,18 +63,23 @@ export async function POST(request: NextRequest) {
 
         const hashedPassword = await bcrypt.hash(password, 12);
 
-        // SECURITY FIX: Generate email verification token
-        // User will not be verified until they click the verification link
+        // Generate a 6-digit OTP for email verification
+        const rawOtp = String(Math.floor(100000 + Math.random() * 900000));
+        const hashedOtp = crypto.createHash('sha256').update(rawOtp).digest('hex');
+        const emailOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+        // Also keep a fallback link token (24 hr)
         const emailVerificationToken = crypto.randomBytes(32).toString('hex');
-        const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
         const user = await User.create({
             name,
             email,
             password: hashedPassword,
-            // emailVerified remains undefined/null until email is confirmed
             emailVerificationToken,
             emailVerificationExpires,
+            emailOtp: hashedOtp,
+            emailOtpExpires,
             plan: initialPlan,
             trialEndsAt,
             hasUsedTrial: isTrialPlan ? true : false,
@@ -90,12 +95,8 @@ export async function POST(request: NextRequest) {
             email
         );
 
-        const verifyUrl = `${process.env.NEXTAUTH_URL || 'https://fluxboard.site'}/api/auth/verify-email?token=${emailVerificationToken}&email=${encodeURIComponent(email)}`;
-        sendEmail({
-            to: email,
-            subject: 'Verify your Flux account',
-            html: `<p>Hi ${name},</p><p>Welcome to Flux! Please verify your email address by clicking the link below:</p><p><a href="${verifyUrl}" style="background:#6366f1;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;display:inline-block">Verify Email</a></p><p>This link expires in 24 hours.</p><p>If you didn't create this account, you can safely ignore this email.</p>`,
-        }).catch(console.error);
+        // Send OTP verification email (non-blocking)
+        sendOtpEmail(email, name, rawOtp).catch(console.error);
 
         return NextResponse.json(
             {
@@ -103,7 +104,8 @@ export async function POST(request: NextRequest) {
                 name: user.name,
                 email: user.email,
                 addedWorkspaces,
-                message: 'Account created. Please check your email to verify your account.',
+                requiresVerification: true,
+                message: 'Account created. Please check your email for your 6-digit verification code.',
             },
             { status: 201 }
         );

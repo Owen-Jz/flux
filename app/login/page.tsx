@@ -1,21 +1,33 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { EnvelopeIcon, LockClosedIcon, ArrowRightIcon, ArrowPathIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { FcGoogle } from 'react-icons/fc';
 
-export default function LoginPage() {
+function LoginContent() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
     const [error, setError] = useState('');
+    const [info, setInfo] = useState('');
+
+    useEffect(() => {
+        const urlError = searchParams.get('error');
+        const verified = searchParams.get('verified');
+        if (urlError === 'account-exists-with-credentials') {
+            setError('An account with this email already exists. Please sign in with your email and password instead.');
+        } else if (verified === 'true') {
+            setInfo('Email verified! You can now log in.');
+        }
+    }, [searchParams]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -123,6 +135,15 @@ export default function LoginPage() {
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {info && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-sm"
+                            >
+                                {info}
+                            </motion.div>
+                        )}
                         {error && (
                             <motion.div
                                 initial={{ opacity: 0, y: -10 }}
@@ -184,13 +205,23 @@ export default function LoginPage() {
                             )}
                         </button>
 
-                        <div className="text-center mt-4">
-                            <Link
-                                href="/reset-password"
-                                className="text-sm text-[var(--text-secondary)] hover:text-[var(--brand-primary)]"
-                            >
-                                Forgot password?
-                            </Link>
+                        <div className="text-center mt-4 space-y-1">
+                            <div>
+                                <Link
+                                    href="/reset-password"
+                                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--brand-primary)]"
+                                >
+                                    Forgot password?
+                                </Link>
+                            </div>
+                            <div>
+                                <Link
+                                    href="/verify-email"
+                                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--brand-primary)]"
+                                >
+                                    Need to verify your email?
+                                </Link>
+                            </div>
                         </div>
                     </form>
 
@@ -207,5 +238,13 @@ export default function LoginPage() {
                 </div>
             </motion.div>
         </div>
+    );
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense>
+            <LoginContent />
+        </Suspense>
     );
 }

@@ -5,27 +5,10 @@ import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { authConfig } from '@/lib/auth.config';
 import bcrypt from 'bcryptjs';
-import { rateLimit } from '@/lib/rate-limit';
 import { addUserToWorkspaceFromInvite } from '@/lib/process-workspace-invite';
 
-// Track failed login attempts in memory
-const failedLoginAttempts = new Map<string, { count: number; lockoutUntil?: number; lastAttempt: number }>();
-
-// Cleanup old lockout entries every 15 minutes
-const LOCKOUT_CLEANUP_INTERVAL = 15 * 60 * 1000;
-setInterval(() => {
-    const now = Date.now();
-    for (const [email, data] of failedLoginAttempts.entries()) {
-        // Remove entries that have expired lockout (older than 15 minutes)
-        if (data.lockoutUntil && data.lockoutUntil < now) {
-            failedLoginAttempts.delete(email);
-        }
-        // Also clean up entries with too many failed attempts but no recent activity (older than 1 hour)
-        if (data.lastAttempt && now - data.lastAttempt > 60 * 60 * 1000) {
-            failedLoginAttempts.delete(email);
-        }
-    }
-}, LOCKOUT_CLEANUP_INTERVAL);
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig,
@@ -49,50 +32,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     return null;
                 }
 
-                const email = credentials.email as string;
-                const now = Date.now();
+                const email = (credentials.email as string).toLowerCase().trim();
+                const now = new Date();
 
-                // Check for account lockout due to failed attempts
-                const attempts = failedLoginAttempts.get(email);
-                if (attempts && attempts.lockoutUntil && attempts.lockoutUntil > now) {
-                    console.warn(`[Auth] Login attempt on locked account: ${email}`);
-                    return null;
-                }
-
-                // Check for admin credentials first (env-based)
+                // Check admin credentials first (env-based) — admin also respects lockout
                 const adminEmail = process.env.ADMIN_EMAIL;
                 const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
-                if (adminEmail && adminPasswordHash && email === adminEmail) {
-                    const isValidAdminPassword = await bcrypt.compare(
-                        credentials.password as string,
-                        adminPasswordHash
-                    );
-                    if (isValidAdminPassword) {
-                        // Successful admin login - reset failed attempts
-                        failedLoginAttempts.delete(email);
-                        return {
-                            id: 'admin-session',
-                            email: adminEmail,
-                            name: 'Admin',
-                            isAdmin: true,
-                        };
-                    }
+                if (adminEmail && adminPasswordHash && email === adminEmail.toLowerCase()) {
+                    // Admin uses DB lockout too — fetch user record if exists, else use in-process counter
+                    const isValid = await bcrypt.compare(credentials.password as string, adminPasswordHash);
+                    if (!isValid) return null;
+                    return { id: 'admin-session', email: adminEmail, name: 'Admin', isAdmin: true };
                 }
 
                 try {
                     await connectDB();
-                    const user = await User.findOne({ email }).select('+password');
+                    const user = await User.findOne({ email }).select(
+                        '+password +failedLoginAttempts +lockoutUntil +emailVerified'
+                    );
+
+                    // Check lockout before anything else (consistent timing attack prevention)
+                    if (user?.lockoutUntil && user.lockoutUntil > now) {
+                        console.warn(`[Auth] Login attempt on locked account: ${email}`);
+                        return null;
+                    }
 
                     if (!user || !user.password) {
-                        // Increment failed attempts even if user doesn't exist
-                        // This prevents enumeration attacks
-                        const currentAttempts = failedLoginAttempts.get(email) || { count: 0, lastAttempt: now };
-                        currentAttempts.count += 1;
-                        currentAttempts.lastAttempt = now;
-                        if (currentAttempts.count >= 5) {
-                            currentAttempts.lockoutUntil = now + 15 * 60 * 1000; // 15 min lockout
+                        // Increment attempts on a phantom record to prevent timing enumeration
+                        if (user) {
+                            user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+                            if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
+                                user.lockoutUntil = new Date(Date.now() + LOCKOUT_DURATION_MS);
+                            }
+                            await user.save();
                         }
-                        failedLoginAttempts.set(email, currentAttempts);
                         return null;
                     }
 
@@ -102,19 +75,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     );
 
                     if (!isValidPassword) {
-                        // Increment failed attempts
-                        const currentAttempts = failedLoginAttempts.get(email) || { count: 0, lastAttempt: now };
-                        currentAttempts.count += 1;
-                        currentAttempts.lastAttempt = now;
-                        if (currentAttempts.count >= 5) {
-                            currentAttempts.lockoutUntil = now + 15 * 60 * 1000; // 15 min lockout
+                        user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+                        if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
+                            user.lockoutUntil = new Date(Date.now() + LOCKOUT_DURATION_MS);
                         }
-                        failedLoginAttempts.set(email, currentAttempts);
+                        await user.save();
                         return null;
                     }
 
-                    // Successful login - reset failed attempts
-                    failedLoginAttempts.delete(email);
+                    // Require email verification before granting access
+                    if (!user.emailVerified) {
+                        console.warn(`[Auth] Login blocked — email not verified: ${email}`);
+                        return null;
+                    }
+
+                    // Successful login — clear lockout state
+                    user.failedLoginAttempts = 0;
+                    user.lockoutUntil = undefined;
+                    await user.save();
 
                     return {
                         id: user._id.toString(),
@@ -134,40 +112,46 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             try {
                 if (account?.provider === 'google' && user.email) {
                     await connectDB();
-                    const existingUser = await User.findOne({ email: user.email });
+                    const existingUser = await User.findOne({
+                        email: user.email.toLowerCase(),
+                    }).select('+password');
+
                     let userId: string | undefined;
 
                     if (!existingUser) {
+                        // New user — create account via Google
                         try {
                             const newUser = await User.create({
-                                email: user.email,
+                                email: user.email.toLowerCase(),
                                 name: user.name || 'Unknown',
                                 image: user.image || undefined,
-                                emailVerified: new Date(),
+                                emailVerified: new Date(), // Google-verified emails are pre-verified
                             });
                             userId = newUser._id.toString();
                         } catch (creationError) {
                             console.error('[Auth] Error creating user from Google:', creationError);
                             return false;
                         }
+                    } else if (existingUser.password) {
+                        // A credentials account already exists for this email.
+                        // Block Google sign-in and redirect with a clear error.
+                        return '/login?error=account-exists-with-credentials';
                     } else {
+                        // Existing Google-only user — update image if needed
+                        if (user.image && existingUser.image !== user.image) {
+                            existingUser.image = user.image;
+                            await existingUser.save();
+                        }
                         userId = existingUser._id.toString();
                     }
 
-                    // Process workspace invites for new or existing users
+                    // Process workspace invites
                     if (userId && user.email) {
-                        const addedWorkspaces = await addUserToWorkspaceFromInvite(userId, user.email);
-                        if (addedWorkspaces.length > 0) {
-                            console.log(`[Auth] Added user to workspaces: ${addedWorkspaces.map(w => w.slug).join(', ')}`);
-                        }
+                        await addUserToWorkspaceFromInvite(userId, user.email);
                     }
                 } else if (account?.provider === 'credentials' && user.email && user.id) {
-                    // Process workspace invites for credentials login
                     await connectDB();
-                    const addedWorkspaces = await addUserToWorkspaceFromInvite(user.id, user.email);
-                    if (addedWorkspaces.length > 0) {
-                        console.log(`[Auth] Added user to workspaces: ${addedWorkspaces.map(w => w.slug).join(', ')}`);
-                    }
+                    await addUserToWorkspaceFromInvite(user.id, user.email);
                 }
                 return true;
             } catch (error) {
@@ -175,33 +159,23 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 return false;
             }
         },
-        async jwt({ token, user, trigger }) {
-            // Always preserve existing token values
+        async jwt({ token, user }) {
             if (token.id) {
-                // Token already has ID from previous callback, preserve it
-                // Only fetch fresh user data on sign in or if picture is missing
                 if (user || !token.picture) {
                     try {
                         await connectDB();
                         const dbUser = await User.findOne({ email: token.email });
                         if (dbUser) {
-                            if (!token.id) {
-                                token.id = dbUser._id.toString();
-                            }
-                            if (dbUser.image) {
-                                token.picture = dbUser.image;
-                            }
+                            if (!token.id) token.id = dbUser._id.toString();
+                            if (dbUser.image) token.picture = dbUser.image;
                         }
                     } catch (error) {
                         console.error('[Auth] JWT callback error:', error);
-                        // Keep existing token values if DB lookup fails
                     }
                 }
-                // Preserve access token
                 return token;
             }
 
-            // Initial sign in - user object is provided
             if (user) {
                 try {
                     await connectDB();
@@ -209,24 +183,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     if (dbUser) {
                         token.id = dbUser._id.toString();
                         token.email = dbUser.email;
-                        // Ensure image is persisted from DB if available
-                        if (dbUser.image) {
-                            token.picture = dbUser.image;
-                        }
+                        if (dbUser.image) token.picture = dbUser.image;
                     } else {
-                        // Fallback: use info from user object
                         token.id = user.id;
-                        if (user.email) {
-                            token.email = user.email;
-                        }
+                        if (user.email) token.email = user.email;
                     }
                 } catch (error) {
                     console.error('[Auth] JWT callback error during sign in:', error);
-                    // Fallback to user object data
                     token.id = user.id;
-                    if (user.email) {
-                        token.email = user.email;
-                    }
+                    if (user.email) token.email = user.email;
                 }
             }
 
@@ -234,18 +199,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         },
         async session({ session, token }) {
             if (token && session.user) {
-                // Ensure user ID is always set from token
-                if (token.id) {
-                    session.user.id = token.id;
-                }
-                if (token.picture) {
-                    session.user.image = token.picture;
-                }
-                // Also copy email to session for reference
-                if (token.email) {
-                    session.user.email = token.email;
-                }
-                // Pass the access token
+                if (token.id) session.user.id = token.id;
+                if (token.picture) session.user.image = token.picture;
+                if (token.email) session.user.email = token.email;
                 session.accessToken = token.accessToken as string | undefined;
             }
             return session;
