@@ -81,6 +81,11 @@ export async function POST(
         return NextResponse.json({ error: 'Editor role required' }, { status: 403 });
     }
 
+    if (!body.title || !String(body.title).trim()) {
+        return NextResponse.json({ error: 'Task title cannot be empty' }, { status: 400 });
+    }
+    body.title = String(body.title).trim();
+
     const task = await Task.create({
         workspaceId: board.workspaceId,
         boardId,

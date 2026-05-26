@@ -27,6 +27,7 @@ export interface IWorkspace extends Document {
     archived: boolean;
     archivedAt?: Date;
     archivedBy?: Types.ObjectId;
+    deletedAt?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -68,9 +69,12 @@ const WorkspaceSchema = new Schema<IWorkspace>(
         archived: { type: Boolean, default: false },
         archivedAt: { type: Date },
         archivedBy: { type: Schema.Types.ObjectId, ref: 'User' },
+        deletedAt: { type: Date },
     },
     { timestamps: true }
 );
+
+WorkspaceSchema.index({ deletedAt: 1 }, { sparse: true });
 
 // Index for efficient querying of workspaces by member ID
 WorkspaceSchema.index({ 'members.userId': 1 });

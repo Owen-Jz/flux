@@ -1,6 +1,14 @@
 'use client';
 // @ts-nocheck
 import { useState, useEffect, useRef, useCallback } from 'react';
+
+function isPastDue(dueDate: string): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+    return due < today;
+}
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon, CalendarIcon, CheckIcon, UserPlusIcon, Bars3BottomLeftIcon, TagIcon, ClockIcon, Squares2X2Icon, PlusIcon, TrashIcon, ChatBubbleLeftRightIcon, PaperAirplaneIcon, ArrowPathIcon, ExclamationCircleIcon, HeartIcon, ArrowUturnLeftIcon, FaceSmileIcon, LinkIcon, InformationCircleIcon, ChevronDownIcon, EllipsisHorizontalIcon } from '@heroicons/react/24/outline';
 import Image from 'next/image';
@@ -1192,7 +1200,7 @@ export function TaskDetailModal({
                                                 }}
                                                 className="input text-sm"
                                             />
-                                            {task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'DONE' && task.status !== 'ARCHIVED' && (
+                                            {task.dueDate && isPastDue(task.dueDate) && task.status !== 'DONE' && task.status !== 'ARCHIVED' && (
                                                 <p className="text-xs text-red-500 mt-2 font-medium">This task is overdue!</p>
                                             )}
                                         </div>

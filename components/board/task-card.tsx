@@ -9,6 +9,14 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import type { TaskPriority } from '@/models/Task';
 
+function isPastDue(dueDate: string): boolean {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(dueDate);
+    due.setHours(0, 0, 0, 0);
+    return due < today;
+}
+
 export interface Member {
     id: string;
     name: string;
@@ -487,7 +495,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 <div className="flex items-center gap-2">
                     {task.dueDate && (
                         <div className={`flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
-                            new Date(task.dueDate) < new Date() && task.status !== 'DONE' && task.status !== 'ARCHIVED'
+                            isPastDue(task.dueDate) && task.status !== 'DONE' && task.status !== 'ARCHIVED'
                                 ? 'bg-[var(--error-bg)] text-[var(--error-text-strong)]'
                                 : 'bg-[var(--background-subtle)] text-[var(--text-secondary)]'
                         }`}>

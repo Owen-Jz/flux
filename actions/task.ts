@@ -326,6 +326,24 @@ export async function updateTaskPosition(
     task.order = newOrder;
     await task.save();
 
+    // Rebalance column orders if midpoint arithmetic has converged gaps below threshold
+    const MIN_ORDER_GAP = 1.0;
+    const colTasks = await Task.find({ boardId: task.boardId, status: newStatus })
+        .sort({ order: 1 })
+        .select('_id order');
+    const needsRebalance = colTasks.length > 1 &&
+        colTasks.some((t, i) => i > 0 && colTasks[i].order - colTasks[i - 1].order < MIN_ORDER_GAP);
+    if (needsRebalance) {
+        await Task.bulkWrite(
+            colTasks.map((t, i) => ({
+                updateOne: {
+                    filter: { _id: t._id },
+                    update: { $set: { order: (i + 1) * TASK_ORDER_INCREMENT } },
+                },
+            }))
+        );
+    }
+
     // Log activity if status changed (task moved to different column)
     if (previousStatus !== newStatus && board) {
         await logActivity({

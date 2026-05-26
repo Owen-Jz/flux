@@ -5,6 +5,7 @@ import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { sendTrialStartedEmail } from '@/lib/email/subscription-notifications';
 import { revalidatePath } from 'next/cache';
+import { headers } from 'next/headers';
 
 const TRIAL_DAYS = 14;
 
@@ -40,11 +41,29 @@ export async function startTrial(plan: 'starter' | 'pro' = 'pro'): Promise<{ suc
             return { success: false, error: 'You already have an active subscription' };
         }
 
+        // Check for prior trial from same IP (best-effort abuse prevention)
+        const headersList = await headers();
+        const ip =
+            headersList.get('x-forwarded-for')?.split(',')[0].trim() ||
+            headersList.get('x-real-ip') ||
+            'unknown';
+        if (ip !== 'unknown') {
+            const priorTrial = await User.findOne({
+                trialIpAddress: ip,
+                hasUsedTrial: true,
+                _id: { $ne: user._id },
+            });
+            if (priorTrial) {
+                return { success: false, error: 'A free trial has already been used from this location.' };
+            }
+        }
+
         const trialEndsAt = new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
 
         user.plan = plan as 'starter' | 'pro';
         user.trialEndsAt = trialEndsAt;
         user.hasUsedTrial = true;
+        user.trialIpAddress = ip;
         user.subscriptionStatus = 'inactive';
 
         await user.save();

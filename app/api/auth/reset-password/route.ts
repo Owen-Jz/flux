@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
-import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { rateLimit, getClientIp, isSameOrigin } from '@/lib/rate-limit';
 import { sendPasswordResetEmail } from '@/lib/email/auth-emails';
 
 export async function POST(request: NextRequest) {
+    if (!isSameOrigin(request)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     // Apply rate limiting - 3 reset requests per 15 minutes per IP
     const ip = getClientIp(request);
     const rateLimitResult = rateLimit(`reset-${ip}`, 3, 15 * 60);

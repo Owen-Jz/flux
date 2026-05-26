@@ -85,6 +85,15 @@ export function rateLimit(
  * Get client IP from request headers
  * SECURITY FIX: Validates X-Forwarded-For against trusted proxy IPs to prevent spoofing
  */
+function simpleHash(str: string): string {
+    let h = 5381;
+    for (let i = 0; i < str.length; i++) {
+        h = ((h << 5) + h) + str.charCodeAt(i);
+        h = h & 0xFFFFFFFF;
+    }
+    return (h >>> 0).toString(16).padStart(8, '0');
+}
+
 const TRUSTED_PROXY_IPS = process.env.TRUSTED_PROXY_IPS?.split(',').map(ip => ip.trim()) || [];
 
 function isTrustedProxy(ip: string): boolean {
@@ -112,6 +121,22 @@ function isValidIp(ip: string): boolean {
     return true;
 }
 
+/**
+ * Validate that the request Origin matches the app origin.
+ * Returns true if origin is acceptable (same-origin, null/absent, or matches NEXTAUTH_URL).
+ * Rejects cross-origin state-changing requests to prevent CSRF.
+ */
+export function isSameOrigin(request: NextRequest): boolean {
+    const origin = request.headers.get('origin');
+    if (!origin) return true; // same-origin requests often omit Origin
+    const expected = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
+    try {
+        return new URL(origin).origin === new URL(expected).origin;
+    } catch {
+        return false;
+    }
+}
+
 export function getClientIp(request: NextRequest): string {
     // Check X-Forwarded-For header first (may be spoofed by attackers)
     const forwarded = request.headers.get('x-forwarded-for');
@@ -129,6 +154,7 @@ export function getClientIp(request: NextRequest): string {
         return realIp;
     }
 
-    // Fallback: derive from request connection info if available
-    return 'unknown';
+    // Fallback: hash user-agent for per-browser bucketing instead of one shared 'unknown' bucket
+    const ua = request.headers.get('user-agent') || 'no-ua';
+    return `unknown-${simpleHash(ua.slice(0, 200))}`;
 }

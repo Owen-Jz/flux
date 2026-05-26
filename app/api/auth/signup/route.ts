@@ -3,13 +3,16 @@ import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { rateLimit, getClientIp, isSameOrigin } from '@/lib/rate-limit';
 import { addUserToWorkspaceFromInvite } from '@/lib/process-workspace-invite';
 import { signupSchema } from '@/lib/validations/auth';
 import { sendTrialStartedEmail } from '@/lib/email/subscription-notifications';
 import { sendOtpEmail } from '@/lib/email/auth-emails';
 
 export async function POST(request: NextRequest) {
+    if (!isSameOrigin(request)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     // Apply rate limiting - 5 signup attempts per 15 minutes per IP
     const ip = getClientIp(request);
     const rateLimitResult = rateLimit(ip, 5, 15 * 60);

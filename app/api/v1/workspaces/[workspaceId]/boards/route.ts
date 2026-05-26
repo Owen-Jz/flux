@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyApiKey } from '@/lib/api-auth';
 import { connectDB } from '@/lib/db';
 import { Board, Workspace } from '@/models';
+import { User } from '@/models/User';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
+import { canCreateProject } from '@/lib/plan-limits';
+import type { PlanType } from '@/lib/types/billing';
 
 export async function GET(
     request: NextRequest,
@@ -62,6 +65,16 @@ export async function POST(
     const member = isWorkspaceMember(workspace, auth.user.id);
     if (!hasRole(member, 'ADMIN', 'EDITOR')) {
         return NextResponse.json({ error: 'Editor role required' }, { status: 403 });
+    }
+
+    // Enforce plan board limits
+    const user = await User.findById(auth.user.id).select('plan');
+    const currentBoardCount = await Board.countDocuments({ workspaceId });
+    if (!canCreateProject(((user?.plan as PlanType) || 'free'), currentBoardCount)) {
+        return NextResponse.json(
+            { error: 'Board limit reached for your current plan. Please upgrade to create more boards.' },
+            { status: 403 }
+        );
     }
 
     const board = await Board.create({

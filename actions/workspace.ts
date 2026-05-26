@@ -78,6 +78,7 @@ export async function getWorkspaces() {
 
     const workspaces = await Workspace.find({
         'members.userId': session.user.id,
+        deletedAt: { $exists: false },
     })
         .select('name slug settings updatedAt members')
         .lean();
@@ -168,7 +169,7 @@ export async function getWorkspaceUnreadCounts(workspaceSlugs: string[]) {
 export async function getWorkspaceBySlug(slug: string) {
     await connectDB();
 
-    const workspace = await Workspace.findOne({ slug })
+    const workspace = await Workspace.findOne({ slug, deletedAt: { $exists: false } })
         .populate('members.userId', 'name email image')
         .lean();
 

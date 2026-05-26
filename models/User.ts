@@ -44,6 +44,7 @@ export interface IUser extends Document {
     billingEmail?: string;
     trialEndsAt?: Date;
     hasUsedTrial: boolean;
+    trialIpAddress?: string;
     trialWarningSent: boolean;
     trialPromptDismissedAt?: Date;
     lastUpgradeAt?: Date;
@@ -89,6 +90,7 @@ const UserSchema = new Schema<IUser>(
         billingEmail: { type: String },
         trialEndsAt: { type: Date },
         hasUsedTrial: { type: Boolean, default: false },
+        trialIpAddress: { type: String },
         trialWarningSent: { type: Boolean, default: false },
         trialPromptDismissedAt: { type: Date },
         lastUpgradeAt: { type: Date },

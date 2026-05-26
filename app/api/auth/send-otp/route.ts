@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
-import { rateLimit, getClientIp } from '@/lib/rate-limit';
+import { rateLimit, getClientIp, isSameOrigin } from '@/lib/rate-limit';
 import { sendOtpEmail } from '@/lib/email/auth-emails';
 
 export async function POST(request: NextRequest) {
+    if (!isSameOrigin(request)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
     const ip = getClientIp(request);
     const rateLimitResult = rateLimit(`send-otp-${ip}`, 3, 15 * 60);
 

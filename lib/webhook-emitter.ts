@@ -1,5 +1,26 @@
 import { WebhookEndpoint } from '@/models';
 
+async function deliverWithRetry(
+    url: string,
+    payloadStr: string,
+    headers: Record<string, string>,
+    maxRetries = 2
+): Promise<void> {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(url, { method: 'POST', headers, body: payloadStr });
+            if (response.ok) return;
+            // 4xx errors are caller's fault — don't retry
+            if (response.status >= 400 && response.status < 500) return;
+        } catch {
+            if (attempt === maxRetries) return;
+        }
+        if (attempt < maxRetries) {
+            await new Promise<void>((r) => setTimeout(r, 1000 * (attempt + 1)));
+        }
+    }
+}
+
 interface WebhookPayload {
     event: string;
     timestamp: string;
@@ -50,20 +71,16 @@ export async function emitEvent(
                 'svix-signature': signature,
             };
 
-            const response = await fetch(endpoint.url, {
-                method: 'POST',
-                headers: {
+            await deliverWithRetry(
+                endpoint.url,
+                payloadStr,
+                {
                     'Content-Type': 'application/json',
                     'svix-id': headers['svix-id'],
                     'svix-timestamp': headers['svix-timestamp'],
                     'svix-signature': headers['svix-signature'],
-                },
-                body: payloadStr,
-            });
-
-            if (!response.ok) {
-                console.error(`Webhook delivery failed for endpoint ${endpoint._id}: ${response.status}`);
-            }
+                }
+            );
         } catch (error) {
             console.error(`Webhook delivery error for endpoint ${endpoint._id}:`, error);
         }
