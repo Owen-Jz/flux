@@ -5,6 +5,7 @@ import { TrialPromptModal } from './TrialPromptModal';
 import { startTrial } from '@/actions/billing/start-trial';
 import { dismissTrialPrompt, isEligibleForOnboarding } from '@/actions/onboarding';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface TrialPromptWrapperProps {
     trialEndsAt: string | null;
@@ -117,8 +118,16 @@ export function TrialPromptWrapper({
             if (result.success) {
                 setShowOfferModal(false);
                 justActivatedRef.current = true;
+                toast.success('Your 14-day Pro trial is now active!', {
+                    description: 'All Pro features are unlocked. Check your email for details.',
+                    duration: 6000,
+                });
                 router.refresh();
+            } else {
+                toast.error(result.error || 'Failed to activate trial. Please try again.');
             }
+        } catch {
+            toast.error('Something went wrong. Please try again.');
         } finally {
             setIsProcessing(false);
         }
