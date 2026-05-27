@@ -108,19 +108,15 @@ export default function OnboardingPage() {
         });
     };
 
-    // Step 3 → creates workspace, then either goes to Step 4 (invited) or navigates
-    const handleWorkspaceSubmit = async () => {
+    // Step 2 → creates workspace, saves slug, advances to tour step
+    const handleWorkspaceCreate = async () => {
         if (!formData.workspaceName || !formData.workspaceSlug) return;
         setIsSubmitting(true);
         setError('');
         try {
             const result = await createWorkspace({ name: formData.workspaceName, slug: formData.workspaceSlug });
-            if (invitedWorkspaces.length > 0) {
-                setOwnWorkspaceSlug(result.slug);
-                setStep(4);
-            } else {
-                router.push(`/${result.slug}`);
-            }
+            setOwnWorkspaceSlug(result.slug);
+            setStep(3);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to create workspace');
         } finally {
@@ -297,7 +293,7 @@ export default function OnboardingPage() {
                                         Workspace URL
                                     </label>
                                     <div className="flex items-center gap-2 p-3 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)]">
-                                        <span className="text-[var(--text-secondary)] text-sm">flux.com/</span>
+                                        <span className="text-[var(--text-secondary)] text-sm">fluxboard.site/</span>
                                         <input
                                             type="text"
                                             value={formData.workspaceSlug}
@@ -321,17 +317,23 @@ export default function OnboardingPage() {
                                 </div>
 
                                 <div className="flex gap-3">
-                                    <button type="button" onClick={() => setStep(1)} className="btn btn-secondary flex-1">
+                                    <button type="button" onClick={() => setStep(1)} className="btn btn-secondary flex-1" disabled={isSubmitting}>
                                         Back
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setStep(3)}
-                                        disabled={!formData.workspaceName.trim() || !formData.workspaceSlug.trim()}
+                                        onClick={handleWorkspaceCreate}
+                                        disabled={!formData.workspaceName.trim() || !formData.workspaceSlug.trim() || isSubmitting}
                                         className="btn btn-primary flex-1"
                                     >
-                                        Continue
-                                        <ArrowRightIcon className="w-4 h-4" />
+                                        {isSubmitting ? (
+                                            <span className="animate-spin">⟳</span>
+                                        ) : (
+                                            <>
+                                                Continue
+                                                <ArrowRightIcon className="w-4 h-4" />
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             </motion.div>
@@ -376,11 +378,13 @@ export default function OnboardingPage() {
                                     <button
                                         type="button"
                                         onClick={async () => {
-                                            // Mark tutorial as completed so the interactive
-                                            // walkthrough doesn't re-appear on the board.
                                             await updateOnboardingProgress('completedTutorial').catch(() => {});
                                             await markOnboardingComplete();
-                                            router.push('/dashboard');
+                                            if (invitedWorkspaces.length > 0) {
+                                                setStep(4);
+                                            } else {
+                                                router.push(ownWorkspaceSlug ? `/${ownWorkspaceSlug}` : '/dashboard');
+                                            }
                                         }}
                                         className="btn btn-secondary flex-1"
                                     >
@@ -388,18 +392,17 @@ export default function OnboardingPage() {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={handleWorkspaceSubmit}
-                                        disabled={isSubmitting}
+                                        onClick={() => {
+                                            if (invitedWorkspaces.length > 0) {
+                                                setStep(4);
+                                            } else {
+                                                router.push(ownWorkspaceSlug ? `/${ownWorkspaceSlug}` : '/dashboard');
+                                            }
+                                        }}
                                         className="btn btn-primary flex-1"
                                     >
-                                        {isSubmitting ? (
-                                            <span className="animate-spin">⟳</span>
-                                        ) : (
-                                            <>
-                                                Start Tour
-                                                <ArrowRightIcon className="w-4 h-4" />
-                                            </>
-                                        )}
+                                        Start Tour
+                                        <ArrowRightIcon className="w-4 h-4" />
                                     </button>
                                 </div>
                             </motion.div>

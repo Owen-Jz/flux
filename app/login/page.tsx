@@ -24,6 +24,16 @@ function LoginContent() {
         const verified = searchParams.get('verified');
         if (urlError === 'account-exists-with-credentials') {
             setError('An account with this email already exists. Please sign in with your email and password instead.');
+        } else if (urlError === 'OAuthCallback' || urlError === 'OAuthSignin') {
+            setError('Google sign-in failed. Please try again.');
+        } else if (urlError === 'OAuthCreateAccount') {
+            setError('Could not create your account. Please try again.');
+        } else if (urlError === 'AccessDenied') {
+            setError('Access denied. Please try signing in again.');
+        } else if (urlError === 'Configuration') {
+            setError('There is a server configuration issue. Please try again later.');
+        } else if (urlError) {
+            setError('Something went wrong during sign-in. Please try again.');
         } else if (verified === 'true') {
             setInfo('Email verified! You can now log in.');
         }

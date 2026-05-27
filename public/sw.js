@@ -4,8 +4,6 @@ var PAGES_CACHE = 'flux-pages-v2';
 var DATA_CACHE = 'flux-data-v2';
 
 var STATIC_ASSETS = [
-  '/',
-  '/dashboard',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
@@ -155,19 +153,39 @@ self.addEventListener('fetch', function(event) {
     return;
   }
 
-  // Stale-while-revalidate: Pages
-  if (url.pathname === '/' || url.pathname === '/dashboard' || url.pathname.match(/^\/[^/]+$/) || isBoardPage(url)) {
+  // Network-first: Authenticated pages (dashboard, workspace routes, board pages)
+  // Never serve stale cache for these — auth state changes between visits
+  if (url.pathname === '/dashboard' || isBoardPage(url)) {
+    event.respondWith(
+      fetch(event.request).then(function(response) {
+        if (response.ok && !response.redirected) {
+          caches.open(PAGES_CACHE).then(function(cache) {
+            cache.put(event.request, response.clone());
+          });
+        }
+        return response;
+      }).catch(function() {
+        return caches.match(event.request).then(function(cached) {
+          return cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+        });
+      })
+    );
+    return;
+  }
+
+  // Stale-while-revalidate: Public pages
+  if (url.pathname === '/' || url.pathname.match(/^\/[^/]+$/)) {
     event.respondWith(
       caches.match(event.request).then(function(cached) {
         var networkFetch = fetch(event.request).then(function(response) {
-          if (response.ok) {
+          if (response.ok && !response.redirected) {
             caches.open(PAGES_CACHE).then(function(cache) {
               cache.put(event.request, response.clone());
             });
           }
           return response;
         }).catch(function() {
-          return cached;
+          return cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
         });
         return cached || networkFetch;
       })

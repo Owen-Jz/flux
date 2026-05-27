@@ -32,7 +32,7 @@ const faqs = [
     },
     {
         question: "What payment methods do you accept?",
-        answer: "We accept all major credit cards, PayPal, and bank transfers for Enterprise plans. All payments are processed securely through Stripe."
+        answer: "We accept all major credit cards and bank transfers. All payments are processed securely through Paystack."
     },
     {
         question: "Can I cancel my subscription anytime?",

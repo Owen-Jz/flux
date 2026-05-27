@@ -228,14 +228,28 @@ const handleSubmit = async (e: React.FormEvent) => {
                                 type="email"
                                 placeholder="Email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={(e) => {
+                                    setEmail(e.target.value);
+                                    setEmailAvailable(null);
+                                    setEmailError('');
+                                }}
                                 onBlur={handleEmailBlur}
                                 className="input !pl-12"
                                 required
                             />
                         </div>
 
-                        {(emailError || emailAvailable !== null) && (
+                        {emailChecking && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex items-center gap-1 text-sm text-[var(--text-secondary)]"
+                            >
+                                <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                                <span>Checking availability...</span>
+                            </motion.div>
+                        )}
+                        {!emailChecking && (emailError || emailAvailable === true) && (
                             <motion.div
                                 initial={{ opacity: 0, y: -5 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -248,7 +262,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                                 ) : (
                                     <XMarkIcon className="w-4 h-4" />
                                 )}
-                                <span>{emailError || 'Email available'}</span>
+                                <span>{emailAvailable ? 'Email available' : emailError}</span>
                             </motion.div>
                         )}
 

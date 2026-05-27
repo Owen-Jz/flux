@@ -15,6 +15,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     pages: {
         signIn: '/login',
         error: '/login',
+        newUser: '/onboarding',
     },
     providers: [
         Google({
@@ -39,7 +40,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 const adminEmail = process.env.ADMIN_EMAIL;
                 const adminPasswordHash = process.env.ADMIN_PASSWORD_HASH;
                 if (adminEmail && adminPasswordHash && email === adminEmail.toLowerCase()) {
-                    // Admin uses DB lockout too — fetch user record if exists, else use in-process counter
                     const isValid = await bcrypt.compare(credentials.password as string, adminPasswordHash);
                     if (!isValid) return null;
                     return { id: 'admin-session', email: adminEmail, name: 'Admin', isAdmin: true };
@@ -51,14 +51,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         '+password +failedLoginAttempts +lockoutUntil +emailVerified'
                     );
 
-                    // Check lockout before anything else (consistent timing attack prevention)
                     if (user?.lockoutUntil && user.lockoutUntil > now) {
                         console.warn(`[Auth] Login attempt on locked account: ${email}`);
                         return null;
                     }
 
                     if (!user || !user.password) {
-                        // Increment attempts on a phantom record to prevent timing enumeration
                         if (user) {
                             user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
                             if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
@@ -83,13 +81,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         return null;
                     }
 
-                    // Require email verification before granting access
                     if (!user.emailVerified) {
                         console.warn(`[Auth] Login blocked — email not verified: ${email}`);
                         return null;
                     }
 
-                    // Successful login — clear lockout state
                     user.failedLoginAttempts = 0;
                     user.lockoutUntil = undefined;
                     await user.save();
@@ -119,25 +115,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     let userId: string | undefined;
 
                     if (!existingUser) {
-                        // New user — create account via Google
                         try {
                             const newUser = await User.create({
                                 email: user.email.toLowerCase(),
                                 name: user.name || 'Unknown',
                                 image: user.image || undefined,
-                                emailVerified: new Date(), // Google-verified emails are pre-verified
+                                emailVerified: new Date(),
                             });
                             userId = newUser._id.toString();
                         } catch (creationError) {
                             console.error('[Auth] Error creating user from Google:', creationError);
-                            return false;
+                            return '/login?error=OAuthCreateAccount';
                         }
                     } else if (existingUser.password) {
-                        // A credentials account already exists for this email.
-                        // Block Google sign-in and redirect with a clear error.
                         return '/login?error=account-exists-with-credentials';
                     } else {
-                        // Existing Google-only user — update image if needed
                         if (user.image && existingUser.image !== user.image) {
                             existingUser.image = user.image;
                             await existingUser.save();
@@ -145,38 +137,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         userId = existingUser._id.toString();
                     }
 
-                    // Process workspace invites
+                    // Process workspace invites (non-blocking — don't fail sign-in)
                     if (userId && user.email) {
-                        await addUserToWorkspaceFromInvite(userId, user.email);
+                        try {
+                            await addUserToWorkspaceFromInvite(userId, user.email);
+                        } catch (inviteError) {
+                            console.error('[Auth] Invite processing failed (non-fatal):', inviteError);
+                        }
                     }
                 } else if (account?.provider === 'credentials' && user.email && user.id) {
-                    await connectDB();
-                    await addUserToWorkspaceFromInvite(user.id, user.email);
+                    try {
+                        await connectDB();
+                        await addUserToWorkspaceFromInvite(user.id, user.email);
+                    } catch (inviteError) {
+                        console.error('[Auth] Invite processing failed (non-fatal):', inviteError);
+                    }
                 }
                 return true;
             } catch (error) {
                 console.error('[Auth] SignIn callback error:', error);
-                return false;
+                return '/login?error=OAuthCallback';
             }
         },
-        async jwt({ token, user }) {
-            if (token.id) {
-                if (user || !token.picture) {
-                    try {
-                        await connectDB();
-                        const dbUser = await User.findOne({ email: token.email });
-                        if (dbUser) {
-                            if (!token.id) token.id = dbUser._id.toString();
-                            if (dbUser.image) token.picture = dbUser.image;
-                        }
-                    } catch (error) {
-                        console.error('[Auth] JWT callback error:', error);
-                    }
-                }
-                return token;
-            }
-
+        async jwt({ token, user, trigger }) {
             if (user) {
+                // Initial sign-in: resolve the MongoDB ObjectId
                 try {
                     await connectDB();
                     const dbUser = await User.findOne({ email: user.email });
@@ -185,13 +170,43 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         token.email = dbUser.email;
                         if (dbUser.image) token.picture = dbUser.image;
                     } else {
-                        token.id = user.id;
+                        console.error('[Auth] JWT: user not found in DB after sign-in for:', user.email);
+                        token.id = undefined;
                         if (user.email) token.email = user.email;
                     }
                 } catch (error) {
                     console.error('[Auth] JWT callback error during sign in:', error);
-                    token.id = user.id;
+                    token.id = undefined;
                     if (user.email) token.email = user.email;
+                }
+                return token;
+            }
+
+            // Subsequent requests: if token.id is missing, try to resolve it from DB
+            if (!token.id && token.email) {
+                try {
+                    await connectDB();
+                    const dbUser = await User.findOne({ email: token.email });
+                    if (dbUser) {
+                        token.id = dbUser._id.toString();
+                        if (dbUser.image) token.picture = dbUser.image;
+                    }
+                } catch (error) {
+                    console.error('[Auth] JWT callback error resolving user ID:', error);
+                }
+                return token;
+            }
+
+            // Refresh user picture on update trigger
+            if (token.id && trigger === 'update') {
+                try {
+                    await connectDB();
+                    const dbUser = await User.findOne({ email: token.email });
+                    if (dbUser?.image) {
+                        token.picture = dbUser.image;
+                    }
+                } catch (error) {
+                    console.error('[Auth] JWT callback error refreshing user:', error);
                 }
             }
 

@@ -1,5 +1,39 @@
 import type { NextAuthConfig } from 'next-auth';
 
+const publicPaths = new Set([
+    '/',
+    '/login',
+    '/signup',
+    '/reset-password',
+    '/verify-email',
+    '/about',
+    '/blog',
+    '/careers',
+    '/community',
+    '/contact',
+    '/cookies',
+    '/docs',
+    '/enterprise',
+    '/features',
+    '/help',
+    '/how-it-works',
+    '/information',
+    '/licenses',
+    '/pricing',
+    '/privacy',
+    '/security',
+    '/terms',
+]);
+
+const publicPrefixes = ['/api/auth/', '/docs/', '/blog/', '/help/'];
+
+const authRoutes = new Set(['/login', '/signup', '/reset-password']);
+
+function isPublicRoute(pathname: string): boolean {
+    if (publicPaths.has(pathname)) return true;
+    return publicPrefixes.some((prefix) => pathname.startsWith(prefix));
+}
+
 export const authConfig = {
     trustHost: true,
     pages: {
@@ -8,38 +42,25 @@ export const authConfig = {
     },
     session: {
         strategy: 'jwt',
-        maxAge: 24 * 60 * 60, // 24 hours
+        maxAge: 24 * 60 * 60,
     },
     callbacks: {
         authorized({ auth, request }) {
             const isLoggedIn = !!auth?.user;
-            const isPublicRoute =
-                request.nextUrl.pathname === '/' ||
-                request.nextUrl.pathname === '/login' ||
-                request.nextUrl.pathname === '/signup' ||
-                request.nextUrl.pathname === '/reset-password' ||
-                request.nextUrl.pathname === '/verify-email' ||
-                request.nextUrl.pathname.startsWith('/api/auth/');
+            const pathname = request.nextUrl.pathname;
+            const isPublic = isPublicRoute(pathname);
+            const isAuth = authRoutes.has(pathname);
 
-            const isAuthRoute = request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/signup' || request.nextUrl.pathname === '/reset-password';
+            if (isPublic && !isAuth) return true;
 
-            // Allow public routes
-            if (isPublicRoute && !isAuthRoute) {
-                return true;
-            }
-
-            // Redirect logged-in users away from auth pages
-            if (isAuthRoute && isLoggedIn) {
+            if (isAuth && isLoggedIn) {
                 return Response.redirect(new URL('/dashboard', request.nextUrl));
             }
 
-            // Redirect to login if not authenticated and not on public route
-            if (!isLoggedIn && !isPublicRoute) {
-                return false;
-            }
+            if (!isLoggedIn && !isPublic) return false;
 
             return true;
         },
     },
-    providers: [], // Providers added in auth.ts
+    providers: [],
 } satisfies NextAuthConfig;
