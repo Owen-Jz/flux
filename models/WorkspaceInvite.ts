@@ -9,6 +9,7 @@ export interface IWorkspaceInvite extends Document {
   role: 'VIEWER' | 'EDITOR' | 'ADMIN';
   token: string;
   expiresAt: Date;
+  requiresAcceptance: boolean;
   createdAt: Date;
 }
 
@@ -49,6 +50,10 @@ const WorkspaceInviteSchema = new Schema<IWorkspaceInvite>({
   expiresAt: {
     type: Date,
     required: true,
+  },
+  requiresAcceptance: {
+    type: Boolean,
+    default: false,
   },
 }, {
   timestamps: true,
