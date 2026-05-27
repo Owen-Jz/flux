@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flux Brand Bible — Sections 10-13</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --flux-purple: #7E3BE9;
+            --flux-purple-light: #9B6BF5;
+            --flux-purple-dark: #5B21B6;
+            --flux-purple-subtle: #F5F0FF;
+            --flux-purple-muted: #E8E0F5;
+
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #FAFAFA;
+            --bg-tertiary: #F5F5F5;
+            --bg-card: #FFFFFF;
+
+            --text-primary: #1A1A2E;
+            --text-secondary: #4A4A6A;
+            --text-tertiary: #7A7A8A;
+            --text-muted: #9A9AAA;
+
+            --border-color: #E5E5EA;
+            --border-light: #F0F0F5;
+
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #0F0F1A;
+                --bg-secondary: #1A1A2E;
+                --bg-tertiary: #252540;
+                --bg-card: #1E1E32;
+
+                --text-primary: #FFFFFF;
+                --text-secondary: #B0B0C8;
+                --text-tertiary: #808096;
+                --text-muted: #606078;
+
+                --border-color: #2A2A40;
+                --border-light: #252540;
+
+                --flux-purple-subtle: #2D1F4E;
+                --flux-purple-muted: #3D2A6E;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 4rem;
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--flux-purple) 0%, var(--flux-purple-dark) 100%);
+            border-radius: 24px;
+            color: white;
+        }
+
+        .brand-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-header p {
+            font-size: 1.125rem;
+            opacity: 0.9;
+        }
+
+        .section {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .section-number {
+            display: inline-block;
+            background: var(--flux-purple);
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 700;
+            padding: 0.375rem 1rem;
+            border-radius: 100px;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            margin-top: 2rem;
+        }
+
+        h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .card-purple {
+            background: var(--flux-purple-subtle);
+            border-color: var(--flux-purple-muted);
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            background: var(--flux-purple);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .stat-box {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--flux-purple);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+            font-weight: 500;
+        }
+
+        .contrast-demo {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+
+        .contrast-item {
+            flex: 1;
+            min-width: 200px;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .contrast-pass {
+            background: var(--bg-secondary);
+            border: 2px solid var(--success);
+        }
+
+        .contrast-fail {
+            background: var(--bg-secondary);
+            border: 2px solid var(--error);
+        }
+
+        .focus-demo {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1.5rem 0;
+        }
+
+        .focus-button {
+            padding: 1rem 2rem;
+            background: var(--flux-purple);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .focus-button:focus-visible {
+            box-shadow: 0 0 0 3px var(--bg-primary), 0 0 0 6px var(--flux-purple);
+        }
+
+        .focus-button-ghost {
+            background: transparent;
+            color: var(--flux-purple);
+            border: 2px solid var(--flux-purple);
+        }
+
+        .focus-button-ghost:focus-visible {
+            box-shadow: 0 0 0 3px var(--bg-primary), 0 0 0 6px var(--flux-purple);
+        }
+
+        .checklist {
+            list-style: none;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .checklist li {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            border: 1px solid var(--border-light);
+        }
+
+        .check-box {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--flux-purple);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: var(--flux-purple);
+            font-weight: 700;
+        }
+
+        .check-text {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .screen-wireframe {
+            background: var(--bg-tertiary);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .wireframe-label {
+            display: inline-block;
+            background: var(--flux-purple);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            margin: 0.25rem;
+        }
+
+        .wireframe-label-secondary {
+            background: var(--text-tertiary);
+        }
+
+        .screen-annotation {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        .screen-preview {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .screen-annot {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .annot-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .annot-number {
+            width: 28px;
+            height: 28px;
+            background: var(--flux-purple);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .annot-text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .nav-flow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 2rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .nav-node {
+            padding: 0.75rem 1.5rem;
+            background: var(--flux-purple);
+            color: white;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .nav-arrow {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+        }
+
+        .social-spec {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .social-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-light);
+        }
+
+        .social-platform {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .platform-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .platform-x { background: #000000; }
+        .platform-linkedin { background: #0077B5; }
+        .platform-instagram { background: linear-gradient(135deg, #F58529, #DD2A7B, #8134AF); }
+        .platform-generic { background: var(--flux-purple); }
+
+        .platform-name {
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .spec-row:last-child {
+            border-bottom: none;
+        }
+
+        .spec-label {
+            color: var(--text-tertiary);
+            font-size: 0.875rem;
+        }
+
+        .spec-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .template-card {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border-light);
+        }
+
+        .template-type {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--flux-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .template-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .template-desc {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .template-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .spec-tag {
+            padding: 0.375rem 0.75rem;
+            background: var(--flux-purple-subtle);
+            color: var(--flux-purple);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .slide-preview {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin: 1rem 0;
+            box-shadow: var(--shadow-md);
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .slide-title-text {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--flux-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .slide-subtitle-text {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+        }
+
+        .slide-body-text {
+            font-size: 1rem;
+            color: var(--text-tertiary);
+            margin-top: 1rem;
+        }
+
+        .slide-purple-bg {
+            background: var(--flux-purple);
+            color: white;
+        }
+
+        .slide-purple-bg .slide-title-text {
+            color: white;
+        }
+
+        .slide-purple-bg .slide-subtitle-text {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .slide-layout-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .layout-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-light);
+        }
+
+        .layout-name {
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .layout-desc {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .color-swatch {
+            width: 100%;
+            aspect-ratio: 16/9;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .swatch-purple { background: var(--flux-purple); }
+        .swatch-purple-light { background: var(--flux-purple-light); }
+        .swatch-purple-dark { background: var(--flux-purple-dark); }
+        .swatch-white { background: white; color: var(--text-primary); border: 1px solid var(--border-color); }
+        .swatch-gray { background: #6B7280; }
+
+        .brand-hashtag {
+            display: inline-block;
+            background: var(--flux-purple);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        .pro-tip {
+            background: var(--flux-purple-subtle);
+            border-left: 4px solid var(--flux-purple);
+            padding: 1.25rem 1.5rem;
+            border-radius: 0 12px 12px 0;
+            margin: 1.5rem 0;
+        }
+
+        .pro-tip-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--flux-purple);
+            margin-bottom: 0.5rem;
+        }
+
+        .pro-tip-text {
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .font-sample {
+            margin: 1rem 0;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+
+        .font-title { font-size: 2.5rem; font-weight: 800; color: var(--flux-purple); }
+        .font-subtitle { font-size: 1.5rem; font-weight: 600; color: var(--text-primary); }
+        .font-body { font-size: 1rem; color: var(--text-secondary); }
+        .font-small { font-size: 0.875rem; color: var(--text-tertiary); }
+
+        .reduced-motion-demo {
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            margin: 1rem 0;
+        }
+
+        .motion-badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            background: var(--success);
+            color: white;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .example-box {
+            padding: 1.25rem;
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            margin: 0.75rem 0;
+            border: 1px solid var(--border-light);
+        }
+
+        .example-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .good-example {
+            border-left: 3px solid var(--success);
+        }
+
+        .bad-example {
+            border-left: 3px solid var(--error);
+        }
+
+        .avatar-demo {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+
+        .avatar {
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            background: var(--flux-purple);
+        }
+
+        .avatar-lg { width: 80px; height: 80px; font-size: 2rem; }
+        .avatar-md { width: 48px; height: 48px; font-size: 1.25rem; }
+        .avatar-sm { width: 32px; height: 32px; font-size: 0.875rem; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .reduced-motion-demo {
+                animation: none;
+                transition: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            .section { padding: 2rem 1.5rem; }
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+            .two-col { grid-template-columns: 1fr; }
+            .screen-annotation { grid-template-columns: 1fr; }
+            .slide-layout-grid { grid-template-columns: 1fr; }
+            .nav-flow { flex-direction: column; }
+            .nav-arrow { transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- BRAND HEADER -->
+        <header class="brand-header">
+            <h1>Flux Brand Bible</h1>
+            <p>Sections 10-13: Accessibility, Application Screens, Social Media & Presentations</p>
+        </header>
+
+        <!-- SECTION 10: ACCESSIBILITY STANDARDS -->
+        <section class="section">
+            <span class="section-number">Section 10</span>
+            <h2 class="section-title">Accessibility Standards</h2>
+            <p class="section-subtitle">WCAG 2.2 AA compliance requirements and inclusive design guidelines</p>
+
+            <h3>Color Contrast Requirements</h3>
+            <p>All text and visual elements must meet minimum contrast ratios to ensure readability for users with low vision or color blindness.</p>
+
+            <div class="contrast-demo">
+                <div class="contrast-item contrast-pass">
+                    <div class="stat-value">4.5:1</div>
+                    <div class="stat-label">Minimum for normal text</div>
+                    <p style="margin-top: 0.75rem; font-size: 0.875rem;">Body text under 18px regular weight</p>
+                </div>
+                <div class="contrast-item contrast-pass">
+                    <div class="stat-value">3:1</div>
+                    <div class="stat-label">Minimum for large text</div>
+                    <p style="margin-top: 0.75rem; font-size: 0.875rem;">18px+ or 14px bold text</p>
+                </div>
+                <div class="contrast-item contrast-pass">
+                    <div class="stat-value">3:1</div>
+                    <div class="stat-label">UI Components & Graphics</div>
+                    <p style="margin-top: 0.75rem; font-size: 0.875rem;">Interactive elements, focus indicators, chart elements</p>
+                </div>
+            </div>
+
+            <div class="example-box good-example">
+                <div class="example-label">Compliant Example</div>
+                <p style="color: var(--text-primary); font-size: 1rem;">Flux Purple (#7E3BE9) on White — Contrast ratio 5.2:1</p>
+            </div>
+
+            <h3>Focus Indicators</h3>
+            <p>All interactive elements must have clearly visible focus states that are never removed or hidden.</p>
+
+            <div class="focus-demo">
+                <button class="focus-button">Default Button</button>
+                <button class="focus-button focus-button-ghost">Ghost Button</button>
+                <button class="focus-button" style="background: var(--text-tertiary);">Disabled State</button>
+            </div>
+
+            <div class="pro-tip">
+                <div class="pro-tip-label">Implementation Standard</div>
+                <p class="pro-tip-text">Use <code style="background: var(--bg-tertiary); padding: 0.125rem 0.375rem; border-radius: 4px;">box-shadow: 0 0 0 3px var(--bg-primary), 0 0 0 6px var(--flux-purple)</code> for a 3px purple focus ring. Never use <code>outline: none</code> without an alternative focus indicator.</p>
+            </div>
+
+            <h3>Keyboard Navigation</h3>
+            <p>All interactive elements must be fully accessible via keyboard with proper tab order and activation.</p>
+
+            <div class="grid grid-2" style="margin-top: 1.5rem;">
+                <div class="card">
+                    <div class="icon-box">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01"/></svg>
+                    </div>
+                    <h4>Tab Navigation</h4>
+                    <p style="font-size: 0.875rem;">All interactive elements reachable via Tab key in logical reading order. Use <code>tabindex="0"</code> for custom controls.</p>
+                </div>
+                <div class="card">
+                    <div class="icon-box">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+                    </div>
+                    <h4>Activation Keys</h4>
+                    <p style="font-size: 0.875rem;">Enter and Space activate buttons and links. Escape closes modals. Arrow keys navigate menus and dropdowns.</p>
+                </div>
+            </div>
+
+            <h3>Screen Reader Support</h3>
+            <div class="grid grid-3" style="margin-top: 1.5rem;">
+                <div class="card card-purple">
+                    <h4>ARIA Labels</h4>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary);">All icon-only buttons require <code>aria-label</code> or <code>aria-labelledby</code>. Example: <code>aria-label="Close modal"</code></p>
+                </div>
+                <div class="card card-purple">
+                    <h4>Heading Hierarchy</h4>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary);">Logical order: h1 > h2 > h3. Never skip levels. Page title is h1, section titles h2, subsections h3.</p>
+                </div>
+                <div class="card card-purple">
+                    <h4>Alt Text</h4>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary);">All images require descriptive alt text. Use <code>alt=""</code> for decorative images only.</p>
+                </div>
+            </div>
+
+            <h3>Reduced Motion</h3>
+            <div class="reduced-motion-demo">
+                <span class="motion-badge">RESECTED</span>
+                <p style="margin-top: 1rem; margin-bottom: 0;">All animations must respect <code>prefers-reduced-motion</code>. Wrap animations in media queries to disable or reduce motion.</p>
+            </div>
+
+            <h3>Color Blindness Safety</h3>
+            <p>Never use color as the sole means of conveying information. Always pair with secondary indicators.</p>
+
+            <div class="grid grid-2" style="margin-top: 1rem;">
+                <div class="example-box good-example">
+                    <div class="example-label">Good: Color + Icon + Text</div>
+                    <p style="color: var(--text-primary);">Task status: <span style="color: var(--success); font-weight: 600;">● Done</span> with checkmark icon</p>
+                </div>
+                <div class="example-box bad-example">
+                    <div class="example-label">Bad: Color Only</div>
+                    <p style="color: var(--text-primary);">Task status: <span style="color: var(--success);">●</span> (no icon or label)</p>
+                </div>
+            </div>
+
+            <h3>Touch Targets</h3>
+            <div class="stat-box" style="display: inline-block; margin: 1rem 0;">
+                <div class="stat-value">44×44px</div>
+                <div class="stat-label">Minimum touch target size for mobile</div>
+            </div>
+            <p>All interactive elements on mobile must have at least 44x44px touch area. Add padding to small buttons to meet this requirement.</p>
+
+            <h3>Cognitive Accessibility</h3>
+            <div class="grid grid-2">
+                <div class="card">
+                    <h4>Clear Labels</h4>
+                    <p style="font-size: 0.875rem;">Use descriptive, actionable labels. "Delete task" instead of "Click here". Avoid jargon and abbreviations.</p>
+                </div>
+                <div class="card">
+                    <h4>Error Messages</h4>
+                    <p style="font-size: 0.875rem;">Include helpful suggestions: "Password must be 8+ characters with one number" instead of "Invalid password".</p>
+                </div>
+                <div class="card">
+                    <h4>Consistent Navigation</h4>
+                    <p style="font-size: 0.875rem;">Navigation placement and behavior stays consistent across all screens. Users learn patterns.</p>
+                </div>
+                <div class="card">
+                    <h4>Clear Feedback</h4>
+                    <p style="font-size: 0.875rem;">Show loading states, success confirmations, and error states clearly. Use inline validation.</p>
+                </div>
+            </div>
+
+            <h3>Accessibility Checklist</h3>
+            <ul class="checklist">
+                <li>
+                    <div class="check-box">✓</div>
+                    <span class="check-text">Color contrast ratios meet 4.5:1 (text) and 3:1 (large text/UI)</span>
+                </li>
+                <li>
+                    <div class="check-box">✓</div>
+                    <span class="check-text">All interactive elements have visible 3px purple focus indicators</span>
+                </li>
+                <li>
+                    <div class="check-box">✓</div>
+                    <span class="check-text">Full keyboard navigation with logical tab order</span>
+                </li>
+                <li>
+                    <div class="check-box">✓</div>
+                    <span class="check-text">ARIA labels on all icon buttons and interactive elements</span>
+                </li>
+                <li>
+                    <div class="check-box">✓</div>
+                    <span class="check-text">Proper heading hierarchy (h1 → h2 → h3)</span>
+                </li>
+                <li>
+                    <div class="check-box">✓</div>
+                    <span class="check-text">Alt text on all meaningful images</span>
+                </li>
+                <li>
+                    <div class="check-box">✓</div>
+                    <span class="check-text">Animations respect prefers-reduced-motion</span>
+                </li>
+                <li>
+                    <div class="check-box">✓</div>
+                    <span class="check-text">Color never used alone to convey information</span>
+                </li>
+                <li>
+                    <div class="check-box">✓</div>
+                    <span class="check-text">Touch targets minimum 44×44px on mobile</span>
+                </li>
+                <li>
+                    <div class="check-box">✓</div>
+                    <span class="check-text">Form errors include helpful suggestions</span>
+                </li>
+            </ul>
+        </section>
+
+        <!-- SECTION 11: APPLICATION SCREENS -->
+        <section class="section">
+            <span class="section-number">Section 11</span>
+            <h2 class="section-title">Application Screens</h2>
+            <p class="section-subtitle">Wireframe representations and annotated descriptions of key screens</p>
+
+            <h3>Navigation Flow</h3>
+            <div class="nav-flow">
+                <div class="nav-node">Dashboard</div>
+                <span class="nav-arrow">→</span>
+                <div class="nav-node">Board View</div>
+                <span class="nav-arrow">→</span>
+                <div class="nav-node">Task Modal</div>
+                <span class="nav-arrow">→</span>
+                <div class="nav-node">Settings</div>
+            </div>
+
+            <!-- Screen 1: Dashboard -->
+            <h3>1. Dashboard</h3>
+            <div class="screen-wireframe">
+                <div class="screen-preview" style="background: white; min-height: 320px; position: relative;">
+                    <div style="padding: 1rem 0; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 32px; height: 32px; background: var(--flux-purple); border-radius: 8px;"></div>
+                            <span style="font-weight: 700; font-size: 1.25rem;">Flux</span>
+                        </div>
+                        <div style="width: 120px; height: 36px; background: var(--bg-tertiary); border-radius: 8px;"></div>
+                    </div>
+                    <div style="padding: 1.5rem 0;">
+                        <div style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.25rem;">Your Workspaces</div>
+                        <div style="color: var(--text-tertiary); font-size: 0.875rem;">Manage your team workspaces</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 1.25rem; border: 1px solid var(--border-light);">
+                            <div style="width: 48px; height: 48px; background: #8B5CF6; border-radius: 10px; margin-bottom: 0.75rem;"></div>
+                            <div style="font-weight: 700; margin-bottom: 0.25rem;">Marketing Team</div>
+                            <div style="font-size: 0.75rem; color: var(--text-tertiary);">5 boards · 12 members</div>
+                        </div>
+                        <div style="background: var(--bg-tertiary); border-radius: 12px; padding: 1.25rem; border: 1px solid var(--border-light);">
+                            <div style="width: 48px; height: 48px; background: #EC4899; border-radius: 10px; margin-bottom: 0.75rem;"></div>
+                            <div style="font-weight: 700; margin-bottom: 0.25rem;">Product Launch</div>
+                            <div style="font-size: 0.75rem; color: var(--text-tertiary);">3 boards · 8 members</div>
+                        </div>
+                        <div style="border: 2px dashed var(--border-color); border-radius: 12px; padding: 1.25rem; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 120px;">
+                            <div style="width: 40px; height: 40px; background: var(--flux-purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; margin-bottom: 0.5rem;">+</div>
+                            <div style="font-weight: 600; color: var(--flux-purple); font-size: 0.875rem;">New Workspace</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="screen-annotation">
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">UI Elements</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number">1</span><span class="annot-text">Logo + App name (top left)</span></div>
+                        <div class="annot-item"><span class="annot-number">2</span><span class="annot-text">User avatar + dropdown (top right)</span></div>
+                        <div class="annot-item"><span class="annot-number">3</span><span class="annot-text">Page title + subtitle</span></div>
+                        <div class="annot-item"><span class="annot-number">4</span><span class="annot-text">Workspace cards with color indicator, name, board count, member count</span></div>
+                        <div class="annot-item"><span class="annot-number">5</span><span class="annot-text">"New Workspace" CTA with dashed border</span></div>
+                    </div>
+                </div>
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">Key Interactions</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click workspace card → Enter board view</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click "+ New Workspace" → Modal with workspace creation form</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Hover workspace card → Subtle lift shadow + Edit/Delete options</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Empty state shows onboarding prompt if no workspaces</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 2: Board View -->
+            <h3>2. Board View</h3>
+            <div class="screen-wireframe">
+                <div class="screen-preview" style="background: white; min-height: 280px; position: relative;">
+                    <div style="padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="font-weight: 700; font-size: 1.125rem;">← Back</div>
+                            <div style="font-weight: 700; font-size: 1.25rem;">Product Launch Board</div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <div style="width: 32px; height: 32px; background: var(--bg-tertiary); border-radius: 6px;"></div>
+                            <div style="width: 32px; height: 32px; background: var(--bg-tertiary); border-radius: 6px;"></div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem; padding: 1rem; overflow-x: auto;">
+                        <div style="min-width: 280px; background: var(--bg-secondary); border-radius: 12px; padding: 1rem;">
+                            <div style="font-weight: 700; margin-bottom: 1rem; display: flex; justify-content: space-between;">
+                                <span>To Do</span><span style="background: var(--bg-tertiary); padding: 0.125rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">3</span>
+                            </div>
+                            <div style="background: white; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Design landing page</div>
+                                <div style="display: flex; gap: 0.5rem; font-size: 0.75rem; color: var(--text-tertiary);">
+                                    <span style="background: var(--flux-purple-subtle); color: var(--flux-purple); padding: 0.125rem 0.5rem; border-radius: 4px;">High</span>
+                                    <span>Due: May 25</span>
+                                </div>
+                            </div>
+                            <div style="background: white; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Write release notes</div>
+                                <div style="font-size: 0.75rem; color: var(--text-tertiary);">Due: May 28</div>
+                            </div>
+                            <div style="background: white; border-radius: 8px; padding: 1rem; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Set up analytics</div>
+                            </div>
+                        </div>
+                        <div style="min-width: 280px; background: var(--bg-secondary); border-radius: 12px; padding: 1rem;">
+                            <div style="font-weight: 700; margin-bottom: 1rem; display: flex; justify-content: space-between;">
+                                <span>In Progress</span><span style="background: var(--bg-tertiary); padding: 0.125rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">2</span>
+                            </div>
+                            <div style="background: white; border-radius: 8px; padding: 1rem; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Build API endpoints</div>
+                                <div style="display: flex; gap: 0.5rem; font-size: 0.75rem; color: var(--text-tertiary);">
+                                    <span style="background: #FEF3C7; color: #B45309; padding: 0.125rem 0.5rem; border-radius: 4px;">Medium</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="min-width: 280px; background: var(--bg-secondary); border-radius: 12px; padding: 1rem;">
+                            <div style="font-weight: 700; margin-bottom: 1rem; display: flex; justify-content: space-between;">
+                                <span>Done</span><span style="background: var(--bg-tertiary); padding: 0.125rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="screen-annotation">
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">UI Elements</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number">1</span><span class="annot-text">Back navigation + Board title with breadcrumb</span></div>
+                        <div class="annot-item"><span class="annot-number">2</span><span class="annot-text">Filter and sort controls (top right)</span></div>
+                        <div class="annot-item"><span class="annot-number">3</span><span class="annot-text">Kanban columns with status header + task count</span></div>
+                        <div class="annot-item"><span class="annot-number">4</span><span class="annot-text">Task cards with title, priority badge, due date</span></div>
+                        <div class="annot-item"><span class="annot-number">5</span><span class="annot-text">Horizontal scroll for overflow columns</span></div>
+                    </div>
+                </div>
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">Key Interactions</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Drag task card → Move between columns</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click task card → Open task detail modal</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click column header → Column actions menu</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Drop zone highlights on drag hover</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 3: Task Detail Modal -->
+            <h3>3. Task Detail Modal</h3>
+            <div class="screen-wireframe">
+                <div class="screen-preview" style="background: white; min-height: 400px; position: relative; max-width: 600px; margin: 0 auto;">
+                    <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <div style="font-size: 0.75rem; color: var(--flux-purple); font-weight: 600; margin-bottom: 0.5rem;">PRODUCT LAUNCH / TO DO</div>
+                                <div style="font-size: 1.5rem; font-weight: 700;">Design landing page hero section</div>
+                            </div>
+                            <div style="font-size: 1.5rem; cursor: pointer;">×</div>
+                        </div>
+                    </div>
+                    <div style="padding: 1.5rem;">
+                        <div style="margin-bottom: 1.5rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.75rem;">Description</div>
+                            <div style="color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.6;">Create a compelling hero section for the product launch landing page. Include headline, subheadline, and primary CTA button.</div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Priority</div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <span style="background: var(--flux-purple); color: white; padding: 0.375rem 0.75rem; border-radius: 6px; font-size: 0.875rem; font-weight: 600;">High</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Assignee</div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="width: 28px; height: 28px; background: var(--flux-purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 700;">AJ</div>
+                                    <span style="font-weight: 500;">Alex Johnson</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Due Date</div>
+                                <div style="color: var(--text-secondary);">May 25, 2026</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600; margin-bottom: 0.5rem;">Labels</div>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <span style="background: #DBEAFE; color: #1D4ED8; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">Design</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; margin-bottom: 0.75rem;">Subtasks <span style="color: var(--text-tertiary); font-weight: 400;">(2/3)</span></div>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 8px;">
+                                    <div style="width: 20px; height: 20px; border: 2px solid var(--success); border-radius: 4px; background: var(--success);"></div>
+                                    <span>Create wireframe mockups</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 8px;">
+                                    <div style="width: 20px; height: 20px; border: 2px solid var(--success); border-radius: 4px; background: var(--success);"></div>
+                                    <span>Design desktop variant</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: 8px;">
+                                    <div style="width: 20px; height: 20px; border: 2px solid var(--border-color); border-radius: 4px;"></div>
+                                    <span>Design mobile variant</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 0.75rem; justify-content: flex-end;">
+                        <button style="padding: 0.75rem 1.5rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; font-weight: 600; cursor: pointer;">Delete</button>
+                        <button style="padding: 0.75rem 1.5rem; background: var(--flux-purple); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+            <div class="screen-annotation">
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">UI Elements</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number">1</span><span class="annot-text">Breadcrumb path + Close button (top right)</span></div>
+                        <div class="annot-item"><span class="annot-number">2</span><span class="annot-text">Editable task title (click to edit)</span></div>
+                        <div class="annot-item"><span class="annot-number">3</span><span class="annot-text">Description with rich text support</span></div>
+                        <div class="annot-item"><span class="annot-number">4</span><span class="annot-text">Property fields: Priority, Assignee, Due Date, Labels</span></div>
+                        <div class="annot-item"><span class="annot-number">5</span><span class="annot-text">Subtask checklist with progress counter</span></div>
+                        <div class="annot-item"><span class="annot-number">6</span><span class="annot-text">Action buttons: Delete (ghost), Save (primary)</span></div>
+                    </div>
+                </div>
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">Key Interactions</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click title → Inline editing mode</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click property → Dropdown selector</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Check subtask → Toggle completion + progress updates</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Escape key → Close modal with unsaved warning</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 4: Settings -->
+            <h3>4. Settings</h3>
+            <div class="screen-wireframe">
+                <div class="screen-preview" style="background: white; min-height: 320px; position: relative;">
+                    <div style="display: flex; min-height: 400px;">
+                        <div style="width: 240px; border-right: 1px solid var(--border-color); padding: 1.5rem;">
+                            <div style="font-weight: 700; color: var(--text-tertiary); font-size: 0.75rem; text-transform: uppercase; margin-bottom: 1rem;">Settings</div>
+                            <div style="margin-bottom: 0.5rem; padding: 0.75rem; background: var(--flux-purple-subtle); color: var(--flux-purple); border-radius: 8px; font-weight: 600;">Workspace</div>
+                            <div style="margin-bottom: 0.5rem; padding: 0.75rem; color: var(--text-secondary); border-radius: 8px;">Team Members</div>
+                            <div style="margin-bottom: 0.5rem; padding: 0.75rem; color: var(--text-secondary); border-radius: 8px;">Billing</div>
+                            <div style="margin-bottom: 0.5rem; padding: 0.75rem; color: var(--text-secondary); border-radius: 8px;">Integrations</div>
+                            <div style="margin-bottom: 0.5rem; padding: 0.75rem; color: var(--text-secondary); border-radius: 8px;">Notifications</div>
+                        </div>
+                        <div style="flex: 1; padding: 2rem;">
+                            <div style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">Workspace Settings</div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Workspace Name</label>
+                                <input type="text" value="Marketing Team" style="width: 100%; max-width: 400px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 1rem;">
+                            </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Workspace URL</label>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="color: var(--text-tertiary);">flux.app/</span>
+                                    <input type="text" value="marketing-team" style="padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 1rem; width: 200px;">
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; font-weight: 600; margin-bottom: 0.5rem;">Description</label>
+                                <textarea style="width: 100%; max-width: 500px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 1rem; min-height: 100px; resize: vertical;">Marketing team workspace for Q2 product launch coordination</textarea>
+                            </div>
+                            <div style="display: flex; gap: 1rem;">
+                                <button style="padding: 0.75rem 1.5rem; background: var(--flux-purple); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Save Changes</button>
+                                <button style="padding: 0.75rem 1.5rem; background: white; color: var(--error); border: 1px solid var(--error); border-radius: 8px; font-weight: 600; cursor: pointer;">Delete Workspace</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="screen-annotation">
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">UI Elements</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number">1</span><span class="annot-text">Sidebar navigation with active state highlight</span></div>
+                        <div class="annot-item"><span class="annot-number">2</span><span class="annot-text">Section title (h2)</span></div>
+                        <div class="annot-item"><span class="annot-number">3</span><span class="annot-text">Form fields: Name, URL, Description with labels</span></div>
+                        <div class="annot-item"><span class="annot-number">4</span><span class="annot-text">Save Changes (primary) + Delete Workspace (danger)</span></div>
+                    </div>
+                </div>
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">Key Interactions</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click sidebar item → Switch settings panel</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Edit field → Inline validation on blur</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click Delete → Confirmation modal with type-to-confirm</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Success toast on save</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 5: Onboarding -->
+            <h3>5. Onboarding</h3>
+            <div class="screen-wireframe">
+                <div class="screen-preview" style="background: white; min-height: 300px; position: relative; max-width: 700px; margin: 0 auto;">
+                    <div style="padding: 3rem; text-align: center;">
+                        <div style="display: flex; justify-content: center; gap: 0.75rem; margin-bottom: 2rem;">
+                            <div style="width: 80px; height: 4px; background: var(--flux-purple); border-radius: 2px;"></div>
+                            <div style="width: 80px; height: 4px; background: var(--flux-purple); border-radius: 2px;"></div>
+                            <div style="width: 80px; height: 4px; background: var(--border-color); border-radius: 2px;"></div>
+                            <div style="width: 80px; height: 4px; background: var(--border-color); border-radius: 2px;"></div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--flux-purple); font-weight: 600; text-transform: uppercase; margin-bottom: 0.5rem;">Step 2 of 4</div>
+                        <div style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.75rem;">Create Your First Board</div>
+                        <div style="color: var(--text-secondary); max-width: 450px; margin: 0 auto 2rem;">Organize your tasks into columns like To Do, In Progress, and Done to visualize your workflow.</div>
+                        <div style="background: var(--bg-secondary); border-radius: 12px; padding: 1.5rem; max-width: 400px; margin: 0 auto;">
+                            <div style="font-weight: 600; margin-bottom: 0.75rem; text-align: left;">Board Name</div>
+                            <input type="text" placeholder="e.g., Product Roadmap" style="width: 100%; padding: 0.875rem; border: 1px solid var(--border-color); border-radius: 8px; font-family: inherit; font-size: 1rem; margin-bottom: 1rem;">
+                            <div style="font-weight: 600; margin-bottom: 0.75rem; text-align: left;">Columns (optional)</div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                                <span style="background: var(--flux-purple-subtle); color: var(--flux-purple); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.875rem; font-weight: 500;">To Do <span style="opacity: 0.6;">×</span></span>
+                                <span style="background: var(--flux-purple-subtle); color: var(--flux-purple); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.875rem; font-weight: 500;">In Progress <span style="opacity: 0.6;">×</span></span>
+                                <span style="background: var(--flux-purple-subtle); color: var(--flux-purple); padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.875rem; font-weight: 500;">Done <span style="opacity: 0.6;">×</span></span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                            <button style="padding: 0.875rem 1.5rem; background: transparent; border: 1px solid var(--border-color); border-radius: 8px; font-weight: 600; cursor: pointer; color: var(--text-secondary);">← Back</button>
+                            <button style="padding: 0.875rem 2rem; background: var(--flux-purple); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Continue →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="screen-annotation">
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">UI Elements</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number">1</span><span class="annot-text">Progress bar with step indicators (filled = complete)</span></div>
+                        <div class="annot-item"><span class="annot-number">2</span><span class="annot-text">Step counter label (Step X of Y)</span></div>
+                        <div class="annot-item"><span class="annot-number">3</span><span class="annot-text">Step title + description</span></div>
+                        <div class="annot-item"><span class="annot-number">4</span><span class="annot-text">Form fields with placeholder text</span></div>
+                        <div class="annot-item"><span class="annot-number">5</span><span class="annot-text">Pill tags with remove button for template columns</span></div>
+                        <div class="annot-item"><span class="annot-number">6</span><span class="annot-text">Back + Continue navigation buttons</span></div>
+                    </div>
+                </div>
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">Key Interactions</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click column tag × → Remove column</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click Continue → Validate and proceed to next step</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Progress auto-saves on step completion</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Skip option available for optional steps</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Screen 6: Landing/Hero -->
+            <h3>6. Landing / Hero</h3>
+            <div class="screen-wireframe">
+                <div class="screen-preview" style="background: linear-gradient(135deg, var(--flux-purple) 0%, var(--flux-purple-dark) 100%); min-height: 400px; position: relative; color: white;">
+                    <div style="position: absolute; top: 1.5rem; left: 2rem; right: 2rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 36px; height: 36px; background: white; border-radius: 10px;"></div>
+                            <span style="font-weight: 800; font-size: 1.25rem;">Flux</span>
+                        </div>
+                        <div style="display: flex; gap: 1.5rem; font-weight: 600;">
+                            <span>Features</span>
+                            <span>Pricing</span>
+                            <span>Docs</span>
+                        </div>
+                        <div style="display: flex; gap: 0.75rem;">
+                            <button style="padding: 0.625rem 1.25rem; background: transparent; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-weight: 600; cursor: pointer;">Log in</button>
+                            <button style="padding: 0.625rem 1.25rem; background: white; color: var(--flux-purple); border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Get Started</button>
+                        </div>
+                    </div>
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; max-width: 700px;">
+                        <div style="font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 1rem;">Task management that moves at your pace</div>
+                        <div style="font-size: 1.25rem; opacity: 0.9; margin-bottom: 2rem; max-width: 550px; margin-left: auto; margin-right: auto;">Flux adapts to your workflow, not the other way around. Organize, collaborate, and ship faster with your team's new command center.</div>
+                        <div style="display: flex; gap: 1rem; justify-content: center; margin-bottom: 3rem;">
+                            <button style="padding: 1rem 2rem; background: white; color: var(--flux-purple); border: none; border-radius: 10px; font-weight: 700; font-size: 1.125rem; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">Start Free Trial</button>
+                            <button style="padding: 1rem 2rem; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; font-weight: 600; font-size: 1.125rem; cursor: pointer;">Watch Demo</button>
+                        </div>
+                        <div style="display: flex; justify-content: center; gap: 3rem; font-size: 0.875rem; opacity: 0.8;">
+                            <span>✓ No credit card required</span>
+                            <span>✓ 14-day free trial</span>
+                            <span>✓ Cancel anytime</span>
+                        </div>
+                    </div>
+                    <div style="position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                        <div style="font-size: 0.75rem; opacity: 0.6;">Trusted by teams at</div>
+                        <div style="display: flex; gap: 2rem; font-weight: 700; opacity: 0.7;">
+                            <span>ACME Corp</span>
+                            <span>Globex</span>
+                            <span>Initech</span>
+                            <span>Umbrella</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="screen-annotation">
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">UI Elements</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number">1</span><span class="annot-text">Logo + Navigation (Features, Pricing, Docs)</span></div>
+                        <div class="annot-item"><span class="annot-number">2</span><span class="annot-text">Auth buttons: Log in (ghost) + Get Started (primary)</span></div>
+                        <div class="annot-item"><span class="annot-number">3</span><span class="annot-text">Hero headline (h1) + subheadline</span></div>
+                        <div class="annot-item"><span class="annot-number">4</span><span class="annot-text">Primary CTA (Start Free Trial) + Secondary CTA (Watch Demo)</span></div>
+                        <div class="annot-item"><span class="annot-number">5</span><span class="annot-text">Trust indicators below CTAs</span></div>
+                        <div class="annot-item"><span class="annot-number">6</span><span class="annot-text">Social proof: "Trusted by teams at" + company names</span></div>
+                    </div>
+                </div>
+                <div class="screen-preview">
+                    <div style="font-weight: 700; margin-bottom: 1rem;">Key Interactions</div>
+                    <div class="screen-annot">
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click "Get Started" → Sign up flow</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click "Watch Demo" → Video modal or redirect to YouTube</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Click nav items → Scroll to sections or page navigation</span></div>
+                        <div class="annot-item"><span class="annot-number" style="background: var(--success);">→</span><span class="annot-text">Scroll down → Reveals feature sections, testimonials</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 12: SOCIAL MEDIA TEMPLATES -->
+        <section class="section">
+            <span class="section-number">Section 12</span>
+            <h2 class="section-title">Social Media Templates</h2>
+            <p class="section-subtitle">Platform-specific specifications and brand guidelines for social presence</p>
+
+            <h3>Platform Specifications</h3>
+            <div class="social-spec">
+                <div class="social-card">
+                    <div class="social-platform">
+                        <div class="platform-icon platform-x">X</div>
+                        <span class="platform-name">Twitter / X</span>
+                    </div>
+                    <div class="spec-row"><span class="spec-label">Post character limit</span><span class="spec-value">280 characters</span></div>
+                    <div class="spec-row"><span class="spec-label">Image dimensions</span><span class="spec-value">1200 × 675px (16:9)</span></div>
+                    <div class="spec-row"><span class="spec-label">Header/Cover</span><span class="spec-value">1500 × 500px (3:1)</span></div>
+                    <div class="spec-row"><span class="spec-label">Profile avatar</span><span class="spec-value">Circular, 400 × 400px</span></div>
+                </div>
+                <div class="social-card">
+                    <div class="social-platform">
+                        <div class="platform-icon platform-linkedin">in</div>
+                        <span class="platform-name">LinkedIn</span>
+                    </div>
+                    <div class="spec-row"><span class="spec-label">Post character limit</span><span class="spec-value">3,000 characters</span></div>
+                    <div class="spec-row"><span class="spec-label">Image dimensions</span><span class="spec-value">1200 × 627px (1.91:1)</span></div>
+                    <div class="spec-row"><span class="spec-label">Banner/Cover</span><span class="spec-value">1128 × 191px</span></div>
+                    <div class="spec-row"><span class="spec-label">Profile avatar</span><span class="spec-value">Circular, 400 × 400px</span></div>
+                </div>
+                <div class="social-card">
+                    <div class="social-platform">
+                        <div class="platform-icon platform-instagram">IG</div>
+                        <span class="platform-name">Instagram</span>
+                    </div>
+                    <div class="spec-row"><span class="spec-label">Caption limit</span><span class="spec-value">2,200 characters</span></div>
+                    <div class="spec-row"><span class="spec-label">Square post</span><span class="spec-value">1080 × 1080px (1:1)</span></div>
+                    <div class="spec-row"><span class="spec-label">Portrait post</span><span class="spec-value">1080 × 1350px (4:5)</span></div>
+                    <div class="spec-row"><span class="spec-label">Story size</span><span class="spec-value">1080 × 1920px (9:16)</span></div>
+                </div>
+                <div class="social-card">
+                    <div class="social-platform">
+                        <div class="platform-icon platform-generic">OG</div>
+                        <span class="platform-name">Social Card / OG</span>
+                    </div>
+                    <div class="spec-row"><span class="spec-label">Recommended size</span><span class="spec-value">1200 × 630px (1.91:1)</span></div>
+                    <div class="spec-row"><span class="spec-label">Use case</span><span class="spec-value">Link previews, shared links</span></div>
+                    <div class="spec-row"><span class="spec-label">File format</span><span class="spec-value">PNG or JPG</span></div>
+                    <div class="spec-row"><span class="spec-label">Max file size</span><span class="spec-value">5MB</span></div>
+                </div>
+            </div>
+
+            <h3>Brand Hashtag</h3>
+            <div style="margin: 2rem 0; text-align: center;">
+                <span class="brand-hashtag">#TeamFlux</span>
+            </div>
+            <p style="text-align: center; max-width: 600px; margin: 0 auto;">Primary hashtag for all brand communications. Use for company announcements, team highlights, and user-generated content. Alternative: <code style="background: var(--bg-tertiary); padding: 0.25rem 0.5rem; border-radius: 4px;">#InFlux</code> for more casual, community-focused posts.</p>
+
+            <h3>Template Types</h3>
+            <div class="template-card">
+                <div class="template-type">Announcement</div>
+                <div class="template-name">Product Update / Feature Launch</div>
+                <div class="template-desc">Bold headline announcing the news. 1-2 sentences explaining the value. CTA button text. Visual: Product screenshot or illustration with brand purple overlay.</div>
+                <div class="template-specs">
+                    <span class="spec-tag">Hook in first line</span>
+                    <span class="spec-tag">Clear benefit statement</span>
+                    <span class="spec-tag">Single CTA</span>
+                    <span class="spec-tag">Purple accent visual</span>
+                </div>
+            </div>
+            <div class="template-card">
+                <div class="template-type">Feature Highlight</div>
+                <div class="template-name">How-To / Feature Showcase</div>
+                <div class="template-desc">Step-by-step visual carousel or short video. Shows the feature in action with real use case. End with tip or best practice. Visual: Clean UI screenshot with annotation arrows.</div>
+                <div class="template-specs">
+                    <span class="spec-tag">Carousel or video</span>
+                    <span class="spec-tag">Educational content</span>
+                    <span class="spec-tag">Screenshot + annotation</span>
+                    <span class="spec-tag">Save/share CTA</span>
+                </div>
+            </div>
+            <div class="template-card">
+                <div class="template-type">Team / Culture</div>
+                <div class="template-name">Team Spotlight / Behind the Scenes</div>
+                <div class="template-desc">Human-focused post showcasing team members or company culture. Personal story or achievement. Photo of person(s) with quote or insight. Visual: Authentic photo, not stock.</div>
+                <div class="template-specs">
+                    <span class="spec-tag">Real people photos</span>
+                    <span class="spec-tag">Quote or insight</span>
+                    <span class="spec-tag">Personal tone</span>
+                    <span class="spec-tag">Warm lighting</span>
+                </div>
+            </div>
+            <div class="template-card">
+                <div class="template-type">Event</div>
+                <div class="template-name">Conference / Webinar / Launch Event</div>
+                <div class="template-desc">Event name, date, and what attendees will learn. Visual with event branding. Link to registration. Countdown element for urgency. Visual: Branded event banner with date prominently displayed.</div>
+                <div class="template-specs">
+                    <span class="spec-tag">Event name + date</span>
+                    <span class="spec-tag">Key takeaways</span>
+                    <span class="spec-tag">Registration link</span>
+                    <span class="spec-tag">Countdown for urgency</span>
+                </div>
+            </div>
+
+            <h3>Color Usage on Social</h3>
+            <div class="grid grid-4" style="margin-top: 1.5rem;">
+                <div>
+                    <div class="color-swatch swatch-purple">#7E3BE9</div>
+                    <p style="text-align: center; font-size: 0.875rem; font-weight: 600; margin-top: 0.75rem;">Flux Purple</p>
+                    <p style="text-align: center; font-size: 0.75rem; color: var(--text-tertiary);">Primary accent, CTAs, brand elements</p>
+                </div>
+                <div>
+                    <div class="color-swatch swatch-purple-light">#9B6BF5</div>
+                    <p style="text-align: center; font-size: 0.875rem; font-weight: 600; margin-top: 0.75rem;">Light Purple</p>
+                    <p style="text-align: center; font-size: 0.75rem; color: var(--text-tertiary);">Gradients, highlights</p>
+                </div>
+                <div>
+                    <div class="color-swatch swatch-white">White</div>
+                    <p style="text-align: center; font-size: 0.875rem; font-weight: 600; margin-top: 0.75rem;">White</p>
+                    <p style="text-align: center; font-size: 0.75rem; color: var(--text-tertiary);">Text, backgrounds, breathing room</p>
+                </div>
+                <div>
+                    <div class="color-swatch swatch-gray">Gray</div>
+                    <p style="text-align: center; font-size: 0.875rem; font-weight: 600; margin-top: 0.75rem;">Dark Gray</p>
+                    <p style="text-align: center; font-size: 0.75rem; color: var(--text-tertiary);">Body text, secondary elements</p>
+                </div>
+            </div>
+
+            <div class="pro-tip">
+                <div class="pro-tip-label">Social Color Do's and Don'ts</div>
+                <p class="pro-tip-text"><strong>DO:</strong> Use purple as dominant brand color in at least 60% of posts. Ensure text has sufficient contrast. Maintain consistent color palette across all platforms.<br><br><strong>DON'T:</strong> Use busy backgrounds that compete with brand. Overwhelm with multiple bright colors. Use color alone to convey information (accessibility).</p>
+            </div>
+
+            <h3>Avatar / Profile Picture</h3>
+            <div class="avatar-demo">
+                <div style="text-align: center;">
+                    <div class="avatar avatar-lg">F</div>
+                    <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">400×400</p>
+                </div>
+                <div style="text-align: center;">
+                    <div class="avatar avatar-md">F</div>
+                    <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">200×200</p>
+                </div>
+                <div style="text-align: center;">
+                    <div class="avatar avatar-sm">F</div>
+                    <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 0.5rem;">64×64</p>
+                </div>
+            </div>
+            <p style="margin-top: 1rem;">Profile pictures should be circular (border-radius: 50%). Use the Flux logo "F" mark on purple background, or a clear photo of the account holder. For personal accounts, a professional headshot is preferred.</p>
+        </section>
+
+        <!-- SECTION 13: PRESENTATION TEMPLATES -->
+        <section class="section">
+            <span class="section-number">Section 13</span>
+            <h2 class="section-title">Presentation Templates</h2>
+            <p class="section-subtitle">Slide deck guidelines and visual standards for presentations</p>
+
+            <h3>Slide Deck Specifications</h3>
+            <div class="grid grid-2" style="margin-top: 1.5rem;">
+                <div class="card">
+                    <h4>Aspect Ratio</h4>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 80px; height: 45px; background: var(--flux-purple); border-radius: 4px;"></div>
+                        <div>
+                            <p style="font-weight: 700; margin: 0;">16:9 Widescreen</p>
+                            <p style="font-size: 0.875rem; color: var(--text-tertiary); margin: 0;">1920 × 1080px (standard)</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>Margins</h4>
+                    <p style="margin: 0; font-size: 0.875rem;">Maintain 10% margin from all slide edges. Keep content within "safe zone" to prevent cutoff on projection.</p>
+                </div>
+            </div>
+
+            <h3>Typography Scale</h3>
+            <div class="font-sample" style="background: white; border: 1px solid var(--border-color);">
+                <div class="font-title">48-60px — Slide Title</div>
+                <p style="font-size: 0.875rem; color: var(--text-tertiary); margin: 0;">Used for main slide headlines. Font: Plus Jakarta Sans, Weight: 800</p>
+            </div>
+            <div class="font-sample">
+                <div class="font-subtitle">28-36px — Subtitle / Section Header</div>
+                <p style="font-size: 0.875rem; color: var(--text-tertiary); margin: 0;">Used for section introductions or supporting headlines. Font: Plus Jakarta Sans, Weight: 600</p>
+            </div>
+            <div class="font-sample">
+                <div class="font-body">18-24px — Body Text</div>
+                <p style="font-size: 0.875rem; color: var(--text-tertiary); margin: 0;">Used for bullet points, descriptions, and body content. Font: Plus Jakarta Sans, Weight: 400/500</p>
+            </div>
+            <div class="font-sample">
+                <div class="font-small">14-16px — Captions and Footnotes</div>
+                <p style="font-size: 0.875rem; color: var(--text-tertiary); margin: 0;">Used for source citations, timestamps, and secondary information. Font: Plus Jakarta Sans, Weight: 400</p>
+            </div>
+
+            <h3>Slide Layouts</h3>
+            <div class="slide-layout-grid">
+                <div class="layout-card">
+                    <div class="layout-name">Title Slide</div>
+                    <div class="layout-desc">Purple gradient background. Centered title (48-60px) + subtitle. Logo in top-left corner. No other elements.</div>
+                </div>
+                <div class="layout-card">
+                    <div class="layout-name">Section Divider</div>
+                    <div class="layout-desc">Full purple background or white with large colored left bar. Section number + title only. Minimal, high impact.</div>
+                </div>
+                <div class="layout-card">
+                    <div class="layout-name">Content with Bullets</div>
+                    <div class="layout-desc">White background. Title top-left (28-36px). 3-5 bullet points. Icon bullets optional. 40% width on left for illustration.</div>
+                </div>
+                <div class="layout-card">
+                    <div class="layout-name">Two-Column Comparison</div>
+                    <div class="layout-desc">White background. Title across top. Two equal columns with headers "Option A" vs "Option B" or "Before" vs "After".</div>
+                </div>
+                <div class="layout-card">
+                    <div class="layout-name">Image + Caption</div>
+                    <div class="layout-desc">Image fills 60% left side. Caption and credit on right. Title can overlay image or sit above. Ensure image is high resolution.</div>
+                </div>
+                <div class="layout-card">
+                    <div class="layout-name">Data / Chart Slide</div>
+                    <div class="layout-desc">Title + subtitle top. Large chart or graph center. Key insight callout box bottom-right. Source citation footnote.</div>
+                </div>
+                <div class="layout-card">
+                    <div class="layout-name">CTA Slide</div>
+                    <div class="layout-desc">Strong headline (action verb). Supporting line. Button or contact info. Minimal design, maximum focus on conversion.</div>
+                </div>
+                <div class="layout-card">
+                    <div class="layout-name">Quote Slide</div>
+                    <div class="layout-desc">Large quotation marks in purple. Quote text centered, 28-36px italic. Attribution below. Photo optional (circular, left-aligned).</div>
+                </div>
+            </div>
+
+            <h3>Slide Preview Examples</h3>
+            <div class="slide-layout-grid">
+                <div class="slide-preview slide-purple-bg">
+                    <div class="slide-title-text">Ready to transform your workflow?</div>
+                    <div class="slide-subtitle-text">Join 10,000+ teams already using Flux</div>
+                </div>
+                <div class="slide-preview">
+                    <div style="text-align: left;">
+                        <div style="font-size: 0.75rem; color: var(--flux-purple); font-weight: 600; margin-bottom: 0.5rem;">SECTION 02</div>
+                        <div class="slide-title-text" style="text-align: left; font-size: 2rem;">The Problem</div>
+                    </div>
+                    <div style="margin-top: 1.5rem; text-align: left;">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 40px; height: 40px; background: var(--flux-purple-subtle); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--flux-purple);">1</div>
+                            <span style="font-weight: 600;">Scattered communications</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="width: 40px; height: 40px; background: var(--flux-purple-subtle); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--flux-purple);">2</div>
+                            <span style="font-weight: 600;">Missed deadlines</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="width: 40px; height: 40px; background: var(--flux-purple-subtle); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--flux-purple);">3</div>
+                            <span style="font-weight: 600;">Lack of visibility</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Pitch Deck Guidelines</h3>
+            <div class="grid grid-2" style="margin-top: 1.5rem;">
+                <div class="card card-purple">
+                    <h4>Headers & Titles</h4>
+                    <ul style="font-size: 0.875rem; color: var(--text-secondary); padding-left: 1.25rem; line-height: 1.8;">
+                        <li>Use Flux Purple for all headings</li>
+                        <li>Keep titles to 5 words maximum</li>
+                        <li>Use sentence case, not title case</li>
+                        <li>Subtitles should complement, not repeat</li>
+                    </ul>
+                </div>
+                <div class="card card-purple">
+                    <h4>White Space & Layout</h4>
+                    <ul style="font-size: 0.875rem; color: var(--text-secondary); padding-left: 1.25rem; line-height: 1.8;">
+                        <li>Leave 40% of slide as white space</li>
+                        <li>Align elements to invisible grid</li>
+                        <li>Group related content together</li>
+                        <li>Use consistent indentation for hierarchy</li>
+                    </ul>
+                </div>
+                <div class="card card-purple">
+                    <h4>Color Application</h4>
+                    <ul style="font-size: 0.875rem; color: var(--text-secondary); padding-left: 1.25rem; line-height: 1.8;">
+                        <li>60% white/light gray backgrounds</li>
+                        <li>30% brand purple for emphasis</li>
+                        <li>10% accent colors (sparingly)</li>
+                        <li>Never use more than 3 colors per slide</li>
+                    </ul>
+                </div>
+                <div class="card card-purple">
+                    <h4>Consistency Rules</h4>
+                    <ul style="font-size: 0.875rem; color: var(--text-secondary); padding-left: 1.25rem; line-height: 1.8;">
+                        <li>Same template for all slides in a section</li>
+                        <li>Use the same position for titles</li>
+                        <li>Bullet points aligned consistently</li>
+                        <li>Logo in same position every slide</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Icons for Presentations</h3>
+            <p>Use the Lucide icon library for consistency. Icons must be at least 32px for readability in presentations.</p>
+
+            <div style="display: flex; gap: 2rem; margin-top: 1.5rem; flex-wrap: wrap;">
+                <div style="text-align: center;">
+                    <div style="width: 64px; height: 64px; background: var(--bg-secondary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                        <svg width="32" height="32" fill="none" stroke="var(--flux-purple)" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-tertiary);">Layout</span>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 64px; height: 64px; background: var(--bg-secondary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                        <svg width="32" height="32" fill="none" stroke="var(--flux-purple)" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20V10M18 20V4M6 20v-4"/></svg>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-tertiary);">Chart</span>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 64px; height: 64px; background: var(--bg-secondary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                        <svg width="32" height="32" fill="none" stroke="var(--flux-purple)" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-tertiary);">Team</span>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 64px; height: 64px; background: var(--bg-secondary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                        <svg width="32" height="32" fill="none" stroke="var(--flux-purple)" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-tertiary);">Check</span>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 64px; height: 64px; background: var(--bg-secondary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                        <svg width="32" height="32" fill="none" stroke="var(--flux-purple)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-tertiary);">Alert</span>
+                </div>
+                <div style="text-align: center;">
+                    <div style="width: 64px; height: 64px; background: var(--bg-secondary); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.5rem;">
+                        <svg width="32" height="32" fill="none" stroke="var(--flux-purple)" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <span style="font-size: 0.75rem; color: var(--text-tertiary);">Star</span>
+                </div>
+            </div>
+
+            <div class="pro-tip">
+                <div class="pro-tip-label">Pro Tip: Icon Usage</div>
+                <p class="pro-tip-text">When using icons in slides, apply the same weight and style throughout. Use outline style icons (2px stroke) for a clean, modern look. Always ensure icons have sufficient contrast against their background. For dark backgrounds, use white icons. For light backgrounds, use purple or dark gray icons.</p>
+            </div>
+        </section>
+
+    </div>
+</body>
+</html>

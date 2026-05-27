@@ -1,0 +1,51 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - generic [ref=e3]:
+    - link "flux" [ref=e4] [cursor=pointer]:
+      - /url: /
+      - img [ref=e5]
+      - generic [ref=e9]: flux
+    - paragraph [ref=e10]: Create your account
+    - generic [ref=e11]:
+      - button "Continue with Google" [ref=e12] [cursor=pointer]:
+        - img [ref=e13]
+        - text: Continue with Google
+      - generic [ref=e22]: or continue with email
+      - generic [ref=e23]:
+        - generic [ref=e24]: Email is not available
+        - generic [ref=e25]:
+          - img [ref=e26]
+          - textbox "Full name" [ref=e28]: New Test User
+        - generic [ref=e29]:
+          - img [ref=e30]
+          - textbox "Email" [ref=e32]: newuser.1778704841412-4youv0@example.com
+        - generic [ref=e33]:
+          - img [ref=e34]
+          - generic [ref=e36]: Email available
+        - generic [ref=e37]:
+          - img [ref=e38]
+          - textbox "Password" [ref=e40]: StrongPass123!
+          - button [ref=e41]:
+            - img [ref=e42]
+        - generic [ref=e51]:
+          - generic [ref=e52]: Strong
+          - generic [ref=e53]: Good password
+        - button "Create account" [active] [ref=e54] [cursor=pointer]:
+          - text: Create account
+          - img [ref=e55]
+      - paragraph [ref=e57]:
+        - text: Already have an account?
+        - link "Sign in" [ref=e58] [cursor=pointer]:
+          - /url: /login
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e64] [cursor=pointer]:
+    - generic [ref=e67]:
+      - text: Compiling
+      - generic [ref=e68]:
+        - generic [ref=e69]: .
+        - generic [ref=e70]: .
+        - generic [ref=e71]: .
+  - alert [ref=e72]
+```

@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flux Brand Bible — Color System &amp; Typography</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Brand Colors - Light */
+      --flux-primary-50: #f5f3ff;
+      --flux-primary-100: #ede9fe;
+      --flux-primary-200: #ddd6fe;
+      --flux-primary-300: #c4b5fd;
+      --flux-primary-400: #a78bfa;
+      --flux-primary-500: #8b5cf6;
+      --flux-primary-600: #7c3aed;
+      --flux-primary-700: #6d28d9;
+      --flux-primary-800: #5b21b6;
+      --flux-primary-900: #4c1d95;
+
+      --flux-accent-50: #fdf4ff;
+      --flux-accent-100: #fae8ff;
+      --flux-accent-200: #f5d0fe;
+      --flux-accent-300: #f0abfc;
+      --flux-accent-400: #e879f9;
+      --flux-accent-500: #d946ef;
+      --flux-accent-600: #c026d3;
+      --flux-accent-700: #a21caf;
+      --flux-accent-800: #86198f;
+
+      /* Semantic Colors - Light */
+      --flux-success-50: #f0fdf4;
+      --flux-success-500: #22c55e;
+      --flux-success-700: #166534;
+      --flux-warning-50: #fffbeb;
+      --flux-warning-500: #f59e0b;
+      --flux-warning-700: #b45309;
+      --flux-error-50: #fef2f2;
+      --flux-error-500: #ef4444;
+      --flux-error-700: #b91c1c;
+      --flux-info-50: #eff6ff;
+      --flux-info-500: #3b82f6;
+      --flux-info-700: #1d4ed8;
+
+      /* Neutral Colors - Light */
+      --flux-neutral-bg: #fafafa;
+      --flux-neutral-bg-subtle: #f4f4f5;
+      --flux-neutral-surface: #ffffff;
+      --flux-neutral-text: #18181b;
+      --flux-neutral-text-secondary: #52525b;
+      --flux-neutral-text-tertiary: #71717a;
+      --flux-neutral-border-subtle: #e4e4e7;
+      --flux-neutral-border: #d4d4d8;
+      --flux-neutral-border-strong: #a1a1aa;
+
+      /* Priority Colors */
+      --flux-priority-high: #ef4444;
+      --flux-priority-medium: #f59e0b;
+      --flux-priority-low: #3b82f6;
+
+      /* Spacing */
+      --section-gap: 4rem;
+      --swatch-gap: 1.5rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        /* Brand Colors - Dark */
+        --flux-primary-50: #1e1b2e;
+        --flux-primary-100: #2d2651;
+        --flux-primary-200: #3d3475;
+        --flux-primary-300: #4f4399;
+        --flux-primary-400: #6b5fc9;
+        --flux-primary-500: #8b7cf6;
+        --flux-primary-600: #a78bfa;
+        --flux-primary-700: #c4b5fd;
+        --flux-primary-800: #ddd6fe;
+        --flux-primary-900: #ede9fe;
+
+        --flux-accent-50: #1e1422;
+        --flux-accent-100: #2d1d35;
+        --flux-accent-200: #3d2650;
+        --flux-accent-300: #523370;
+        --flux-accent-400: #7b4da6;
+        --flux-accent-500: #a66bd9;
+        --flux-accent-600: #d4a3ec;
+        --flux-accent-700: #e8c4f5;
+        --flux-accent-800: #f0d7fc;
+        --flux-accent-900: #fce8ff;
+
+        /* Semantic Colors - Dark */
+        --flux-success-50: #052e16;
+        --flux-success-500: #4ade80;
+        --flux-success-700: #86efac;
+        --flux-warning-50: #451a03;
+        --flux-warning-500: #fbbf24;
+        --flux-warning-700: #fcd34d;
+        --flux-error-50: #450a0a;
+        --flux-error-500: #f87171;
+        --flux-error-700: #fca5a5;
+        --flux-info-50: #172554;
+        --flux-info-500: #60a5fa;
+        --flux-info-700: #93c5fd;
+
+        /* Neutral Colors - Dark */
+        --flux-neutral-bg: #09090b;
+        --flux-neutral-bg-subtle: #18181b;
+        --flux-neutral-surface: #27272a;
+        --flux-neutral-text: #fafafa;
+        --flux-neutral-text-secondary: #a1a1aa;
+        --flux-neutral-text-tertiary: #71717a;
+        --flux-neutral-border-subtle: #3f3f46;
+        --flux-neutral-border: #52525b;
+        --flux-neutral-border-strong: #71717a;
+
+        /* Priority Colors - Dark */
+        --flux-priority-high: #f87171;
+        --flux-priority-medium: #fbbf24;
+        --flux-priority-low: #60a5fa;
+      }
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--flux-neutral-bg);
+      color: var(--flux-neutral-text);
+      line-height: 1.6;
+      padding: 3rem 1.5rem;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* Section Headers */
+    .section-header {
+      margin-bottom: 2.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--flux-neutral-border);
+    }
+
+    .section-number {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--flux-primary-500);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .section-title {
+      font-size: 2.25rem;
+      font-weight: 800;
+      color: var(--flux-neutral-text);
+      line-height: 1.2;
+    }
+
+    .section-subtitle {
+      font-size: 1.125rem;
+      color: var(--flux-neutral-text-secondary);
+      margin-top: 0.75rem;
+    }
+
+    /* Color Swatch Grid */
+    .color-group {
+      margin-bottom: var(--section-gap);
+    }
+
+    .color-group-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--flux-neutral-text);
+      margin-bottom: 1.5rem;
+    }
+
+    .swatch-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: var(--swatch-gap);
+    }
+
+    .swatch {
+      background: var(--flux-neutral-surface);
+      border: 1px solid var(--flux-neutral-border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .swatch:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+
+    .swatch-color {
+      height: 80px;
+      width: 100%;
+    }
+
+    .swatch-info {
+      padding: 0.75rem;
+    }
+
+    .swatch-name {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--flux-neutral-text);
+      margin-bottom: 0.25rem;
+    }
+
+    .swatch-hex {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      color: var(--flux-neutral-text-secondary);
+    }
+
+    .swatch-token {
+      font-size: 0.625rem;
+      color: var(--flux-neutral-text-tertiary);
+      margin-top: 0.25rem;
+      font-family: var(--font-mono);
+    }
+
+    /* Semantic Colors */
+    .semantic-swatch {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: var(--flux-neutral-surface);
+      border: 1px solid var(--flux-neutral-border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .semantic-color-block {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    .semantic-info {
+      flex: 1;
+    }
+
+    .semantic-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--flux-neutral-text);
+      margin-bottom: 0.5rem;
+    }
+
+    .semantic-values {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .semantic-hex {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+      background: var(--flux-neutral-bg-subtle);
+      border-radius: 4px;
+      color: var(--flux-neutral-text-secondary);
+    }
+
+    /* Priority Indicators */
+    .priority-row {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+
+    .priority-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .priority-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+    }
+
+    .priority-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--flux-neutral-text);
+    }
+
+    /* WCAG Note */
+    .wcag-note {
+      background: var(--flux-primary-50);
+      border: 1px solid var(--flux-primary-200);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-top: 2rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .wcag-icon {
+      width: 20px;
+      height: 20px;
+      background: var(--flux-primary-500);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .wcag-text {
+      font-size: 0.875rem;
+      color: var(--flux-neutral-text);
+    }
+
+    .wcag-text strong {
+      font-weight: 600;
+    }
+
+    /* Typography Section */
+    .typography-section {
+      margin-bottom: var(--section-gap);
+    }
+
+    .font-family-section {
+      margin-bottom: 2rem;
+    }
+
+    .font-family-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--flux-neutral-text);
+      margin-bottom: 1rem;
+    }
+
+    .font-family-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .font-card {
+      background: var(--flux-neutral-surface);
+      border: 1px solid var(--flux-neutral-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .font-card-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--flux-neutral-text-tertiary);
+      margin-bottom: 0.5rem;
+    }
+
+    .font-card-name {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--flux-neutral-text);
+      margin-bottom: 0.5rem;
+    }
+
+    .font-card-example {
+      font-size: 0.9375rem;
+      color: var(--flux-neutral-text-secondary);
+    }
+
+    .font-card-usage {
+      font-size: 0.75rem;
+      color: var(--flux-neutral-text-tertiary);
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--flux-neutral-border-subtle);
+    }
+
+    /* Type Scale Table */
+    .type-scale-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--flux-neutral-surface);
+      border: 1px solid var(--flux-neutral-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .type-scale-table th,
+    .type-scale-table td {
+      padding: 0.875rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--flux-neutral-border-subtle);
+    }
+
+    .type-scale-table th {
+      background: var(--flux-neutral-bg-subtle);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--flux-neutral-text-secondary);
+    }
+
+    .type-scale-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .type-scale-table tr:hover td {
+      background: var(--flux-neutral-bg-subtle);
+    }
+
+    .type-scale-name {
+      font-weight: 600;
+      color: var(--flux-neutral-text);
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+    }
+
+    .type-scale-value {
+      font-family: var(--font-mono);
+      font-size: 0.8125rem;
+      color: var(--flux-primary-600);
+    }
+
+    .type-scale-height {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--flux-neutral-text-secondary);
+    }
+
+    .type-scale-usage {
+      font-size: 0.8125rem;
+      color: var(--flux-neutral-text-secondary);
+    }
+
+    /* Heading Examples */
+    .heading-examples {
+      background: var(--flux-neutral-surface);
+      border: 1px solid var(--flux-neutral-border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+
+    .heading-example {
+      margin-bottom: 1.5rem;
+    }
+
+    .heading-example:last-child {
+      margin-bottom: 0;
+    }
+
+    .heading-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--flux-neutral-text-tertiary);
+      margin-bottom: 0.25rem;
+    }
+
+    .heading-render {
+      color: var(--flux-neutral-text);
+    }
+
+    /* Body Text Example */
+    .body-example {
+      background: var(--flux-neutral-surface);
+      border: 1px solid var(--flux-neutral-border);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-top: 2rem;
+    }
+
+    .body-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--flux-neutral-text-tertiary);
+      margin-bottom: 1rem;
+    }
+
+    .body-text {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--flux-neutral-text);
+    }
+
+    .body-text-lead {
+      font-size: 1.25rem;
+      line-height: 1.6;
+      color: var(--flux-neutral-text-secondary);
+      margin-bottom: 1.5rem;
+    }
+
+    /* Caption/Meta Example */
+    .caption-example {
+      background: var(--flux-neutral-surface);
+      border: 1px solid var(--flux-neutral-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .caption-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--flux-neutral-text-tertiary);
+      margin-bottom: 1rem;
+    }
+
+    .caption-text {
+      font-size: 0.8125rem;
+      color: var(--flux-neutral-text-secondary);
+      line-height: 1.5;
+    }
+
+    .meta-text {
+      font-size: 0.75rem;
+      color: var(--flux-neutral-text-tertiary);
+      margin-top: 0.75rem;
+    }
+
+    /* Code Block */
+    .code-example {
+      margin-top: 2rem;
+    }
+
+    .code-label {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--flux-neutral-text-tertiary);
+      margin-bottom: 0.75rem;
+    }
+
+    .code-block {
+      background: var(--flux-neutral-surface);
+      border: 1px solid var(--flux-neutral-border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: var(--flux-neutral-bg-subtle);
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid var(--flux-neutral-border);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .code-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--flux-neutral-border);
+    }
+
+    .code-dot.red { background: #ef4444; }
+    .code-dot.yellow { background: #f59e0b; }
+    .code-dot.green { background: #22c55e; }
+
+    .code-content {
+      padding: 1.25rem 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+
+    .code-content .keyword { color: var(--flux-primary-600); }
+    .code-content .string { color: var(--flux-success-700); }
+    .code-content .comment { color: var(--flux-neutral-text-tertiary); }
+    .code-content .function { color: #0891b2; }
+    .code-content .variable { color: var(--flux-accent-600); }
+
+    /* Responsive Note */
+    .responsive-note {
+      background: var(--flux-neutral-bg-subtle);
+      border: 1px solid var(--flux-neutral-border);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-top: 2rem;
+    }
+
+    .responsive-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--flux-neutral-text);
+      margin-bottom: 0.5rem;
+    }
+
+    .responsive-text {
+      font-size: 0.8125rem;
+      color: var(--flux-neutral-text-secondary);
+    }
+
+    .responsive-text code {
+      font-family: var(--font-mono);
+      background: var(--flux-neutral-surface);
+      padding: 0.125rem 0.375rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .code-content .string { color: var(--flux-success-500); }
+      .code-content .function { color: #22d3ee; }
+    }
+
+    /* Utility Classes Reference */
+    .utility-section {
+      margin-top: 2rem;
+    }
+
+    .utility-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+
+    .utility-card {
+      background: var(--flux-neutral-surface);
+      border: 1px solid var(--flux-neutral-border);
+      border-radius: 8px;
+      padding: 0.875rem;
+      text-align: center;
+    }
+
+    .utility-name {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--flux-primary-600);
+      font-weight: 500;
+    }
+
+    .utility-value {
+      font-size: 0.6875rem;
+      color: var(--flux-neutral-text-tertiary);
+      margin-top: 0.25rem;
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 1.5rem 1rem; }
+      .section-title { font-size: 1.75rem; }
+      .swatch-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+      .priority-row { gap: 1.5rem; }
+      .font-family-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- ============================================ -->
+    <!-- SECTION 3: COLOR SYSTEM -->
+    <!-- ============================================ -->
+    <section class="color-system">
+      <header class="section-header">
+        <p class="section-number">Section 03</p>
+        <h1 class="section-title">Color System</h1>
+        <p class="section-subtitle">Flux's visual identity is built on a vibrant purple-based palette with semantic and priority colors for clear communication.</p>
+      </header>
+
+      <!-- Brand Colors -->
+      <div class="color-group">
+        <h2 class="color-group-title">Brand Colors</h2>
+
+        <h3 style="font-size: 0.9375rem; font-weight: 600; color: var(--flux-neutral-text-secondary); margin-bottom: 1rem;">Primary (Violet)</h3>
+        <div class="swatch-grid">
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-primary-50);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Primary 50</p>
+              <p class="swatch-hex">#f5f3ff</p>
+              <p class="swatch-token">--flux-primary-50</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-primary-100);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Primary 100</p>
+              <p class="swatch-hex">#ede9fe</p>
+              <p class="swatch-token">--flux-primary-100</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-primary-200);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Primary 200</p>
+              <p class="swatch-hex">#ddd6fe</p>
+              <p class="swatch-token">--flux-primary-200</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-primary-300);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Primary 300</p>
+              <p class="swatch-hex">#c4b5fd</p>
+              <p class="swatch-token">--flux-primary-300</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-primary-400);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Primary 400</p>
+              <p class="swatch-hex">#a78bfa</p>
+              <p class="swatch-token">--flux-primary-400</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-primary-500);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Primary 500</p>
+              <p class="swatch-hex">#8b5cf6</p>
+              <p class="swatch-token">--flux-primary-500</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-primary-600);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Primary 600</p>
+              <p class="swatch-hex">#7c3aed</p>
+              <p class="swatch-token">--flux-primary-600</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-primary-700);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Primary 700</p>
+              <p class="swatch-hex">#6d28d9</p>
+              <p class="swatch-token">--flux-primary-700</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-primary-800);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Primary 800</p>
+              <p class="swatch-hex">#5b21b6</p>
+              <p class="swatch-token">--flux-primary-800</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-primary-900);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Primary 900</p>
+              <p class="swatch-hex">#4c1d95</p>
+              <p class="swatch-token">--flux-primary-900</p>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 0.9375rem; font-weight: 600; color: var(--flux-neutral-text-secondary); margin: 2rem 0 1rem;">Accent (Fuchsia)</h3>
+        <div class="swatch-grid">
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-accent-50);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Accent 50</p>
+              <p class="swatch-hex">#fdf4ff</p>
+              <p class="swatch-token">--flux-accent-50</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-accent-100);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Accent 100</p>
+              <p class="swatch-hex">#fae8ff</p>
+              <p class="swatch-token">--flux-accent-100</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-accent-200);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Accent 200</p>
+              <p class="swatch-hex">#f5d0fe</p>
+              <p class="swatch-token">--flux-accent-200</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-accent-300);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Accent 300</p>
+              <p class="swatch-hex">#f0abfc</p>
+              <p class="swatch-token">--flux-accent-300</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-accent-400);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Accent 400</p>
+              <p class="swatch-hex">#e879f9</p>
+              <p class="swatch-token">--flux-accent-400</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-accent-500);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Accent 500</p>
+              <p class="swatch-hex">#d946ef</p>
+              <p class="swatch-token">--flux-accent-500</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-accent-600);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Accent 600</p>
+              <p class="swatch-hex">#c026d3</p>
+              <p class="swatch-token">--flux-accent-600</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-accent-700);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Accent 700</p>
+              <p class="swatch-hex">#a21caf</p>
+              <p class="swatch-token">--flux-accent-700</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: var(--flux-accent-800);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Accent 800</p>
+              <p class="swatch-hex">#86198f</p>
+              <p class="swatch-token">--flux-accent-800</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Semantic Colors -->
+      <div class="color-group">
+        <h2 class="color-group-title">Semantic Colors</h2>
+
+        <div class="semantic-swatch">
+          <div class="semantic-color-block" style="background: var(--flux-success-500);"></div>
+          <div class="semantic-info">
+            <p class="semantic-name">Success</p>
+            <div class="semantic-values">
+              <span class="semantic-hex">Light: #22c55e</span>
+              <span class="semantic-hex">Dark: #4ade80</span>
+              <span class="semantic-hex">BG Dark: #052e16</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="semantic-swatch">
+          <div class="semantic-color-block" style="background: var(--flux-warning-500);"></div>
+          <div class="semantic-info">
+            <p class="semantic-name">Warning</p>
+            <div class="semantic-values">
+              <span class="semantic-hex">Light: #f59e0b</span>
+              <span class="semantic-hex">Dark: #fbbf24</span>
+              <span class="semantic-hex">BG Dark: #451a03</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="semantic-swatch">
+          <div class="semantic-color-block" style="background: var(--flux-error-500);"></div>
+          <div class="semantic-info">
+            <p class="semantic-name">Error</p>
+            <div class="semantic-values">
+              <span class="semantic-hex">Light: #ef4444</span>
+              <span class="semantic-hex">Dark: #f87171</span>
+              <span class="semantic-hex">BG Dark: #450a0a</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="semantic-swatch">
+          <div class="semantic-color-block" style="background: var(--flux-info-500);"></div>
+          <div class="semantic-info">
+            <p class="semantic-name">Info</p>
+            <div class="semantic-values">
+              <span class="semantic-hex">Light: #3b82f6</span>
+              <span class="semantic-hex">Dark: #60a5fa</span>
+              <span class="semantic-hex">BG Dark: #172554</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Neutral Colors -->
+      <div class="color-group">
+        <h2 class="color-group-title">Neutral Colors</h2>
+        <div class="swatch-grid">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #fafafa;"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Background</p>
+              <p class="swatch-hex">#fafafa</p>
+              <p class="swatch-token">--flux-neutral-bg</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #f4f4f5;"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Background Subtle</p>
+              <p class="swatch-hex">#f4f4f5</p>
+              <p class="swatch-token">--flux-neutral-bg-subtle</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #ffffff; border: 1px solid var(--flux-neutral-border-subtle);"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Surface</p>
+              <p class="swatch-hex">#ffffff</p>
+              <p class="swatch-token">--flux-neutral-surface</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #18181b;"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Text Primary</p>
+              <p class="swatch-hex">#18181b</p>
+              <p class="swatch-token">--flux-neutral-text</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #52525b;"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Text Secondary</p>
+              <p class="swatch-hex">#52525b</p>
+              <p class="swatch-token">--flux-neutral-text-secondary</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #71717a;"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Text Tertiary</p>
+              <p class="swatch-hex">#71717a</p>
+              <p class="swatch-token">--flux-neutral-text-tertiary</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #e4e4e7;"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Border Subtle</p>
+              <p class="swatch-hex">#e4e4e7</p>
+              <p class="swatch-token">--flux-neutral-border-subtle</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #d4d4d8;"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Border Default</p>
+              <p class="swatch-hex">#d4d4d8</p>
+              <p class="swatch-token">--flux-neutral-border</p>
+            </div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #a1a1aa;"></div>
+            <div class="swatch-info">
+              <p class="swatch-name">Border Strong</p>
+              <p class="swatch-hex">#a1a1aa</p>
+              <p class="swatch-token">--flux-neutral-border-strong</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Priority Colors -->
+      <div class="color-group">
+        <h2 class="color-group-title">Priority Colors</h2>
+        <div class="priority-row">
+          <div class="priority-item">
+            <div class="priority-dot" style="background: var(--flux-priority-high);"></div>
+            <span class="priority-label">High Priority</span>
+            <span class="semantic-hex" style="font-size: 0.6875rem;">#ef4444</span>
+          </div>
+          <div class="priority-item">
+            <div class="priority-dot" style="background: var(--flux-priority-medium);"></div>
+            <span class="priority-label">Medium Priority</span>
+            <span class="semantic-hex" style="font-size: 0.6875rem;">#f59e0b</span>
+          </div>
+          <div class="priority-item">
+            <div class="priority-dot" style="background: var(--flux-priority-low);"></div>
+            <span class="priority-label">Low Priority</span>
+            <span class="semantic-hex" style="font-size: 0.6875rem;">#3b82f6</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- WCAG Compliance Note -->
+      <div class="wcag-note">
+        <div class="wcag-icon">i</div>
+        <div class="wcag-text">
+          <strong>WCAG 2.2 AA Compliance:</strong> All text and interactive elements meet the minimum 4.5:1 contrast ratio for normal text and 3:1 for large text. Primary color #7c3aed on white achieves 5.2:1, exceeding AA requirements. Use our semantic color tokens to ensure consistent accessibility across all components.
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- SECTION 4: TYPOGRAPHY -->
+    <!-- ============================================ -->
+    <section class="typography-section" style="margin-top: var(--section-gap);">
+      <header class="section-header">
+        <p class="section-number">Section 04</p>
+        <h1 class="section-title">Typography</h1>
+        <p class="section-subtitle">Plus Jakarta Sans provides a modern, friendly feel while JetBrains Mono delivers clarity for code and technical content.</p>
+      </header>
+
+      <!-- Font Families -->
+      <div class="font-family-section">
+        <h2 class="font-family-title">Font Families</h2>
+        <div class="font-family-grid">
+          <div class="font-card">
+            <p class="font-card-label">UI &amp; Body</p>
+            <p class="font-card-name" style="font-family: var(--font-sans);">Plus Jakarta Sans</p>
+            <p class="font-card-example" style="font-family: var(--font-sans);">Aa Bb Cc Dd Ee Ff Gg Hh</p>
+            <p class="font-card-usage">Headings, body text, UI labels, navigation, buttons, and all readable content.</p>
+          </div>
+          <div class="font-card">
+            <p class="font-card-label">Code &amp; Mono</p>
+            <p class="font-card-name" style="font-family: var(--font-mono);">JetBrains Mono</p>
+            <p class="font-card-example" style="font-family: var(--font-mono);">const flux = "awesome"</p>
+            <p class="font-card-usage">Code blocks, terminal output, technical specifications, and data values.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Type Scale -->
+      <div class="font-family-section">
+        <h2 class="font-family-title">Type Scale</h2>
+        <table class="type-scale-table">
+          <thead>
+            <tr>
+              <th>Token</th>
+              <th>Size</th>
+              <th>Line Height</th>
+              <th>Usage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="type-scale-name">text-xs</span></td>
+              <td><span class="type-scale-value">12px / 0.75rem</span></td>
+              <td><span class="type-scale-height">16px (1.333)</span></td>
+              <td><span class="type-scale-usage">Captions, timestamps, metadata</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-sm</span></td>
+              <td><span class="type-scale-value">14px / 0.875rem</span></td>
+              <td><span class="type-scale-height">20px (1.428)</span></td>
+              <td><span class="type-scale-usage">Secondary text, form labels, small buttons</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-base</span></td>
+              <td><span class="type-scale-value">16px / 1rem</span></td>
+              <td><span class="type-scale-height">24px (1.5)</span></td>
+              <td><span class="type-scale-usage">Body text, default paragraph spacing</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-lg</span></td>
+              <td><span class="type-scale-value">18px / 1.125rem</span></td>
+              <td><span class="type-scale-height">28px (1.555)</span></td>
+              <td><span class="type-scale-usage">Lead paragraphs, introductory text</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-xl</span></td>
+              <td><span class="type-scale-value">20px / 1.25rem</span></td>
+              <td><span class="type-scale-height">28px (1.4)</span></td>
+              <td><span class="type-scale-usage">Section headers, card titles</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-2xl</span></td>
+              <td><span class="type-scale-value">24px / 1.5rem</span></td>
+              <td><span class="type-scale-height">32px (1.333)</span></td>
+              <td><span class="type-scale-usage">Page section titles</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-3xl</span></td>
+              <td><span class="type-scale-value">30px / 1.875rem</span></td>
+              <td><span class="type-scale-height">36px (1.2)</span></td>
+              <td><span class="type-scale-usage">Dashboard headings, major headings</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-4xl</span></td>
+              <td><span class="type-scale-value">36px / 2.25rem</span></td>
+              <td><span class="type-scale-height">40px (1.111)</span></td>
+              <td><span class="type-scale-usage">Page titles, hero headings</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-5xl</span></td>
+              <td><span class="type-scale-value">48px / 3rem</span></td>
+              <td><span class="type-scale-height">48px (1)</span></td>
+              <td><span class="type-scale-usage">Marketing hero text, large displays</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-6xl</span></td>
+              <td><span class="type-scale-value">60px / 3.75rem</span></td>
+              <td><span class="type-scale-height">60px (1)</span></td>
+              <td><span class="type-scale-usage">Extreme display text, landing pages</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-7xl</span></td>
+              <td><span class="type-scale-value">72px / 4.5rem</span></td>
+              <td><span class="type-scale-height">72px (1)</span></td>
+              <td><span class="type-scale-usage">Event banners, special announcements</span></td>
+            </tr>
+            <tr>
+              <td><span class="type-scale-name">text-8xl</span></td>
+              <td><span class="type-scale-value">96px / 6rem</span></td>
+              <td><span class="type-scale-height">96px (1)</span></td>
+              <td><span class="type-scale-usage">Full-screen hero statements</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Heading Examples -->
+      <div class="heading-examples">
+        <h2 class="font-family-title" style="margin-bottom: 1.5rem;">Heading Examples</h2>
+
+        <div class="heading-example">
+          <p class="heading-label">H1 — text-5xl, 48px, font-weight: 800</p>
+          <h1 class="heading-render" style="font-size: 3rem; font-weight: 800; line-height: 1.1;">Welcome to Flux</h1>
+        </div>
+
+        <div class="heading-example">
+          <p class="heading-label">H2 — text-4xl, 36px, font-weight: 700</p>
+          <h2 class="heading-render" style="font-size: 2.25rem; font-weight: 700; line-height: 1.2;">Project Dashboard</h2>
+        </div>
+
+        <div class="heading-example">
+          <p class="heading-label">H3 — text-3xl, 30px, font-weight: 700</p>
+          <h3 class="heading-render" style="font-size: 1.875rem; font-weight: 700; line-height: 1.25;">Sprint Planning</h3>
+        </div>
+
+        <div class="heading-example">
+          <p class="heading-label">H4 — text-2xl, 24px, font-weight: 600</p>
+          <h4 class="heading-render" style="font-size: 1.5rem; font-weight: 600; line-height: 1.3;">Recent Activity</h4>
+        </div>
+
+        <div class="heading-example">
+          <p class="heading-label">H5 — text-xl, 20px, font-weight: 600</p>
+          <h5 class="heading-render" style="font-size: 1.25rem; font-weight: 600; line-height: 1.4;">Team Members</h5>
+        </div>
+
+        <div class="heading-example">
+          <p class="heading-label">H6 — text-lg, 18px, font-weight: 600</p>
+          <h6 class="heading-render" style="font-size: 1.125rem; font-weight: 600; line-height: 1.4;">Section Header</h6>
+        </div>
+      </div>
+
+      <!-- Body Text Example -->
+      <div class="body-example">
+        <p class="body-label">Body Text</p>
+        <p class="body-text body-text-lead">Flux streamlines team collaboration with real-time boards, intelligent task decomposition, and seamless workspace management.</p>
+        <p class="body-text">Create unlimited boards for your projects, assign tasks to team members, and track progress through visual columns. With AI-powered task decomposition, break complex deliverables into manageable action items automatically. Invite collaborators, set priorities, and meet your deadlines faster.</p>
+      </div>
+
+      <!-- Caption/Meta Example -->
+      <div class="caption-example">
+        <p class="caption-label">Caption &amp; Meta Text</p>
+        <p class="caption-text">Last updated 3 hours ago by Sarah Chen</p>
+        <p class="meta-text">Created on March 15, 2026 at 2:45 PM</p>
+      </div>
+
+      <!-- Code Block -->
+      <div class="code-example">
+        <p class="code-label">Code / Mono</p>
+        <div class="code-block">
+          <div class="code-header">
+            <span class="code-dot red"></span>
+            <span class="code-dot yellow"></span>
+            <span class="code-dot green"></span>
+          </div>
+          <div class="code-content">
+            <span class="keyword">import</span> { Board, Task } <span class="keyword">from</span> <span class="string">'@flux/models'</span>;
+
+            <span class="keyword">async function</span> <span class="function">getBoardTasks</span>(boardId: <span class="variable">string</span>) {
+              <span class="keyword">const</span> tasks = <span class="keyword">await</span> Task.<span class="function">find</span>({ boardId })
+                .<span class="function">sort</span>({ priority: -<span class="variable">1</span>, createdAt: <span class="variable">1</span> });
+              <span class="keyword">return</span> tasks;
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Responsive Type Note -->
+      <div class="responsive-note">
+        <p class="responsive-title">Responsive Type Scaling</p>
+        <p class="responsive-text">
+          Base scale applies at <code>md:</code> breakpoint (768px). On mobile (<code>sm:</code> / 640px), reduce headings by one step (e.g., H1 becomes text-4xl instead of text-5xl). Body text remains text-base (16px minimum) for accessibility. Line heights tighten slightly on mobile to maintain visual density.
+        </p>
+      </div>
+
+      <!-- Utility Classes Reference -->
+      <div class="utility-section">
+        <h2 class="font-family-title">Common Utility Classes</h2>
+        <div class="utility-grid">
+          <div class="utility-card">
+            <p class="utility-name">font-sans</p>
+            <p class="utility-value">Plus Jakarta Sans</p>
+          </div>
+          <div class="utility-card">
+            <p class="utility-name">font-mono</p>
+            <p class="utility-value">JetBrains Mono</p>
+          </div>
+          <div class="utility-card">
+            <p class="utility-name">font-bold</p>
+            <p class="utility-value">700 weight</p>
+          </div>
+          <div class="utility-card">
+            <p class="utility-name">text-center</p>
+            <p class="utility-value">text-align: center</p>
+          </div>
+          <div class="utility-card">
+            <p class="utility-name">leading-tight</p>
+            <p class="utility-value">line-height: 1.25</p>
+          </div>
+          <div class="utility-card">
+            <p class="utility-name">tracking-tight</p>
+            <p class="utility-value">letter-spacing: -0.025em</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>

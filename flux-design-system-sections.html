@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flux Brand Bible — Sections 5, 6, 9</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --flux-brand-primary: #7E3BE9;
+      --flux-brand-primary-hover: #6B2FD8;
+      --flux-brand-primary-light: #A78BFA;
+      --flux-brand-primary-bg: rgba(126, 59, 233, 0.08);
+      --flux-brand-secondary: #10B981;
+      --flux-text-primary: #111827;
+      --flux-text-secondary: #6B7280;
+      --flux-text-muted: #9CA3AF;
+      --flux-bg-primary: #FFFFFF;
+      --flux-bg-secondary: #F9FAFB;
+      --flux-bg-tertiary: #F3F4F6;
+      --flux-border: #E5E7EB;
+      --flux-border-light: #F3F4F6;
+      --flux-radius-xs: 4px;
+      --flux-radius-sm: 6px;
+      --flux-radius-md: 8px;
+      --flux-radius-lg: 12px;
+      --flux-radius-xl: 16px;
+      --flux-radius-2xl: 24px;
+      --flux-radius-full: 9999px;
+      --flux-space-1: 0.25rem;
+      --flux-space-2: 0.5rem;
+      --flux-space-3: 0.75rem;
+      --flux-space-4: 1rem;
+      --flux-space-6: 1.5rem;
+      --flux-space-8: 2rem;
+      --flux-space-10: 2.5rem;
+      --flux-space-12: 3rem;
+      --flux-space-16: 4rem;
+      --flux-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --flux-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --flux-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --flux-text-primary: #F9FAFB;
+        --flux-text-secondary: #D1D5DB;
+        --flux-text-muted: #9CA3AF;
+        --flux-bg-primary: #0F172A;
+        --flux-bg-secondary: #1E293B;
+        --flux-bg-tertiary: #334155;
+        --flux-border: #334155;
+        --flux-border-light: #1E293B;
+        --flux-brand-primary-bg: rgba(126, 59, 233, 0.15);
+        --flux-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --flux-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+        --flux-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--flux-bg-secondary);
+      color: var(--flux-text-primary);
+      line-height: 1.6;
+      padding: var(--flux-space-8);
+    }
+
+    .brand-bible {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .section {
+      background: var(--flux-bg-primary);
+      border-radius: var(--flux-radius-lg);
+      padding: var(--flux-space-8);
+      margin-bottom: var(--flux-space-8);
+      box-shadow: var(--flux-shadow-sm);
+      border: 1px solid var(--flux-border-light);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: var(--flux-space-4);
+      margin-bottom: var(--flux-space-6);
+      padding-bottom: var(--flux-space-4);
+      border-bottom: 1px solid var(--flux-border);
+    }
+
+    .section-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--flux-brand-primary), var(--flux-brand-primary-hover));
+      color: white;
+      font-weight: 700;
+      font-size: 1.25rem;
+      border-radius: var(--flux-radius-md);
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--flux-text-primary);
+    }
+
+    .section-subtitle {
+      font-size: 0.875rem;
+      color: var(--flux-text-secondary);
+      margin-top: var(--flux-space-1);
+    }
+
+    h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--flux-text-primary);
+      margin-bottom: var(--flux-space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--flux-space-2);
+    }
+
+    h3::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 18px;
+      background: var(--flux-brand-primary);
+      border-radius: 2px;
+    }
+
+    .subsection {
+      margin-bottom: var(--flux-space-6);
+    }
+
+    p {
+      color: var(--flux-text-secondary);
+      margin-bottom: var(--flux-space-3);
+      font-size: 0.9375rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--flux-space-6);
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--flux-space-4);
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--flux-space-4);
+    }
+
+    .card {
+      background: var(--flux-bg-secondary);
+      border: 1px solid var(--flux-border-light);
+      border-radius: var(--flux-radius-md);
+      padding: var(--flux-space-4);
+    }
+
+    .card-title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--flux-text-muted);
+      margin-bottom: var(--flux-space-2);
+    }
+
+    .card-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--flux-text-primary);
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: var(--flux-space-4);
+    }
+
+    .icon-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--flux-space-2);
+      padding: var(--flux-space-4);
+      background: var(--flux-bg-secondary);
+      border-radius: var(--flux-radius-md);
+      border: 1px solid var(--flux-border-light);
+      transition: all 0.2s ease;
+    }
+
+    .icon-item:hover {
+      border-color: var(--flux-brand-primary);
+      transform: translateY(-2px);
+    }
+
+    .icon-item svg {
+      color: var(--flux-text-primary);
+    }
+
+    .icon-label {
+      font-size: 0.75rem;
+      color: var(--flux-text-muted);
+      font-weight: 500;
+    }
+
+    .icon-showcase {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--flux-space-6);
+      justify-content: center;
+      padding: var(--flux-space-6);
+      background: var(--flux-bg-secondary);
+      border-radius: var(--flux-radius-lg);
+      margin-top: var(--flux-space-4);
+    }
+
+    .icon-showcase-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--flux-space-2);
+    }
+
+    .icon-showcase-item svg {
+      padding: var(--flux-space-3);
+      background: var(--flux-bg-primary);
+      border-radius: var(--flux-radius-md);
+      border: 1px solid var(--flux-border);
+    }
+
+    .icon-showcase-label {
+      font-size: 0.6875rem;
+      color: var(--flux-text-muted);
+      font-weight: 500;
+    }
+
+    .do-dont-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--flux-space-6);
+    }
+
+    .do-dont {
+      padding: var(--flux-space-4);
+      border-radius: var(--flux-radius-md);
+    }
+
+    .do {
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .dont {
+      background: rgba(239, 68, 68, 0.08);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .do-dont-title {
+      display: flex;
+      align-items: center;
+      gap: var(--flux-space-2);
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: var(--flux-space-3);
+    }
+
+    .do .do-dont-title {
+      color: #059669;
+    }
+
+    .dont .do-dont-title {
+      color: #DC2626;
+    }
+
+    .do-dont ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .do-dont li {
+      font-size: 0.8125rem;
+      color: var(--flux-text-secondary);
+      padding: var(--flux-space-1) 0;
+      padding-left: var(--flux-space-4);
+      position: relative;
+    }
+
+    .do li::before {
+      content: '✓';
+      position: absolute;
+      left: 0;
+      color: #059669;
+      font-weight: 600;
+    }
+
+    .dont li::before {
+      content: '✗';
+      position: absolute;
+      left: 0;
+      color: #DC2626;
+      font-weight: 600;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      margin-bottom: var(--flux-space-4);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    th {
+      text-align: left;
+      padding: var(--flux-space-3) var(--flux-space-4);
+      background: var(--flux-bg-secondary);
+      color: var(--flux-text-secondary);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--flux-border);
+    }
+
+    td {
+      padding: var(--flux-space-3) var(--flux-space-4);
+      border-bottom: 1px solid var(--flux-border-light);
+      color: var(--flux-text-primary);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .spacing-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--flux-space-3);
+    }
+
+    .spacing-visual {
+      height: 16px;
+      background: linear-gradient(135deg, var(--flux-brand-primary), var(--flux-brand-primary-light));
+      border-radius: 4px;
+      min-width: 4px;
+    }
+
+    .spacing-label {
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--flux-text-muted);
+      min-width: 80px;
+    }
+
+    .radius-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: var(--flux-space-4);
+    }
+
+    .radius-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--flux-space-2);
+      padding: var(--flux-space-4);
+      background: var(--flux-bg-secondary);
+      border-radius: var(--flux-radius-md);
+      border: 1px solid var(--flux-border-light);
+    }
+
+    .radius-preview {
+      background: var(--flux-brand-primary);
+      width: 48px;
+      height: 48px;
+    }
+
+    .radius-label {
+      font-size: 0.75rem;
+      color: var(--flux-text-muted);
+    }
+
+    .radius-value {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--flux-text-primary);
+    }
+
+    .breakpoint-item {
+      display: flex;
+      align-items: center;
+      padding: var(--flux-space-3) var(--flux-space-4);
+      background: var(--flux-bg-secondary);
+      border-radius: var(--flux-radius-sm);
+      margin-bottom: var(--flux-space-2);
+    }
+
+    .breakpoint-name {
+      font-weight: 600;
+      color: var(--flux-brand-primary);
+      width: 60px;
+      font-size: 0.875rem;
+    }
+
+    .breakpoint-value {
+      font-family: monospace;
+      font-size: 0.8125rem;
+      color: var(--flux-text-secondary);
+    }
+
+    .breakpoint-desc {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--flux-text-muted);
+    }
+
+    .layout-example {
+      background: var(--flux-bg-secondary);
+      border-radius: var(--flux-radius-md);
+      padding: var(--flux-space-4);
+      margin-bottom: var(--flux-space-4);
+    }
+
+    .layout-visual {
+      display: flex;
+      gap: var(--flux-space-2);
+      margin-bottom: var(--flux-space-3);
+    }
+
+    .layout-sidebar {
+      width: 64px;
+      height: 80px;
+      background: var(--flux-brand-primary-bg);
+      border: 1px dashed var(--flux-brand-primary);
+      border-radius: var(--flux-radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--flux-brand-primary);
+      font-size: 0.625rem;
+      font-weight: 600;
+    }
+
+    .layout-main {
+      flex: 1;
+      height: 80px;
+      background: linear-gradient(135deg, var(--flux-brand-primary-bg), transparent);
+      border-radius: var(--flux-radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--flux-brand-primary);
+      font-size: 0.625rem;
+      font-weight: 600;
+    }
+
+    .layout-full {
+      height: 80px;
+      background: linear-gradient(135deg, var(--flux-brand-primary-bg), transparent);
+      border-radius: var(--flux-radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--flux-brand-primary);
+      font-size: 0.625rem;
+      font-weight: 600;
+    }
+
+    .card-grid-visual {
+      display: grid;
+      gap: var(--flux-space-3);
+    }
+
+    .card-grid-visual.cols-2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card-grid-visual.cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .card-grid-visual.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .card-grid-item {
+      height: 48px;
+      background: var(--flux-bg-primary);
+      border: 1px solid var(--flux-border);
+      border-radius: var(--flux-radius-sm);
+    }
+
+    .image-spec-item {
+      display: flex;
+      align-items: center;
+      padding: var(--flux-space-4);
+      background: var(--flux-bg-secondary);
+      border-radius: var(--flux-radius-md);
+      margin-bottom: var(--flux-space-3);
+      gap: var(--flux-space-4);
+    }
+
+    .image-spec-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--flux-brand-primary-bg);
+      border-radius: var(--flux-radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .image-spec-icon svg {
+      color: var(--flux-brand-primary);
+    }
+
+    .image-spec-info {
+      flex: 1;
+    }
+
+    .image-spec-name {
+      font-weight: 600;
+      color: var(--flux-text-primary);
+      font-size: 0.875rem;
+    }
+
+    .image-spec-size {
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--flux-brand-primary);
+      margin-top: var(--flux-space-1);
+    }
+
+    .image-spec-desc {
+      font-size: 0.75rem;
+      color: var(--flux-text-muted);
+    }
+
+    .z-index-item {
+      display: flex;
+      align-items: center;
+      padding: var(--flux-space-3) var(--flux-space-4);
+      background: var(--flux-bg-secondary);
+      border-radius: var(--flux-radius-sm);
+      margin-bottom: var(--flux-space-2);
+    }
+
+    .z-index-name {
+      width: 100px;
+      font-weight: 500;
+      font-size: 0.875rem;
+      color: var(--flux-text-primary);
+    }
+
+    .z-index-value {
+      width: 48px;
+      height: 24px;
+      background: var(--flux-brand-primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      border-radius: var(--flux-radius-xs);
+    }
+
+    .z-index-desc {
+      margin-left: auto;
+      font-size: 0.75rem;
+      color: var(--flux-text-muted);
+    }
+
+    .format-tag {
+      display: inline-block;
+      padding: var(--flux-space-1) var(--flux-space-3);
+      background: var(--flux-brand-primary);
+      color: white;
+      font-weight: 600;
+      font-size: 0.6875rem;
+      border-radius: var(--flux-radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .format-tag.preferred {
+      background: var(--flux-brand-secondary);
+    }
+
+    .format-tags {
+      display: flex;
+      gap: var(--flux-space-2);
+      margin-top: var(--flux-space-2);
+    }
+
+    .photo-style-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--flux-space-4);
+      margin-bottom: var(--flux-space-6);
+    }
+
+    .photo-style-item {
+      padding: var(--flux-space-4);
+      background: var(--flux-bg-secondary);
+      border-radius: var(--flux-radius-md);
+      text-align: center;
+    }
+
+    .photo-style-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto var(--flux-space-3);
+      background: var(--flux-brand-primary-bg);
+      border-radius: var(--flux-radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .photo-style-icon svg {
+      color: var(--flux-brand-primary);
+    }
+
+    .photo-style-title {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--flux-text-primary);
+      margin-bottom: var(--flux-space-1);
+    }
+
+    .photo-style-desc {
+      font-size: 0.75rem;
+      color: var(--flux-text-muted);
+    }
+
+    .grid-spec {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: var(--flux-space-1);
+      margin-bottom: var(--flux-space-3);
+    }
+
+    .grid-col {
+      height: 32px;
+      background: var(--flux-brand-primary-bg);
+      border: 1px solid var(--flux-brand-primary-light);
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.625rem;
+      font-weight: 600;
+      color: var(--flux-brand-primary);
+    }
+
+    .grid-spec-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.6875rem;
+      color: var(--flux-text-muted);
+      font-family: monospace;
+    }
+
+    .info-box {
+      display: flex;
+      gap: var(--flux-space-3);
+      padding: var(--flux-space-4);
+      background: var(--flux-brand-primary-bg);
+      border-radius: var(--flux-radius-md);
+      border-left: 4px solid var(--flux-brand-primary);
+      margin-bottom: var(--flux-space-4);
+    }
+
+    .info-box-icon {
+      color: var(--flux-brand-primary);
+      flex-shrink: 0;
+    }
+
+    .info-box p {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: var(--flux-text-primary);
+    }
+
+    .inline-code {
+      font-family: monospace;
+      font-size: 0.8125rem;
+      background: var(--flux-bg-tertiary);
+      padding: 2px 6px;
+      border-radius: var(--flux-radius-xs);
+      color: var(--flux-brand-primary);
+    }
+
+    @media (max-width: 768px) {
+      .grid-2, .grid-3, .grid-4, .do-dont-grid, .photo-style-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section {
+        padding: var(--flux-space-6);
+      }
+
+      .icon-grid {
+        grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="brand-bible">
+
+    <!-- SECTION 5: ICONOGRAPHY -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-number">5</div>
+        <div>
+          <h1 class="section-title">Iconography</h1>
+          <p class="section-subtitle">Guidelines for icon usage, sizing, and custom creation</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Icon Libraries</h3>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Primary Library</div>
+            <div class="card-value" style="font-size: 1.25rem; color: var(--flux-brand-primary);">Lucide React</div>
+            <p style="margin-top: var(--flux-space-2); margin-bottom: 0;">Import from <span class="inline-code">lucide-react</span>. Our go-to for all UI icons. Consistent 1.5px stroke weight, rounded caps, 24x24 viewBox.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">Secondary Library</div>
+            <div class="card-value" style="font-size: 1.25rem; color: var(--flux-text-secondary);">Heroicons</div>
+            <p style="margin-top: var(--flux-space-2); margin-bottom: 0;">Import from <span class="inline-code">@heroicons/react</span>. Use for specialized illustrations or when Lucide lacks coverage.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Icon Sizing Rules</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Context</th>
+                <th>Size</th>
+                <th>Usage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Inline</strong></td>
+                <td>16px</td>
+                <td>Text paragraphs, badge labels, form elements</td>
+              </tr>
+              <tr>
+                <td><strong>Buttons</strong></td>
+                <td>20px</td>
+                <td>Icon buttons, action buttons, dropdown triggers</td>
+              </tr>
+              <tr>
+                <td><strong>Navigation</strong></td>
+                <td>24px</td>
+                <td>Sidebar items, tab icons, breadcrumb icons</td>
+              </tr>
+              <tr>
+                <td><strong>Feature Icons</strong></td>
+                <td>32px</td>
+                <td>Empty states, onboarding illustrations, feature highlights</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Icon Color Rules</h3>
+        <div class="info-box">
+          <div class="info-box-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+          </div>
+          <p>Default to <span class="inline-code">currentColor</span> to inherit from parent text color. Use <span class="inline-code">--flux-brand-primary</span> for brand moments only.</p>
+        </div>
+        <div class="icon-showcase">
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            <span class="icon-showcase-label">currentColor</span>
+          </div>
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7E3BE9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            <span class="icon-showcase-label">#7E3BE9</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Custom Icon Creation Guidelines</h3>
+        <div class="grid-2">
+          <div>
+            <p>When creating custom icons, follow these specifications to maintain visual consistency:</p>
+            <ul style="padding-left: var(--flux-space-4); color: var(--flux-text-secondary); font-size: 0.875rem;">
+              <li style="margin-bottom: var(--flux-space-2);"><strong>ViewBox:</strong> 24x24</li>
+              <li style="margin-bottom: var(--flux-space-2);"><strong>Stroke width:</strong> 1.5px consistent</li>
+              <li style="margin-bottom: var(--flux-space-2);"><strong>Stroke linecap:</strong> round</li>
+              <li style="margin-bottom: var(--flux-space-2);"><strong>Stroke linejoin:</strong> round</li>
+              <li style="margin-bottom: var(--flux-space-2);"><strong>Corner radius:</strong> Match Lucide style</li>
+              <li style="margin-bottom: 0;"><strong>Optical balance:</strong> Center visually, not mathematically</li>
+            </ul>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: center; background: var(--flux-bg-secondary); border-radius: var(--flux-radius-lg); padding: var(--flux-space-8);">
+            <svg width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="var(--flux-brand-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2"/>
+              <path d="M9 12l2 2 4-4"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Representative Icon Set</h3>
+        <div class="icon-showcase" style="background: var(--flux-bg-primary);">
+          <!-- Check -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6L9 17l-5-5"/>
+            </svg>
+            <span class="icon-showcase-label">check</span>
+          </div>
+          <!-- X -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+            <span class="icon-showcase-label">x</span>
+          </div>
+          <!-- Plus -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            <span class="icon-showcase-label">plus</span>
+          </div>
+          <!-- Search -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <span class="icon-showcase-label">search</span>
+          </div>
+          <!-- Settings -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+            </svg>
+            <span class="icon-showcase-label">settings</span>
+          </div>
+          <!-- User -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <span class="icon-showcase-label">user</span>
+          </div>
+          <!-- Bell -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 01-3.46 0"/>
+            </svg>
+            <span class="icon-showcase-label">bell</span>
+          </div>
+          <!-- Home -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <span class="icon-showcase-label">home</span>
+          </div>
+          <!-- Layout -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <line x1="3" y1="9" x2="21" y2="9"/>
+              <line x1="9" y1="21" x2="9" y2="9"/>
+            </svg>
+            <span class="icon-showcase-label">layout</span>
+          </div>
+          <!-- Calendar -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span class="icon-showcase-label">calendar</span>
+          </div>
+          <!-- Message -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+            </svg>
+            <span class="icon-showcase-label">message</span>
+          </div>
+          <!-- Star -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <span class="icon-showcase-label">star</span>
+          </div>
+          <!-- Folder -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+            </svg>
+            <span class="icon-showcase-label">folder</span>
+          </div>
+          <!-- Trash -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+              <line x1="10" y1="11" x2="10" y2="17"/>
+              <line x1="14" y1="11" x2="14" y2="17"/>
+            </svg>
+            <span class="icon-showcase-label">trash</span>
+          </div>
+          <!-- Edit -->
+          <div class="icon-showcase-item">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            <span class="icon-showcase-label">edit</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Do's and Don'ts</h3>
+        <div class="do-dont-grid">
+          <div class="do">
+            <div class="do-dont-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6L9 17l-5-5"/>
+              </svg>
+              Do's
+            </div>
+            <ul>
+              <li>Use icons consistently from the same library</li>
+              <li>Match icon weight (1.5px stroke) across all elements</li>
+              <li>Keep icons optically centered within their viewBox</li>
+              <li>Use icons at specified sizes for their context</li>
+              <li>Apply currentColor for flexible theming</li>
+            </ul>
+          </div>
+          <div class="dont">
+            <div class="do-dont-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+              Don'ts
+            </div>
+            <ul>
+              <li>Mix icons from different libraries with mismatched styles</li>
+              <li>Use icons smaller than 16px or larger than 32px</li>
+              <li>Stretch or distort icons away from their aspect ratio</li>
+              <li>Apply hard-coded colors when currentColor would work</li>
+              <li>Stack multiple icons in the same interactive element</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: IMAGERY & PHOTOGRAPHY -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-number">6</div>
+        <div>
+          <h1 class="section-title">Imagery & Photography</h1>
+          <p class="section-subtitle">Standards for photography, illustration, and image treatment</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Photo Style Guide</h3>
+        <div class="photo-style-grid">
+          <div class="photo-style-item">
+            <div class="photo-style-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                <path d="M16 3.13a4 4 0 010 7.75"/>
+              </svg>
+            </div>
+            <div class="photo-style-title">Real Teams</div>
+            <div class="photo-style-desc">Document authentic collaboration and workflows</div>
+          </div>
+          <div class="photo-style-item">
+            <div class="photo-style-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 16v-4M12 8h.01"/>
+              </svg>
+            </div>
+            <div class="photo-style-title">Diverse & Inclusive</div>
+            <div class="photo-style-desc">Represent varied backgrounds, roles, and perspectives</div>
+          </div>
+          <div class="photo-style-item">
+            <div class="photo-style-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+            </div>
+            <div class="photo-style-title">Natural Lighting</div>
+            <div class="photo-style-desc">Prefer soft, diffused light with warm undertones</div>
+          </div>
+        </div>
+        <p>Slightly desaturate or color-grade photos to harmonize with the brand palette. Avoid overly bright or high-contrast imagery that clashes with the purple accent system.</p>
+      </div>
+
+      <div class="subsection">
+        <h3>Image Treatment</h3>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Border Radius</div>
+            <div class="card-value">--flux-radius-lg = 12px</div>
+            <p style="margin-top: var(--flux-space-2); margin-bottom: 0;">Apply consistent rounded corners to all photographs and featured images.</p>
+          </div>
+          <div class="card">
+            <div class="card-title">Shadow</div>
+            <div class="card-value">--flux-shadow-md</div>
+            <p style="margin-top: var(--flux-space-2); margin-bottom: 0;">Use subtle drop shadows to lift images from the page. Avoid hard shadows.</p>
+          </div>
+        </div>
+        <div style="display: flex; gap: var(--flux-space-6); margin-top: var(--flux-space-6); align-items: flex-end;">
+          <div style="width: 160px; height: 120px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: var(--flux-radius-lg); box-shadow: var(--flux-shadow-md);"></div>
+          <div style="width: 160px; height: 120px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: var(--flux-radius-lg); box-shadow: var(--flux-shadow-lg);"></div>
+          <div style="width: 160px; height: 120px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); border-radius: var(--flux-radius-xl); box-shadow: var(--flux-shadow-lg);"></div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Illustration Style</h3>
+        <div class="info-box">
+          <div class="info-box-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 19l7-7 3 3-7 7-3-3z"/>
+              <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/>
+              <path d="M2 2l7.586 7.586"/>
+              <circle cx="11" cy="11" r="2"/>
+            </svg>
+          </div>
+          <p>If illustrations are used, keep them minimal line art with brand purple (#7E3BE9) accents. Avoid complex gradients or heavy fills.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>What to Avoid</h3>
+        <div class="card" style="background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.2);">
+          <ul style="list-style: none; padding: 0; color: var(--flux-text-secondary); font-size: 0.875rem;">
+            <li style="padding: var(--flux-space-2) 0; border-bottom: 1px solid var(--flux-border-light); display: flex; align-items: center; gap: var(--flux-space-3);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              Stock photo clichés: staged handshakes, fake phone calls, artificial smiles
+            </li>
+            <li style="padding: var(--flux-space-2) 0; border-bottom: 1px solid var(--flux-border-light); display: flex; align-items: center; gap: var(--flux-space-3);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              Overly staged corporate photography with artificial lighting
+            </li>
+            <li style="padding: var(--flux-space-2) 0; display: flex; align-items: center; gap: var(--flux-space-3);">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              Outdated tech imagery: legacy software, old devices, deprecated UI patterns
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Social Media Image Specs</h3>
+        <div class="image-spec-item">
+          <div class="image-spec-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              <circle cx="8.5" cy="8.5" r="1.5"/>
+              <polyline points="21 15 16 10 5 21"/>
+            </svg>
+          </div>
+          <div class="image-spec-info">
+            <div class="image-spec-name">Open Graph Image</div>
+            <div class="image-spec-size">1200 × 630 px</div>
+            <div class="image-spec-desc">Used for link previews on Facebook, Slack, and other platforms</div>
+          </div>
+        </div>
+        <div class="image-spec-item">
+          <div class="image-spec-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+          </div>
+          <div class="image-spec-info">
+            <div class="image-spec-name">Twitter Card Image</div>
+            <div class="image-spec-size">1200 × 675 px</div>
+            <div class="image-spec-desc">16:9 ratio for Twitter/X cards and meta descriptions</div>
+          </div>
+        </div>
+        <div class="image-spec-item">
+          <div class="image-spec-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+              <path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/>
+            </svg>
+          </div>
+          <div class="image-spec-info">
+            <div class="image-spec-name">LinkedIn Cover</div>
+            <div class="image-spec-size">1584 × 396 px</div>
+            <div class="image-spec-desc">Wide format for LinkedIn company page banners</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Image Format Guidance</h3>
+        <div class="grid-3">
+          <div class="card">
+            <span class="format-tag preferred">Preferred</span>
+            <div class="card-value" style="margin-top: var(--flux-space-3); font-size: 1.125rem;">WebP</div>
+            <p style="margin-top: var(--flux-space-2); margin-bottom: 0;">Best compression and quality. Use for all photography and illustrations.</p>
+          </div>
+          <div class="card">
+            <span class="format-tag">Fallback</span>
+            <div class="card-value" style="margin-top: var(--flux-space-3); font-size: 1.125rem;">JPEG</div>
+            <p style="margin-top: var(--flux-space-2); margin-bottom: 0;">For photographic content where WebP lacks support.</p>
+          </div>
+          <div class="card">
+            <span class="format-tag">Transparency</span>
+            <div class="card-value" style="margin-top: var(--flux-space-3); font-size: 1.125rem;">PNG</div>
+            <p style="margin-top: var(--flux-space-2); margin-bottom: 0;">Only when transparency is required. Avoid for photos.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 9: SPATIAL SYSTEM -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-number">9</div>
+        <div>
+          <h1 class="section-title">Spatial System</h1>
+          <p class="section-subtitle">Tokens, grids, breakpoints, and layout patterns</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Spacing Scale</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Token</th>
+                <th>Value</th>
+                <th>Visual</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code class="inline-code">--flux-space-1</code></td>
+                <td>0.25rem / 4px</td>
+                <td><div class="spacing-bar"><div class="spacing-visual" style="width: 4px;"></div><span class="spacing-label">4px</span></div></td>
+              </tr>
+              <tr>
+                <td><code class="inline-code">--flux-space-2</code></td>
+                <td>0.5rem / 8px</td>
+                <td><div class="spacing-bar"><div class="spacing-visual" style="width: 8px;"></div><span class="spacing-label">8px</span></div></td>
+              </tr>
+              <tr>
+                <td><code class="inline-code">--flux-space-3</code></td>
+                <td>0.75rem / 12px</td>
+                <td><div class="spacing-bar"><div class="spacing-visual" style="width: 12px;"></div><span class="spacing-label">12px</span></div></td>
+              </tr>
+              <tr>
+                <td><code class="inline-code">--flux-space-4</code></td>
+                <td>1rem / 16px</td>
+                <td><div class="spacing-bar"><div class="spacing-visual" style="width: 16px;"></div><span class="spacing-label">16px</span></div></td>
+              </tr>
+              <tr>
+                <td><code class="inline-code">--flux-space-6</code></td>
+                <td>1.5rem / 24px</td>
+                <td><div class="spacing-bar"><div class="spacing-visual" style="width: 24px;"></div><span class="spacing-label">24px</span></div></td>
+              </tr>
+              <tr>
+                <td><code class="inline-code">--flux-space-8</code></td>
+                <td>2rem / 32px</td>
+                <td><div class="spacing-bar"><div class="spacing-visual" style="width: 32px;"></div><span class="spacing-label">32px</span></div></td>
+              </tr>
+              <tr>
+                <td><code class="inline-code">--flux-space-10</code></td>
+                <td>2.5rem / 40px</td>
+                <td><div class="spacing-bar"><div class="spacing-visual" style="width: 40px;"></div><span class="spacing-label">40px</span></div></td>
+              </tr>
+              <tr>
+                <td><code class="inline-code">--flux-space-12</code></td>
+                <td>3rem / 48px</td>
+                <td><div class="spacing-bar"><div class="spacing-visual" style="width: 48px;"></div><span class="spacing-label">48px</span></div></td>
+              </tr>
+              <tr>
+                <td><code class="inline-code">--flux-space-16</code></td>
+                <td>4rem / 64px</td>
+                <td><div class="spacing-bar"><div class="spacing-visual" style="width: 64px;"></div><span class="spacing-label">64px</span></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Border Radius Tokens</h3>
+        <div class="radius-grid">
+          <div class="radius-item">
+            <div class="radius-preview" style="border-radius: 0;"></div>
+            <div class="radius-value">0</div>
+            <div class="radius-label">none</div>
+          </div>
+          <div class="radius-item">
+            <div class="radius-preview" style="border-radius: var(--flux-radius-xs);"></div>
+            <div class="radius-value">4px</div>
+            <div class="radius-label">--flux-radius-xs</div>
+          </div>
+          <div class="radius-item">
+            <div class="radius-preview" style="border-radius: var(--flux-radius-sm);"></div>
+            <div class="radius-value">6px</div>
+            <div class="radius-label">--flux-radius-sm</div>
+          </div>
+          <div class="radius-item">
+            <div class="radius-preview" style="border-radius: var(--flux-radius-md);"></div>
+            <div class="radius-value">8px</div>
+            <div class="radius-label">--flux-radius-md</div>
+          </div>
+          <div class="radius-item">
+            <div class="radius-preview" style="border-radius: var(--flux-radius-lg);"></div>
+            <div class="radius-value">12px</div>
+            <div class="radius-label">--flux-radius-lg</div>
+          </div>
+          <div class="radius-item">
+            <div class="radius-preview" style="border-radius: var(--flux-radius-xl);"></div>
+            <div class="radius-value">16px</div>
+            <div class="radius-label">--flux-radius-xl</div>
+          </div>
+          <div class="radius-item">
+            <div class="radius-preview" style="border-radius: var(--flux-radius-2xl);"></div>
+            <div class="radius-value">24px</div>
+            <div class="radius-label">--flux-radius-2xl</div>
+          </div>
+          <div class="radius-item">
+            <div class="radius-preview" style="border-radius: var(--flux-radius-full);"></div>
+            <div class="radius-value">9999px</div>
+            <div class="radius-label">--flux-radius-full</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Grid System</h3>
+        <div class="card" style="margin-bottom: var(--flux-space-4);">
+          <div class="card-title">12-Column Grid</div>
+          <div style="margin-top: var(--flux-space-4);">
+            <div class="grid-spec">
+              <div class="grid-col">1</div>
+              <div class="grid-col">2</div>
+              <div class="grid-col">3</div>
+              <div class="grid-col">4</div>
+              <div class="grid-col">5</div>
+              <div class="grid-col">6</div>
+              <div class="grid-col">7</div>
+              <div class="grid-col">8</div>
+              <div class="grid-col">9</div>
+              <div class="grid-col">10</div>
+              <div class="grid-col">11</div>
+              <div class="grid-col">12</div>
+            </div>
+            <div class="grid-spec-labels">
+              <span>Gutter: 24px</span>
+              <span>Max-width: 1280px</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Gutter</div>
+            <div class="card-value">24px</div>
+            <p style="margin-top: var(--flux-space-2); margin-bottom: 0;">Fixed gap between columns</p>
+          </div>
+          <div class="card">
+            <div class="card-title">Container</div>
+            <div class="card-value">1280px max-width</div>
+            <p style="margin-top: var(--flux-space-2); margin-bottom: 0;">Horizontally centered with auto margins</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Responsive Breakpoints</h3>
+        <div class="breakpoint-item">
+          <span class="breakpoint-name">sm</span>
+          <span class="breakpoint-value">640px</span>
+          <span class="breakpoint-desc">Mobile landscape</span>
+        </div>
+        <div class="breakpoint-item">
+          <span class="breakpoint-name">md</span>
+          <span class="breakpoint-value">768px</span>
+          <span class="breakpoint-desc">Tablet portrait</span>
+        </div>
+        <div class="breakpoint-item">
+          <span class="breakpoint-name">lg</span>
+          <span class="breakpoint-value">1024px</span>
+          <span class="breakpoint-desc">Tablet landscape / Small laptop</span>
+        </div>
+        <div class="breakpoint-item">
+          <span class="breakpoint-name">xl</span>
+          <span class="breakpoint-value">1280px</span>
+          <span class="breakpoint-desc">Desktop</span>
+        </div>
+        <div class="breakpoint-item">
+          <span class="breakpoint-name">2xl</span>
+          <span class="breakpoint-value">1536px</span>
+          <span class="breakpoint-desc">Large desktop</span>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Z-Index Scale</h3>
+        <div class="z-index-item">
+          <span class="z-index-name">dropdown</span>
+          <span class="z-index-value">100</span>
+          <span class="z-index-desc">Select menus, dropdown panels</span>
+        </div>
+        <div class="z-index-item">
+          <span class="z-index-name">sticky</span>
+          <span class="z-index-value">200</span>
+          <span class="z-index-desc">Sticky headers, sidebars</span>
+        </div>
+        <div class="z-index-item">
+          <span class="z-index-name">modal</span>
+          <span class="z-index-value">300</span>
+          <span class="z-index-desc">Modal dialogs, confirmation overlays</span>
+        </div>
+        <div class="z-index-item">
+          <span class="z-index-name">popover</span>
+          <span class="z-index-value">400</span>
+          <span class="z-index-desc">Tooltips, popovers, context menus</span>
+        </div>
+        <div class="z-index-item">
+          <span class="z-index-name">tooltip</span>
+          <span class="z-index-value">500</span>
+          <span class="z-index-desc">Highest level, full-screen overlays</span>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Common Layout Patterns</h3>
+        <div class="layout-example">
+          <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: var(--flux-space-3); color: var(--flux-text-primary);">Sidebar + Main Content</h4>
+          <div class="layout-visual">
+            <div class="layout-sidebar">240px</div>
+            <div class="layout-main">flex-1</div>
+          </div>
+          <p style="font-size: 0.75rem; margin-bottom: 0;">Used in: Dashboard, Board view, Settings pages</p>
+        </div>
+        <div class="layout-example">
+          <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: var(--flux-space-3); color: var(--flux-text-primary);">Full-Width Container</h4>
+          <div class="layout-visual">
+            <div class="layout-full">max-width: 1280px</div>
+          </div>
+          <p style="font-size: 0.75rem; margin-bottom: 0;">Used in: Landing pages, Documentation, Marketing sections</p>
+        </div>
+        <div class="layout-example">
+          <h4 style="font-size: 0.875rem; font-weight: 600; margin-bottom: var(--space-3); color: var(--flux-text-primary);">Card Grids</h4>
+          <div style="display: flex; flex-direction: column; gap: var(--flux-space-4);">
+            <div>
+              <div style="font-size: 0.75rem; color: var(--flux-text-muted); margin-bottom: var(--flux-space-2);">2 columns</div>
+              <div class="card-grid-visual cols-2">
+                <div class="card-grid-item"></div>
+                <div class="card-grid-item"></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 0.75rem; color: var(--flux-text-muted); margin-bottom: var(--flux-space-2);">3 columns</div>
+              <div class="card-grid-visual cols-3">
+                <div class="card-grid-item"></div>
+                <div class="card-grid-item"></div>
+                <div class="card-grid-item"></div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size: 0.75rem; color: var(--flux-text-muted); margin-bottom: var(--flux-space-2);">4 columns</div>
+              <div class="card-grid-visual cols-4">
+                <div class="card-grid-item"></div>
+                <div class="card-grid-item"></div>
+                <div class="card-grid-item"></div>
+                <div class="card-grid-item"></div>
+              </div>
+            </div>
+          </div>
+          <p style="font-size: 0.75rem; margin-top: var(--flux-space-3); margin-bottom: 0;">Used in: Workspace cards, Task lists, Feature grids, Team members</p>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>

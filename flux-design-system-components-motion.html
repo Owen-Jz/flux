@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flux Brand Bible — Component Library & Motion</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --flux-purple: #7E3BE9;
+      --flux-purple-light: #9B6AE9;
+      --flux-purple-dark: #5B21B6;
+      --flux-purple-50: #F5F3FF;
+      --flux-purple-100: #EDE9FE;
+      --flux-purple-500: #8B5CF6;
+      --flux-purple-600: #7C3AED;
+      --flux-purple-700: #6D28D9;
+      --flux-gray-50: #F9FAFB;
+      --flux-gray-100: #F3F4F6;
+      --flux-gray-200: #E5E7EB;
+      --flux-gray-300: #D1D5DB;
+      --flux-gray-400: #9CA3AF;
+      --flux-gray-500: #6B7280;
+      --flux-gray-600: #4B5563;
+      --flux-gray-700: #374151;
+      --flux-gray-800: #1F2937;
+      --flux-gray-900: #111827;
+      --flux-success: #10B981;
+      --flux-success-bg: #ECFDF5;
+      --flux-warning: #F59E0B;
+      --flux-warning-bg: #FFFBEB;
+      --flux-error: #EF4444;
+      --flux-error-bg: #FEF2F2;
+      --flux-info: #3B82F6;
+      --flux-info-bg: #EFF6FF;
+      --flux-neutral: #6B7280;
+      --flux-neutral-bg: #F3F4F6;
+      --flux-transition-fast: 150ms;
+      --flux-transition-base: 200ms;
+      --flux-transition-slow: 300ms;
+      --flux-transition-spring: 500ms;
+      --flux-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+      --flux-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --flux-bg-primary: #0F0F0F;
+        --flux-bg-secondary: #1A1A1A;
+        --flux-bg-tertiary: #252525;
+        --flux-text-primary: #FFFFFF;
+        --flux-text-secondary: #A1A1AA;
+        --flux-text-muted: #71717A;
+        --flux-border: #2E2E2E;
+        --flux-border-hover: #3E3E3E;
+      }
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --flux-bg-primary: #FFFFFF;
+        --flux-bg-secondary: #F9FAFB;
+        --flux-bg-tertiary: #F3F4F6;
+        --flux-text-primary: #111827;
+        --flux-text-secondary: #4B5563;
+        --flux-text-muted: #9CA3AF;
+        --flux-border: #E5E7EB;
+        --flux-border-hover: #D1D5DB;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--flux-bg-primary);
+      color: var(--flux-text-primary);
+      line-height: 1.6;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 60px;
+      padding-bottom: 40px;
+      border-bottom: 1px solid var(--flux-border);
+    }
+
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .brand-logo svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    .brand-logo-text {
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--flux-purple);
+      letter-spacing: -0.5px;
+    }
+
+    .brand-subtitle {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--flux-text-muted);
+    }
+
+    .section {
+      margin-bottom: 80px;
+      padding: 40px;
+      background: var(--flux-bg-secondary);
+      border-radius: 16px;
+      border: 1px solid var(--flux-border);
+    }
+
+    .section-number {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--flux-purple);
+      margin-bottom: 8px;
+    }
+
+    .section-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--flux-text-primary);
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .section-desc {
+      font-size: 16px;
+      color: var(--flux-text-secondary);
+      margin-bottom: 40px;
+    }
+
+    .subsection {
+      margin-bottom: 48px;
+    }
+
+    .subsection-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--flux-text-primary);
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--flux-border);
+    }
+
+    /* Utility Classes */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-center { justify-content: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-1 { gap: 4px; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .gap-4 { gap: 16px; }
+    .gap-6 { gap: 24px; }
+    .gap-8 { gap: 32px; }
+    .flex-wrap { flex-wrap: wrap; }
+    .grid { display: grid; }
+    .grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .text-sm { font-size: 14px; }
+    .text-xs { font-size: 12px; }
+    .text-lg { font-size: 18px; }
+    .font-medium { font-weight: 500; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+    .font-extrabold { font-weight: 800; }
+    .text-center { text-align: center; }
+    .text-muted { color: var(--flux-text-muted); }
+    .text-secondary { color: var(--flux-text-secondary); }
+    .w-full { width: 100%; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mb-6 { margin-bottom: 24px; }
+    .mb-8 { margin-bottom: 32px; }
+    .mt-4 { margin-top: 16px; }
+    .p-2 { padding: 8px; }
+    .p-3 { padding: 12px; }
+    .p-4 { padding: 16px; }
+    .p-6 { padding: 24px; }
+    .px-3 { padding-left: 12px; padding-right: 12px; }
+    .px-4 { padding-left: 16px; padding-right: 16px; }
+    .py-2 { padding-top: 8px; padding-bottom: 8px; }
+    .py-3 { padding-top: 12px; padding-bottom: 12px; }
+    .rounded-lg { border-radius: 8px; }
+    .rounded-xl { border-radius: 12px; }
+    .rounded-full { border-radius: 9999px; }
+    .bg-white { background: white; }
+    .bg-gray { background: var(--flux-bg-tertiary); }
+    .border { border: 1px solid var(--flux-border); }
+    .border-2 { border-width: 2px; }
+    .shadow-sm { box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .shadow-md { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1); }
+    .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1); }
+    .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); }
+    .transition { transition: all var(--flux-transition-base) var(--flux-ease-standard); }
+    .cursor-pointer { cursor: pointer; }
+    .opacity-50 { opacity: 0.5; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Component Grid */
+    .component-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .component-card {
+      background: var(--flux-bg-primary);
+      border: 1px solid var(--flux-border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .component-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--flux-text-muted);
+      margin-bottom: 4px;
+    }
+
+    .component-preview {
+      background: var(--flux-bg-tertiary);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      min-height: 80px;
+    }
+
+    .component-states {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 16px;
+      background: var(--flux-bg-tertiary);
+      border-radius: 8px;
+    }
+
+    .state-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .state-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--flux-text-muted);
+    }
+
+    /* Button Styles */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all var(--flux-transition-fast) var(--flux-ease-standard);
+      white-space: nowrap;
+    }
+
+    .btn:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(126, 59, 233, 0.3);
+    }
+
+    .btn-primary {
+      background: var(--flux-purple);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--flux-purple-dark);
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(126, 59, 233, 0.3);
+    }
+
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--flux-purple);
+      border: 2px solid var(--flux-purple);
+    }
+
+    .btn-secondary:hover {
+      background: var(--flux-purple-50);
+      border-color: var(--flux-purple-light);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--flux-text-secondary);
+    }
+
+    .btn-ghost:hover {
+      background: var(--flux-bg-tertiary);
+      color: var(--flux-text-primary);
+    }
+
+    .btn-danger {
+      background: var(--flux-error);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #DC2626;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-sm { padding: 6px 12px; font-size: 12px; }
+    .btn-md { padding: 10px 18px; font-size: 14px; }
+    .btn-lg { padding: 14px 24px; font-size: 16px; }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .btn-loading {
+      position: relative;
+      color: transparent !important;
+    }
+
+    .btn-loading::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      border: 2px solid white;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Input Styles */
+    .input-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--flux-text-primary);
+    }
+
+    .input {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 14px;
+      padding: 10px 14px;
+      border: 1px solid var(--flux-border);
+      border-radius: 8px;
+      background: var(--flux-bg-primary);
+      color: var(--flux-text-primary);
+      transition: all var(--flux-transition-fast) var(--flux-ease-standard);
+    }
+
+    .input::placeholder {
+      color: var(--flux-text-muted);
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--flux-purple);
+      box-shadow: 0 0 0 3px rgba(126, 59, 233, 0.15);
+    }
+
+    .input:disabled {
+      background: var(--flux-bg-tertiary);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .input-error {
+      border-color: var(--flux-error);
+    }
+
+    .input-error:focus {
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+    }
+
+    .error-message {
+      font-size: 12px;
+      color: var(--flux-error);
+      font-weight: 500;
+    }
+
+    /* Card Styles */
+    .card {
+      background: var(--flux-bg-primary);
+      border: 1px solid var(--flux-border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: all var(--flux-transition-base) var(--flux-ease-standard);
+    }
+
+    .card-hover:hover {
+      transform: translateY(-2px);
+      border-color: var(--flux-purple-300);
+      box-shadow: 0 8px 20px rgba(126, 59, 233, 0.12);
+    }
+
+    .card-elevated {
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      border: none;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--flux-text-primary);
+      margin-bottom: 8px;
+    }
+
+    .card-text {
+      font-size: 14px;
+      color: var(--flux-text-secondary);
+    }
+
+    /* Badge/Pill Styles */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-success {
+      background: var(--flux-success-bg);
+      color: #059669;
+    }
+
+    .badge-warning {
+      background: var(--flux-warning-bg);
+      color: #D97706;
+    }
+
+    .badge-error {
+      background: var(--flux-error-bg);
+      color: #DC2626;
+    }
+
+    .badge-info {
+      background: var(--flux-info-bg);
+      color: #2563EB;
+    }
+
+    .badge-neutral {
+      background: var(--flux-neutral-bg);
+      color: var(--flux-neutral);
+    }
+
+    /* Avatar Styles */
+    .avatar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--flux-purple) 0%, var(--flux-purple-light) 100%);
+      color: white;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .avatar-sm { width: 32px; height: 32px; font-size: 12px; }
+    .avatar-md { width: 40px; height: 40px; font-size: 14px; }
+    .avatar-lg { width: 56px; height: 56px; font-size: 18px; }
+
+    .avatar-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    /* Tooltip Styles */
+    .tooltip-wrapper {
+      position: relative;
+      display: inline-flex;
+    }
+
+    .tooltip {
+      position: absolute;
+      background: var(--flux-gray-800);
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      z-index: 50;
+      pointer-events: none;
+      animation: tooltipFade 0.15s ease;
+    }
+
+    .tooltip-top {
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .tooltip-bottom {
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .tooltip::after {
+      content: '';
+      position: absolute;
+      border: 5px solid transparent;
+    }
+
+    .tooltip-top::after {
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-top-color: var(--flux-gray-800);
+    }
+
+    .tooltip-bottom::after {
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border-bottom-color: var(--flux-gray-800);
+    }
+
+    @keyframes tooltipFade {
+      from { opacity: 0; transform: translateX(-50%) translateY(4px); }
+      to { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+
+    /* Modal Styles */
+    .modal-backdrop {
+      position: relative;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal {
+      background: var(--flux-bg-primary);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      animation: modalEnter 0.2s ease-out;
+    }
+
+    @keyframes modalEnter {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--flux-border);
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--flux-text-primary);
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: transparent;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--flux-text-muted);
+      transition: all var(--flux-transition-fast);
+    }
+
+    .modal-close:hover {
+      background: var(--flux-bg-tertiary);
+      color: var(--flux-text-primary);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    .modal-body p {
+      font-size: 14px;
+      color: var(--flux-text-secondary);
+    }
+
+    /* Dropdown Styles */
+    .dropdown-wrapper {
+      position: relative;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      background: var(--flux-bg-primary);
+      border: 1px solid var(--flux-border);
+      border-radius: 8px;
+      padding: 6px;
+      min-width: 180px;
+      z-index: 50;
+      animation: dropdownEnter 0.15s ease-out;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    @keyframes dropdownEnter {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--flux-text-secondary);
+      cursor: pointer;
+      transition: all var(--flux-transition-fast);
+    }
+
+    .dropdown-item:hover {
+      background: var(--flux-purple-50);
+      color: var(--flux-purple);
+    }
+
+    .dropdown-item-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--flux-text-muted);
+    }
+
+    .dropdown-item:hover .dropdown-item-icon {
+      color: var(--flux-purple);
+    }
+
+    /* Skeleton Styles */
+    .skeleton {
+      background: linear-gradient(
+        90deg,
+        var(--flux-gray-200) 0%,
+        var(--flux-gray-100) 50%,
+        var(--flux-gray-200) 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .skeleton-text {
+      height: 14px;
+      margin-bottom: 8px;
+    }
+
+    .skeleton-text:last-child {
+      width: 60%;
+    }
+
+    .skeleton-avatar {
+      border-radius: 50%;
+    }
+
+    /* Toast Styles */
+    .toast {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      background: var(--flux-bg-primary);
+      border: 1px solid var(--flux-border);
+      border-radius: 10px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      min-width: 320px;
+      animation: toastEnter 0.3s ease-out;
+    }
+
+    @keyframes toastEnter {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .toast-success {
+      border-left: 4px solid var(--flux-success);
+    }
+
+    .toast-error {
+      border-left: 4px solid var(--flux-error);
+    }
+
+    .toast-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .toast-success .toast-icon { color: var(--flux-success); }
+    .toast-error .toast-icon { color: var(--flux-error); }
+
+    .toast-content {
+      flex: 1;
+    }
+
+    .toast-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--flux-text-primary);
+      margin-bottom: 2px;
+    }
+
+    .toast-message {
+      font-size: 13px;
+      color: var(--flux-text-secondary);
+    }
+
+    /* Progress Styles */
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: var(--flux-gray-200);
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--flux-purple) 0%, var(--flux-purple-light) 100%);
+      border-radius: 9999px;
+      transition: width 0.5s ease-out;
+    }
+
+    .progress-fill-success {
+      background: var(--flux-success);
+    }
+
+    .circular-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--flux-gray-200);
+      border-top-color: var(--flux-purple);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    /* Table Styles */
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .table th {
+      text-align: left;
+      padding: 12px 16px;
+      font-weight: 600;
+      color: var(--flux-text-muted);
+      border-bottom: 1px solid var(--flux-border);
+      background: var(--flux-bg-tertiary);
+    }
+
+    .table td {
+      padding: 14px 16px;
+      color: var(--flux-text-primary);
+      border-bottom: 1px solid var(--flux-border);
+    }
+
+    .table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .table tr:hover td {
+      background: var(--flux-bg-secondary);
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 240px;
+      background: var(--flux-bg-primary);
+      border-right: 1px solid var(--flux-border);
+      padding: 16px 12px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--flux-text-secondary);
+      cursor: pointer;
+      transition: all var(--flux-transition-fast);
+    }
+
+    .nav-item:hover {
+      background: var(--flux-bg-tertiary);
+      color: var(--flux-text-primary);
+    }
+
+    .nav-item-active {
+      background: var(--flux-purple-50);
+      color: var(--flux-purple);
+    }
+
+    .nav-item-active:hover {
+      background: var(--flux-purple-100);
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .nav-indicator {
+      width: 4px;
+      height: 20px;
+      background: var(--flux-purple);
+      border-radius: 2px;
+      margin-left: auto;
+    }
+
+    /* Breadcrumbs */
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .breadcrumb-item {
+      color: var(--flux-text-secondary);
+      font-weight: 500;
+      transition: color var(--flux-transition-fast);
+    }
+
+    .breadcrumb-item:hover {
+      color: var(--flux-purple);
+    }
+
+    .breadcrumb-current {
+      color: var(--flux-text-primary);
+      font-weight: 600;
+    }
+
+    .breadcrumb-separator {
+      color: var(--flux-text-muted);
+      font-weight: 400;
+    }
+
+    /* Animation Section Styles */
+    .timing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .timing-card {
+      background: var(--flux-bg-primary);
+      border: 1px solid var(--flux-border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .timing-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--flux-purple);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timing-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--flux-text-primary);
+      margin-top: 4px;
+    }
+
+    .timing-token {
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: var(--flux-text-muted);
+      margin-top: 8px;
+      padding: 4px 8px;
+      background: var(--flux-bg-tertiary);
+      border-radius: 4px;
+      display: inline-block;
+    }
+
+    .easing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+
+    .easing-card {
+      background: var(--flux-bg-primary);
+      border: 1px solid var(--flux-border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+
+    .easing-curve {
+      height: 80px;
+      background: var(--flux-bg-tertiary);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .easing-ball {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: var(--flux-purple);
+      border-radius: 50%;
+      top: 50%;
+      transform: translateY(-50%);
+      animation: easeBall 1.5s infinite;
+    }
+
+    @keyframes easeBall {
+      0% { left: 5%; }
+      100% { left: calc(95% - 20px); }
+    }
+
+    .easing-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--flux-text-primary);
+      margin-bottom: 4px;
+    }
+
+    .easing-value {
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      color: var(--flux-text-muted);
+    }
+
+    .micro-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .micro-card {
+      background: var(--flux-bg-primary);
+      border: 1px solid var(--flux-border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .micro-demo {
+      height: 60px;
+      background: var(--flux-bg-tertiary);
+      border-radius: 8px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .micro-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--flux-text-primary);
+      margin-bottom: 8px;
+    }
+
+    .micro-desc {
+      font-size: 13px;
+      color: var(--flux-text-secondary);
+      line-height: 1.5;
+    }
+
+    .demo-btn {
+      padding: 10px 20px;
+      background: var(--flux-purple);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all var(--flux-transition-base) var(--flux-ease-standard);
+    }
+
+    .demo-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(126, 59, 233, 0.3);
+    }
+
+    .demo-card {
+      width: 120px;
+      height: 80px;
+      background: var(--flux-bg-primary);
+      border: 1px solid var(--flux-border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--flux-text-secondary);
+      transition: all var(--flux-transition-base) var(--flux-ease-standard);
+    }
+
+    .demo-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(126, 59, 233, 0.12);
+      border-color: var(--flux-purple-300);
+    }
+
+    .demo-focus {
+      width: 100px;
+      height: 40px;
+      background: var(--flux-bg-primary);
+      border: 2px solid var(--flux-border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--flux-text-muted);
+      transition: all var(--flux-transition-fast);
+    }
+
+    .demo-focus:focus {
+      outline: none;
+      border-color: var(--flux-purple);
+      box-shadow: 0 0 0 3px rgba(126, 59, 233, 0.3);
+    }
+
+    .demo-skeleton {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .demo-skeleton-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .demo-skeleton-lines {
+      flex: 1;
+    }
+
+    .demo-shimmer {
+      height: 100%;
+      background: linear-gradient(90deg, var(--flux-gray-200) 0%, var(--flux-gray-100) 50%, var(--flux-gray-200) 100%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 4px;
+    }
+
+    .demo-modal {
+      width: 200px;
+      padding: 16px;
+      background: var(--flux-bg-primary);
+      border-radius: 10px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      animation: modalEnter 0.2s ease-out;
+    }
+
+    .demo-modal-header {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--flux-text-primary);
+      margin-bottom: 8px;
+    }
+
+    .demo-modal-text {
+      font-size: 12px;
+      color: var(--flux-text-secondary);
+    }
+
+    .demo-toast {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+      border-left: 4px solid var(--flux-success);
+      animation: toastEnter 0.3s ease-out;
+    }
+
+    .demo-toast-icon {
+      width: 18px;
+      height: 18px;
+      color: var(--flux-success);
+    }
+
+    .demo-toast-text {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--flux-text-primary);
+    }
+
+    .reduced-motion-section {
+      background: var(--flux-bg-tertiary);
+      border-radius: 10px;
+      padding: 24px;
+      margin-top: 20px;
+    }
+
+    .reduced-motion-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--flux-text-primary);
+      margin-bottom: 12px;
+    }
+
+    .reduced-motion-code {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      background: var(--flux-bg-primary);
+      padding: 16px;
+      border-radius: 8px;
+      border: 1px solid var(--flux-border);
+      color: var(--flux-text-secondary);
+      line-height: 1.8;
+    }
+
+    .dos-donts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .dos-donts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .dos-donts-card {
+      background: var(--flux-bg-primary);
+      border: 1px solid var(--flux-border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .dos-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--flux-success);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .donts-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--flux-error);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dos-donts-list {
+      list-style: none;
+      font-size: 13px;
+      color: var(--flux-text-secondary);
+      line-height: 1.8;
+    }
+
+    .dos-donts-list li {
+      padding-left: 20px;
+      position: relative;
+    }
+
+    .dos-donts-list li::before {
+      position: absolute;
+      left: 0;
+    }
+
+    .dos-list li::before {
+      content: '+';
+      color: var(--flux-success);
+      font-weight: 700;
+    }
+
+    .donts-list li::before {
+      content: '−';
+      color: var(--flux-error);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand-header">
+      <div class="brand-logo">
+        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="48" height="48" rx="12" fill="#7E3BE9"/>
+          <path d="M14 34V14L24 24L34 14V34" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="brand-logo-text">Flux</span>
+      </div>
+      <div class="brand-subtitle">Brand Bible</div>
+    </div>
+
+    <!-- SECTION 7: COMPONENT LIBRARY -->
+    <section class="section">
+      <div class="section-number">Section 07</div>
+      <h2 class="section-title">Component Library</h2>
+      <p class="section-desc">All UI components follow the Flux design system with consistent styling, spacing, and interaction patterns. Components support both light and dark modes.</p>
+
+      <!-- Buttons -->
+      <div class="subsection">
+        <h3 class="subsection-title">Buttons</h3>
+        <div class="component-grid">
+          <div class="component-card">
+            <div class="component-label">Primary</div>
+            <div class="component-states">
+              <div class="state-item">
+                <button class="btn btn-primary btn-md">Default</button>
+                <span class="state-label">Default</span>
+              </div>
+              <div class="state-item">
+                <button class="btn btn-primary btn-md" style="background: #5B21B6;">Hover</button>
+                <span class="state-label">Hover</span>
+              </div>
+              <div class="state-item">
+                <button class="btn btn-primary btn-md" disabled>Disabled</button>
+                <span class="state-label">Disabled</span>
+              </div>
+              <div class="state-item">
+                <button class="btn btn-primary btn-md btn-loading"></button>
+                <span class="state-label">Loading</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="component-card">
+            <div class="component-label">Secondary</div>
+            <div class="component-states">
+              <div class="state-item">
+                <button class="btn btn-secondary btn-md">Default</button>
+                <span class="state-label">Default</span>
+              </div>
+              <div class="state-item">
+                <button class="btn btn-secondary btn-md" style="background: #F5F3FF;">Hover</button>
+                <span class="state-label">Hover</span>
+              </div>
+              <div class="state-item">
+                <button class="btn btn-secondary btn-md" disabled>Disabled</button>
+                <span class="state-label">Disabled</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="component-card">
+            <div class="component-label">Ghost</div>
+            <div class="component-states">
+              <div class="state-item">
+                <button class="btn btn-ghost btn-md">Default</button>
+                <span class="state-label">Default</span>
+              </div>
+              <div class="state-item">
+                <button class="btn btn-ghost btn-md" style="background: #F3F4F6; color: #111827;">Hover</button>
+                <span class="state-label">Hover</span>
+              </div>
+              <div class="state-item">
+                <button class="btn btn-ghost btn-md" disabled>Disabled</button>
+                <span class="state-label">Disabled</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="component-card">
+            <div class="component-label">Danger</div>
+            <div class="component-states">
+              <div class="state-item">
+                <button class="btn btn-danger btn-md">Default</button>
+                <span class="state-label">Default</span>
+              </div>
+              <div class="state-item">
+                <button class="btn btn-danger btn-md" style="background: #DC2626;">Hover</button>
+                <span class="state-label">Hover</span>
+              </div>
+              <div class="state-item">
+                <button class="btn btn-danger btn-md" disabled>Disabled</button>
+                <span class="state-label">Disabled</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <div class="component-label mb-4">Button Sizes</div>
+          <div class="flex gap-6 items-center flex-wrap" style="padding: 20px; background: var(--flux-bg-tertiary); border-radius: 8px;">
+            <div class="state-item">
+              <button class="btn btn-primary btn-sm">Small</button>
+              <span class="state-label">sm (12px)</span>
+            </div>
+            <div class="state-item">
+              <button class="btn btn-primary btn-md">Medium</button>
+              <span class="state-label">md (14px)</span>
+            </div>
+            <div class="state-item">
+              <button class="btn btn-primary btn-lg">Large</button>
+              <span class="state-label">lg (16px)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Inputs -->
+      <div class="subsection">
+        <h3 class="subsection-title">Inputs</h3>
+        <div class="component-grid">
+          <div class="component-card">
+            <div class="component-label">Default</div>
+            <div class="component-preview" style="flex-direction: column; align-items: stretch; gap: 8px;">
+              <div class="input-wrapper">
+                <input type="text" class="input" placeholder="Enter your email" style="width: 100%;">
+              </div>
+              <div class="input-wrapper">
+                <input type="text" class="input" value="john.doe@company.com" style="width: 100%;">
+              </div>
+            </div>
+          </div>
+
+          <div class="component-card">
+            <div class="component-label">Focused</div>
+            <div class="component-preview" style="flex-direction: column; align-items: stretch; gap: 8px;">
+              <div class="input-wrapper">
+                <input type="text" class="input" placeholder="Focus me" style="width: 100%; border-color: #7E3BE9; box-shadow: 0 0 0 3px rgba(126, 59, 233, 0.15);">
+              </div>
+            </div>
+          </div>
+
+          <div class="component-card">
+            <div class="component-label">Error State</div>
+            <div class="component-preview" style="flex-direction: column; align-items: stretch; gap: 8px;">
+              <div class="input-wrapper">
+                <input type="text" class="input input-error" value="invalid@email" style="width: 100%;">
+                <span class="error-message">Please enter a valid email address</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="component-card">
+            <div class="component-label">Disabled</div>
+            <div class="component-preview" style="flex-direction: column; align-items: stretch; gap: 8px;">
+              <div class="input-wrapper">
+                <input type="text" class="input" value="Cannot edit this" disabled style="width: 100%;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards -->
+      <div class="subsection">
+        <h3 class="subsection-title">Cards</h3>
+        <div class="component-grid">
+          <div class="component-card" style="max-width: 300px;">
+            <div class="component-label">Default</div>
+            <div class="card">
+              <div class="card-title">Project Update</div>
+              <div class="card-text">The Q4 roadmap has been finalized with new timeline adjustments.</div>
+            </div>
+          </div>
+
+          <div class="component-card" style="max-width: 300px;">
+            <div class="component-label">Hover</div>
+            <div class="card card-hover" style="cursor: pointer;">
+              <div class="card-title">Hover me</div>
+              <div class="card-text">I lift up with a purple border glow on hover.</div>
+            </div>
+          </div>
+
+          <div class="component-card" style="max-width: 300px;">
+            <div class="component-label">Elevated</div>
+            <div class="card card-elevated">
+              <div class="card-title">Elevated Card</div>
+              <div class="card-text">I have a soft shadow and no visible border.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Badges/Pills -->
+      <div class="subsection">
+        <h3 class="subsection-title">Badges & Pills</h3>
+        <div class="component-card">
+          <div class="component-label">All Variants</div>
+          <div class="component-preview" style="justify-content: flex-start; gap: 12px; flex-wrap: wrap;">
+            <span class="badge badge-success">Completed</span>
+            <span class="badge badge-warning">In Progress</span>
+            <span class="badge badge-error">Overdue</span>
+            <span class="badge badge-info">Review</span>
+            <span class="badge badge-neutral">Draft</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Avatars -->
+      <div class="subsection">
+        <h3 class="subsection-title">Avatars</h3>
+        <div class="component-card">
+          <div class="component-label">Sizes</div>
+          <div class="component-preview" style="justify-content: flex-start; gap: 20px;">
+            <div class="state-item">
+              <div class="avatar avatar-sm">AB</div>
+              <span class="state-label">sm (32px)</span>
+            </div>
+            <div class="state-item">
+              <div class="avatar avatar-md">CD</div>
+              <span class="state-label">md (40px)</span>
+            </div>
+            <div class="state-item">
+              <div class="avatar avatar-lg">EF</div>
+              <span class="state-label">lg (56px)</span>
+            </div>
+            <div class="state-item">
+              <div class="avatar avatar-lg" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">+</div>
+              <span class="state-label">Add new</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tooltips -->
+      <div class="subsection">
+        <h3 class="subsection-title">Tooltips</h3>
+        <div class="component-card">
+          <div class="component-label">Positioned</div>
+          <div class="component-preview" style="justify-content: space-around; gap: 40px;">
+            <div class="tooltip-wrapper">
+              <span class="tooltip tooltip-top">Tooltip above</span>
+              <button class="btn btn-ghost btn-md">Hover me</button>
+            </div>
+            <div class="tooltip-wrapper">
+              <button class="btn btn-ghost btn-md">Hover me</button>
+              <span class="tooltip tooltip-bottom">Tooltip below</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal -->
+      <div class="subsection">
+        <h3 class="subsection-title">Modal</h3>
+        <div class="component-card">
+          <div class="component-label">Sample Modal</div>
+          <div class="modal-backdrop" style="padding: 40px;">
+            <div class="modal">
+              <div class="modal-header">
+                <h4 class="modal-title">Invite Team Member</h4>
+                <button class="modal-close">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>Send an invitation to collaborate on your workspace. They'll receive an email with instructions to join.</p>
+              </div>
+              <div style="padding: 16px 24px; border-top: 1px solid var(--flux-border); display: flex; gap: 12px; justify-content: flex-end;">
+                <button class="btn btn-ghost btn-md">Cancel</button>
+                <button class="btn btn-primary btn-md">Send Invite</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dropdown -->
+      <div class="subsection">
+        <h3 class="subsection-title">Dropdown Menu</h3>
+        <div class="component-card">
+          <div class="component-label">Open State</div>
+          <div class="component-preview" style="justify-content: flex-start;">
+            <div class="dropdown-wrapper">
+              <button class="btn btn-secondary btn-md">
+                Options
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div class="dropdown-menu" style="display: block; position: relative; top: 0; margin-top: 8px;">
+                <div class="dropdown-item">
+                  <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  Edit
+                </div>
+                <div class="dropdown-item">
+                  <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  Duplicate
+                </div>
+                <div class="dropdown-item" style="color: #EF4444;">
+                  <svg class="dropdown-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  </svg>
+                  Delete
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Skeleton -->
+      <div class="subsection">
+        <h3 class="subsection-title">Skeleton Loaders</h3>
+        <div class="component-card">
+          <div class="component-label">Shimmer Animation</div>
+          <div class="component-preview" style="justify-content: flex-start; gap: 24px;">
+            <div style="width: 200px;">
+              <div class="demo-skeleton">
+                <div class="skeleton skeleton-avatar demo-skeleton-avatar"></div>
+                <div class="demo-skeleton-lines">
+                  <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                  <div class="skeleton skeleton-text" style="width: 60%;"></div>
+                </div>
+              </div>
+            </div>
+            <div style="width: 120px;">
+              <div class="skeleton" style="height: 100px; width: 100%;"></div>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%;"></div>
+              <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%;"></div>
+              <div class="skeleton" style="width: 40px; height: 40px; border-radius: 50%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toast Notifications -->
+      <div class="subsection">
+        <h3 class="subsection-title">Toast Notifications</h3>
+        <div class="component-card">
+          <div class="component-label">Success & Error Variants</div>
+          <div class="component-preview" style="flex-direction: column; align-items: stretch; gap: 12px;">
+            <div class="toast toast-success">
+              <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <div class="toast-content">
+                <div class="toast-title">Changes saved</div>
+                <div class="toast-message">Your workspace settings have been updated successfully.</div>
+              </div>
+            </div>
+            <div class="toast toast-error">
+              <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+              <div class="toast-content">
+                <div class="toast-title">Failed to connect</div>
+                <div class="toast-message">Unable to reach the server. Please check your connection.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Indicators -->
+      <div class="subsection">
+        <h3 class="subsection-title">Progress Indicators</h3>
+        <div class="component-grid">
+          <div class="component-card">
+            <div class="component-label">Progress Bar</div>
+            <div class="component-preview" style="flex-direction: column; align-items: stretch; gap: 12px;">
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--flux-text-muted); margin-bottom: 6px;">
+                  <span>Task Completion</span>
+                  <span>68%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: 68%;"></div>
+                </div>
+              </div>
+              <div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--flux-text-muted); margin-bottom: 6px;">
+                  <span>Budget Used</span>
+                  <span>100%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill progress-fill-success" style="width: 100%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="component-card">
+            <div class="component-label">Circular Spinner</div>
+            <div class="component-preview" style="gap: 24px;">
+              <div class="circular-spinner"></div>
+              <div style="width: 24px; height: 24px; border: 2px solid var(--flux-gray-200); border-top-color: var(--flux-purple); border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="subsection">
+        <h3 class="subsection-title">Data Table</h3>
+        <div class="component-card" style="padding: 0; overflow: hidden;">
+          <div class="component-label" style="padding: 16px 20px 0;">Default</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Assignee</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Design new dashboard</td>
+                <td><span class="badge badge-info">Review</span></td>
+                <td><span class="badge badge-error">High</span></td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="avatar avatar-sm" style="font-size: 10px;">MK</div>
+                    <span style="font-size: 14px;">Maria K.</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>API integration</td>
+                <td><span class="badge badge-success">Completed</span></td>
+                <td><span class="badge badge-warning">Medium</span></td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="avatar avatar-sm" style="font-size: 10px; background: linear-gradient(135deg, #10B981 0%, #059669 100%);">JD</div>
+                    <span style="font-size: 14px;">John D.</span>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>Write documentation</td>
+                <td><span class="badge badge-neutral">Draft</span></td>
+                <td><span class="badge badge-success">Low</span></td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div class="avatar avatar-sm" style="font-size: 10px;">SC</div>
+                    <span style="font-size: 14px;">Sarah C.</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sidebar Navigation -->
+      <div class="subsection">
+        <h3 class="subsection-title">Sidebar Navigation</h3>
+        <div class="component-card" style="padding: 0;">
+          <div class="sidebar" style="border: none; border-right: 1px solid var(--flux-border); border-radius: 12px 0 0 12px;">
+            <div class="nav-item nav-item-active">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="9"></rect>
+                <rect x="14" y="3" width="7" height="5"></rect>
+                <rect x="14" y="12" width="7" height="9"></rect>
+                <rect x="3" y="16" width="7" height="5"></rect>
+              </svg>
+              Dashboard
+              <div class="nav-indicator"></div>
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="3" y1="9" x2="21" y2="9"></line>
+                <line x1="9" y1="21" x2="9" y2="9"></line>
+              </svg>
+              Board
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6"></line>
+                <line x1="8" y1="12" x2="21" y2="12"></line>
+                <line x1="8" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                <line x1="3" y1="18" x2="3.01" y2="18"></line>
+              </svg>
+              Tasks
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              Team
+            </div>
+            <div class="nav-item">
+              <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              </svg>
+              Settings
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Breadcrumbs -->
+      <div class="subsection">
+        <h3 class="subsection-title">Breadcrumbs</h3>
+        <div class="component-card">
+          <div class="component-label">Slash-separated</div>
+          <div class="component-preview" style="justify-content: flex-start;">
+            <nav class="breadcrumbs">
+              <a href="#" class="breadcrumb-item">Workspaces</a>
+              <span class="breadcrumb-separator">/</span>
+              <a href="#" class="breadcrumb-item">Acme Corp</a>
+              <span class="breadcrumb-separator">/</span>
+              <a href="#" class="breadcrumb-item">Marketing</a>
+              <span class="breadcrumb-separator">/</span>
+              <span class="breadcrumb-current">Q4 Campaign</span>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 8: MOTION & ANIMATION -->
+    <section class="section">
+      <div class="section-number">Section 08</div>
+      <h2 class="section-title">Motion & Animation</h2>
+      <p class="section-desc">Motion in Flux serves to communicate state, provide feedback, and guide users through interactions. All animations respect system preferences and accessibility requirements.</p>
+
+      <!-- Animation Principles -->
+      <div class="subsection">
+        <h3 class="subsection-title">Animation Principles</h3>
+        <div style="background: var(--flux-bg-primary); border: 1px solid var(--flux-border); border-radius: 10px; padding: 24px;">
+          <p style="font-size: 15px; color: var(--flux-text-secondary); line-height: 1.8; margin-bottom: 16px;">Flux animations are designed to be <strong style="color: var(--flux-text-primary);">purposeful, subtle, and swift</strong>. Every motion should communicate something meaningful — whether it's confirming an action, indicating a state change, or guiding attention. We favor natural, physics-based movements that feel intuitive rather than mechanical.</p>
+          <p style="font-size: 15px; color: var(--flux-text-secondary); line-height: 1.8;"><strong style="color: var(--flux-text-primary);">Purposeful over decorative:</strong> Animation should never be purely cosmetic. Each transition serves a functional goal — reducing cognitive load, providing feedback, or establishing spatial relationships.</p>
+        </div>
+      </div>
+
+      <!-- Timing Tokens -->
+      <div class="subsection">
+        <h3 class="subsection-title">Timing Tokens</h3>
+        <div class="timing-grid">
+          <div class="timing-card">
+            <div class="timing-value">150ms</div>
+            <div class="timing-name">Flux Transition Fast</div>
+            <code class="timing-token">--flux-transition-fast</code>
+            <p style="font-size: 12px; color: var(--flux-text-muted); margin-top: 8px;">Hover states, focus rings, micro-interactions</p>
+          </div>
+          <div class="timing-card">
+            <div class="timing-value">200ms</div>
+            <div class="timing-name">Flux Transition Base</div>
+            <code class="timing-token">--flux-transition-base</code>
+            <p style="font-size: 12px; color: var(--flux-text-muted); margin-top: 8px;">Standard state changes, card hovers, dropdowns</p>
+          </div>
+          <div class="timing-card">
+            <div class="timing-value">300ms</div>
+            <div class="timing-name">Flux Transition Slow</div>
+            <code class="timing-token">--flux-transition-slow</code>
+            <p style="font-size: 12px; color: var(--flux-text-muted); margin-top: 8px;">Page transitions, modal enter/exit, expanding panels</p>
+          </div>
+          <div class="timing-card">
+            <div class="timing-value">500ms</div>
+            <div class="timing-name">Flux Transition Spring</div>
+            <code class="timing-token">--flux-transition-spring</code>
+            <p style="font-size: 12px; color: var(--flux-text-muted); margin-top: 8px;">Bouncy confirmations, celebratory moments</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Easing Curves -->
+      <div class="subsection">
+        <h3 class="subsection-title">Easing Curves</h3>
+        <div class="easing-grid">
+          <div class="easing-card">
+            <div class="easing-curve">
+              <div class="easing-ball" style="animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            </div>
+            <div class="easing-label">Standard Easing</div>
+            <div class="easing-value">cubic-bezier(0.4, 0, 0.2, 1)</div>
+            <p style="font-size: 12px; color: var(--flux-text-muted); margin-top: 8px;">Default for most UI transitions. Fast start, gentle finish.</p>
+          </div>
+          <div class="easing-card">
+            <div class="easing-curve">
+              <div class="easing-ball" style="animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);"></div>
+            </div>
+            <div class="easing-label">Spring Easing</div>
+            <div class="easing-value">cubic-bezier(0.34, 1.56, 0.64, 1)</div>
+            <p style="font-size: 12px; color: var(--flux-text-muted); margin-top: 8px;">Overshoots slightly, then settles. For confirmations and success states.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Micro-interactions -->
+      <div class="subsection">
+        <h3 class="subsection-title">Micro-Interaction Examples</h3>
+        <div class="micro-grid">
+          <div class="micro-card">
+            <div class="micro-demo">
+              <button class="demo-btn">Hover me</button>
+            </div>
+            <div class="micro-name">Button Hover</div>
+            <div class="micro-desc">Scale to 1.02x with increased purple shadow. Conveys clickability and provides tactile feedback.</div>
+            <code style="font-size: 11px; font-family: 'Courier New', monospace; color: var(--flux-text-muted); display: block; margin-top: 8px;">transform: scale(1.02)<br>box-shadow: 0 4px 12px rgba(126,59,233,0.3)</code>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-demo">
+              <div class="demo-card">Hover me</div>
+            </div>
+            <div class="micro-name">Card Hover</div>
+            <div class="micro-desc">Lifts 2px with purple-tinted shadow. Creates depth and indicates interactivity.</div>
+            <code style="font-size: 11px; font-family: 'Courier New', monospace; color: var(--flux-text-muted); display: block; margin-top: 8px;">transform: translateY(-2px)<br>box-shadow: 0 8px 20px rgba(126,59,233,0.12)<br>border-color: var(--flux-purple-300)</code>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-demo" style="padding: 0;">
+              <input type="text" class="demo-focus" placeholder="Focus me">
+            </div>
+            <div class="micro-name">Focus Ring</div>
+            <div class="micro-desc">3px purple ring with slight offset. Visible but not intrusive. Clearly indicates keyboard focus.</div>
+            <code style="font-size: 11px; font-family: 'Courier New', monospace; color: var(--flux-text-muted); display: block; margin-top: 8px;">box-shadow: 0 0 0 3px rgba(126,59,233,0.3)</code>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-demo">
+              <div class="circular-spinner" style="width: 32px; height: 32px;"></div>
+            </div>
+            <div class="micro-name">Loading Spinner</div>
+            <div class="micro-desc">Continuous rotation at steady pace. Purple accent on neutral gray track. Communicates ongoing process.</div>
+            <code style="font-size: 11px; font-family: 'Courier New', monospace; color: var(--flux-text-muted); display: block; margin-top: 8px;">animation: spin 0.8s linear infinite</code>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-demo">
+              <div class="demo-skeleton">
+                <div class="skeleton demo-skeleton-avatar"></div>
+                <div class="demo-skeleton-lines" style="width: 80px;">
+                  <div class="skeleton demo-shimmer" style="height: 10px;"></div>
+                  <div class="skeleton demo-shimmer" style="height: 10px; margin-top: 6px;"></div>
+                </div>
+              </div>
+            </div>
+            <div class="micro-name">Skeleton Shimmer</div>
+            <div class="micro-desc">Subtle opacity pulse moving left to right. Communicates loading without spinners. Reduces perceived wait time.</div>
+            <code style="font-size: 11px; font-family: 'Courier New', monospace; color: var(--flux-text-muted); display: block; margin-top: 8px;">background: linear-gradient(90deg, gray 0%, lightgray 50%, gray 100%)<br>animation: shimmer 1.5s infinite</code>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-demo">
+              <div class="demo-modal">
+                <div class="demo-modal-header">Confirm Action</div>
+                <div class="demo-modal-text">Are you sure you want to proceed?</div>
+              </div>
+            </div>
+            <div class="micro-name">Modal Enter</div>
+            <div class="micro-desc">Scales from 0.95 with fade. 200ms duration. Creates subtle spotlight effect on the dialog.</div>
+            <code style="font-size: 11px; font-family: 'Courier New', monospace; color: var(--flux-text-muted); display: block; margin-top: 8px;">@keyframes modalEnter {<br>&nbsp;&nbsp;from { opacity: 0; transform: scale(0.95); }<br>&nbsp;&nbsp;to { opacity: 1; transform: scale(1); }<br>}</code>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-demo">
+              <div class="demo-toast">
+                <svg class="demo-toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                <span class="demo-toast-text">Settings saved</span>
+              </div>
+            </div>
+            <div class="micro-name">Toast Enter</div>
+            <div class="micro-desc">Slides down from top with fade. Appears at top-right corner. Auto-dismisses after 4 seconds.</div>
+            <code style="font-size: 11px; font-family: 'Courier New', monospace; color: var(--flux-text-muted); display: block; margin-top: 8px;">@keyframes toastEnter {<br>&nbsp;&nbsp;from { opacity: 0; transform: translateY(-20px); }<br>&nbsp;&nbsp;to { opacity: 1; transform: translateY(0); }<br>}</code>
+          </div>
+
+          <div class="micro-card">
+            <div class="micro-demo">
+              <div style="display: flex; align-items: center; gap: 4px; color: var(--flux-text-muted);">
+                <span style="font-size: 14px; opacity: 0.6;">Page</span>
+                <span style="font-size: 14px; opacity: 0.3;">→</span>
+                <span style="font-size: 14px;">Fade in</span>
+              </div>
+            </div>
+            <div class="micro-name">Page Transitions</div>
+            <div class="micro-desc">Content fades in at 200ms. Navigation persists. Creates smooth, app-like feel without jarring cuts.</div>
+            <code style="font-size: 11px; font-family: 'Courier New', monospace; color: var(--flux-text-muted); display: block; margin-top: 8px;">@keyframes fadeIn {<br>&nbsp;&nbsp;from { opacity: 0; }<br>&nbsp;&nbsp;to { opacity: 1; }<br>}<br>animation: fadeIn 200ms ease-out</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reduced Motion -->
+      <div class="subsection">
+        <h3 class="subsection-title">Reduced Motion Support</h3>
+        <div class="reduced-motion-section">
+          <div class="reduced-motion-title">Accessibility: Respect User Preferences</div>
+          <p style="font-size: 14px; color: var(--flux-text-secondary); margin-bottom: 16px; line-height: 1.7;">All Flux animations automatically disable or reduce when users have <code style="font-family: 'Courier New', monospace; background: var(--flux-bg-primary); padding: 2px 6px; border-radius: 4px;">prefers-reduced-motion</code> enabled in their system preferences. This ensures accessibility for users with vestibular disorders or who are sensitive to motion.</p>
+          <div class="reduced-motion-code">@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}</div>
+          <p style="font-size: 13px; color: var(--flux-text-muted); margin-top: 12px;">When reduced motion is preferred, elements snap instantly to their states without transitions. Focus indicators remain visible but skip their pulse animation.</p>
+        </div>
+      </div>
+
+      <!-- Do's and Don'ts -->
+      <div class="subsection">
+        <h3 class="subsection-title">Animation Do's and Don'ts</h3>
+        <div class="dos-donts-grid">
+          <div class="dos-donts-card">
+            <div class="dos-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Do
+            </div>
+            <ul class="dos-donts-list dos-list">
+              <li>Keep animations under 300ms for UI interactions</li>
+              <li>Use ease-out for entrances, ease-in for exits</li>
+              <li>Animate only elements that changed (not entire page)</li>
+              <li>Provide immediate feedback for touch/click</li>
+              <li>Match animation speed to perceived importance</li>
+              <li>Test animations on lower-end devices</li>
+            </ul>
+          </div>
+          <div class="dos-donts-card">
+            <div class="donts-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+              Don't
+            </div>
+            <ul class="dos-donts-list donts-list">
+              <li>Use animation purely for decoration</li>
+              <li>Exceed 500ms for single transitions</li>
+              <li>Chain multiple animations sequentially without purpose</li>
+              <li>Animate layout properties (width, height) on interactive elements</li>
+              <li>Use linear easing for anything but loading bars</li>
+              <li>Ignore the reduced motion preference</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
