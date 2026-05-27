@@ -11,6 +11,7 @@ export async function processWorkspaceInvites(email: string) {
   const pendingInvites = await WorkspaceInvite.find({
     email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
     expiresAt: { $gt: new Date() },
+    requiresAcceptance: { $ne: true },
   });
 
   if (pendingInvites.length === 0) {
@@ -59,6 +60,7 @@ export async function addUserToWorkspaceFromInvite(userId: string, email: string
   const pendingInvites = await WorkspaceInvite.find({
     email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') },
     expiresAt: { $gt: new Date() },
+    requiresAcceptance: { $ne: true },
   });
 
   if (pendingInvites.length === 0) {
