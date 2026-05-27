@@ -31,7 +31,7 @@ export function PendingInviteRow({ invite, isAdmin }: PendingInviteRowProps) {
 
   return (
     <tr className="hover:bg-[var(--surface)] transition-colors opacity-60">
-      <td className="px-4 md:px-6 py-4">
+      <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           {invite.image ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -55,13 +55,13 @@ export function PendingInviteRow({ invite, isAdmin }: PendingInviteRowProps) {
           </div>
         </div>
       </td>
-      <td className="px-4 md:px-6 py-4">
+      <td className="px-6 py-4">
         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[var(--background-subtle)] text-[var(--text-secondary)] border border-[var(--border-subtle)]">
           Pending
         </span>
       </td>
       {isAdmin && (
-        <td className="px-4 md:px-6 py-4 text-right">
+        <td className="px-6 py-4 text-right">
           <button
             onClick={handleCancel}
             disabled={isPending}
