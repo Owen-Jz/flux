@@ -34,7 +34,6 @@ export default function SignupPage() {
     // Get plan from URL query parameter (e.g., /signup?plan=starter)
     const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
     const planParam = searchParams.get('plan');
-    const inviteToken = searchParams.get('invite');
 
     const { strength, score, requirements } = usePasswordStrength(password);
 
@@ -85,9 +84,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     const handleGoogleSignIn = async () => {
         setIsGoogleLoading(true);
         try {
-            // Preserve invite token in callback URL for Google OAuth
-            const callbackUrl = inviteToken ? `/onboarding?invite=${inviteToken}` : '/onboarding';
-            await signIn('google', { callbackUrl });
+            await signIn('google', { callbackUrl: '/onboarding' });
         } finally {
             // Loading will persist until redirect
         }

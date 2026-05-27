@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { BuildingOffice2Icon, ArrowRightIcon, SparklesIcon, UsersIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { createWorkspace } from '@/actions/workspace';
 import { getWorkspaces } from '@/actions/workspace';
-import { updateOnboardingProgress } from '@/actions/onboarding';
+import { getInvitedWorkspaces } from '@/actions/onboarding';
 
 export default function OnboardingPage() {
     const router = useRouter();
@@ -22,39 +22,13 @@ export default function OnboardingPage() {
     useEffect(() => {
         async function checkAccess() {
             try {
-                const params = new URLSearchParams(window.location.search);
-                const invitedParam = params.get('invited');
-
-                // Parse and strictly validate invited workspaces
-                let invited: Array<{ slug: string; name: string; role: string }> = [];
-                if (invitedParam) {
-                    try {
-                        const parsed = JSON.parse(decodeURIComponent(invitedParam));
-                        if (Array.isArray(parsed)) {
-                            // Sanitize each entry — only accept string fields with bounded length
-                            invited = parsed
-                                .filter((w: unknown) => w && typeof w === 'object')
-                                .map((w: unknown) => {
-                                    const entry = w as Record<string, unknown>;
-                                    return {
-                                        slug: String(entry.slug ?? '').replace(/[^a-z0-9-]/g, '').slice(0, 80),
-                                        name: String(entry.name ?? '').replace(/[<>"'&]/g, '').slice(0, 100),
-                                        role: ['ADMIN', 'EDITOR', 'VIEWER'].includes(String(entry.role))
-                                            ? String(entry.role)
-                                            : 'VIEWER',
-                                    };
-                                })
-                                .filter(w => w.slug && w.name);
-                            if (invited.length > 0) setInvitedWorkspaces(invited);
-                        }
-                    } catch {
-                        // ignore parse errors — treat as no invite
-                    }
+                // Fetch workspaces the user was invited to (not ones they created)
+                const invited = await getInvitedWorkspaces();
+                if (invited.length > 0) {
+                    setInvitedWorkspaces(invited);
                 }
 
-                // Only redirect to dashboard if user already has workspaces AND
-                // they didn't arrive from an invite link. Invited users must always
-                // go through onboarding so they see the workspace-switch prompt.
+                // If no invites, redirect to dashboard if user already has workspaces
                 if (invited.length === 0) {
                     const workspaces = await getWorkspaces();
                     if (workspaces.length > 0) {
@@ -352,8 +326,8 @@ export default function OnboardingPage() {
                                     <div className="w-16 h-16 bg-gradient-to-br from-[var(--brand-primary)] to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                                         <SparklesIcon className="w-8 h-8 text-white" />
                                     </div>
-                                    <h2 className="text-2xl font-bold text-[var(--foreground)]">Learn by doing!</h2>
-                                    <p className="text-[var(--text-secondary)]">Take a quick interactive tour of your board</p>
+                                    <h2 className="text-2xl font-bold text-[var(--foreground)]">Quick tour</h2>
+                                    <p className="text-[var(--text-secondary)]">Here&apos;s what you can do in your workspace</p>
                                 </div>
 
                                 <div className="space-y-3">
@@ -378,7 +352,6 @@ export default function OnboardingPage() {
                                     <button
                                         type="button"
                                         onClick={async () => {
-                                            await updateOnboardingProgress('completedTutorial').catch(() => {});
                                             await markOnboardingComplete();
                                             if (invitedWorkspaces.length > 0) {
                                                 setStep(4);
@@ -388,11 +361,12 @@ export default function OnboardingPage() {
                                         }}
                                         className="btn btn-secondary flex-1"
                                     >
-                                        Skip
+                                        Skip Tour
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => {
+                                        onClick={async () => {
+                                            await markOnboardingComplete();
                                             if (invitedWorkspaces.length > 0) {
                                                 setStep(4);
                                             } else {

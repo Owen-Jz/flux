@@ -249,3 +249,36 @@ export async function dismissTrialPrompt(): Promise<{ success: boolean; error?: 
         return { success: false, error: 'Failed to dismiss trial prompt' };
     }
 }
+
+export async function getInvitedWorkspaces(): Promise<Array<{ slug: string; name: string; role: string }>> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return [];
+    }
+
+    try {
+        await connectDB();
+        const { Workspace } = await import('@/models/Workspace');
+
+        const workspaces = await Workspace.find({
+            'members.userId': session.user.id,
+        }).select('slug name members ownerId').lean();
+
+        return workspaces
+            .filter((ws: { ownerId?: { toString(): string } }) => {
+                const isOwner = ws.ownerId?.toString() === session.user!.id;
+                return !isOwner;
+            })
+            .map((ws: { slug: string; name: string; members: Array<{ userId: { toString(): string }; role?: string }> }) => {
+                const member = ws.members.find((m) => m.userId.toString() === session.user!.id);
+                return {
+                    slug: ws.slug,
+                    name: ws.name,
+                    role: member?.role || 'VIEWER',
+                };
+            });
+    } catch (error) {
+        console.error('Failed to get invited workspaces:', error);
+        return [];
+    }
+}

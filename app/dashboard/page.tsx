@@ -18,6 +18,17 @@ export default async function DashboardPage() {
         redirect('/login');
     }
 
+    // Gate: if user hasn't completed onboarding, send them there first
+    try {
+        await connectDB();
+        const onboardingUser = await User.findById(session.user.id).select('hasCompletedOnboarding').lean();
+        if (onboardingUser && !onboardingUser.hasCompletedOnboarding) {
+            redirect('/onboarding');
+        }
+    } catch (e) {
+        console.error('[Dashboard] Failed to check onboarding status:', e);
+    }
+
     const workspaces = await getWorkspaces();
 
     // Redirect to onboarding if user has no workspaces
