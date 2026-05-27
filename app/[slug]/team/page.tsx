@@ -7,6 +7,10 @@ import InviteButton from '@/components/InviteButton';
 import { TeamClient } from './team-client';
 import { RequestAccessButton } from '@/components/RequestAccessButton';
 import { MemberRow } from '@/components/team/MemberRow';
+import { connectDB } from '@/lib/db';
+import { WorkspaceInvite } from '@/models/WorkspaceInvite';
+import { User } from '@/models/User';
+import { PendingInviteRow, type PendingInvite } from '@/components/team/PendingInviteRow';
 
 export default async function TeamPage({
     params,
@@ -31,6 +35,27 @@ export default async function TeamPage({
 
     const isAdmin = userRole === 'ADMIN';
     const isViewer = userRole === 'VIEWER' || (!userRole && workspace.publicAccess);
+
+    // Fetch pending invites for this workspace
+    await connectDB();
+    const rawInvites = await WorkspaceInvite.find({ workspaceSlug: slug }).lean();
+
+    const inviteEmails = rawInvites.map((i) => i.email);
+    const matchedUsers = inviteEmails.length > 0
+      ? await User.find({ email: { $in: inviteEmails } }).select('email name image').lean()
+      : [];
+    const userByEmail = new Map(matchedUsers.map((u) => [u.email as string, u]));
+
+    const pendingInvites: PendingInvite[] = rawInvites.map((invite) => {
+      const matched = userByEmail.get(invite.email);
+      return {
+        id: (invite._id as { toString(): string }).toString(),
+        email: invite.email,
+        role: invite.role as 'VIEWER' | 'EDITOR' | 'ADMIN',
+        name: matched?.name as string | undefined,
+        image: matched?.image as string | undefined,
+      };
+    });
 
     return (
         <div className="p-4 md:p-8 max-w-4xl mx-auto overflow-x-hidden">
@@ -85,6 +110,13 @@ export default async function TeamPage({
                                 key={member.userId}
                                 member={member}
                                 slug={slug}
+                                isAdmin={isAdmin}
+                            />
+                        ))}
+                        {pendingInvites.map((invite) => (
+                            <PendingInviteRow
+                                key={invite.id}
+                                invite={invite}
                                 isAdmin={isAdmin}
                             />
                         ))}
