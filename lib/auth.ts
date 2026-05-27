@@ -6,6 +6,7 @@ import { User } from '@/models/User';
 import { authConfig } from '@/lib/auth.config';
 import bcrypt from 'bcryptjs';
 import { addUserToWorkspaceFromInvite } from '@/lib/process-workspace-invite';
+import { sendWelcomeEmail } from '@/lib/email/auth-emails';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
@@ -123,6 +124,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 emailVerified: new Date(),
                             });
                             userId = newUser._id.toString();
+                            // Send welcome email for new Google OAuth accounts (non-blocking)
+                            sendWelcomeEmail(newUser.email, newUser.name).catch((err) =>
+                                console.error('[Auth] Welcome email failed (non-fatal):', err)
+                            );
                         } catch (creationError) {
                             console.error('[Auth] Error creating user from Google:', creationError);
                             return '/login?error=OAuthCreateAccount';

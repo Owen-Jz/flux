@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { rateLimit, getClientIp, isSameOrigin } from '@/lib/rate-limit';
+import { sendWelcomeEmail } from '@/lib/email/auth-emails';
 
 export async function POST(request: NextRequest) {
     if (!isSameOrigin(request)) {
@@ -68,6 +69,9 @@ export async function POST(request: NextRequest) {
         user.emailVerificationToken = undefined;
         user.emailVerificationExpires = undefined;
         await user.save();
+
+        // Send welcome email non-blocking now that the address is confirmed
+        sendWelcomeEmail(user.email, user.name).catch(console.error);
 
         return NextResponse.json({ message: 'Email verified successfully. You can now log in.' });
     } catch (error) {
