@@ -66,7 +66,29 @@ export default function OnboardingPage() {
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[var(--background)]">
-                <div className="animate-pulse text-[var(--text-secondary)]">Loading...</div>
+                <motion.div
+                    animate={{ scale: [0.97, 1.03, 0.97] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                    style={{ filter: 'drop-shadow(0 0 18px rgba(126,59,233,0.45))' }}
+                >
+                    <svg width="56" height="56" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <motion.rect
+                            y="30" width="66" height="66" rx="5" fill="#7E3BE9"
+                            animate={{ opacity: [0.15, 0.45, 0.15] }}
+                            transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0 }}
+                        />
+                        <motion.rect
+                            x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9"
+                            animate={{ opacity: [0.3, 0.7, 0.3] }}
+                            transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+                        />
+                        <motion.rect
+                            x="28" y="0" width="66" height="66" rx="5" fill="#7E3BE9"
+                            animate={{ opacity: [0.55, 1, 0.55] }}
+                            transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                        />
+                    </svg>
+                </motion.div>
             </div>
         );
     }
