@@ -158,7 +158,7 @@ export async function acceptWorkspaceInvite(token: string): Promise<{ error: str
         return { error: 'This invite link is invalid or has expired.' };
     }
 
-    if (invite.email !== session.user.email.toLowerCase()) {
+    if (invite.email !== session.user.email?.toLowerCase()) {
         return { error: 'This invite was sent to a different email address.' };
     }
 
@@ -182,6 +182,7 @@ export async function acceptWorkspaceInvite(token: string): Promise<{ error: str
 
     await WorkspaceInvite.deleteOne({ _id: invite._id });
     revalidatePath(`/${invite.workspaceSlug}/team`);
+    revalidatePath('/');
 
     return { success: true, workspaceSlug: invite.workspaceSlug };
 }

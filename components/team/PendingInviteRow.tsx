@@ -23,7 +23,10 @@ export function PendingInviteRow({ invite, isAdmin }: PendingInviteRowProps) {
   const handleCancel = () => {
     if (!confirm('Cancel this invitation?')) return;
     startTransition(async () => {
-      await cancelWorkspaceInvite(invite.id);
+      const result = await cancelWorkspaceInvite(invite.id);
+      if ('error' in result) {
+        alert(`Failed to cancel invitation: ${result.error}`);
+      }
     });
   };
 

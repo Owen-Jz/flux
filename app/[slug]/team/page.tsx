@@ -38,7 +38,7 @@ export default async function TeamPage({
 
     // Fetch pending invites for this workspace
     await connectDB();
-    const rawInvites = await WorkspaceInvite.find({ workspaceSlug: slug }).lean();
+    const rawInvites = await WorkspaceInvite.find({ workspaceSlug: slug, requiresAcceptance: true }).lean();
 
     const inviteEmails = rawInvites.map((i) => i.email);
     const matchedUsers = inviteEmails.length > 0
