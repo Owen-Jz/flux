@@ -2,6 +2,7 @@ import { render } from '@react-email/components';
 import { sendEmail } from './resend';
 import { WorkspaceMemberAddedEmail } from '@/components/emails/workspace-member-added';
 import { WorkspaceInviteEmail } from '@/components/emails/workspace-invite-email';
+import { WorkspaceJoinInviteEmail } from '@/components/emails/workspace-join-invite-email';
 import { getAppUrl } from '@/lib/port';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || getAppUrl();
@@ -38,6 +39,26 @@ export async function sendWorkspaceInviteEmail(params: {
   const { to, invitedByName, workspaceName, inviteToken } = params;
   const signupUrl = `${APP_URL}/signup?invite=${inviteToken}`;
   const html = await render(WorkspaceInviteEmail({ invitedByName, workspaceName, signupUrl }));
+  await sendEmail({
+    to,
+    subject: `You've been invited to join ${workspaceName} on Flux`,
+    html,
+  });
+}
+
+export async function sendExistingUserJoinEmail({
+  to,
+  invitedByName,
+  workspaceName,
+  inviteToken,
+}: {
+  to: string;
+  invitedByName: string;
+  workspaceName: string;
+  inviteToken: string;
+}) {
+  const joinUrl = `${APP_URL}/join?token=${inviteToken}`;
+  const html = await render(WorkspaceJoinInviteEmail({ invitedByName, workspaceName, joinUrl }));
   await sendEmail({
     to,
     subject: `You've been invited to join ${workspaceName} on Flux`,
