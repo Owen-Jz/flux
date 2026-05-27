@@ -1,18 +1,11 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Link,
-  Preview,
-  Section,
-  Text,
-  Tailwind,
-} from "@react-email/components";
 import * as React from "react";
+import {
+  EmailLayout,
+  EHeading,
+  EBody,
+  ECard,
+  ECta,
+} from "@/components/emails/email-layout";
 
 interface IssueCreatedEmailProps {
   workspaceName: string;
@@ -22,6 +15,12 @@ interface IssueCreatedEmailProps {
   issueUrl: string;
 }
 
+const ISSUE_COLORS: Record<string, { bg: string; text: string }> = {
+  BUG: { bg: "#fee2e2", text: "#ef4444" },
+  FEATURE: { bg: "#fef3c7", text: "#f59e0b" },
+  IMPROVEMENT: { bg: "#dbeafe", text: "#3b82f6" },
+};
+
 export const IssueCreatedEmail = ({
   workspaceName,
   issueTitle,
@@ -29,69 +28,21 @@ export const IssueCreatedEmail = ({
   reporterName,
   issueUrl,
 }: IssueCreatedEmailProps) => {
-  return (
-    <Html>
-      <Head />
-      <Preview>New Issue: {issueTitle}</Preview>
-      <Tailwind
-        config={{
-          theme: {
-            extend: {
-              colors: {
-                brand: "#4f46e5",
-                surface: "#f8fafc",
-                text: "#0f172a",
-                bug: "#ef4444",
-                feature: "#f59e0b",
-                improvement: "#3b82f6",
-              },
-            },
-          },
-        }}
-      >
-        <Body className="bg-white my-auto mx-auto font-sans">
-          <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] w-[465px]">
-            <Section className="mt-[32px]">
-              <Heading className="text-black text-[24px] font-bold text-center p-0 my-[30px] mx-0">
-                Flux
-              </Heading>
-            </Section>
-            <Text className="text-black text-[14px] leading-[24px]">
-              <strong>{reporterName}</strong> opened a new 
-              <span className={issueType === 'BUG' ? 'text-bug' : issueType === 'FEATURE' ? 'text-feature' : 'text-improvement'}> {issueType} </span> 
-              in <strong>{workspaceName}</strong>.
-            </Text>
-            
-            <Section className="bg-surface p-4 rounded-lg border border-solid border-[#e2e8f0] my-4">
-               <Text className="m-0 font-bold text-lg">{issueTitle}</Text>
-            </Section>
+  const issueColor = ISSUE_COLORS[issueType] ?? { bg: "#f3f4f6", text: "#6b7280" };
 
-            <Section className="text-center mt-[32px] mb-[32px]">
-              <Button
-                className="bg-brand rounded text-white text-[12px] font-semibold no-underline text-center px-5 py-3"
-                href={issueUrl}
-              >
-                View Issue
-              </Button>
-            </Section>
-            <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
-            <Text className="text-[#666666] text-[12px] leading-[24px]">
-              This is an automated notification from Flux Board.
-            </Text>
-            <Section className="text-center mt-[20px]">
-              <Link href={`${process.env.APP_URL || "https://flux.app"}/unsubscribe`} className="text-[#999999] text-[11px] no-underline mx-2">
-                Unsubscribe
-              </Link>
-              <Link href={`${process.env.APP_URL || "https://flux.app"}/privacy`} className="text-[#999999] text-[11px] no-underline mx-2">
-                Privacy Policy
-              </Link>
-              <Link href={`${process.env.APP_URL || "https://flux.app"}/terms`} className="text-[#999999] text-[11px] no-underline mx-2">
-                Terms of Service
-              </Link>
-            </Section>
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+  return (
+    <EmailLayout previewText={`New ${issueType}: ${issueTitle}`} variant="default">
+      <EHeading>New Issue Reported</EHeading>
+      <EBody>
+        <strong>{reporterName}</strong> opened a new issue in <strong>{workspaceName}</strong>.
+      </EBody>
+      <ECard>
+        <span style={{ display: "inline-block", backgroundColor: issueColor.bg, color: issueColor.text, fontSize: "11px", fontWeight: "700", padding: "2px 8px", borderRadius: "4px", textTransform: "uppercase", marginBottom: "8px" }}>
+          {issueType}
+        </span>
+        <p style={{ margin: "0", fontWeight: "700", fontSize: "15px", color: "#1c1917" }}>{issueTitle}</p>
+      </ECard>
+      <ECta href={issueUrl}>View Issue</ECta>
+    </EmailLayout>
   );
 };

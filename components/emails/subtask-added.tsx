@@ -1,102 +1,43 @@
-import {
-    Body,
-    Button,
-    Container,
-    Head,
-    Heading,
-    Hr,
-    Html,
-    Link,
-    Preview,
-    Section,
-    Text,
-    Tailwind,
-} from "@react-email/components";
 import * as React from "react";
+import {
+  EmailLayout,
+  EHeading,
+  EBody,
+  ECard,
+  ECta,
+} from "@/components/emails/email-layout";
 
 interface SubtaskAddedEmailProps {
-    taskTitle: string;
-    subtaskTitles: string[];
-    creatorName: string;
-    workspaceName: string;
-    taskUrl: string;
+  taskTitle: string;
+  subtaskTitles: string[];
+  creatorName: string;
+  workspaceName: string;
+  taskUrl: string;
 }
 
 export const SubtaskAddedEmail = ({
-    taskTitle,
-    subtaskTitles,
-    creatorName,
-    workspaceName,
-    taskUrl,
+  taskTitle,
+  subtaskTitles,
+  creatorName,
+  workspaceName,
+  taskUrl,
 }: SubtaskAddedEmailProps) => {
-    const subtaskList = subtaskTitles.length > 0
-        ? subtaskTitles.map(title => `• ${title}`).join('\n')
-        : '';
-
-    return (
-        <Html>
-            <Head />
-            <Preview>New Subtasks Added to: {taskTitle}</Preview>
-            <Tailwind
-                config={{
-                    theme: {
-                        extend: {
-                            colors: {
-                                brand: "#4f46e5",
-                                surface: "#f8fafc",
-                            },
-                        },
-                    },
-                }}
-            >
-                <Body className="bg-white my-auto mx-auto font-sans">
-                    <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] w-[465px]">
-                        <Section className="mt-[32px]">
-                            <Heading className="text-black text-[24px] font-bold text-center p-0 my-[30px] mx-0">
-                                Flux
-                            </Heading>
-                        </Section>
-                        <Text className="text-black text-[14px] leading-[24px]">
-                            <strong>{creatorName}</strong> added {subtaskTitles.length === 1 ? 'a new subtask' : `${subtaskTitles.length} new subtasks`} to <strong>{taskTitle}</strong> in {workspaceName}.
-                        </Text>
-
-                        {subtaskTitles.length > 0 && (
-                            <Section className="bg-surface rounded p-[16px] mt-[16px] mb-[16px]">
-                                <Text className="text-black text-[14px] leading-[24px] font-semibold mb-[8px]">
-                                    New Subtasks:
-                                </Text>
-                                <Text className="text-black text-[14px] leading-[24px] whitespace-pre-line">
-                                    {subtaskList}
-                                </Text>
-                            </Section>
-                        )}
-
-                        <Section className="text-center mt-[32px] mb-[32px]">
-                            <Button
-                                className="bg-brand rounded text-white text-[12px] font-semibold no-underline text-center px-5 py-3"
-                                href={taskUrl}
-                            >
-                                View Task
-                            </Button>
-                        </Section>
-                        <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
-                        <Text className="text-[#666666] text-[12px] leading-[24px]">
-                            Flux Board Notifications
-                        </Text>
-                        <Section className="text-center mt-[20px]">
-                            <Link href={`${process.env.APP_URL || "https://flux.app"}/unsubscribe`} className="text-[#999999] text-[11px] no-underline mx-2">
-                                Unsubscribe
-                            </Link>
-                            <Link href={`${process.env.APP_URL || "https://flux.app"}/privacy`} className="text-[#999999] text-[11px] no-underline mx-2">
-                                Privacy Policy
-                            </Link>
-                            <Link href={`${process.env.APP_URL || "https://flux.app"}/terms`} className="text-[#999999] text-[11px] no-underline mx-2">
-                                Terms of Service
-                            </Link>
-                        </Section>
-                    </Container>
-                </Body>
-            </Tailwind>
-        </Html>
-    );
+  return (
+    <EmailLayout previewText={`New subtasks added to ${taskTitle}`} variant="default">
+      <EHeading>Subtasks Added</EHeading>
+      <EBody>
+        <strong>{creatorName}</strong> added {subtaskTitles.length === 1 ? "a new subtask" : `${subtaskTitles.length} new subtasks`} to <strong>{taskTitle}</strong> in <strong>{workspaceName}</strong>.
+      </EBody>
+      <ECard>
+        <p style={{ margin: "0 0 10px", fontWeight: "600", fontSize: "13px", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.5px" }}>New Subtasks</p>
+        {subtaskTitles.map((title, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", marginBottom: i < subtaskTitles.length - 1 ? "8px" : "0" }}>
+            <span style={{ display: "inline-block", width: "6px", height: "6px", backgroundColor: "#7c3aed", borderRadius: "50%", marginRight: "10px", flexShrink: 0 }} />
+            <span style={{ fontSize: "14px", color: "#1c1917" }}>{title}</span>
+          </div>
+        ))}
+      </ECard>
+      <ECta href={taskUrl}>View Task</ECta>
+    </EmailLayout>
+  );
 };

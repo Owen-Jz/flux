@@ -1,18 +1,11 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Hr,
-  Html,
-  Link,
-  Preview,
-  Section,
-  Text,
-  Tailwind,
-} from "@react-email/components";
 import * as React from "react";
+import {
+  EmailLayout,
+  EHeading,
+  EBody,
+  ECard,
+  ECta,
+} from "@/components/emails/email-layout";
 
 interface TaskAssignedEmailProps {
   recipientName: string;
@@ -32,66 +25,16 @@ export const TaskAssignedEmail = ({
   assignerName,
 }: TaskAssignedEmailProps) => {
   return (
-    <Html>
-      <Head />
-      <Preview>New Task Assignment: {taskTitle}</Preview>
-      <Tailwind
-        config={{
-          theme: {
-            extend: {
-              colors: {
-                brand: "#4f46e5",
-                surface: "#f8fafc",
-                text: "#0f172a",
-              },
-            },
-          },
-        }}
-      >
-        <Body className="bg-white my-auto mx-auto font-sans">
-          <Container className="border border-solid border-[#eaeaea] rounded my-[40px] mx-auto p-[20px] w-[465px]">
-            <Section className="mt-[32px]">
-              <Heading className="text-black text-[24px] font-bold text-center p-0 my-[30px] mx-0">
-                Flux
-              </Heading>
-            </Section>
-            <Text className="text-black text-[14px] leading-[24px]">
-              Hello <strong>{recipientName}</strong>,
-            </Text>
-            <Text className="text-black text-[14px] leading-[24px]">
-              <strong>{assignerName}</strong> has assigned <strong>{assigneeNames}</strong> to a task in <strong>{workspaceName}</strong>.
-            </Text>
-
-            <Section className="bg-surface p-4 rounded-lg border border-solid border-[#e2e8f0] my-4">
-              <Text className="m-0 font-bold text-lg">{taskTitle}</Text>
-            </Section>
-
-            <Section className="text-center mt-[32px] mb-[32px]">
-              <Button
-                className="bg-brand rounded text-white text-[12px] font-semibold no-underline text-center px-5 py-3"
-                href={taskUrl}
-              >
-                View Task
-              </Button>
-            </Section>
-            <Hr className="border border-solid border-[#eaeaea] my-[26px] mx-0 w-full" />
-            <Text className="text-[#666666] text-[12px] leading-[24px]">
-              This is an automated notification from Flux Board.
-            </Text>
-            <Section className="text-center mt-[20px]">
-              <Link href={`${process.env.APP_URL || "https://flux.app"}/unsubscribe`} className="text-[#999999] text-[11px] no-underline mx-2">
-                Unsubscribe
-              </Link>
-              <Link href={`${process.env.APP_URL || "https://flux.app"}/privacy`} className="text-[#999999] text-[11px] no-underline mx-2">
-                Privacy Policy
-              </Link>
-              <Link href={`${process.env.APP_URL || "https://flux.app"}/terms`} className="text-[#999999] text-[11px] no-underline mx-2">
-                Terms of Service
-              </Link>
-            </Section>
-          </Container>
-        </Body>
-      </Tailwind>
-    </Html>
+    <EmailLayout previewText={`New task assignment: ${taskTitle}`} variant="default">
+      <EHeading>New Assignment</EHeading>
+      <EBody>
+        <strong>{assignerName}</strong> assigned <strong>{assigneeNames}</strong> to a task in <strong>{workspaceName}</strong>.
+      </EBody>
+      <ECard>
+        <p style={{ margin: "0 0 4px", fontWeight: "700", fontSize: "15px", color: "#1c1917" }}>{taskTitle}</p>
+        <p style={{ margin: "0", fontSize: "13px", color: "#6b7280" }}>in {workspaceName}</p>
+      </ECard>
+      <ECta href={taskUrl}>View Task</ECta>
+    </EmailLayout>
   );
 };
