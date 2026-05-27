@@ -9,6 +9,7 @@ const publicPaths = new Set([
     '/about',
     '/blog',
     '/careers',
+    '/changelog',
     '/community',
     '/contact',
     '/cookies',
@@ -18,11 +19,13 @@ const publicPaths = new Set([
     '/help',
     '/how-it-works',
     '/information',
+    '/integrations',
     '/licenses',
     '/pricing',
     '/privacy',
     '/security',
     '/terms',
+    '/webinars',
 ]);
 
 const publicPrefixes = ['/api/auth/', '/docs/', '/blog/', '/help/'];

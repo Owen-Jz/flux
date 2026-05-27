@@ -29,7 +29,7 @@ export function PageFooter() {
   };
 
   return (
-    <footer className="bg-white dark:bg-slate-950 pt-16 pb-8 px-4 sm:px-6 lg:px-8 border-t border-slate-200 dark:border-slate-800" role="contentinfo">
+    <footer className="bg-[var(--background)] pt-16 pb-8 px-4 sm:px-6 lg:px-8 border-t border-[var(--border-subtle)]" role="contentinfo">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-2 md:grid-cols-6 gap-8 lg:gap-12 mb-12">
           <div className="col-span-2">
@@ -39,21 +39,21 @@ export function PageFooter() {
                 <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
                 <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
               </svg>
-              <span className="font-black text-2xl tracking-tight text-slate-900 dark:text-white">flux</span>
+              <span className="font-black text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
             </Link>
-            <p className="text-slate-500 dark:text-slate-400 max-w-xs mb-6 leading-relaxed">
+            <p className="text-[var(--text-secondary)] max-w-xs mb-6 leading-relaxed">
               The all-in-one workspace for high-performing engineering teams to ship faster.
             </p>
           </div>
           {Object.entries(footerLinks).map(([title, links]) => (
             <div key={title}>
-              <h4 className="font-bold text-slate-900 dark:text-white mb-4">{title}</h4>
+              <h4 className="font-bold text-[var(--text-primary)] mb-4">{title}</h4>
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm text-slate-500 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+                      className="text-sm text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
                     >
                       {link.label}
                     </Link>
@@ -63,18 +63,18 @@ export function PageFooter() {
             </div>
           ))}
         </div>
-        <div className="pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+        <div className="pt-8 border-t border-[var(--border-subtle)] flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-[var(--text-secondary)]">
             © 2026 Flux Technologies Inc. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link href="/privacy" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Link href="/privacy" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               Privacy
             </Link>
-            <Link href="/terms" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Link href="/terms" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               Terms
             </Link>
-            <Link href="/security" className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+            <Link href="/security" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               Security
             </Link>
           </div>
