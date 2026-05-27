@@ -425,9 +425,9 @@ export default function SignupPage() {
 
                         <p className="text-center text-xs text-[var(--text-tertiary)] leading-relaxed">
                             By creating an account, you agree to our{' '}
-                            <Link href="/legal/terms" className="hover:text-[var(--brand-primary)] underline underline-offset-2 transition-colors">Terms</Link>
+                            <Link href="/terms" className="hover:text-[var(--brand-primary)] underline underline-offset-2 transition-colors">Terms</Link>
                             {' '}and{' '}
-                            <Link href="/legal/privacy" className="hover:text-[var(--brand-primary)] underline underline-offset-2 transition-colors">Privacy Policy</Link>.
+                            <Link href="/privacy" className="hover:text-[var(--brand-primary)] underline underline-offset-2 transition-colors">Privacy Policy</Link>.
                         </p>
                     </form>
 
