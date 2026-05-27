@@ -80,124 +80,230 @@ function LoginContent() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--background)] px-4">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md"
+        <div className="min-h-screen flex">
+            {/* Left Brand Panel — always dark, theme-independent */}
+            <div
+                className="hidden md:flex md:w-[44%] lg:w-[42%] flex-col justify-between p-12 relative overflow-hidden"
+                style={{ background: 'linear-gradient(145deg, #0d0024 0%, #1c0550 45%, #2e0875 80%, #0d0024 100%)' }}
             >
-                {/* Logo */}
-                <Link href="/" className="flex items-center justify-center gap-3 mb-8">
-                    <svg width="36" height="36" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-                        <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
-                        <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
-                        <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
-                    </svg>
-                    <span className="text-3xl font-black text-[var(--foreground)]">flux</span>
-                </Link>
-                <p className="text-[var(--text-secondary)] mt-2 text-center">Welcome back</p>
+                {/* Atmospheric glow blobs */}
+                <div
+                    className="absolute top-[-120px] right-[-80px] w-[420px] h-[420px] rounded-full pointer-events-none"
+                    style={{ background: 'radial-gradient(circle, rgba(126,59,233,0.42) 0%, transparent 70%)' }}
+                />
+                <div
+                    className="absolute bottom-[-100px] left-[-60px] w-[340px] h-[340px] rounded-full pointer-events-none"
+                    style={{ background: 'radial-gradient(circle, rgba(100,50,210,0.3) 0%, transparent 70%)' }}
+                />
+                <div
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] h-[200px] rounded-full pointer-events-none"
+                    style={{ background: 'radial-gradient(circle, rgba(165,112,255,0.14) 0%, transparent 70%)' }}
+                />
 
-                {/* Card */}
-                <div className="card p-8">
+                {/* Subtle dot grid overlay */}
+                <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                        backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.12) 1px, transparent 0)',
+                        backgroundSize: '36px 36px',
+                        opacity: 0.04,
+                    }}
+                />
+
+                {/* Top: Logo */}
+                <motion.div
+                    initial={{ opacity: 0, y: -16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1, duration: 0.6 }}
+                >
+                    <Link href="/" className="flex items-center gap-3 w-fit">
+                        <svg width="38" height="38" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                            <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+                            <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+                            <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+                        </svg>
+                        <span className="text-2xl font-black text-white tracking-tight">flux</span>
+                    </Link>
+                </motion.div>
+
+                {/* Center: Value proposition */}
+                <motion.div
+                    initial={{ opacity: 0, y: 24 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25, duration: 0.7 }}
+                    className="relative z-10"
+                >
+                    <h2 className="text-[2.6rem] font-black text-white leading-[1.1] mb-4 tracking-tight">
+                        Work moves<br />faster here.
+                    </h2>
+                    <p className="text-[#c4a8f0] text-base leading-relaxed mb-10 max-w-xs">
+                        Boards, tasks, and team collaboration — all in one beautiful space.
+                    </p>
+
+                    <div className="space-y-4">
+                        {[
+                            { label: 'Visual boards & backlogs', accent: '#a78bfa' },
+                            { label: 'Real-time team collaboration', accent: '#818cf8' },
+                            { label: 'Smart priorities & deadlines', accent: '#c084fc' },
+                        ].map((item, i) => (
+                            <motion.div
+                                key={item.label}
+                                initial={{ opacity: 0, x: -16 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.45 + i * 0.1, duration: 0.5 }}
+                                className="flex items-center gap-3"
+                            >
+                                <div
+                                    className="w-4 h-4 rounded-full flex-shrink-0"
+                                    style={{
+                                        backgroundColor: item.accent,
+                                        boxShadow: `0 0 10px ${item.accent}99`,
+                                    }}
+                                />
+                                <span className="text-[#d8c5f5] text-sm font-medium">{item.label}</span>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.div>
+
+                {/* Bottom: Trust signal */}
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8, duration: 0.6 }}
+                    className="text-[#7c5fae] text-xs font-medium tracking-widest uppercase"
+                >
+                    Trusted by teams worldwide
+                </motion.p>
+            </div>
+
+            {/* Right Form Panel */}
+            <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 bg-[var(--background)] overflow-y-auto">
+                {/* Mobile logo */}
+                <div className="md:hidden mb-8">
+                    <Link href="/" className="flex items-center gap-2.5">
+                        <svg width="30" height="30" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
+                            <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
+                            <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
+                            <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
+                        </svg>
+                        <span className="text-2xl font-black text-[var(--foreground)]">flux</span>
+                    </Link>
+                </div>
+
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.15 }}
+                    className="w-full max-w-[400px]"
+                >
+                    <div className="mb-7">
+                        <h1 className="text-[1.625rem] font-bold text-[var(--foreground)] tracking-tight mb-1">
+                            Welcome back
+                        </h1>
+                        <p className="text-[var(--text-secondary)] text-sm">
+                            Sign in to continue to your workspace
+                        </p>
+                    </div>
+
                     {/* Google Sign In */}
                     <button
                         onClick={handleGoogleSignIn}
                         disabled={isGoogleLoading}
-                        className="btn btn-secondary w-full mb-6 disabled:opacity-70"
+                        className="w-full flex items-center justify-center gap-2.5 py-2.5 px-4 rounded-xl border border-[var(--border-default)] bg-[var(--surface)] text-[var(--text-primary)] text-sm font-medium hover:bg-[var(--background-subtle)] active:scale-[0.99] transition-all duration-150 mb-5 disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {isGoogleLoading ? (
-                            <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                            <ArrowPathIcon className="w-4 h-4 animate-spin" />
                         ) : (
-                            <svg className="w-5 h-5" viewBox="0 0 24 24">
-                            <path
-                                fill="currentColor"
-                                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                            />
-                            <path
-                                fill="currentColor"
-                                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                            />
-                            <path
-                                fill="currentColor"
-                                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                            />
-                            <path
-                                fill="currentColor"
-                                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                            />
-                        </svg>
+                            <FcGoogle className="w-5 h-5" />
                         )}
                         Continue with Google
                     </button>
 
                     {/* Divider */}
-                    <div className="relative mb-6">
+                    <div className="relative mb-5">
                         <div className="absolute inset-0 flex items-center">
                             <div className="w-full border-t border-[var(--border-subtle)]" />
                         </div>
-                        <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-[var(--background)] text-[var(--text-secondary)]">
+                        <div className="relative flex justify-center text-xs">
+                            <span className="px-3 bg-[var(--background)] text-[var(--text-secondary)]">
                                 or continue with email
                             </span>
                         </div>
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-4">
                         {info && (
                             <motion.div
-                                initial={{ opacity: 0, y: -10 }}
+                                initial={{ opacity: 0, y: -8 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-sm"
+                                className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 text-sm"
                             >
                                 {info}
                             </motion.div>
                         )}
                         {error && (
                             <motion.div
-                                initial={{ opacity: 0, y: -10 }}
+                                initial={{ opacity: 0, y: -8 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="p-3 rounded-lg bg-[var(--error-bg)] text-[var(--error-primary)] text-sm"
+                                className="p-3 rounded-xl bg-[var(--error-bg)] text-[var(--error-primary)] text-sm"
                             >
                                 {error}
                             </motion.div>
                         )}
 
-                        <div className="relative">
-                            <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
-                            <input
-                                type="email"
-                                placeholder="Email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                className="input !pl-12"
-                                required
-                            />
+                        <div className="space-y-3">
+                            <div className="relative">
+                                <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
+                                <input
+                                    type="email"
+                                    placeholder="Email address"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="input !pl-11"
+                                    required
+                                />
+                            </div>
+
+                            <div className="relative">
+                                <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="input !pl-11 !pr-11"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                                    tabIndex={-1}
+                                >
+                                    {showPassword ? (
+                                        <EyeSlashIcon className="w-5 h-5" />
+                                    ) : (
+                                        <EyeIcon className="w-5 h-5" />
+                                    )}
+                                </button>
+                            </div>
                         </div>
 
-                        <div className="relative">
-                            <LockClosedIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-secondary)]" />
-                            <input
-                                type={showPassword ? 'text' : 'password'}
-                                placeholder="Password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="input !pl-12 !pr-12"
-                                required
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
-                                tabIndex={-1}
+                        <div className="flex items-center justify-between">
+                            <Link
+                                href="/reset-password"
+                                className="text-xs text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
                             >
-                                {showPassword ? (
-                                    <EyeSlashIcon className="w-5 h-5" />
-                                ) : (
-                                    <EyeIcon className="w-5 h-5" />
-                                )}
-                            </button>
+                                Forgot password?
+                            </Link>
+                            <Link
+                                href="/verify-email"
+                                className="text-xs text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
+                            >
+                                Verify email
+                            </Link>
                         </div>
 
                         <button
@@ -206,7 +312,7 @@ function LoginContent() {
                             className="btn btn-primary w-full"
                         >
                             {isLoading ? (
-                                <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                                <ArrowPathIcon className="w-4 h-4 animate-spin" />
                             ) : (
                                 <>
                                     Sign in
@@ -214,39 +320,16 @@ function LoginContent() {
                                 </>
                             )}
                         </button>
-
-                        <div className="text-center mt-4 space-y-1">
-                            <div>
-                                <Link
-                                    href="/reset-password"
-                                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--brand-primary)]"
-                                >
-                                    Forgot password?
-                                </Link>
-                            </div>
-                            <div>
-                                <Link
-                                    href="/verify-email"
-                                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--brand-primary)]"
-                                >
-                                    Need to verify your email?
-                                </Link>
-                            </div>
-                        </div>
                     </form>
 
-                    {/* Footer */}
-                    <p className="text-center text-sm text-[var(--text-secondary)] mt-6">
+                    <p className="text-center text-sm text-[var(--text-secondary)] mt-7">
                         Don&apos;t have an account?{' '}
-                        <Link
-                            href="/signup"
-                            className="text-[var(--brand-primary)] font-medium hover:underline"
-                        >
-                            Sign up
+                        <Link href="/signup" className="text-[var(--brand-primary)] font-medium hover:underline">
+                            Sign up free
                         </Link>
                     </p>
-                </div>
-            </motion.div>
+                </motion.div>
+            </div>
         </div>
     );
 }

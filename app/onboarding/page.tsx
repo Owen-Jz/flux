@@ -356,7 +356,7 @@ export default function OnboardingPage() {
                                             if (invitedWorkspaces.length > 0) {
                                                 setStep(4);
                                             } else {
-                                                router.push(ownWorkspaceSlug ? `/${ownWorkspaceSlug}` : '/dashboard');
+                                                router.push('/dashboard');
                                             }
                                         }}
                                         className="btn btn-secondary flex-1"
@@ -370,7 +370,7 @@ export default function OnboardingPage() {
                                             if (invitedWorkspaces.length > 0) {
                                                 setStep(4);
                                             } else {
-                                                router.push(ownWorkspaceSlug ? `/${ownWorkspaceSlug}` : '/dashboard');
+                                                router.push('/dashboard');
                                             }
                                         }}
                                         className="btn btn-primary flex-1"
@@ -430,7 +430,7 @@ export default function OnboardingPage() {
                                         type="button"
                                         onClick={async () => {
                                             await markOnboardingComplete();
-                                            router.push(`/${invitedWorkspaces[0].slug}`);
+                                            router.push('/dashboard');
                                         }}
                                         className="btn btn-primary w-full"
                                     >
@@ -441,7 +441,7 @@ export default function OnboardingPage() {
                                         type="button"
                                         onClick={async () => {
                                             await markOnboardingComplete();
-                                            router.push(ownWorkspaceSlug ? `/${ownWorkspaceSlug}` : '/dashboard');
+                                            router.push('/dashboard');
                                         }}
                                         className="btn btn-secondary w-full"
                                     >
