@@ -4,7 +4,7 @@ import { AuthOtpEmail } from '@/components/emails/auth-otp';
 import { AuthPasswordResetEmail } from '@/components/emails/auth-password-reset';
 import { WelcomeEmail } from '@/components/emails/welcome-email';
 
-const APP_URL = process.env.NEXTAUTH_URL || 'https://fluxboard.site';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || 'https://www.fluxboard.site';
 
 export async function sendOtpEmail(to: string, name: string, otp: string) {
   const html = await render(AuthOtpEmail({ name, otp }));

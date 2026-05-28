@@ -1,5 +1,7 @@
 export function getAppUrl(): string {
-  // NEXTAUTH_URL is always set to the canonical domain in every environment
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
   if (process.env.NEXTAUTH_URL) {
     return process.env.NEXTAUTH_URL;
   }
