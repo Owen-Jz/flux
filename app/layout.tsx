@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { PWAUpdateBanner } from "@/components/pwa/update-banner";
+import { PWAInit } from "@/components/pwa/pwa-init";
 
 const sans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -367,29 +368,13 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <ThemeScript />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', () => {
-                  // Setup offline sync immediately — does not need SW context
-                  import('/lib/pwa/sw-register').then(({ setupOfflineSync }) => {
-                    window.pwaCleanup = setupOfflineSync();
-                  }).catch(err => console.warn('sw-register import failed:', err));
-
-                  // Register SW separately so failures don't block sync setup
-                  navigator.serviceWorker.register('/sw.js').catch(err => console.warn('SW registration failed:', err));
-                });
-              }
-            `,
-          }}
-        />
       </head>
       <body
         className={`${sans.variable} ${mono.variable} antialiased`}
         suppressHydrationWarning
       >
         <Providers>{children}</Providers>
+        <PWAInit />
         <PWAUpdateBanner />
       </body>
     </html>

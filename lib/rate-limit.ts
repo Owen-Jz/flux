@@ -123,18 +123,52 @@ function isValidIp(ip: string): boolean {
 
 /**
  * Validate that the request Origin matches the app origin.
- * Returns true if origin is acceptable (same-origin, null/absent, or matches NEXTAUTH_URL).
+ * Returns true if origin is acceptable (same-origin, null/absent, or matches an
+ * allowed app URL). Treats apex and www variants of the same hostname as
+ * equivalent — they are the same site for CSRF purposes, and browsers may land
+ * users on either depending on DNS, redirects, or the URL they typed.
  * Rejects cross-origin state-changing requests to prevent CSRF.
  */
 export function isSameOrigin(request: NextRequest): boolean {
     const origin = request.headers.get('origin');
     if (!origin) return true; // same-origin requests often omit Origin
-    const expected = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '');
+
+    const allowed: string[] = [
+        process.env.NEXTAUTH_URL,
+        process.env.NEXT_PUBLIC_APP_URL,
+    ].filter((v): v is string => typeof v === 'string' && v.length > 0);
+
+    if (allowed.length === 0) {
+        allowed.push('http://localhost:3000');
+    }
+
+    const stripWww = (host: string): string => host.replace(/^www\./i, '');
+
+    let originUrl: URL;
     try {
-        return new URL(origin).origin === new URL(expected).origin;
+        originUrl = new URL(origin);
     } catch {
         return false;
     }
+    const originHost = stripWww(originUrl.hostname);
+
+    for (const candidate of allowed) {
+        let candidateUrl: URL;
+        try {
+            candidateUrl = new URL(candidate.replace(/\/$/, ''));
+        } catch {
+            continue;
+        }
+        if (candidateUrl.origin === originUrl.origin) return true;
+        if (
+            candidateUrl.protocol === originUrl.protocol &&
+            candidateUrl.port === originUrl.port &&
+            stripWww(candidateUrl.hostname) === originHost
+        ) {
+            return true;
+        }
+    }
+    return false;
 }
 
 export function getClientIp(request: NextRequest): string {

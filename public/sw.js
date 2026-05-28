@@ -159,8 +159,12 @@ self.addEventListener('fetch', function(event) {
     event.respondWith(
       fetch(event.request).then(function(response) {
         if (response.ok && !response.redirected) {
+          // Clone synchronously before the response body can be consumed
+          // by the outer caller — clone() after an async boundary throws
+          // "Response body is already used".
+          var cacheable = response.clone();
           caches.open(PAGES_CACHE).then(function(cache) {
-            cache.put(event.request, response.clone());
+            cache.put(event.request, cacheable);
           });
         }
         return response;
@@ -179,8 +183,9 @@ self.addEventListener('fetch', function(event) {
       caches.match(event.request).then(function(cached) {
         var networkFetch = fetch(event.request).then(function(response) {
           if (response.ok && !response.redirected) {
+            var cacheable = response.clone();
             caches.open(PAGES_CACHE).then(function(cache) {
-              cache.put(event.request, response.clone());
+              cache.put(event.request, cacheable);
             });
           }
           return response;
