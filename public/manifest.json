@@ -1,13 +1,19 @@
 {
+  "id": "/?source=pwa",
   "name": "Flux | Modern Project Management",
   "short_name": "Flux",
   "description": "Cutting-edge project management SaaS with real-time collaboration.",
-  "start_url": "/",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "minimal-ui", "standalone"],
   "background_color": "#ffffff",
   "theme_color": "#7c3aed",
   "orientation": "portrait-primary",
   "categories": ["productivity", "business"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -33,7 +39,7 @@
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "View your workspaces",
-      "url": "/dashboard",
+      "url": "/dashboard?source=pwa-shortcut",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
