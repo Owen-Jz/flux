@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { UpgradeWelcomeModal } from './upgrade-welcome-modal';
 
 interface UpgradeWelcomeWrapperProps {
@@ -8,25 +8,23 @@ interface UpgradeWelcomeWrapperProps {
     plan: string;
 }
 
+const PAID_PLANS = new Set(['starter', 'pro', 'enterprise']);
+
 export function UpgradeWelcomeWrapper({ lastUpgradeAt, plan }: UpgradeWelcomeWrapperProps) {
-    const [showModal, setShowModal] = useState(false);
+    // Derive initial visibility synchronously from props so we don't
+    // trigger a cascading render. The modal acts as a fallback for the
+    // /billing/success page when a user closes the success tab early.
+    const shouldShowInitially = Boolean(lastUpgradeAt) && PAID_PLANS.has(plan);
+    const [dismissed, setDismissed] = useState(false);
 
-    useEffect(() => {
-        // Only show if user just upgraded (lastUpgradeAt set) AND has a paid plan (pro/enterprise)
-        // Starter plan doesn't show the upgrade modal since the user already saw the trial offer
-        if (lastUpgradeAt && (plan === 'pro' || plan === 'enterprise')) {
-            setShowModal(true);
-        }
-    }, [lastUpgradeAt, plan]);
-
-    if (!showModal) {
+    if (!shouldShowInitially || dismissed) {
         return null;
     }
 
     return (
         <UpgradeWelcomeModal
             plan={plan}
-            onDismissed={() => setShowModal(false)}
+            onDismissed={() => setDismissed(true)}
         />
     );
 }

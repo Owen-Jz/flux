@@ -53,6 +53,12 @@ const PLAN_PRICES = {
     pro: 25000,
 };
 
+const PLAN_PRICES_USD: Record<string, number> = {
+    free: 0,
+    starter: 10,
+    pro: 25,
+};
+
 const TEAM_SIZES = ['1-10', '11-50', '51-200', '201-500', '500+'];
 
 const ENTERPRISE_FEATURES = [
@@ -276,15 +282,13 @@ export function BillingSection() {
         fetchGeoInfo();
     }, []);
 
-    // Check for payment callback
+    // Check for payment callback — Paystack appends ?trxref=xxx&reference=xxx to the callback URL
+    // We check for reference/trxref presence (Paystack may overwrite original query params)
     useEffect(() => {
-        const billingStatus = searchParams.get('billing');
         const reference = searchParams.get('reference') || searchParams.get('trxref');
-        const plan = searchParams.get('plan');
 
-        if (billingStatus === 'success' && reference && plan) {
-            verifyPayment(reference, plan);
-            // Clear URL params
+        if (reference && !processing) {
+            verifyPayment(reference);
             router.replace(window.location.pathname, { scroll: false });
         }
     }, [searchParams, router]);
@@ -320,18 +324,18 @@ export function BillingSection() {
         }
     };
 
-    const verifyPayment = async (reference: string, plan: string = 'pro') => {
+    const verifyPayment = async (reference: string) => {
         setProcessing(true);
         setError(null);
         try {
             const res = await fetch('/api/billing/verify', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ reference, plan }),
+                body: JSON.stringify({ reference }),
             });
             const data = await res.json();
             if (data.success) {
-                setUpgradedPlan(plan);
+                setUpgradedPlan(data.plan || null);
                 setShowUpgradeSuccess(true);
                 fetchSubscription();
             } else {
@@ -397,7 +401,7 @@ export function BillingSection() {
         try {
             const result = await startTrial(plan);
             if (result.success) {
-                setSuccess('Your free trial has been activated! Enjoy 14 days of Individual plan features.');
+                setSuccess(`Your free trial has been activated! Enjoy 14 days of ${plan === 'pro' ? 'Entrepreneur' : 'Individual'} plan features.`);
                 setShowTrialActivation(false);
                 // Redirect to dashboard to start the guided tutorial
                 router.push('/dashboard');
@@ -456,12 +460,12 @@ export function BillingSection() {
     const displayCurrency = currencyOverride || geoInfo?.currency || 'NGN';
 
     // Format price based on currency
-    const formatPrice = (priceNGN: number | null) => {
+    const formatPrice = (priceNGN: number | null, planId?: string) => {
         if (priceNGN === null) return 'Custom';
-        if (priceNGN === 0) return '₦0';
-        if (displayCurrency === 'USD') {
-            const priceUSD = Math.round(priceNGN / 1700);
-            return `$${priceUSD}`;
+        if (priceNGN === 0) return displayCurrency === 'USD' ? '$0' : 'Free';
+        if (displayCurrency === 'USD' && planId) {
+            const usd = PLAN_PRICES_USD[planId] || 0;
+            return usd > 0 ? `$${usd}` : 'Free';
         }
         return `₦${priceNGN.toLocaleString()}`;
     };
@@ -613,6 +617,7 @@ export function BillingSection() {
                     <div className="flex items-center gap-2">
                         <GlobeAltIcon className="w-4 h-4 text-[var(--text-secondary)]" />
                         <select
+                            aria-label="Select display currency"
                             value={displayCurrency}
                             onChange={(e) => setCurrencyOverride(e.target.value as 'NGN' | 'USD')}
                             className="text-xs border border-[var(--border-subtle)] rounded-lg px-2 py-1 bg-[var(--background)]"
@@ -624,8 +629,10 @@ export function BillingSection() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                     {plans.filter(p => p.id !== 'enterprise').map((plan) => {
+                        const planOrder = { free: 0, starter: 1, pro: 2, enterprise: 3 };
                         const isCurrentPlan = currentPlan === plan.id;
                         const isBlurred = plan.id === 'free' && currentPlan !== 'free';
+                        const isDowngrade = planOrder[plan.id as keyof typeof planOrder] < planOrder[currentPlan as keyof typeof planOrder];
 
                         return (
                             <div
@@ -649,9 +656,9 @@ export function BillingSection() {
                                 </div>
 
                                 <p className="text-2xl font-bold mb-3">
-                                    {formatPrice(plan.price)}
+                                    {formatPrice(plan.price, plan.id)}
                                     {plan.price !== null && plan.price > 0 && (
-                                        <span className="text-sm font-normal text-[var(--text-secondary)]">/{plan.period}</span>
+                                        <span className="text-sm font-normal text-[var(--text-secondary)]">{plan.period}</span>
                                     )}
                                 </p>
 
@@ -681,7 +688,7 @@ export function BillingSection() {
                                         {processing ? (
                                             <ArrowPathIcon className="w-4 h-4 animate-spin mx-auto" />
                                         ) : (
-                                            `Upgrade`
+                                            isDowngrade ? 'Downgrade' : 'Upgrade'
                                         )}
                                     </button>
                                 )}
@@ -742,7 +749,7 @@ export function BillingSection() {
                                         Cancel
                                     </button>
                                     <button
-                                        onClick={() => handleActivateTrial('starter')}
+                                        onClick={() => handleActivateTrial('pro')}
                                         disabled={processing}
                                         className="flex-1 px-4 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
                                     >
@@ -804,7 +811,7 @@ export function BillingSection() {
                                     Upgrade Successful!
                                 </h2>
                                 <p className="text-[var(--text-secondary)] mb-2">
-                                    You're now on the
+                                    You&apos;re now on the
                                 </p>
                                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white font-bold mb-6 shadow-lg">
                                     <TrophyIcon className="w-5 h-5" />

@@ -5,9 +5,19 @@ import { User } from '@/models/User';
 import { auth } from '@/lib/auth';
 import { verifyTransaction, PLAN_PRICES_USD, getNairaPrice, getSubscription } from '@/lib/paystack';
 import { sendSubscriptionActivatedEmail } from '@/lib/email/subscription-notifications';
+import { rateLimit, getClientIp, isSameOrigin } from '@/lib/rate-limit';
 
 // Verify payment and activate subscription
 export async function POST(request: NextRequest) {
+    if (!isSameOrigin(request)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const ip = getClientIp(request);
+    const limit = rateLimit(`verify:${ip}`, 10, 60);
+    if (!limit.success) {
+        return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const mongoSession = await mongoose.startSession();
 
     try {
@@ -17,7 +27,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { reference, plan } = await request.json();
+        const { reference } = await request.json();
 
         if (!reference) {
             return NextResponse.json({ error: 'Reference required' }, { status: 400 });
@@ -33,10 +43,41 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'User not found' }, { status: 404 });
         }
 
+        // Derive plan from server-side state, not client input
+        const plan = user.subscriptionPlanId;
+        if (!plan || !['starter', 'pro'].includes(plan)) {
+            // Idempotent fallback: if the user is already active on a paid plan
+            // (the webhook ran first), treat this as success so /billing/success
+            // can still confirm the upgrade.
+            if (user.subscriptionStatus === 'active' && user.plan !== 'free') {
+                await mongoSession.abortTransaction();
+                return NextResponse.json({
+                    success: true,
+                    plan: user.plan,
+                    status: user.subscriptionStatus,
+                    alreadyActive: true,
+                });
+            }
+            await mongoSession.abortTransaction();
+            return NextResponse.json({ error: 'No pending plan upgrade found' }, { status: 400 });
+        }
+
+        // Idempotency: if this user is already active on the requested plan,
+        // skip re-verifying with Paystack and skip the activation email.
+        if (user.subscriptionStatus === 'active' && user.plan === plan) {
+            await mongoSession.abortTransaction();
+            return NextResponse.json({
+                success: true,
+                plan: user.plan,
+                status: user.subscriptionStatus,
+                alreadyActive: true,
+            });
+        }
+
         // Verify the transaction
-        let transactionStatus: string;
         let transactionId: string;
         let transactionAmount: number | undefined;
+        let transactionCurrency: string | undefined;
 
         // For NGN payments, we use initializeSubscription which creates a transaction (not a subscription)
         // The reference returned starts with 'sub_' but is a transaction reference, NOT a subscription code
@@ -49,17 +90,20 @@ export async function POST(request: NextRequest) {
                     await mongoSession.abortTransaction();
                     return NextResponse.json({ error: 'Payment not successful' }, { status: 400 });
                 }
-                transactionStatus = transaction.status;
                 transactionId = transaction.id.toString();
                 transactionAmount = transaction.amount;
-            } catch (verifyError) {
+                transactionCurrency = transaction.currency;
+            } catch {
                 // If transaction verification fails, it might be an actual subscription code (rare case)
                 try {
                     const subscription = await getSubscription(reference);
-                    transactionStatus = subscription.status === 'active' ? 'success' : subscription.status;
+                    if (subscription.status !== 'active') {
+                        await mongoSession.abortTransaction();
+                        return NextResponse.json({ error: 'Subscription not active' }, { status: 400 });
+                    }
                     transactionId = reference;
                     transactionAmount = undefined;
-                } catch (subError) {
+                } catch {
                     await mongoSession.abortTransaction();
                     return NextResponse.json({ error: 'Failed to verify payment' }, { status: 400 });
                 }
@@ -71,22 +115,20 @@ export async function POST(request: NextRequest) {
                 await mongoSession.abortTransaction();
                 return NextResponse.json({ error: 'Payment not successful' }, { status: 400 });
             }
-            transactionStatus = transaction.status;
             transactionId = transaction.id.toString();
             transactionAmount = transaction.amount;
+            transactionCurrency = transaction.currency;
         }
 
-        // Get expected amount in Naira based on USD price
-        const usdPrice = PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD];
-        if (!usdPrice) {
-            await mongoSession.abortTransaction();
-            return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
-        }
-
-        // For non-subscription transactions, verify amount matches
+        // For non-subscription transactions, verify amount matches expected price
         if (transactionAmount !== undefined) {
-            const expectedAmountNaira = await getNairaPrice(usdPrice) * 100; // Convert to kobo
-            if (transactionAmount < expectedAmountNaira * 0.95) {
+            let expectedAmount: number;
+            if (transactionCurrency === 'USD') {
+                expectedAmount = PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD] * 100; // USD cents
+            } else {
+                expectedAmount = await getNairaPrice(PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD]) * 100; // NGN kobo
+            }
+            if (transactionAmount < expectedAmount * 0.95) {
                 await mongoSession.abortTransaction();
                 return NextResponse.json({
                     error: 'Payment amount does not match the expected price. Please contact support.',
@@ -105,7 +147,10 @@ export async function POST(request: NextRequest) {
         await mongoSession.commitTransaction();
 
         // Send upgrade confirmation email after commit
-        sendSubscriptionActivatedEmail(user, user.plan).catch((error) => {
+        const paidAmount = transactionCurrency === 'USD'
+            ? PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD]
+            : (transactionAmount ? transactionAmount / 100 : undefined);
+        sendSubscriptionActivatedEmail(user, user.plan, paidAmount, transactionCurrency || 'NGN').catch((error) => {
             console.error('Failed to send subscription activated email:', error);
         });
 
@@ -113,14 +158,14 @@ export async function POST(request: NextRequest) {
             success: true,
             plan: user.plan,
             status: user.subscriptionStatus,
-            amount: usdPrice,
-            currency: 'USD'
+            amount: PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD],
+            currency: transactionCurrency || 'NGN',
         });
     } catch (error) {
         await mongoSession.abortTransaction();
         console.error('Verify subscription error:', error);
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to verify subscription' },
+            { error: 'Failed to verify subscription' },
             { status: 500 }
         );
     } finally {
@@ -129,7 +174,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Get current subscription status
-export async function GET(request: NextRequest) {
+export async function GET() {
     try {
         const session = await auth();
 
@@ -157,7 +202,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('Get subscription error:', error);
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Failed to get subscription' },
+            { error: 'Failed to get subscription' },
             { status: 500 }
         );
     }

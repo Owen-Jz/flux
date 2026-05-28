@@ -5,7 +5,8 @@ import { User } from '@/models/User';
 import { AuditLog } from '@/models/AuditLog';
 import { ProcessedWebhook } from '@/models/ProcessedWebhook';
 import { FailedWebhook } from '@/models/FailedWebhook';
-import { verifyWebhookSignature } from '@/lib/paystack';
+import { verifyWebhookSignature, planFromPaystackCode } from '@/lib/paystack';
+import { rateLimit, getClientIp } from '@/lib/rate-limit';
 import {
   sendSubscriptionActivatedEmail,
   sendSubscriptionCancelledEmail,
@@ -15,6 +16,13 @@ import {
 
 // Paystack webhook handler
 export async function POST(request: NextRequest) {
+    // Rate limit: 60 requests per minute per IP
+    const ip = getClientIp(request);
+    const limit = rateLimit(`webhook:${ip}`, 60, 60);
+    if (!limit.success) {
+        return NextResponse.json({ error: 'Rate limited' }, { status: 429 });
+    }
+
     let eventData: Record<string, unknown> | null = null;
 
     try {
@@ -35,7 +43,7 @@ export async function POST(request: NextRequest) {
 
         await connectDB();
 
-        const eventId = event.data?.id;
+        const eventId = `${event.event}:${event.data?.id}`;
         if (eventId) {
             try {
                 const result = await ProcessedWebhook.findOneAndUpdate(
@@ -60,22 +68,30 @@ export async function POST(request: NextRequest) {
 
         switch (event.event) {
             case 'subscription.created': {
-                const { customer, subscription } = event.data;
+                const subData = event.data;
+                const customer = subData.customer;
                 const customerCode = typeof customer === 'string' ? customer : customer.customer_code;
                 const user = await User.findOne({ paystackCustomerCode: customerCode });
 
                 if (user) {
-                    user.subscriptionId = subscription.subscription_code;
+                    const wasInactive = user.subscriptionStatus !== 'active';
+                    user.subscriptionId = subData.subscription_code;
                     user.subscriptionStatus = 'active';
 
-                    // Update the user's plan based on the subscription's plan code
-                    // Extract plan type from Paystack plan code (e.g., "PLN_starter_monthly" -> "starter")
-                    if (subscription.plan) {
-                        const planCode = subscription.plan;
-                        const planMatch = planCode.match(/_(starter|pro|enterprise)_/i);
-                        if (planMatch && planMatch[1]) {
-                            user.plan = planMatch[1].toLowerCase() as 'starter' | 'pro' | 'enterprise';
+                    // Use plan code mapping instead of fragile regex
+                    const planObj = subData.plan;
+                    const planCode = typeof planObj === 'object' ? planObj?.plan_code : planObj;
+                    if (planCode) {
+                        const resolvedPlan = planFromPaystackCode(planCode);
+                        if (resolvedPlan) {
+                            user.plan = resolvedPlan;
                         }
+                    }
+
+                    // Mark the upgrade timestamp so the dashboard fallback welcome
+                    // modal fires if the user never lands on /billing/success.
+                    if (wasInactive) {
+                        user.lastUpgradeAt = new Date();
                     }
 
                     await user.save();
@@ -87,13 +103,13 @@ export async function POST(request: NextRequest) {
             }
 
             case 'subscription.not_renewed': {
-                const { subscription } = event.data;
-                const user = await User.findOne({ subscriptionId: subscription.subscription_code });
+                const subData = event.data;
+                const user = await User.findOne({ subscriptionId: subData.subscription_code });
 
                 if (user) {
                     user.subscriptionStatus = 'cancelled';
                     await user.save();
-                    sendSubscriptionCancelledEmail(user, subscription.cancellation_reason).catch((error) => {
+                    sendSubscriptionCancelledEmail(user, subData.cancellation_reason).catch((error) => {
                         console.error('Failed to send subscription cancelled email:', error);
                     });
                 }
@@ -101,8 +117,8 @@ export async function POST(request: NextRequest) {
             }
 
             case 'subscription.disabled': {
-                const { subscription } = event.data;
-                const user = await User.findOne({ subscriptionId: subscription.subscription_code });
+                const subData = event.data;
+                const user = await User.findOne({ subscriptionId: subData.subscription_code });
 
                 if (user) {
                     user.subscriptionStatus = 'inactive';
@@ -116,7 +132,7 @@ export async function POST(request: NextRequest) {
             }
 
             case 'charge.success': {
-                const { customer, amount, reference } = event.data;
+                const { customer, reference } = event.data;
                 const customerCode = typeof customer === 'string' ? customer : customer.customer_code;
                 const user = await User.findOne({ paystackCustomerCode: customerCode });
 
@@ -125,7 +141,9 @@ export async function POST(request: NextRequest) {
 
                     // Update subscription status
                     user.subscriptionStatus = 'active';
-                    user.subscriptionId = reference;
+                    if (!user.subscriptionId) {
+                        user.subscriptionId = reference;
+                    }
 
                     // Update plan from subscriptionPlanId if set (set during payment initialization)
                     if (user.subscriptionPlanId) {
@@ -133,6 +151,9 @@ export async function POST(request: NextRequest) {
                     }
 
                     if (wasInactive) {
+                        // Mark the upgrade timestamp so the dashboard fallback welcome
+                        // modal fires if the user never lands on /billing/success.
+                        user.lastUpgradeAt = new Date();
                         sendSubscriptionActivatedEmail(user, user.plan || 'Pro').catch((error) => {
                             console.error('Failed to send subscription activated email:', error);
                         });
