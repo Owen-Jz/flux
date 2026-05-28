@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { PWAUpdateBanner } from "@/components/pwa/update-banner";
 import { PWAInit } from "@/components/pwa/pwa-init";
+import { PWAInstallPrompt } from "@/components/pwa/install-prompt";
 
 const sans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -15,17 +16,39 @@ const mono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#7c3aed" },
+    { media: "(prefers-color-scheme: dark)", color: "#a78bfa" },
+  ],
+  colorScheme: "light dark",
+  initialScale: 1,
+  width: "device-width",
+};
+
 export const metadata: Metadata = {
   metadataBase: process.env.NEXT_PUBLIC_BASE_URL ? new URL(process.env.NEXT_PUBLIC_BASE_URL) : undefined,
+  applicationName: "Flux",
   title: "Flux | Modern Project Management",
   description: "A cutting-edge project management SaaS with real-time collaboration.",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "Flux",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
       { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
-    apple: { url: "/icon.svg" },
+    // Safari requires PNG for apple-touch-icon — SVG renders unreliably.
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
   },
   openGraph: {
     title: "Flux | Modern Project Management",
@@ -376,6 +399,7 @@ export default function RootLayout({
         <Providers>{children}</Providers>
         <PWAInit />
         <PWAUpdateBanner />
+        <PWAInstallPrompt />
       </body>
     </html>
   );
