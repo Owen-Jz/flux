@@ -1,13 +1,15 @@
 /* Flux PWA Service Worker */
-var STATIC_CACHE = 'flux-static-v2';
-var PAGES_CACHE = 'flux-pages-v2';
-var DATA_CACHE = 'flux-data-v2';
+var STATIC_CACHE = 'flux-static-v3';
+var PAGES_CACHE = 'flux-pages-v3';
+var DATA_CACHE = 'flux-data-v3';
+var OFFLINE_URL = '/offline';
 
 var STATIC_ASSETS = [
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/icon-maskable.png',
+  OFFLINE_URL,
 ];
 
 // Check for new SW version every 30 seconds
@@ -45,9 +47,18 @@ function isBoardPage(url) {
 }
 
 self.addEventListener('install', function(event) {
+  // addAll is atomic — if any asset 404s, the whole install fails.
+  // Pre-cache each entry independently so a missing /offline (e.g. during
+  // first dev render) does not break the entire SW install.
   event.waitUntil(
     caches.open(STATIC_CACHE).then(function(cache) {
-      return cache.addAll(STATIC_ASSETS);
+      return Promise.all(
+        STATIC_ASSETS.map(function(asset) {
+          return cache.add(asset).catch(function(err) {
+            console.warn('[SW] Failed to pre-cache:', asset, err);
+          });
+        })
+      );
     })
   );
   self.skipWaiting();
@@ -170,7 +181,10 @@ self.addEventListener('fetch', function(event) {
         return response;
       }).catch(function() {
         return caches.match(event.request).then(function(cached) {
-          return cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+          if (cached) return cached;
+          return caches.match(OFFLINE_URL).then(function(offline) {
+            return offline || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+          });
         });
       })
     );
@@ -190,7 +204,10 @@ self.addEventListener('fetch', function(event) {
           }
           return response;
         }).catch(function() {
-          return cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+          if (cached) return cached;
+          return caches.match(OFFLINE_URL).then(function(offline) {
+            return offline || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+          });
         });
         return cached || networkFetch;
       })
@@ -204,7 +221,16 @@ self.addEventListener('fetch', function(event) {
 self.addEventListener('push', function(event) {
   if (!event.data) return;
 
-  var data = event.data.json() || {};
+  // Push payload may not be valid JSON — fall back to plain text so a
+  // malformed push never silently kills the notification.
+  var data = {};
+  try {
+    data = event.data.json() || {};
+  } catch {
+    var text = '';
+    try { text = event.data.text(); } catch { text = ''; }
+    data = { title: 'Flux', body: text || 'You have a new notification' };
+  }
 
   var title = data.title || 'Flux';
   var body = data.body || '';
