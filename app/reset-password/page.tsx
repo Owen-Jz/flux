@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { EnvelopeIcon, LockClosedIcon, ArrowRightIcon, ArrowPathIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
@@ -65,8 +65,8 @@ export default function ResetPasswordPage() {
             return;
         }
 
-        if (password.length < 6) {
-            setError('Password must be at least 6 characters');
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters');
             setIsLoading(false);
             return;
         }
@@ -204,7 +204,7 @@ export default function ResetPasswordPage() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     className="input !pl-12 !pr-12"
-                                    minLength={6}
+                                    minLength={8}
                                     required
                                 />
                                 <button
@@ -229,7 +229,7 @@ export default function ResetPasswordPage() {
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     className="input !pl-12 !pr-12"
-                                    minLength={6}
+                                    minLength={8}
                                     required
                                 />
                                 <button
@@ -276,5 +276,13 @@ export default function ResetPasswordPage() {
                 </div>
             </motion.div>
         </div>
+    );
+}
+
+export default function ResetPasswordPage() {
+    return (
+        <Suspense>
+            <ResetPasswordContent />
+        </Suspense>
     );
 }

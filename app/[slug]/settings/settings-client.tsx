@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon, PhotoIcon, BellIcon, KeyIcon, PuzzlePieceIcon } from '@heroicons/react/24/outline';
 import { updateWorkspaceSettings } from '@/actions/workspace';
@@ -40,13 +40,15 @@ const BRAND_COLORS = [
 
 export function SettingsClient({ workspace }: SettingsClientProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [publicAccess, setPublicAccess] = useState(workspace.publicAccess);
     const [accentColor, setAccentColor] = useState(workspace.accentColor || '#6366f1');
     const [isPending, startTransition] = useTransition();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'general' | 'billing' | 'api-keys' | 'webhooks'>('general');
+    const isBillingCallback = searchParams.get('billing') === 'success' || searchParams.get('billing') === 'trial' || !!searchParams.get('trxref') || !!searchParams.get('reference');
+    const [activeTab, setActiveTab] = useState<'general' | 'billing' | 'api-keys' | 'webhooks'>(isBillingCallback ? 'billing' : 'general');
     const [showIconPicker, setShowIconPicker] = useState(false);
     const [pushEnabled, setPushEnabled] = useState(false);
     const [pushLoading, setPushLoading] = useState(false);

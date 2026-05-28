@@ -291,18 +291,12 @@ function LoginContent() {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-end">
                             <Link
                                 href="/reset-password"
                                 className="text-xs text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
                             >
                                 Forgot password?
-                            </Link>
-                            <Link
-                                href="/verify-email"
-                                className="text-xs text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
-                            >
-                                Verify email
                             </Link>
                         </div>
 

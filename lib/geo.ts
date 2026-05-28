@@ -1,4 +1,5 @@
-// Simple IP-based country detection using a free geolocation API
+// IP-based country detection using free geolocation APIs
+// Accepts a client IP to geolocate the end user, not the server.
 
 interface GeoLocationResult {
     country: string;
@@ -7,23 +8,42 @@ interface GeoLocationResult {
     isNigeria: boolean;
 }
 
-let cachedGeoLocation: GeoLocationResult | null = null;
-let geoLocationCacheTime: number = 0;
+// Per-IP cache: avoids re-fetching for the same client IP within the TTL
 const GEO_CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+const GEO_CACHE_MAX_ENTRIES = 1000;
+const ipCache = new Map<string, { result: GeoLocationResult; timestamp: number }>();
 
-export async function getUserCountry(): Promise<GeoLocationResult> {
+function pruneCache(): void {
+    if (ipCache.size <= GEO_CACHE_MAX_ENTRIES) return;
+    // Evict oldest entries until we're under the limit
+    const entries = [...ipCache.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp);
+    const toRemove = entries.slice(0, entries.length - GEO_CACHE_MAX_ENTRIES);
+    for (const [key] of toRemove) {
+        ipCache.delete(key);
+    }
+}
+
+export async function getUserCountry(clientIp?: string): Promise<GeoLocationResult> {
     const now = Date.now();
 
-    // Return cached result if still valid
-    if (cachedGeoLocation && (now - geoLocationCacheTime) < GEO_CACHE_DURATION) {
-        return cachedGeoLocation;
+    // Return cached result for this IP if still valid
+    if (clientIp) {
+        const cached = ipCache.get(clientIp);
+        if (cached && (now - cached.timestamp) < GEO_CACHE_DURATION) {
+            return cached.result;
+        }
     }
 
-    // Try multiple free geolocation APIs
-    const apis = [
-        { url: 'https://ipapi.co/json/', name: 'ipapi.co' },
-        { url: 'https://ipwho.is/', name: 'ipwho.is' },
-    ];
+    // Build API URLs -- when a clientIp is provided, pass it to get the user's location
+    const apis = clientIp
+        ? [
+            { url: `https://ipapi.co/${clientIp}/json/`, name: 'ipapi.co' },
+            { url: `https://ipwho.is/${clientIp}`, name: 'ipwho.is' },
+        ]
+        : [
+            { url: 'https://ipapi.co/json/', name: 'ipapi.co' },
+            { url: 'https://ipwho.is/', name: 'ipwho.is' },
+        ];
 
     let geoResult: GeoLocationResult | null = null;
 
@@ -70,16 +90,21 @@ export async function getUserCountry(): Promise<GeoLocationResult> {
         }
     }
 
-    // Use result or fallback to cached value or Nigeria default
+    // Cache successful result per IP
     if (geoResult) {
-        cachedGeoLocation = geoResult;
-        geoLocationCacheTime = now;
+        if (clientIp) {
+            ipCache.set(clientIp, { result: geoResult, timestamp: now });
+            pruneCache();
+        }
         return geoResult;
     }
 
-    // Return cached value if available, otherwise default to Nigeria
-    if (cachedGeoLocation) {
-        return cachedGeoLocation;
+    // Check cache for a stale entry for this IP (better than nothing)
+    if (clientIp) {
+        const stale = ipCache.get(clientIp);
+        if (stale) {
+            return stale.result;
+        }
     }
 
     // Default to NGN for Nigerian users (most common case)

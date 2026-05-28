@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 config({ path: '.env.local' });
 import mongoose from 'mongoose';
 import { User } from '../models/User';
-import { disableSubscription, createCustomer, getCustomer } from '../lib/paystack';
+import { disableSubscription, getSubscription } from '../lib/paystack';
 
 async function deactivatePaystackSubscription(email: string) {
   const MONGODB_URI = process.env.MONGODB_URI;
@@ -33,11 +33,16 @@ async function deactivatePaystackSubscription(email: string) {
   if (user.subscriptionId) {
     console.log(`\nDeactivating subscription on Paystack: ${user.subscriptionId}`);
     try {
-      const result = await disableSubscription(user.subscriptionId);
-      if (result) {
-        console.log(`  ✓ Subscription deactivated on Paystack`);
+      const subscription = await getSubscription(user.subscriptionId);
+      if (subscription && subscription.email_token) {
+        const result = await disableSubscription(subscription.subscription_code, subscription.email_token);
+        if (result) {
+          console.log(`  ✓ Subscription deactivated on Paystack`);
+        } else {
+          console.log(`  ✗ Failed to deactivate subscription on Paystack`);
+        }
       } else {
-        console.log(`  ✗ Failed to deactivate subscription on Paystack`);
+        console.log(`  ✗ Could not retrieve subscription details from Paystack`);
       }
     } catch (error) {
       console.error(`  ✗ Error deactivating subscription:`, error);

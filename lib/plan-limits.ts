@@ -12,6 +12,17 @@ export function getPlanLimits(plan: PlanType): PlanLimits {
     return PLAN_LIMITS[plan] as PlanLimits;
 }
 
+export function getEffectivePlan(user: { plan: PlanType; subscriptionStatus?: string; trialEndsAt?: Date | null }): PlanType {
+    if (user.plan === 'free') return 'free';
+    if (user.subscriptionStatus === 'active') return user.plan;
+    // Trial or inactive subscription — check if trial has expired
+    if (user.trialEndsAt && new Date(user.trialEndsAt) > new Date()) {
+        return user.plan;
+    }
+    // Trial expired or no active subscription — effective plan is free
+    return 'free';
+}
+
 export function canCreateProject(plan: PlanType, currentProjectCount: number): boolean {
     const limit = getPlanLimits(plan).projects;
     if (limit === 'unlimited') return true;
@@ -44,7 +55,7 @@ export function getUpgradeMessage(plan: PlanType, limitType: 'projects' | 'membe
 
 export const PLAN_META: Record<PlanType, PlanMeta> = {
     free: {
-        label: 'Individual',
+        label: 'Free',
         price: 0,
         priceDisplay: 'Free',
         projects: 3,

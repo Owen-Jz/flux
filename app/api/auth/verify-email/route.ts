@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
+import { rateLimit, getClientIp, isSameOrigin } from '@/lib/rate-limit';
 
 // GET: handle the magic-link fallback from the verification email
 export async function GET(request: NextRequest) {
@@ -42,6 +43,18 @@ export async function GET(request: NextRequest) {
 
 // POST: verify via OTP code (legacy — kept for backwards compat)
 export async function POST(request: NextRequest) {
+    if (!isSameOrigin(request)) {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    const ip = getClientIp(request);
+    const rateLimitResult = rateLimit(`verify-email-post-${ip}`, 10, 15 * 60);
+    if (!rateLimitResult.success) {
+        return NextResponse.json(
+            { error: `Too many attempts. Try again in ${rateLimitResult.resetIn} seconds.` },
+            { status: 429 }
+        );
+    }
+
     try {
         const { token } = await request.json();
 

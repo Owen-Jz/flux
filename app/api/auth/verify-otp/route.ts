@@ -31,6 +31,15 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Verification code must be 6 digits.' }, { status: 400 });
         }
 
+        const emailKey = email.toLowerCase().trim();
+        const emailRateLimit = rateLimit(`verify-otp-email-${emailKey}`, 5, 15 * 60);
+        if (!emailRateLimit.success) {
+            return NextResponse.json(
+                { error: `Too many attempts. Try again in ${emailRateLimit.resetIn} seconds.` },
+                { status: 429 }
+            );
+        }
+
         await connectDB();
 
         const user = await User.findOne({ email: email.toLowerCase().trim() });

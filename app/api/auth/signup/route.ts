@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
     // Apply rate limiting - 5 signup attempts per 15 minutes per IP
     const ip = getClientIp(request);
-    const rateLimitResult = rateLimit(ip, 5, 15 * 60);
+    const rateLimitResult = rateLimit(`signup-${ip}`, 5, 15 * 60);
 
     if (!rateLimitResult.success) {
         return NextResponse.json(
@@ -44,7 +44,9 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const { name, email, password, plan } = validationResult.data;
+        const { name, email: rawEmail, password, plan } = validationResult.data;
+        const email = rawEmail.toLowerCase().trim();
+        const trimmedName = name.trim();
 
         // Default to free, but if a plan is specified and it's a valid trial plan, set up the trial
         const trialPlans = ['starter', 'pro'] as const;
@@ -67,7 +69,7 @@ export async function POST(request: NextRequest) {
         const hashedPassword = await bcrypt.hash(password, 12);
 
         // Generate a 6-digit OTP for email verification
-        const rawOtp = String(Math.floor(100000 + Math.random() * 900000));
+        const rawOtp = crypto.randomInt(100000, 1000000).toString();
         const hashedOtp = crypto.createHash('sha256').update(rawOtp).digest('hex');
         const emailOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
@@ -75,18 +77,35 @@ export async function POST(request: NextRequest) {
         const emailVerificationToken = crypto.randomBytes(32).toString('hex');
         const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-        const user = await User.create({
-            name,
-            email,
-            password: hashedPassword,
-            emailVerificationToken,
-            emailVerificationExpires,
-            emailOtp: hashedOtp,
-            emailOtpExpires,
-            plan: initialPlan,
-            trialEndsAt,
-            hasUsedTrial: isTrialPlan ? true : false,
-        });
+        let user;
+        try {
+            user = await User.create({
+                name: trimmedName,
+                email,
+                password: hashedPassword,
+                emailVerificationToken,
+                emailVerificationExpires,
+                emailOtp: hashedOtp,
+                emailOtpExpires,
+                plan: initialPlan,
+                trialEndsAt,
+                hasUsedTrial: isTrialPlan ? true : false,
+            });
+        } catch (createError: unknown) {
+            // Handle concurrent signup race: unique index violation
+            if (
+                createError &&
+                typeof createError === 'object' &&
+                'code' in createError &&
+                (createError as { code: number }).code === 11000
+            ) {
+                return NextResponse.json(
+                    { error: 'User already exists' },
+                    { status: 400 }
+                );
+            }
+            throw createError;
+        }
 
         if (trialEndsAt) {
             sendTrialStartedEmail({ email: user.email, name: user.name }, initialPlan, trialEndsAt);
@@ -99,7 +118,7 @@ export async function POST(request: NextRequest) {
         );
 
         // Send OTP verification email (non-blocking)
-        sendOtpEmail(email, name, rawOtp).catch(console.error);
+        sendOtpEmail(email, trimmedName, rawOtp).catch(console.error);
 
         return NextResponse.json(
             {

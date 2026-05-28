@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email } = result.data;
+    const email = result.data.email.toLowerCase().trim();
 
     await connectDB();
     const existingUser = await User.findOne({ email });

@@ -53,7 +53,7 @@ export interface IUser extends Document {
 const UserSchema = new Schema<IUser>(
     {
         name: { type: String, required: true },
-        email: { type: String, required: true, unique: true, match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'] },
+        email: { type: String, required: true, unique: true, lowercase: true, trim: true, match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'] },
         image: { type: String },
         password: { type: String, select: false },
         emailVerified: { type: Date },
@@ -97,5 +97,10 @@ const UserSchema = new Schema<IUser>(
     },
     { timestamps: true }
 );
+
+UserSchema.index({ paystackCustomerCode: 1 }, { sparse: true });
+UserSchema.index({ subscriptionId: 1 }, { sparse: true });
+UserSchema.index({ trialIpAddress: 1 }, { sparse: true });
+UserSchema.index({ trialEndsAt: 1 }, { sparse: true });
 
 export const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);

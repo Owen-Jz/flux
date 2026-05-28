@@ -41,20 +41,51 @@ export default function SignupPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        const trimmedName = name.trim();
+        const trimmedEmail = email.trim().toLowerCase();
+
+        if (!trimmedName) {
+            setError('Please enter your name');
+            return;
+        }
+
         // Validate email format first
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
             setError('Please enter a valid email address');
+            return;
+        }
+
+        // Frontend password complexity check (matches API requirements)
+        if (password.length < 8) {
+            setError('Password must be at least 8 characters');
+            return;
+        }
+        const complexityTypes = [
+            /[A-Z]/.test(password),
+            /[a-z]/.test(password),
+            /\d/.test(password),
+            /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+        ].filter(Boolean).length;
+        if (complexityTypes < 3) {
+            setError('Password must contain at least 3 of: uppercase, lowercase, numbers, symbols');
             return;
         }
 
         // Check email availability if not already checked
         if (emailAvailable === null) {
-            await handleEmailBlur();
-            if (!emailAvailable) {
-                setError(emailError || 'Email is not available');
+            const isAvailable = await checkEmailAvailability(trimmedEmail);
+            if (!isAvailable) {
+                setError(emailError || 'This email is not available');
                 return;
             }
+        } else if (emailAvailable === false) {
+            setError(emailError || 'This email is not available');
+            return;
         }
+
+        // Only forward plan to the API if it's a recognized trial plan
+        const validTrialPlans = ['starter', 'pro'];
+        const plan = planParam && validTrialPlans.includes(planParam) ? planParam : undefined;
 
         setIsLoading(true);
         setError('');
@@ -63,7 +94,7 @@ export default function SignupPage() {
             const res = await fetch('/api/auth/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, password, ...(planParam && { plan: planParam }) }),
+                body: JSON.stringify({ name: trimmedName, email: trimmedEmail, password, ...(plan && { plan }) }),
             });
 
             const data = await res.json();
@@ -74,9 +105,9 @@ export default function SignupPage() {
             }
 
             // Email requires verification before login is allowed — redirect to OTP page
-            router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+            router.push(`/verify-email?email=${encodeURIComponent(trimmedEmail)}`);
         } catch {
-            setError('Something went wrong');
+            setError('Something went wrong. Please try again.');
         } finally {
             setIsLoading(false);
         }
@@ -91,11 +122,11 @@ export default function SignupPage() {
         }
     };
 
-    const handleEmailBlur = async () => {
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const checkEmailAvailability = async (emailValue: string): Promise<boolean> => {
+        if (!emailValue || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
             setEmailError('Please enter a valid email address');
             setEmailAvailable(null);
-            return;
+            return false;
         }
 
         setEmailChecking(true);
@@ -103,21 +134,28 @@ export default function SignupPage() {
             const res = await fetch('/api/auth/validate-email', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email }),
+                body: JSON.stringify({ email: emailValue }),
             });
             const data = await res.json();
             if (!data.available) {
-                setEmailError(data.message);
+                setEmailError(data.message || 'This email is not available');
                 setEmailAvailable(false);
-            } else {
-                setEmailError('');
-                setEmailAvailable(true);
+                return false;
             }
+            setEmailError('');
+            setEmailAvailable(true);
+            return true;
         } catch {
-            // Ignore network errors on blur
+            // On network error, don't block the user — let the signup API be authoritative
+            setEmailAvailable(null);
+            return true;
         } finally {
             setEmailChecking(false);
         }
+    };
+
+    const handleEmailBlur = async () => {
+        await checkEmailAvailability(email.trim().toLowerCase());
     };
 
     return (
@@ -366,7 +404,7 @@ export default function SignupPage() {
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="input !pl-11 !pr-11"
-                                        minLength={6}
+                                        minLength={8}
                                         required
                                     />
                                     <button
@@ -400,7 +438,13 @@ export default function SignupPage() {
                                                 {strengthLabels[strength]}
                                             </span>
                                             <span className="text-[var(--text-secondary)]">
-                                                {password.length < 6 ? '6+ characters' : 'Good password'}
+                                                {password.length < 8
+                                                    ? '8+ characters'
+                                                    : score < 3
+                                                    ? 'Add uppercase, number, or symbol'
+                                                    : score === 3
+                                                    ? 'Good password'
+                                                    : 'Strong password'}
                                             </span>
                                         </div>
                                     </div>

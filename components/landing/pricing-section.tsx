@@ -13,15 +13,22 @@ interface GeoInfo {
     country?: string;
 }
 
-const PLAN_PRICES = {
+const PLAN_PRICES_USD: Record<string, number> = {
     free: 0,
-    starter: 10000,  // ₦10,000
-    pro: 25000,      // ₦25,000
+    starter: 10,
+    pro: 25,
+};
+
+const PLAN_PRICES_NGN: Record<string, number> = {
+    free: 0,
+    starter: 10000,
+    pro: 25000,
 };
 
 const plansData = [
     {
         name: "Free",
+        planKey: "free",
         period: "/mo",
         description: "For individuals who want to get organized. Completely free, no credit card needed.",
         features: [
@@ -37,6 +44,7 @@ const plansData = [
     },
     {
         name: "Individual",
+        planKey: "starter",
         period: "/mo",
         description: "Perfect for small teams or solo freelancers managing client work.",
         features: [
@@ -53,6 +61,7 @@ const plansData = [
     },
     {
         name: "Entrepreneur",
+        planKey: "pro",
         period: "/mo",
         description: "For growing agencies and teams that need more flexibility and client-facing features.",
         features: [
@@ -71,6 +80,7 @@ const plansData = [
     },
     {
         name: "Business",
+        planKey: "business",
         period: "",
         description: "For organizations that need dedicated support, custom solutions, and enterprise security.",
         features: [
@@ -108,19 +118,18 @@ export const PricingSection = () => {
 
     const displayCurrency = currencyOverride || geoInfo?.currency || 'NGN';
 
-    const formatPrice = (priceNGN: number) => {
-        if (priceNGN === 0) return '₦0';
+    const formatPrice = (planKey: string) => {
         if (displayCurrency === 'USD') {
-            // Show USD equivalent (divided by rough exchange rate)
-            const usdPrice = Math.round(priceNGN / 1700);
-            return `$${usdPrice}`;
+            const usd = PLAN_PRICES_USD[planKey] || 0;
+            return usd === 0 ? 'Free' : `$${usd}`;
         }
-        return `₦${priceNGN.toLocaleString()}`;
+        const ngn = PLAN_PRICES_NGN[planKey] || 0;
+        return ngn === 0 ? 'Free' : `₦${ngn.toLocaleString()}`;
     };
 
     const plans = plansData.map(plan => ({
         ...plan,
-        price: plan.name === 'Business' ? 'Custom' : formatPrice(PLAN_PRICES[plan.href.split('plan=')[1] as keyof typeof PLAN_PRICES] || 0)
+        price: plan.planKey === 'business' ? 'Custom' : formatPrice(plan.planKey)
     }));
 
     return (
@@ -149,6 +158,7 @@ export const PricingSection = () => {
                             {geoInfo?.isNigeria === false && !currencyOverride ? 'Detected: ' : 'Showing prices in: '}
                         </span>
                         <select
+                            aria-label="Select display currency"
                             value={displayCurrency}
                             onChange={(e) => setCurrencyOverride(e.target.value as 'NGN' | 'USD')}
                             className="text-sm border border-[var(--border-subtle)] rounded-md px-2 py-1 bg-[var(--surface)] text-[var(--foreground)]"

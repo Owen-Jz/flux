@@ -36,9 +36,10 @@ export default function OnboardingPage() {
                         return;
                     }
                 }
-            } catch {
-                router.replace('/dashboard');
-                return;
+            } catch (e) {
+                // Don't redirect on error — that can cause a /dashboard ↔ /onboarding loop
+                // when hasCompletedOnboarding is still false. Just let the user proceed.
+                console.error('[Onboarding] checkAccess failed:', e);
             }
             setIsLoading(false);
         }
@@ -49,7 +50,7 @@ export default function OnboardingPage() {
     useEffect(() => {
         async function checkOnboardingStatus() {
             try {
-                const res = await fetch('/api/auth/onboarding-status');
+                const res = await fetch('/api/auth/onboarding');
                 if (res.ok) {
                     const data = await res.json();
                     if (data.hasCompletedOnboarding) {
@@ -452,7 +453,7 @@ export default function OnboardingPage() {
                                         type="button"
                                         onClick={async () => {
                                             await markOnboardingComplete();
-                                            router.push('/dashboard');
+                                            router.push(`/${invitedWorkspaces[0].slug}`);
                                         }}
                                         className="btn btn-primary w-full"
                                     >
@@ -463,7 +464,7 @@ export default function OnboardingPage() {
                                         type="button"
                                         onClick={async () => {
                                             await markOnboardingComplete();
-                                            router.push('/dashboard');
+                                            router.push(ownWorkspaceSlug ? `/${ownWorkspaceSlug}` : '/dashboard');
                                         }}
                                         className="btn btn-secondary w-full"
                                     >

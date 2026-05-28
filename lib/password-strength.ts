@@ -13,9 +13,9 @@ export function calculatePasswordStrength(password: string): {
   requirements: PasswordRequirements;
 } {
   const requirements: PasswordRequirements = {
-    minLength: password.length >= 6,
+    minLength: password.length >= 8,
     hasNumber: /\d/.test(password),
-    hasSymbol: /[!@#$%^&*]/.test(password),
+    hasSymbol: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
     hasUppercase: /[A-Z]/.test(password),
   };
 

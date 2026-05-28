@@ -11,6 +11,22 @@ export const metadata: Metadata = {
 
 const plans = [
   {
+    name: 'Free',
+    price: '$0',
+    period: '/month',
+    description: 'Get started with the basics. No credit card required.',
+    features: [
+      'Up to 3 Projects',
+      'Up to 3 Team Members',
+      'Unlimited Tasks',
+      'Basic Analytics',
+      'Community Support',
+    ],
+    cta: 'Start for Free',
+    href: '/signup',
+    popular: false,
+  },
+  {
     name: 'Individual',
     price: '$10',
     period: '/month',
@@ -79,7 +95,7 @@ export default function PricingPage() {
               Simple, Transparent Pricing
             </h1>
             <p className="text-xl text-[var(--text-secondary)] leading-relaxed">
-              Choose the plan that's right for your team. All plans include a 14-day free trial.
+              Choose the plan that&apos;s right for your team. All plans include a 14-day free trial.
             </p>
             <p className="text-sm text-[var(--text-tertiary)] mt-2">
               Approximate pricing: Individual ≈ ₦10,000/mo, Entrepreneur ≈ ₦25,000/mo (USD based)
@@ -87,7 +103,7 @@ export default function PricingPage() {
           </div>
 
           {/* Pricing Cards */}
-          <div className="grid md:grid-cols-3 gap-8 items-start mb-24">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 items-start mb-24">
             {plans.map((plan) => (
               <div
                 key={plan.name}
@@ -112,12 +128,18 @@ export default function PricingPage() {
                   }`}>
                     {plan.name}
                   </h4>
-                  <div className="flex items-baseline gap-1 mb-6">
+                  <div className="flex items-baseline gap-1 mb-1">
                     <span className="text-5xl font-bold tracking-tight">{plan.price}</span>
                     <span className={`text-sm font-medium ${
                       plan.popular ? 'text-slate-400' : 'text-[var(--text-secondary)]'
                     }`}>{plan.period}</span>
                   </div>
+                  {plan.price !== 'Custom' && plan.price !== '$0' && (
+                    <p className="text-xs text-[var(--text-tertiary)] mt-1 mb-4">
+                      ≈ ₦{plan.name === 'Individual' ? '10,000' : plan.name === 'Entrepreneur' ? '25,000' : ''}/mo
+                    </p>
+                  )}
+                  {(plan.price === 'Custom' || plan.price === '$0') && <div className="mb-5" />}
                   <p className={`text-sm leading-relaxed ${
                     plan.popular ? 'text-slate-400' : 'text-[var(--text-secondary)]'
                   }`}>
@@ -173,7 +195,7 @@ export default function PricingPage() {
                 },
                 {
                   q: 'What payment methods do you accept?',
-                  a: 'We accept all major credit cards, PayPal, and wire transfers for Enterprise plans.',
+                  a: 'We accept all major credit and debit cards through Paystack. Nigerian bank transfers are also supported. Enterprise customers can arrange custom payment methods.',
                 },
                 {
                   q: 'Do you offer discounts for nonprofits?',

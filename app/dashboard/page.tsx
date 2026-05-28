@@ -14,7 +14,9 @@ import { User } from '@/models/User';
 export default async function DashboardPage() {
     const session = await auth();
 
-    if (!session?.user) {
+    if (!session?.user?.id) {
+        // A signed-in session without an id means the JWT couldn't resolve the user
+        // (typically a transient DB issue during sign-in). Send them back to log in.
         redirect('/login');
     }
 

@@ -83,10 +83,12 @@ interface GetSubscriptionResponse {
         plan: string;
         status: string;
         subscription_code: string;
+        email_token: string;
     };
 }
 
 // Retry helper with exponential backoff (exported for testing)
+// Only retries on 5xx/network errors — 4xx client errors are permanent failures
 export async function withRetry<T>(
     fn: () => Promise<T>,
     maxAttempts: number = 3,
@@ -99,11 +101,13 @@ export async function withRetry<T>(
             return await fn();
         } catch (error) {
             lastError = error instanceof Error ? error : new Error(String(error));
-            if (attempt < maxAttempts) {
-                const delay = baseDelayMs * Math.pow(2, attempt - 1);
-                console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`);
-                await new Promise((resolve) => setTimeout(resolve, delay));
+            const is4xx = lastError.message.includes('Paystack API error: 4');
+            if (is4xx || attempt >= maxAttempts) {
+                throw lastError;
             }
+            const delay = baseDelayMs * Math.pow(2, attempt - 1);
+            console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
         }
     }
 
@@ -265,17 +269,18 @@ export async function getSubscription(subscriptionCode: string): Promise<GetSubs
 // Enable a subscription
 export async function enableSubscription(subscriptionCode: string, token: string): Promise<boolean> {
     const result = await paystackFetch<{ status: boolean; message: string }>('/subscription/enable', 'POST', {
-        subscription: subscriptionCode,
+        code: subscriptionCode,
         token,
     });
 
     return result.status;
 }
 
-// Disable a subscription
-export async function disableSubscription(subscriptionCode: string): Promise<boolean> {
+// Disable a subscription — requires both the code and the email token from Paystack
+export async function disableSubscription(subscriptionCode: string, token: string): Promise<boolean> {
     const result = await paystackFetch<{ status: boolean; message: string }>('/subscription/disable', 'POST', {
-        subscription: subscriptionCode,
+        code: subscriptionCode,
+        token,
     });
 
     return result.status;
@@ -284,14 +289,25 @@ export async function disableSubscription(subscriptionCode: string): Promise<boo
 // Verify webhook signature — supports key rotation by checking both current and previous key
 export function verifyWebhookSignature(payload: string, signature: string): boolean {
     const currentKey = process.env.PAYSTACK_WEBHOOK_SECRET || process.env.PAYSTACK_SECRET_KEY;
+    if (!currentKey) return false;
+
     const previousKey = process.env.PAYSTACK_SECRET_KEY;
 
-    const currentHash = crypto.createHmac('sha512', currentKey!).update(payload).digest('hex');
-    if (currentHash === signature) return true;
+    try {
+        const sigBuffer = Buffer.from(signature, 'hex');
+        const currentHash = crypto.createHmac('sha512', currentKey).update(payload).digest();
+        if (sigBuffer.length === currentHash.length && crypto.timingSafeEqual(currentHash, sigBuffer)) {
+            return true;
+        }
 
-    if (previousKey && previousKey !== currentKey) {
-        const previousHash = crypto.createHmac('sha512', previousKey).update(payload).digest('hex');
-        if (previousHash === signature) return true;
+        if (previousKey && previousKey !== currentKey) {
+            const previousHash = crypto.createHmac('sha512', previousKey).update(payload).digest();
+            if (sigBuffer.length === previousHash.length && crypto.timingSafeEqual(previousHash, sigBuffer)) {
+                return true;
+            }
+        }
+    } catch {
+        return false;
     }
 
     return false;
@@ -404,6 +420,36 @@ export const PLAN_PRICES_KOBO = {
     pro: 2500000,    // ₦25,000 = 2,500,000 kobo
     enterprise: 5000000, // ₦50,000 = 5,000,000 kobo
 };
+
+// Map a Paystack plan code to the internal plan name
+export function planFromPaystackCode(planCode: string): 'starter' | 'pro' | 'enterprise' | null {
+    const codeMap: Record<string, 'starter' | 'pro' | 'enterprise'> = {};
+    codeMap[PLAN_CODES.starter] = 'starter';
+    codeMap[PLAN_CODES.pro] = 'pro';
+    codeMap[PLAN_CODES.enterprise] = 'enterprise';
+    if (codeMap[planCode]) return codeMap[planCode];
+    const lower = planCode.toLowerCase();
+    if (lower.includes('starter')) return 'starter';
+    if (lower.includes('pro')) return 'pro';
+    if (lower.includes('enterprise')) return 'enterprise';
+    return null;
+}
+
+// Map a Paystack transaction amount (smallest currency unit) to a plan name
+export function planFromAmount(amount: number, currency: string): 'starter' | 'pro' | 'enterprise' | null {
+    if (currency === 'USD' || currency === 'usd') {
+        const usdCents = amount;
+        if (usdCents === PLAN_PRICES_USD.starter * 100) return 'starter';
+        if (usdCents === PLAN_PRICES_USD.pro * 100) return 'pro';
+        if (usdCents === PLAN_PRICES_USD.enterprise * 100) return 'enterprise';
+        return null;
+    }
+    // NGN — amount is in kobo
+    if (amount === PLAN_PRICES_KOBO.starter) return 'starter';
+    if (amount === PLAN_PRICES_KOBO.pro) return 'pro';
+    if (amount === PLAN_PRICES_KOBO.enterprise) return 'enterprise';
+    return null;
+}
 
 // Plan limits
 export const PLAN_LIMITS = {

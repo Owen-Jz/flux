@@ -1,10 +1,16 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getUserCountry } from '@/lib/geo';
 import { getExchangeRate } from '@/lib/paystack';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
-        const geo = await getUserCountry();
+        // Extract the end-user's IP from proxy headers
+        const forwarded = request.headers.get('x-forwarded-for');
+        const clientIp = forwarded
+            ? forwarded.split(',')[0].trim()
+            : request.headers.get('x-real-ip') || undefined;
+
+        const geo = await getUserCountry(clientIp);
         const exchangeRate = await getExchangeRate();
 
         return NextResponse.json({

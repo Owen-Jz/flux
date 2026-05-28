@@ -8,14 +8,28 @@ import { SubscriptionTrialExpiringEmail } from '@/components/emails/subscription
 import { SubscriptionTrialExpiredEmail } from '@/components/emails/subscription-trial-expired';
 import { SubscriptionTrialStartedEmail } from '@/components/emails/subscription-trial-started';
 
-export async function sendSubscriptionActivatedEmail(user: { email?: string; name?: string }, plan: string) {
+export async function sendSubscriptionActivatedEmail(
+  user: { email?: string; name?: string },
+  plan: string,
+  amount?: number,
+  currency?: string,
+) {
   if (!user.email) return;
 
-  const html = await render(SubscriptionActivatedEmail({ name: user.name ?? '', plan }));
+  const planLabels: Record<string, string> = { starter: 'Individual', pro: 'Entrepreneur', enterprise: 'Business' };
+  const planLabel = planLabels[plan] || plan;
+  const amountStr = amount ? amount.toLocaleString() : undefined;
+
+  const html = await render(SubscriptionActivatedEmail({
+    name: user.name ?? '',
+    plan,
+    amount: amountStr,
+    currency,
+  }));
 
   sendEmail({
     to: user.email,
-    subject: 'Your Flux subscription is now active',
+    subject: `Welcome to Flux ${planLabel} - your subscription is active`,
     html,
   }).catch((error) => {
     console.error('Failed to send subscription activated email:', error);

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
     Cog6ToothIcon,
@@ -37,11 +37,13 @@ interface UserSettingsClientProps {
 
 export function UserSettingsClient({ user, billingParam, actionParam }: UserSettingsClientProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [isPending, startTransition] = useTransition();
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const isBillingCallback = billingParam === 'trial' || billingParam === 'success' || actionParam === 'activate-trial' || !!searchParams.get('trxref') || !!searchParams.get('reference');
     const [activeTab, setActiveTab] = useState<'profile' | 'billing' | 'notifications' | 'danger'>(
-        billingParam === 'trial' || actionParam === 'activate-trial' ? 'billing' : 'profile'
+        isBillingCallback ? 'billing' : 'profile'
     );
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
