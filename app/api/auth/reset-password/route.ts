@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'crypto';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
@@ -58,7 +58,10 @@ export async function POST(request: NextRequest) {
             user.passwordResetExpires = resetExpires;
             await user.save();
 
-            sendPasswordResetEmail(user.email, user.name, resetToken).catch(console.error);
+            // `after()` ensures the reset email is actually sent on Vercel
+            // serverless, where a bare fire-and-forget Promise can be killed
+            // when the function instance recycles after the response.
+            after(() => sendPasswordResetEmail(user.email, user.name, resetToken).catch(console.error));
         }
 
         // Return generic success message

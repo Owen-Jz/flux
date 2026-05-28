@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'crypto';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
@@ -48,8 +48,9 @@ export async function POST(request: NextRequest) {
         user.emailOtpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
         await user.save();
 
-        // Send non-blocking
-        sendOtpEmail(user.email, user.name, rawOtp).catch(console.error);
+        // Send after the response — `after()` keeps it non-blocking while
+        // guaranteeing completion on Vercel serverless.
+        after(() => sendOtpEmail(user.email, user.name, rawOtp).catch(console.error));
 
         return NextResponse.json({ message: 'If this account exists and is unverified, a new code has been sent.' });
     } catch (error) {

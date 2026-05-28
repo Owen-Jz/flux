@@ -124,10 +124,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                                 emailVerified: new Date(),
                             });
                             userId = newUser._id.toString();
-                            // Send welcome email for new Google OAuth accounts (non-blocking)
-                            sendWelcomeEmail(newUser.email, newUser.name).catch((err) =>
-                                console.error('[Auth] Welcome email failed (non-fatal):', err)
-                            );
+                            // Send welcome email for new Google OAuth accounts.
+                            // NextAuth callbacks run outside a Route Handler request
+                            // context, so `after()` from next/server is not available
+                            // here — await directly. The Resend round-trip adds ~500ms
+                            // to the first OAuth sign-in, which is acceptable, and
+                            // awaiting is the only way to guarantee the send actually
+                            // executes on Vercel serverless.
+                            try {
+                                await sendWelcomeEmail(newUser.email, newUser.name);
+                            } catch (err) {
+                                console.error('[Auth] Welcome email failed (non-fatal):', err);
+                            }
                         } catch (creationError) {
                             console.error('[Auth] Error creating user from Google:', creationError);
                             return '/login?error=OAuthCreateAccount';

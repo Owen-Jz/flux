@@ -49,7 +49,7 @@ async function processEmailRetryQueue() {
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   const resend = getResendClient();
   if (!resend) {
-    console.error('CRITICAL: Resend API Key missing. Email not sent to:', to, 'Subject:', subject);
+    console.error('[Resend] CRITICAL: RESEND_API_KEY missing — email dropped', { to, subject });
     return;
   }
 
@@ -63,28 +63,37 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
     });
 
     if (error) {
-      console.error('Resend API Error for email to', to, ':', error);
-      // Add to retry queue with higher severity logging
-      emailRetryQueue.push({ to, subject, html, attempts: 0, lastError: error.message });
-      console.warn(`Email added to retry queue. Queue size: ${emailRetryQueue.length}`);
+      // Resend SDK returns a structured error object instead of throwing on
+      // 4xx responses. Surface every field so the cause is greppable in
+      // Vercel logs (domain unverified, suppressed recipient, invalid key,
+      // rate limit, etc.) — the previous shape printed `[Object]` here.
+      console.error('[Resend] send failed', {
+        to,
+        subject,
+        from: FROM_EMAIL,
+        errorName: (error as { name?: string }).name,
+        errorMessage: (error as { message?: string }).message,
+        errorStatusCode: (error as { statusCode?: number }).statusCode,
+      });
+      emailRetryQueue.push({ to, subject, html, attempts: 0, lastError: (error as { message?: string }).message || 'unknown' });
+      console.warn(`[Resend] retry queue size now ${emailRetryQueue.length}`);
       return;
     }
 
     if (data) {
-      console.log('Email sent successfully:', data.id, 'to:', to);
+      console.log('[Resend] sent', { id: data.id, to, subject });
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error('CRITICAL: Failed to send email to', to, '- Error:', errorMessage);
-    // Add to retry queue
+    console.error('[Resend] CRITICAL: network/SDK threw', { to, subject, errorMessage });
     emailRetryQueue.push({ to, subject, html, attempts: 0, lastError: errorMessage });
-    console.warn(`Email added to retry queue. Queue size: ${emailRetryQueue.length}`);
+    console.warn(`[Resend] retry queue size now ${emailRetryQueue.length}`);
   }
 
   // Trigger retry processing in background (non-blocking)
   if (emailRetryQueue.length > 0) {
     processEmailRetryQueue().catch((err) => {
-      console.error('Background email retry processing failed:', err);
+      console.error('[Resend] background retry processing failed:', err);
     });
   }
 }

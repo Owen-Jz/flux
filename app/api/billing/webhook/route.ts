@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
@@ -95,9 +95,11 @@ export async function POST(request: NextRequest) {
                     }
 
                     await user.save();
-                    sendSubscriptionActivatedEmail(user, user.plan || 'Pro').catch((error) => {
-                        console.error('Failed to send subscription activated email:', error);
-                    });
+                    after(() =>
+                        sendSubscriptionActivatedEmail(user, user.plan || 'Pro').catch((error) => {
+                            console.error('Failed to send subscription activated email:', error);
+                        })
+                    );
                 }
                 break;
             }
@@ -109,9 +111,11 @@ export async function POST(request: NextRequest) {
                 if (user) {
                     user.subscriptionStatus = 'cancelled';
                     await user.save();
-                    sendSubscriptionCancelledEmail(user, subData.cancellation_reason).catch((error) => {
-                        console.error('Failed to send subscription cancelled email:', error);
-                    });
+                    after(() =>
+                        sendSubscriptionCancelledEmail(user, subData.cancellation_reason).catch((error) => {
+                            console.error('Failed to send subscription cancelled email:', error);
+                        })
+                    );
                 }
                 break;
             }
@@ -124,9 +128,11 @@ export async function POST(request: NextRequest) {
                     user.subscriptionStatus = 'inactive';
                     user.plan = 'free';
                     await user.save();
-                    sendSubscriptionDisabledEmail(user).catch((error) => {
-                        console.error('Failed to send subscription disabled email:', error);
-                    });
+                    after(() =>
+                        sendSubscriptionDisabledEmail(user).catch((error) => {
+                            console.error('Failed to send subscription disabled email:', error);
+                        })
+                    );
                 }
                 break;
             }
@@ -154,9 +160,11 @@ export async function POST(request: NextRequest) {
                         // Mark the upgrade timestamp so the dashboard fallback welcome
                         // modal fires if the user never lands on /billing/success.
                         user.lastUpgradeAt = new Date();
-                        sendSubscriptionActivatedEmail(user, user.plan || 'Pro').catch((error) => {
-                            console.error('Failed to send subscription activated email:', error);
-                        });
+                        after(() =>
+                            sendSubscriptionActivatedEmail(user, user.plan || 'Pro').catch((error) => {
+                                console.error('Failed to send subscription activated email:', error);
+                            })
+                        );
                     }
                     await user.save();
                 }
@@ -171,9 +179,11 @@ export async function POST(request: NextRequest) {
                 if (user) {
                     user.subscriptionStatus = 'past_due';
                     await user.save();
-                    sendSubscriptionPastDueEmail(user).catch((error) => {
-                        console.error('Failed to send subscription past due email:', error);
-                    });
+                    after(() =>
+                        sendSubscriptionPastDueEmail(user).catch((error) => {
+                            console.error('Failed to send subscription past due email:', error);
+                        })
+                    );
                 }
                 break;
             }

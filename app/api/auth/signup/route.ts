@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import bcrypt from 'bcryptjs';
@@ -117,8 +117,11 @@ export async function POST(request: NextRequest) {
             email
         );
 
-        // Send OTP verification email (non-blocking)
-        sendOtpEmail(email, trimmedName, rawOtp).catch(console.error);
+        // Send OTP verification email after the response — `after()` keeps the
+        // request non-blocking while guaranteeing the send completes on Vercel
+        // serverless (a plain fire-and-forget Promise gets terminated when the
+        // function instance recycles).
+        after(() => sendOtpEmail(email, trimmedName, rawOtp).catch(console.error));
 
         return NextResponse.json(
             {

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import mongoose from 'mongoose';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
@@ -150,9 +150,11 @@ export async function POST(request: NextRequest) {
         const paidAmount = transactionCurrency === 'USD'
             ? PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD]
             : (transactionAmount ? transactionAmount / 100 : undefined);
-        sendSubscriptionActivatedEmail(user, user.plan, paidAmount, transactionCurrency || 'NGN').catch((error) => {
-            console.error('Failed to send subscription activated email:', error);
-        });
+        after(() =>
+            sendSubscriptionActivatedEmail(user, user.plan, paidAmount, transactionCurrency || 'NGN').catch((error) => {
+                console.error('Failed to send subscription activated email:', error);
+            })
+        );
 
         return NextResponse.json({
             success: true,

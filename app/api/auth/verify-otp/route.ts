@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import crypto from 'crypto';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
@@ -79,8 +79,10 @@ export async function POST(request: NextRequest) {
         user.emailVerificationExpires = undefined;
         await user.save();
 
-        // Send welcome email non-blocking now that the address is confirmed
-        sendWelcomeEmail(user.email, user.name).catch(console.error);
+        // Send welcome email after the response — `after()` survives Vercel
+        // serverless instance recycling that would terminate a bare
+        // fire-and-forget Promise.
+        after(() => sendWelcomeEmail(user.email, user.name).catch(console.error));
 
         return NextResponse.json({ message: 'Email verified successfully. You can now log in.' });
     } catch (error) {
