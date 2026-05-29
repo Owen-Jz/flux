@@ -27,16 +27,6 @@ export interface CachedUser {
   activeWorkspaceId?: string;
 }
 
-export interface PushSubscription {
-  endpoint: string;
-  keys: {
-    p256dh: string;
-    auth: string;
-  };
-  workspaceId?: string;
-  createdAt: number;
-}
-
 const DB_NAME = 'flux-pwa-db';
 const DB_VERSION = 1;
 
@@ -63,10 +53,8 @@ function openDB(): Promise<IDBDatabase> {
         db.createObjectStore('user', { keyPath: 'id' });
       }
 
-      // subscriptions store — keyPath: endpoint
-      if (!db.objectStoreNames.contains('subscriptions')) {
-        db.createObjectStore('subscriptions', { keyPath: 'endpoint' });
-      }
+      // Push subscriptions are persisted in MongoDB via /api/notifications/subscribe,
+      // not IndexedDB — the server is the only thing that can fan them out via VAPID.
     };
 
     request.onsuccess = () => {
@@ -166,44 +154,6 @@ export async function getCachedUser(): Promise<CachedUser | undefined> {
     request.onerror = () => reject(request.error);
     tx.oncomplete = () => { db.close(); resolve(result); };
     tx.onerror = () => { db.close(); reject(tx.error); };
-  });
-}
-
-export async function savePushSubscription(sub: PushSubscription): Promise<void> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('subscriptions', 'readwrite');
-    const store = tx.objectStore('subscriptions');
-    const request = store.put(sub);
-    tx.oncomplete = () => { db.close(); resolve(); };
-    tx.onerror = () => { db.close(); reject(tx.error); };
-    request.onerror = () => reject(request.error);
-  });
-}
-
-export async function getPushSubscriptions(): Promise<PushSubscription[]> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('subscriptions', 'readonly');
-    const store = tx.objectStore('subscriptions');
-    const request = store.getAll();
-    let result: PushSubscription[];
-    request.onsuccess = () => { result = request.result; };
-    request.onerror = () => reject(request.error);
-    tx.oncomplete = () => { db.close(); resolve(result); };
-    tx.onerror = () => { db.close(); reject(tx.error); };
-  });
-}
-
-export async function deletePushSubscription(endpoint: string): Promise<void> {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction('subscriptions', 'readwrite');
-    const store = tx.objectStore('subscriptions');
-    const request = store.delete(endpoint);
-    tx.oncomplete = () => { db.close(); resolve(); };
-    tx.onerror = () => { db.close(); reject(tx.error); };
-    request.onerror = () => reject(request.error);
   });
 }
 

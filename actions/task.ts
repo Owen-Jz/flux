@@ -546,6 +546,25 @@ export async function updateTask(
                         });
                     }
                 }));
+
+                // PUSH: notify task assignees (excluding the adder).
+                const subtaskPushTargets = task.assignees
+                    .map((id: Types.ObjectId) => id.toString())
+                    .filter((id: string) => id !== session.user.id);
+                if (subtaskPushTargets.length > 0) {
+                    const adderName = session.user.name || 'A teammate';
+                    const taskTitle = task.title;
+                    const workspaceSlug = workspace.slug;
+                    const preview = newSubtaskTitles.length === 1
+                        ? newSubtaskTitles[0]
+                        : `${newSubtaskTitles.slice(0, 2).join(', ')}${newSubtaskTitles.length > 2 ? ` and ${newSubtaskTitles.length - 2} more` : ''}`;
+                    after(() => triggerNotification({
+                        title: `New subtask on "${taskTitle}"`,
+                        body: `${adderName} added: ${preview}`,
+                        url: `/${workspaceSlug}/board/${boardSlug}`,
+                        userIds: subtaskPushTargets,
+                    }));
+                }
             }
         }
     }
@@ -907,21 +926,40 @@ export async function addComment(taskId: string, content: string) {
                 }
             }));
 
-            // PUSH NOTIFICATION: notify task assignees (excluding the commenter).
-            const commentPushTargets = task.assignees
-                .map((id: Types.ObjectId) => id.toString())
-                .filter((id: string) => id !== session.user.id);
-            if (commentPushTargets.length > 0) {
-                const commenterName = session.user.name || 'A teammate';
-                const snippet = content.substring(0, 60) + (content.length > 60 ? '…' : '');
-                const taskTitle = task.title;
-                const workspaceSlug = workspace.slug;
-                const boardSlug = board.slug;
+            // PUSH NOTIFICATION: send two distinct pushes so mentioned users see
+            // "X mentioned you" while plain assignees see "New comment".
+            const assigneeIds = task.assignees.map((id: Types.ObjectId) => id.toString());
+            const mentionedIds = await resolveMentionedUserIds(
+                content,
+                workspace.members,
+                session.user.id,
+            );
+            const mentionedSet = new Set(mentionedIds);
+            const assigneePushTargets = uniqueExcluding(
+                assigneeIds.filter((id: string) => !mentionedSet.has(id)),
+                session.user.id,
+            );
+
+            const commenterName = session.user.name || 'A teammate';
+            const snippet = content.substring(0, 60) + (content.length > 60 ? '…' : '');
+            const taskTitle = task.title;
+            const workspaceSlug = workspace.slug;
+            const boardSlug = board.slug;
+
+            if (mentionedIds.length > 0) {
+                after(() => triggerNotification({
+                    title: `${commenterName} mentioned you`,
+                    body: `On "${taskTitle}": ${snippet}`,
+                    url: `/${workspaceSlug}/board/${boardSlug}`,
+                    userIds: mentionedIds,
+                }));
+            }
+            if (assigneePushTargets.length > 0) {
                 after(() => triggerNotification({
                     title: `New comment on "${taskTitle}"`,
                     body: `${commenterName}: ${snippet}`,
                     url: `/${workspaceSlug}/board/${boardSlug}`,
-                    userIds: commentPushTargets,
+                    userIds: assigneePushTargets,
                 }));
             }
         }
@@ -1030,6 +1068,7 @@ export async function likeComment(taskId: string, commentId: string) {
 
     const userIdStr = session.user.id;
     const likeIndex = comment.likes.indexOf(userIdStr);
+    const isAdding = likeIndex === -1;
 
     if (likeIndex > -1) {
         // Unlike - remove user from likes
@@ -1041,8 +1080,26 @@ export async function likeComment(taskId: string, commentId: string) {
 
     await task.save();
 
+    // PUSH: only on like-add, only to the comment author, never to self.
+    if (isAdding) {
+        const commentAuthorId = comment.userId.toString();
+        if (commentAuthorId !== userIdStr) {
+            const likerName = session.user.name || 'Someone';
+            const board = await Board.findById(task.boardId);
+            const boardSlug = board?.slug || 'main';
+            const taskTitle = task.title;
+            const workspaceSlug = workspace.slug;
+            after(() => triggerNotification({
+                title: `${likerName} liked your comment`,
+                body: `On "${taskTitle}"`,
+                url: `/${workspaceSlug}/board/${boardSlug}`,
+                userIds: [commentAuthorId],
+            }));
+        }
+    }
+
     revalidatePath(`/${workspace.slug}`);
-    return { success: true, liked: likeIndex === -1, likesCount: comment.likes.length };
+    return { success: true, liked: isAdding, likesCount: comment.likes.length };
 }
 
 export async function replyToComment(taskId: string, parentCommentId: string, content: string) {
@@ -1074,6 +1131,7 @@ export async function replyToComment(taskId: string, parentCommentId: string, co
     if (!parentComment) {
         throw new Error('Parent comment not found');
     }
+    const parentAuthorId = parentComment.userId.toString();
 
     if (!task.comments) {
         task.comments = [];
@@ -1094,6 +1152,46 @@ export async function replyToComment(taskId: string, parentCommentId: string, co
     const newComment = (updatedTask?.comments as any[]).find(
         (c: any) => c.parentId?.toString() === parentCommentId && c.content === content
     );
+
+    // PUSH NOTIFICATION: parent author ∪ assignees ∪ mentions, split between
+    // "mentioned you" and the standard reply title.
+    const board = await Board.findById(task.boardId);
+    if (board) {
+        const assigneeIds = task.assignees.map((id: Types.ObjectId) => id.toString());
+        const mentionedIds = await resolveMentionedUserIds(
+            content,
+            workspace.members,
+            session.user.id,
+        );
+        const mentionedSet = new Set(mentionedIds);
+        const standardTargets = uniqueExcluding(
+            [parentAuthorId, ...assigneeIds].filter((id: string) => !mentionedSet.has(id)),
+            session.user.id,
+        );
+
+        const replierName = session.user.name || 'A teammate';
+        const snippet = content.substring(0, 60) + (content.length > 60 ? '…' : '');
+        const taskTitle = task.title;
+        const workspaceSlug = workspace.slug;
+        const boardSlug = board.slug;
+
+        if (mentionedIds.length > 0) {
+            after(() => triggerNotification({
+                title: `${replierName} mentioned you`,
+                body: `On "${taskTitle}": ${snippet}`,
+                url: `/${workspaceSlug}/board/${boardSlug}`,
+                userIds: mentionedIds,
+            }));
+        }
+        if (standardTargets.length > 0) {
+            after(() => triggerNotification({
+                title: `${replierName} replied`,
+                body: `On "${taskTitle}": ${snippet}`,
+                url: `/${workspaceSlug}/board/${boardSlug}`,
+                userIds: standardTargets,
+            }));
+        }
+    }
 
     revalidatePath(`/${workspace.slug}`);
 
@@ -1161,6 +1259,7 @@ export async function addReaction(taskId: string, commentId: string, emoji: stri
     const existingReactionIndex = comment.reactions.findIndex(
         (r: { emoji: string; userId: string }) => r.emoji === emoji && r.userId === userIdStr
     );
+    const isAdding = existingReactionIndex === -1;
 
     if (existingReactionIndex > -1) {
         // Remove reaction if already exists
@@ -1171,6 +1270,24 @@ export async function addReaction(taskId: string, commentId: string, emoji: stri
     }
 
     await task.save();
+
+    // PUSH: only when adding a reaction, never to self.
+    if (isAdding) {
+        const commentAuthorId = comment.userId.toString();
+        if (commentAuthorId !== userIdStr) {
+            const reactorName = session.user.name || 'Someone';
+            const board = await Board.findById(task.boardId);
+            const boardSlug = board?.slug || 'main';
+            const taskTitle = task.title;
+            const workspaceSlug = workspace.slug;
+            after(() => triggerNotification({
+                title: `${reactorName} reacted ${emoji}`,
+                body: `On your comment on "${taskTitle}"`,
+                url: `/${workspaceSlug}/board/${boardSlug}`,
+                userIds: [commentAuthorId],
+            }));
+        }
+    }
 
     revalidatePath(`/${workspace.slug}`);
     return { success: true, reactions: comment.reactions };
@@ -1185,6 +1302,42 @@ function extractMentions(content: string): string[] {
         mentions.push(match[1]);
     }
     return mentions;
+}
+
+function escapeForRegex(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Resolve @Name mentions in `content` to userId strings, scoped to a workspace's
+ * members. Matching is case-insensitive and exact (no partial name matching, so
+ * "@John" won't match "Johnny"). Ambiguous names (two members named "John")
+ * notify all matches, mirroring the existing extractMentions behavior.
+ */
+async function resolveMentionedUserIds(
+    content: string,
+    members: Array<{ userId: { toString(): string } }>,
+    excludeUserId: string,
+): Promise<string[]> {
+    const names = extractMentions(content);
+    if (names.length === 0) return [];
+
+    const memberIds = members.map((m) => m.userId.toString());
+    const matchers = names.map((n) => new RegExp(`^${escapeForRegex(n.trim())}$`, 'i'));
+
+    const users = await User.find({
+        _id: { $in: memberIds },
+        $or: matchers.map((rx) => ({ name: rx })),
+    }).select('_id');
+
+    const ids = users.map((u) => u._id.toString()).filter((id) => id !== excludeUserId);
+    return Array.from(new Set(ids));
+}
+
+function uniqueExcluding(ids: string[], excludeId: string): string[] {
+    const set = new Set(ids);
+    set.delete(excludeId);
+    return Array.from(set);
 }
 
 // Get workspace members for @mention autocomplete

@@ -1,4 +1,4 @@
-import * as webPush from 'web-push';
+import webPush, { WebPushError } from 'web-push';
 
 let initialized = false;
 
@@ -21,10 +21,39 @@ export function getVapidPublicKey(): string {
   return process.env.VAPID_PUBLIC_KEY!;
 }
 
+export interface SendResult {
+  ok: boolean;
+  statusCode?: number;
+  expired: boolean;
+  error?: string;
+}
+
+export interface PushPayload {
+  title: string;
+  body: string;
+  url?: string;
+  icon?: string;
+  badge?: string;
+}
+
+export interface PushTarget {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+}
+
 export async function sendPushNotification(
-  subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
-  payload: { title: string; body: string; url?: string }
-): Promise<void> {
+  subscription: PushTarget,
+  payload: PushPayload
+): Promise<SendResult> {
   if (!initialized) initVapid();
-  await webPush.sendNotification(subscription, JSON.stringify(payload));
+  try {
+    await webPush.sendNotification(subscription, JSON.stringify(payload));
+    return { ok: true, expired: false };
+  } catch (err) {
+    if (err instanceof WebPushError) {
+      const expired = err.statusCode === 404 || err.statusCode === 410;
+      return { ok: false, statusCode: err.statusCode, expired, error: err.message };
+    }
+    return { ok: false, expired: false, error: err instanceof Error ? err.message : 'unknown' };
+  }
 }
