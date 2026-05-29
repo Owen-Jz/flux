@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bars4Icon, EllipsisVerticalIcon, TrashIcon, PencilIcon, CheckIcon, CalendarIcon, UserPlusIcon, ArchiveBoxIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, Bars4Icon, EllipsisVerticalIcon, TrashIcon, PencilIcon, CheckIcon, CalendarIcon, UserPlusIcon, ArchiveBoxIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import type { TaskPriority } from '@/models/Task';
@@ -197,7 +197,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                         : 'cursor-pointer shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:scale-[1.01] focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-all duration-200 overflow-visible'
                 }
                 ${isDone ? 'opacity-60 grayscale hover:opacity-80 hover:grayscale-0' : ''}
-                p-3.5 flex flex-col gap-2 origin-center outline-none
+                p-3.5 flex flex-col gap-2 origin-center outline-none min-h-[56px] md:min-h-0
                 ${isDragging ? 'transition-transform duration-150' : ''}
             `}
         >
@@ -207,16 +207,28 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                     <ChatBubbleLeftIcon className="w-2.5 h-2.5" />
                 </div>
             )}
-            {/* Drag Handle */}
+            {/* Drag Handle (desktop hover) */}
             {!isReadOnly && !isEditing && (
                 <div
                     {...listeners}
                     {...attributes}
-                    className="absolute left-0 top-0 bottom-0 w-6 flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity z-10 task-card-drag-handle"
+                    className="absolute left-0 top-0 bottom-0 w-6 hidden md:flex items-center justify-center cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity z-10 task-card-drag-handle"
                     onClick={(e) => e.stopPropagation()}
                     aria-label="Drag to reorder"
                 >
                     <Bars4Icon className="w-4 h-4 text-[var(--text-tertiary)]" />
+                </div>
+            )}
+            {/* Drag Handle (mobile visible affordance) */}
+            {!isReadOnly && !isEditing && !isDragDisabled && (
+                <div
+                    {...listeners}
+                    {...attributes}
+                    className="absolute left-1.5 top-1.5 md:hidden flex items-center justify-center w-7 h-7 rounded-md cursor-grab active:cursor-grabbing z-10 task-card-drag-handle text-[var(--text-secondary)] opacity-60"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label="Drag to reorder"
+                >
+                    <Bars3Icon className="w-4 h-4" />
                 </div>
             )}
             {/* Action Menu Button */}
@@ -414,7 +426,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
 
                 {/* Description */}
                 {task.description && !isEditing && (
-                    <p className="text-[11px] text-[var(--text-secondary)] leading-snug line-clamp-2 break-words">
+                    <p className="text-[11px] text-[var(--text-secondary)] leading-snug line-clamp-3 md:line-clamp-2 break-words">
                         {task.description}
                     </p>
                 )}
@@ -448,7 +460,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
             {/* Footer */}
             <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-[var(--border-subtle)]">
                 {/* Top row: Assignees + Priority */}
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-2 flex-wrap gap-y-1">
                     {/* Assignees */}
                     <div className="flex flex-wrap gap-1.5 task-card-assignees">
                         {task.assignees.length > 0 ? (

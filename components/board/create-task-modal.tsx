@@ -95,20 +95,21 @@ export function CreateTaskModal({
                         className="fixed inset-0 flex items-center justify-center z-50 p-4"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <div className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)]">
+                        <div className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-[calc(100vw-2rem)] md:max-w-lg max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)]">
                             {/* Header */}
-                            <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
+                            <div className="flex items-center justify-between p-4 md:p-6 border-b border-[var(--border-subtle)]">
                                 <h2 className="text-lg font-bold text-[var(--foreground)]">Create New Task</h2>
                                 <button
                                     onClick={onClose}
-                                    className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--background-subtle)] hover:text-[var(--foreground)] transition-colors"
+                                    aria-label="Close"
+                                    className="p-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--background-subtle)] hover:text-[var(--foreground)] transition-colors"
                                 >
                                     <XMarkIcon className="w-5 h-5" />
                                 </button>
                             </div>
 
                             {/* Body */}
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
                                 {/* Column Selection */}
                                 <div>
                                     <label className="block text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-2">
@@ -132,7 +133,7 @@ export function CreateTaskModal({
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
                                         placeholder="Enter task title..."
-                                        className="w-full px-3 py-2.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)]"
+                                        className="w-full px-3 py-2.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] text-[var(--foreground)] text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)]"
                                         autoFocus
                                     />
                                 </div>
@@ -147,7 +148,7 @@ export function CreateTaskModal({
                                         onChange={(e) => setDescription(e.target.value)}
                                         placeholder="Add a description..."
                                         rows={3}
-                                        className="w-full px-3 py-2.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] text-[var(--foreground)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)] resize-none"
+                                        className="w-full px-3 py-2.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] text-[var(--foreground)] text-base md:text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)] resize-none"
                                     />
                                 </div>
 
@@ -181,7 +182,7 @@ export function CreateTaskModal({
                                     <div className="relative">
                                         <button
                                             onClick={() => setShowAssigneeDropdown(!showAssigneeDropdown)}
-                                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] text-sm hover:border-[var(--text-secondary)] transition-colors"
+                                            className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] text-base md:text-sm hover:border-[var(--text-secondary)] transition-colors"
                                         >
                                             <span className="text-[var(--text-secondary)]">
                                                 {selectedAssignees.length === 0
@@ -197,14 +198,14 @@ export function CreateTaskModal({
                                                     initial={{ opacity: 0, y: -10 }}
                                                     animate={{ opacity: 1, y: 0 }}
                                                     exit={{ opacity: 0, y: -10 }}
-                                                    className="absolute top-full left-0 right-0 mt-1 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)] shadow-xl z-10 max-h-48 overflow-y-auto"
+                                                    className="absolute top-full left-0 right-0 mt-1 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)] shadow-xl z-10 max-h-40 md:max-h-48 overflow-y-auto"
                                                 >
                                                     {members.length > 0 ? (
                                                         members.map(member => (
                                                             <button
                                                                 key={member.id}
                                                                 onClick={() => toggleAssignee(member.id)}
-                                                                className={`w-full flex items-center justify-between px-3 py-2.5 text-sm hover:bg-[var(--background-subtle)] transition-colors ${
+                                                                className={`w-full flex items-center justify-between px-3 py-2.5 text-base md:text-sm hover:bg-[var(--background-subtle)] transition-colors ${
                                                                     selectedAssignees.includes(member.id)
                                                                         ? 'bg-[var(--flux-info-bg)] text-[var(--flux-info-text-strong)]'
                                                                         : 'text-[var(--foreground)]'
@@ -283,17 +284,17 @@ export function CreateTaskModal({
                             </div>
 
                             {/* Footer */}
-                            <div className="flex items-center justify-end gap-2 p-4 border-t border-[var(--border-subtle)] bg-[var(--background-subtle)]">
+                            <div className="flex flex-col-reverse md:flex-row md:items-center md:justify-end gap-2 p-4 md:p-6 border-t border-[var(--border-subtle)] bg-[var(--background-subtle)]">
                                 <button
                                     onClick={onClose}
-                                    className="px-4 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
+                                    className="w-full md:w-auto px-4 py-2.5 md:py-2 rounded-lg text-base md:text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleSubmit}
                                     disabled={!title.trim()}
-                                    className="px-4 py-2 rounded-lg text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="w-full md:w-auto px-4 py-2.5 md:py-2 rounded-lg text-base md:text-sm font-medium bg-[var(--brand-primary)] text-white hover:bg-[var(--brand-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Create Task
                                 </button>

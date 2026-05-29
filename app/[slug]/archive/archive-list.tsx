@@ -99,55 +99,90 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
                     </button>
                 </div>
             )}
-            <div className="overflow-x-auto -mx-4 md:mx-0">
-                <table className="w-full text-sm text-left min-w-[500px] md:min-w-[600px]">
-                    <thead className="text-xs uppercase bg-[var(--background-subtle)] border-b border-[var(--border-subtle)]">
-                        <tr>
-                            <th className="px-6 py-3 font-medium">Task</th>
-                            <th className="px-6 py-3 font-medium">Archived Date</th>
-                            <th className="px-6 py-3 font-medium text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--border-subtle)]">
-                        {tasks.map((task) => {
-                            const isPending = actioningIds.has(task.id);
-                            return (
-                                <tr key={task.id} className="hover:bg-[var(--background-subtle)] transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="font-medium text-[var(--foreground)]">{task.title}</div>
-                                        {task.description && (
-                                            <div className="text-[var(--text-secondary)] text-xs mt-0.5 line-clamp-1">{task.description}</div>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-[var(--text-secondary)]">
-                                        {new Date(task.updatedAt).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                            <button
-                                                onClick={() => handleRestore(task)}
-                                                disabled={isPending}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--info-primary)] bg-[var(--info-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--info-primary)] focus-visible:ring-offset-2"
-                                            >
-                                                {isPending ? <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" /> : <ArrowPathIcon className="w-3.5 h-3.5" />}
-                                                Restore
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(task.id)}
-                                                disabled={isPending}
-                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--error-primary)] bg-[var(--error-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)] focus-visible:ring-offset-2"
-                                            >
-                                                <TrashIcon className="w-3.5 h-3.5" />
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+            {/* Mobile card list */}
+            <div className="md:hidden flex flex-col gap-3 p-4">
+                {tasks.map((task) => {
+                    const isPending = actioningIds.has(task.id);
+                    return (
+                        <div key={task.id} className="border border-[var(--border-subtle)] rounded-lg p-4 bg-[var(--background)]">
+                            <div className="font-medium text-[var(--foreground)]">{task.title}</div>
+                            {task.description && (
+                                <div className="text-[var(--text-secondary)] text-xs mt-1 line-clamp-2">{task.description}</div>
+                            )}
+                            <div className="text-xs text-[var(--text-secondary)] mt-2">
+                                Archived {new Date(task.updatedAt).toLocaleDateString()}
+                            </div>
+                            <div className="flex items-center gap-2 mt-3">
+                                <button
+                                    onClick={() => handleRestore(task)}
+                                    disabled={isPending}
+                                    className="inline-flex items-center gap-1.5 px-4 py-2.5 md:px-3 md:py-1.5 text-xs font-medium text-[var(--info-primary)] bg-[var(--info-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--info-primary)] focus-visible:ring-offset-2"
+                                >
+                                    {isPending ? <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" /> : <ArrowPathIcon className="w-3.5 h-3.5" />}
+                                    Restore
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(task.id)}
+                                    disabled={isPending}
+                                    className="inline-flex items-center gap-1.5 px-4 py-2.5 md:px-3 md:py-1.5 text-xs font-medium text-[var(--error-primary)] bg-[var(--error-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)] focus-visible:ring-offset-2"
+                                >
+                                    <TrashIcon className="w-3.5 h-3.5" />
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
+
+            {/* Desktop table */}
+            <table className="hidden md:table w-full text-sm text-left">
+                <thead className="text-xs uppercase bg-[var(--background-subtle)] border-b border-[var(--border-subtle)]">
+                    <tr>
+                        <th className="px-6 py-3 font-medium">Task</th>
+                        <th className="px-6 py-3 font-medium">Archived Date</th>
+                        <th className="px-6 py-3 font-medium text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--border-subtle)]">
+                    {tasks.map((task) => {
+                        const isPending = actioningIds.has(task.id);
+                        return (
+                            <tr key={task.id} className="hover:bg-[var(--background-subtle)] transition-colors">
+                                <td className="px-6 py-4">
+                                    <div className="font-medium text-[var(--foreground)]">{task.title}</div>
+                                    {task.description && (
+                                        <div className="text-[var(--text-secondary)] text-xs mt-0.5 line-clamp-1">{task.description}</div>
+                                    )}
+                                </td>
+                                <td className="px-6 py-4 text-[var(--text-secondary)]">
+                                    {new Date(task.updatedAt).toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                        <button
+                                            onClick={() => handleRestore(task)}
+                                            disabled={isPending}
+                                            className="inline-flex items-center gap-1.5 px-4 py-2.5 md:px-3 md:py-1.5 text-xs font-medium text-[var(--info-primary)] bg-[var(--info-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--info-primary)] focus-visible:ring-offset-2"
+                                        >
+                                            {isPending ? <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" /> : <ArrowPathIcon className="w-3.5 h-3.5" />}
+                                            Restore
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(task.id)}
+                                            disabled={isPending}
+                                            className="inline-flex items-center gap-1.5 px-4 py-2.5 md:px-3 md:py-1.5 text-xs font-medium text-[var(--error-primary)] bg-[var(--error-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)] focus-visible:ring-offset-2"
+                                        >
+                                            <TrashIcon className="w-3.5 h-3.5" />
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        );
+                    })}
+                </tbody>
+            </table>
         </div>
     );
 }

@@ -61,7 +61,7 @@ export function TrialPromptModal({ trialEndsAt, onDismissed }: TrialPromptModalP
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"
                 >
                     <div
-                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/40 backdrop-blur-sm p-4"
                         onClick={handleDismiss}
                     />
 
@@ -70,11 +70,11 @@ export function TrialPromptModal({ trialEndsAt, onDismissed }: TrialPromptModalP
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 10 }}
                         transition={{ duration: 0.3, ease: 'easeOut' }}
-                        className="relative w-full max-w-md overflow-hidden rounded-2xl bg-[var(--surface)] shadow-2xl"
+                        className="relative w-full max-w-[calc(100vw-2rem)] md:max-w-md max-h-[90vh] overflow-y-auto rounded-2xl bg-[var(--surface)] shadow-2xl"
                     >
                         <div className="h-2 bg-gradient-to-r from-[var(--brand-primary)] via-[var(--brand-secondary)] to-[#ec4899]" />
 
-                        <div className="p-6">
+                        <div className="p-4 md:p-6">
                             <div className="flex items-start justify-between mb-4">
                                 <div className="flex items-center gap-3">
                                     <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--brand-primary)] to-[#ec4899] shadow-lg shadow-[var(--brand-primary)]/30">
@@ -91,7 +91,7 @@ export function TrialPromptModal({ trialEndsAt, onDismissed }: TrialPromptModalP
                                 </div>
                                 <button
                                     onClick={handleDismiss}
-                                    className="p-2 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--background-subtle)] transition-colors"
+                                    className="p-2.5 rounded-lg text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] hover:bg-[var(--background-subtle)] transition-colors"
                                     aria-label="Dismiss"
                                 >
                                     <XMarkIcon className="w-5 h-5" />
@@ -111,16 +111,16 @@ export function TrialPromptModal({ trialEndsAt, onDismissed }: TrialPromptModalP
                                 ))}
                             </div>
 
-                            <div className="flex gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <button
                                     onClick={handleActivateTrial}
-                                    className="flex-1 px-4 py-3 bg-gradient-to-r from-[var(--brand-primary)] to-[#ec4899] text-white text-sm font-semibold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-[var(--brand-primary)]/20"
+                                    className="w-full sm:flex-1 px-4 py-3 bg-gradient-to-r from-[var(--brand-primary)] to-[#ec4899] text-white text-base md:text-sm font-semibold rounded-xl hover:opacity-90 transition-all shadow-lg shadow-[var(--brand-primary)]/20"
                                 >
                                     Activate My Trial
                                 </button>
                                 <button
                                     onClick={handleDismiss}
-                                    className="px-4 py-3 bg-[var(--background-subtle)] text-[var(--text-secondary)] text-sm font-medium rounded-xl hover:bg-[var(--background-subtle)]/80 transition-colors border border-[var(--border-subtle)]"
+                                    className="w-full sm:w-auto px-4 py-3 bg-[var(--background-subtle)] text-[var(--text-secondary)] text-base md:text-sm font-medium rounded-xl hover:bg-[var(--background-subtle)]/80 transition-colors border border-[var(--border-subtle)]"
                                 >
                                     Maybe Later
                                 </button>

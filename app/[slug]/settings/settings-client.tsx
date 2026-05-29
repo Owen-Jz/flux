@@ -9,7 +9,7 @@ import { deleteWorkspace } from '@/actions/access-control';
 import { BillingSection } from '@/components/billing/billing-section';
 import { WorkspaceIconPicker } from '@/components/workspace/workspace-icon-picker';
 import { NotificationPermissionBanner } from '@/components/pwa/notification-permission-banner';
-import { subscribeToPush, unsubscribeFromPush, isPushSupported } from '@/lib/pwa/push-manager';
+import { subscribeToPush, unsubscribeFromPush, isPushSupported, requiresPWAInstallForPush } from '@/lib/pwa/push-manager';
 import { ApiKeysTable } from '@/components/settings/api-keys-table';
 import { WebhooksTable } from '@/components/settings/webhooks-table';
 
@@ -131,8 +131,24 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                 await unsubscribeFromPush();
                 setPushEnabled(false);
             } else {
-                await subscribeToPush(workspace.slug);
-                setPushEnabled(true);
+                if (requiresPWAInstallForPush()) {
+                    setPushEnabled(false);
+                    setError('On iPhone/iPad, install Flux to the Home Screen first (Share → Add to Home Screen) to enable notifications.');
+                    return;
+                }
+                const result = await subscribeToPush(workspace.slug);
+                if (result.ok) {
+                    setPushEnabled(true);
+                } else {
+                    setPushEnabled(false);
+                    if (result.reason === 'permission-denied') {
+                        setError('Notification permission was denied. Enable it in your browser settings.');
+                    } else if (result.reason === 'unsupported') {
+                        setError('This browser does not support push notifications.');
+                    } else {
+                        setError('Could not enable notifications. Please try again.');
+                    }
+                }
             }
         } catch (err) {
             setPushEnabled(wasEnabled); // revert
@@ -159,55 +175,57 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex gap-2 mb-6 border-b border-[var(--border-subtle)] pb-4">
-                <button
-                    onClick={() => setActiveTab('general')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        activeTab === 'general'
-                            ? 'bg-[var(--brand-primary)] text-white'
-                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
-                    }`}
-                >
-                    <Cog6ToothIcon className="w-4 h-4" />
-                    General
-                </button>
-                <button
-                    onClick={() => setActiveTab('billing')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        activeTab === 'billing'
-                            ? 'bg-[var(--brand-primary)] text-white'
-                            : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
-                    }`}
-                >
-                    <CreditCardIcon className="w-4 h-4" />
-                    Billing
-                </button>
-                {isPro && (
-                    <>
-                        <button
-                            onClick={() => setActiveTab('api-keys')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                activeTab === 'api-keys'
-                                    ? 'bg-[var(--brand-primary)] text-white'
-                                    : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
-                            }`}
-                        >
-                            <KeyIcon className="w-4 h-4" />
-                            API Keys
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('webhooks')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                activeTab === 'webhooks'
-                                    ? 'bg-[var(--brand-primary)] text-white'
-                                    : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
-                            }`}
-                        >
-                            <PuzzlePieceIcon className="w-4 h-4" />
-                            Webhooks
-                        </button>
-                    </>
-                )}
+            <div className="overflow-x-auto -mx-4 px-4 mb-6 border-b border-[var(--border-subtle)] pb-4">
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setActiveTab('general')}
+                        className={`flex-shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            activeTab === 'general'
+                                ? 'bg-[var(--brand-primary)] text-white'
+                                : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
+                        }`}
+                    >
+                        <Cog6ToothIcon className="w-4 h-4" />
+                        General
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('billing')}
+                        className={`flex-shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            activeTab === 'billing'
+                                ? 'bg-[var(--brand-primary)] text-white'
+                                : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
+                        }`}
+                    >
+                        <CreditCardIcon className="w-4 h-4" />
+                        Billing
+                    </button>
+                    {isPro && (
+                        <>
+                            <button
+                                onClick={() => setActiveTab('api-keys')}
+                                className={`flex-shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    activeTab === 'api-keys'
+                                        ? 'bg-[var(--brand-primary)] text-white'
+                                        : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
+                                }`}
+                            >
+                                <KeyIcon className="w-4 h-4" />
+                                API Keys
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('webhooks')}
+                                className={`flex-shrink-0 whitespace-nowrap flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    activeTab === 'webhooks'
+                                        ? 'bg-[var(--brand-primary)] text-white'
+                                        : 'text-[var(--text-secondary)] hover:bg-[var(--surface)]'
+                                }`}
+                            >
+                                <PuzzlePieceIcon className="w-4 h-4" />
+                                Webhooks
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
 
             {activeTab === 'webhooks' ? (
@@ -255,11 +273,12 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                         <button
                             onClick={handleTogglePublicAccess}
                             disabled={isPending}
-                            className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${publicAccess ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-subtle)]'
+                            aria-label="Toggle public access"
+                            className={`w-14 h-7 md:w-12 md:h-6 rounded-full relative transition-colors cursor-pointer flex-shrink-0 ${publicAccess ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-subtle)]'
                                 } ${isPending ? 'opacity-50' : ''}`}
                         >
                             <div
-                                className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${publicAccess ? 'right-1' : 'left-1'
+                                className={`absolute top-1 bottom-1 w-5 md:w-4 rounded-full bg-white transition-all ${publicAccess ? 'right-1' : 'left-1'
                                     }`}
                             />
                         </button>
@@ -339,7 +358,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                             <p className="text-xs text-[var(--text-secondary)] mt-1 mb-4">
                                 Choose a primary color for this workspace's dashboard and interface.
                             </p>
-                            <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                            <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 md:gap-3">
                                 {BRAND_COLORS.map((color) => (
                                     <button
                                         key={color.value}

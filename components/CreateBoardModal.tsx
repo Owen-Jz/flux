@@ -63,11 +63,12 @@ export default function CreateBoardModal({ workspaceSlug, onClose, onSuccess }: 
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl w-full max-w-md p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl w-full max-w-[calc(100vw-2rem)] md:max-w-md p-4 md:p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-[var(--text-secondary)] hover:text-[var(--foreground)]"
+                    aria-label="Close"
+                    className="absolute top-3 right-3 p-2.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--background-subtle)] transition-colors"
                 >
                     <XMarkIcon className="w-5 h-5" />
                 </button>
@@ -95,7 +96,7 @@ export default function CreateBoardModal({ workspaceSlug, onClose, onSuccess }: 
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="e.g., Marketing, Finance, Development"
-                            className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border-subtle)] text-[var(--foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/50 transition-all placeholder-[var(--text-secondary)]/50"
+                            className="w-full px-3 py-2.5 md:py-2 bg-[var(--background)] border border-[var(--border-subtle)] text-[var(--foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/50 transition-all placeholder-[var(--text-secondary)]/50 text-base md:text-sm"
                             required
                             autoFocus
                         />
@@ -108,7 +109,7 @@ export default function CreateBoardModal({ workspaceSlug, onClose, onSuccess }: 
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Brief description of this board's purpose..."
                             rows={2}
-                            className="w-full px-3 py-2 bg-[var(--background)] border border-[var(--border-subtle)] text-[var(--foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/50 transition-all placeholder-[var(--text-secondary)]/50 resize-none"
+                            className="w-full px-3 py-2.5 md:py-2 bg-[var(--background)] border border-[var(--border-subtle)] text-[var(--foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/50 transition-all placeholder-[var(--text-secondary)]/50 resize-none text-base md:text-sm"
                         />
                     </div>
 
@@ -134,18 +135,18 @@ export default function CreateBoardModal({ workspaceSlug, onClose, onSuccess }: 
                         </p>
                     )}
 
-                    <div className="flex justify-end gap-3 pt-2">
+                    <div className="flex flex-col-reverse md:flex-row md:justify-end gap-3 pt-2">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="px-4 py-2 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                            className="w-full md:w-auto px-4 py-2.5 md:py-2 text-base md:text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading || !name.trim()}
-                            className="px-4 py-2 text-sm font-medium bg-[var(--brand-primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center gap-2 transition-all shadow-lg shadow-[var(--brand-primary)]/20"
+                            className="w-full md:w-auto px-4 py-2.5 md:py-2 text-base md:text-sm font-medium bg-[var(--brand-primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-lg shadow-[var(--brand-primary)]/20"
                         >
                             {isLoading ? (
                                 <>

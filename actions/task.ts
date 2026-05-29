@@ -1,5 +1,6 @@
 'use server';
 
+import { after } from 'next/server';
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Task, TaskStatus, TaskPriority } from '@/models/Task';
@@ -125,6 +126,19 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
                     html,
                 });
             }
+        }));
+    }
+
+    // PUSH: notify assignees other than the creator.
+    const assigneeIds = (data.assignees && data.assignees.length > 0 ? data.assignees : [session.user.id]);
+    const pushTargets = assigneeIds.filter((id) => id !== session.user.id);
+    if (pushTargets.length > 0) {
+        const creatorName = session.user.name || 'A teammate';
+        after(() => triggerNotification({
+            title: 'Task assigned to you',
+            body: `${creatorName} created "${data.title}" in ${workspace.name}`,
+            url: `/${workspace.slug}/board/${boardSlug}`,
+            userIds: pushTargets,
         }));
     }
 
@@ -317,8 +331,9 @@ export async function updateTaskPosition(
     // Check if user is an assignee
     const isAssignee = task.assignees.some((id: Types.ObjectId) => id.toString() === session.user.id);
 
-    if (!hasRole(member, 'ADMIN', 'EDITOR') && !isAssignee) {
-        throw new Error('You do not have permission to update tasks');
+    // Only admins can move any card; everyone else can only move cards assigned to them
+    if (!hasRole(member, 'ADMIN') && !isAssignee) {
+        throw new Error('You can only move tasks assigned to you');
     }
 
     const previousStatus = task.status;
@@ -395,6 +410,22 @@ export async function updateTaskPosition(
             workspace._id.toString(),
             { taskId: task._id.toString(), boardId: task.boardId.toString(), workspaceId: workspace._id.toString(), oldStatus: previousStatus, newStatus, title: task.title }
         ).catch(console.error);
+
+        // PUSH: notify assignees (excluding the mover).
+        const assigneePushTargets = task.assignees
+            .map((id: Types.ObjectId) => id.toString())
+            .filter((id: string) => id !== session.user.id);
+        if (assigneePushTargets.length > 0 && board) {
+            const taskTitle = task.title;
+            const boardSlug = board.slug;
+            const workspaceSlug = workspace.slug;
+            after(() => triggerNotification({
+                title: 'Task moved',
+                body: `${taskTitle} → ${newStatus}`,
+                url: `/${workspaceSlug}/board/${boardSlug}`,
+                userIds: assigneePushTargets,
+            }));
+        }
     }
 
     revalidatePath(`/${workspace.slug}`);
@@ -559,15 +590,19 @@ export async function updateTask(
                 }
             }));
 
-            // PUSH NOTIFICATION: Notify each NEW assignee
-            for (const assigneeId of newAssignees) {
-                triggerNotification({
-                    title: 'Task assigned to you',
-                    body: `${task.title} in ${board?.name || 'a board'}`,
-                    url: `/${workspace.slug}/board/${boardSlug}`,
-                    workspaceId: workspace._id.toString(),
-                });
-            }
+            // PUSH NOTIFICATION: target the NEW assignees only (single fanout, not N broadcasts).
+            const assignerName = session.user.name || 'A teammate';
+            const taskTitle = task.title;
+            const boardName = board?.name || 'a board';
+            const workspaceSlug = workspace.slug;
+            const actorId = session.user.id;
+            after(() => triggerNotification({
+                title: 'Task assigned to you',
+                body: `${assignerName} assigned "${taskTitle}" in ${boardName}`,
+                url: `/${workspaceSlug}/board/${boardSlug}`,
+                userIds: newAssignees,
+                excludeUserId: actorId,
+            }));
         }
     }
 
@@ -617,13 +652,22 @@ export async function updateTask(
                 }));
             }
 
-            // PUSH NOTIFICATION: Status change broadcast to members
-            triggerNotification({
-                title: 'Task updated',
-                body: `${task.title} → ${data.status}`,
-                url: `/${workspace.slug}/board/${board.slug}`,
-                workspaceId: workspace._id.toString(),
-            });
+            // PUSH NOTIFICATION: target assignees (excluding the actor).
+            const statusPushTargets = task.assignees
+                .map((id: Types.ObjectId) => id.toString())
+                .filter((id: string) => id !== session.user.id);
+            if (statusPushTargets.length > 0) {
+                const taskTitle = task.title;
+                const newStatus = data.status;
+                const workspaceSlug = workspace.slug;
+                const boardSlug = board.slug;
+                after(() => triggerNotification({
+                    title: 'Task updated',
+                    body: `${taskTitle} → ${newStatus}`,
+                    url: `/${workspaceSlug}/board/${boardSlug}`,
+                    userIds: statusPushTargets,
+                }));
+            }
         }
 
         // Log general update (title changes, etc)
@@ -863,13 +907,23 @@ export async function addComment(taskId: string, content: string) {
                 }
             }));
 
-            // PUSH NOTIFICATION: Comment added
-            triggerNotification({
-                title: 'New comment',
-                body: `${session.user.name}: ${content.substring(0, 50)}${content.length > 50 ? '...' : ''}`,
-                url: `/${workspace.slug}/board/${board.slug}`,
-                workspaceId: workspace._id.toString(),
-            });
+            // PUSH NOTIFICATION: notify task assignees (excluding the commenter).
+            const commentPushTargets = task.assignees
+                .map((id: Types.ObjectId) => id.toString())
+                .filter((id: string) => id !== session.user.id);
+            if (commentPushTargets.length > 0) {
+                const commenterName = session.user.name || 'A teammate';
+                const snippet = content.substring(0, 60) + (content.length > 60 ? '…' : '');
+                const taskTitle = task.title;
+                const workspaceSlug = workspace.slug;
+                const boardSlug = board.slug;
+                after(() => triggerNotification({
+                    title: `New comment on "${taskTitle}"`,
+                    body: `${commenterName}: ${snippet}`,
+                    url: `/${workspaceSlug}/board/${boardSlug}`,
+                    userIds: commentPushTargets,
+                }));
+            }
         }
     }
 

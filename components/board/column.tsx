@@ -12,6 +12,8 @@ interface ColumnProps {
     tasks: TaskData[];
     isReadOnly?: boolean;
     isDragDisabled?: boolean;
+    isAdmin?: boolean;
+    currentUserId?: string;
     onAddTask?: () => void;
     onUpdateTask?: (taskId: string, data: Partial<TaskData>) => void;
     onDeleteTask?: (taskId: string) => void;
@@ -36,6 +38,8 @@ export function Column({
     tasks,
     isReadOnly = false,
     isDragDisabled = false,
+    isAdmin = false,
+    currentUserId,
     onAddTask,
     onUpdateTask,
     onDeleteTask,
@@ -64,7 +68,7 @@ export function Column({
                     {id === 'DONE' && tasks.length > 0 && !isReadOnly && (
                         <button
                             onClick={() => onArchiveAll?.(tasks.map(t => t.id))}
-                            className="p-2 rounded-lg hover:bg-[var(--background-subtle)] transition-colors group"
+                            className="p-2 md:p-1.5 min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 flex items-center justify-center rounded-lg hover:bg-[var(--background-subtle)] transition-colors group"
                             title="Archive all tasks"
                         >
                             <ArchiveBoxIcon className="w-3.5 h-3.5 text-[var(--text-secondary)] group-hover:text-emerald-600 transition-colors" />
@@ -73,7 +77,7 @@ export function Column({
                     {!isReadOnly && (
                         <button
                             onClick={onAddTask}
-                            className="add-task-btn p-2 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
+                            className="add-task-btn p-2 md:p-1.5 min-w-[40px] min-h-[40px] md:min-w-0 md:min-h-0 flex items-center justify-center rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
                             id={`column-${id}-add-task`}
                         >
                             <PlusIcon className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
@@ -85,7 +89,7 @@ export function Column({
             {/* Task List - scrollable container */}
             <div
                 ref={setNodeRef}
-                className={`flex-1 flex flex-col gap-2 relative p-1.5 rounded-xl transition-all duration-200 min-h-[100px] overflow-y-auto overflow-x-visible ${
+                className={`flex-1 flex flex-col gap-2 relative p-1.5 rounded-xl transition-all duration-200 min-h-[60px] md:min-h-[100px] overflow-y-auto overflow-x-visible ${
                     isOver
                         ? 'bg-[var(--brand-primary)]/10 ring-2 ring-[var(--brand-primary)]/30 scale-[1.01]'
                         : 'bg-[var(--background-subtle)]/50'
@@ -105,7 +109,7 @@ export function Column({
                                 key={task.id}
                                 task={task}
                                 isReadOnly={isReadOnly}
-                                isDragDisabled={isDragDisabled}
+                                isDragDisabled={isDragDisabled || (!isAdmin && !task.assignees.some(a => a.id === currentUserId))}
                                 onUpdate={onUpdateTask}
                                 onDelete={onDeleteTask}
                                 members={members}

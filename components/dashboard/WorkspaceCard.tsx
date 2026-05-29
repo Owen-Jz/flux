@@ -138,7 +138,7 @@ export function WorkspaceCard({
                             <h3 className="font-semibold text-[var(--text-primary)] text-base truncate group-hover:text-[var(--flux-brand-primary)] transition-colors">
                                 {name}
                             </h3>
-                            <span className="opacity-0 group-hover:opacity-100 translate-x-[-8px] group-hover:translate-x-0 transition-all text-[var(--text-tertiary)] flex-shrink-0">
+                            <span className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:translate-x-[-8px] md:group-hover:translate-x-0 transition-all text-[var(--text-tertiary)] flex-shrink-0">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                                 </svg>

@@ -28,7 +28,7 @@ export default async function ArchivePage({
                         Archive
                     </h1>
                 </div>
-                <p className="text-[var(--text-secondary)] text-base md:text-lg max-w-2xl font-normal ml-14">
+                <p className="text-[var(--text-secondary)] text-base md:text-lg max-w-2xl font-normal md:ml-14">
                     View and restore tasks that have been archived from your boards.
                 </p>
             </div>

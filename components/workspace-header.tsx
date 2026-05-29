@@ -172,7 +172,7 @@ export function WorkspaceHeader() {
     if (!workspaceSlug) return null;
 
     return (
-        <div className="hidden md:flex items-center gap-2">
+        <div className="flex items-center gap-2 px-3 md:px-6">
             {/* Comments Button */}
             <div className="relative">
                 <button
@@ -180,8 +180,11 @@ export function WorkspaceHeader() {
                         setShowComments(!showComments);
                         setShowNotifications(false);
                     }}
-                    className="relative p-2.5 rounded-xl bg-[var(--surface)] border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group"
+                    className="relative p-2.5 min-h-[44px] min-w-[44px] rounded-xl bg-[var(--surface)] border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group flex items-center justify-center"
                     title="Recent Comments"
+                    aria-label="Recent comments"
+                    aria-expanded={showComments}
+                    aria-haspopup="true"
                 >
                     <ChatBubbleLeftRightIcon className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
                 </button>
@@ -198,13 +201,14 @@ export function WorkspaceHeader() {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute right-0 top-full mt-2 w-96 bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-subtle)] z-50 overflow-hidden"
+                                className="absolute right-0 top-full mt-2 w-[calc(100vw-1.5rem)] max-w-sm md:w-96 bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-subtle)] z-50 overflow-hidden"
                             >
                                 <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
                                     <h3 className="font-bold text-[var(--text-primary)]">Recent Comments</h3>
                                     <button
                                         onClick={() => setShowComments(false)}
-                                        className="p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
+                                        aria-label="Close comments"
+                                        className="p-2.5 min-h-[40px] min-w-[40px] rounded-lg hover:bg-[var(--background-subtle)] transition-colors flex items-center justify-center"
                                     >
                                         <XMarkIcon className="w-4 h-4 text-[var(--text-tertiary)]" />
                                     </button>
@@ -266,8 +270,11 @@ export function WorkspaceHeader() {
                         setShowNotifications(!showNotifications);
                         setShowComments(false);
                     }}
-                    className="relative p-2.5 rounded-xl bg-[var(--surface)] border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group"
+                    className="relative p-2.5 min-h-[44px] min-w-[44px] rounded-xl bg-[var(--surface)] border border-[var(--border-subtle)] shadow-sm hover:shadow-md hover:border-[var(--border-default)] transition-all group flex items-center justify-center"
                     title="Notifications"
+                    aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'}
+                    aria-expanded={showNotifications}
+                    aria-haspopup="true"
                 >
                     <BellIcon className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--brand-primary)] transition-colors" />
                     {unreadCount > 0 && (
@@ -289,7 +296,7 @@ export function WorkspaceHeader() {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: 10, scale: 0.95 }}
                                 transition={{ duration: 0.2 }}
-                                className="absolute right-0 top-full mt-2 w-96 bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-subtle)] z-50 overflow-hidden"
+                                className="absolute right-0 top-full mt-2 w-[calc(100vw-1.5rem)] max-w-sm md:w-96 bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-subtle)] z-50 overflow-hidden"
                             >
                                 <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
                                     <h3 className="font-bold text-[var(--text-primary)]">Activity Log</h3>
@@ -304,7 +311,8 @@ export function WorkspaceHeader() {
                                         )}
                                         <button
                                             onClick={() => setShowNotifications(false)}
-                                            className="p-1 rounded-lg hover:bg-[var(--background-subtle)] transition-colors"
+                                            aria-label="Close notifications"
+                                            className="p-2.5 min-h-[40px] min-w-[40px] rounded-lg hover:bg-[var(--background-subtle)] transition-colors flex items-center justify-center"
                                         >
                                             <XMarkIcon className="w-4 h-4 text-[var(--text-tertiary)]" />
                                         </button>

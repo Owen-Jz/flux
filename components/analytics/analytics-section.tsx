@@ -167,7 +167,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
                             Task Completion Trend
                         </h3>
                     </div>
-                    <div className="h-48">
+                    <div className="h-40 md:h-48">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={analytics.taskTrend}>
                                 <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" />
@@ -215,7 +215,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
                             Team Velocity
                         </h3>
                     </div>
-                    <div className="h-48">
+                    <div className="h-40 md:h-48">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={analytics.velocity}>
                                 <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-slate-700" />
@@ -253,7 +253,7 @@ export function AnalyticsSection({ analytics }: AnalyticsSectionProps) {
                             Task Distribution
                         </h3>
                     </div>
-                    <div className="h-48">
+                    <div className="h-40 md:h-48">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie

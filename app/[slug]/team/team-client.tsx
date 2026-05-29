@@ -91,7 +91,7 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                                 <p className="font-medium text-[var(--foreground)]">
                                     {request.user.name}
                                 </p>
-                                <p className="text-sm text-[var(--text-secondary)] truncate max-w-[180px]">
+                                <p className="text-sm text-[var(--text-secondary)] truncate max-w-[200px] sm:max-w-none">
                                     {request.user.email}
                                 </p>
                             </div>
@@ -112,7 +112,8 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                                 <button
                                     onClick={() => handleAction(request.id, 'approve')}
                                     disabled={isPending}
-                                    className="p-2 rounded-lg bg-[var(--success-primary)] text-[var(--success-text-strong)] hover:opacity-90 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--success-primary)] focus-visible:ring-offset-2"
+                                    aria-label="Approve access request"
+                                    className="p-2.5 md:p-2 rounded-lg bg-[var(--success-primary)] text-[var(--success-text-strong)] hover:opacity-90 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--success-primary)] focus-visible:ring-offset-2"
                                     title="Approve"
                                 >
                                     {processingId === request.id ? (
@@ -124,7 +125,8 @@ export function TeamClient({ accessRequests, slug }: TeamClientProps) {
                                 <button
                                     onClick={() => handleAction(request.id, 'deny')}
                                     disabled={isPending}
-                                    className="p-2 rounded-lg bg-[var(--error-primary)] text-white hover:opacity-90 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)] focus-visible:ring-offset-2"
+                                    aria-label="Deny access request"
+                                    className="p-2.5 md:p-2 rounded-lg bg-[var(--error-primary)] text-white hover:opacity-90 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)] focus-visible:ring-offset-2"
                                     title="Deny"
                                 >
                                     <XMarkIcon className="w-4 h-4" />

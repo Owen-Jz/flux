@@ -88,7 +88,7 @@ export default function BoardGrid({ workspaceSlug, initialBoards, canEdit }: Boa
                                         {board.name}
                                     </h3>
                                     {board.description && (
-                                        <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-2 hidden sm:block">
+                                        <p className="text-sm text-[var(--text-secondary)] mt-1 line-clamp-1 sm:line-clamp-2">
                                             {board.description}
                                         </p>
                                     )}

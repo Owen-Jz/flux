@@ -292,7 +292,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                 <div className="flex-1 min-w-0 w-full">
                                     <div className="flex flex-wrap items-center gap-2 mb-1">
                                         <h3 className="font-medium text-[var(--foreground)] truncate">{issue.title}</h3>
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${getPriorityColor(issue.priority)}`}>
+                                        <span className={`px-2 py-0.5 rounded text-xs font-bold border uppercase tracking-wider ${getPriorityColor(issue.priority)}`}>
                                             {issue.priority}
                                         </span>
                                     </div>
@@ -310,7 +310,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                         )}
                                     </div>
                                 </div>
-                                <div className="shrink-0 flex items-center gap-2 w-full sm:w-auto">
+                                <div className="shrink-0 flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                                     <select
                                         value=""
                                         onClick={(e) => e.stopPropagation()}
@@ -320,7 +320,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                                 if (board) handleMoveToBoard(issue._id, board.id, board.name);
                                             }
                                         }}
-                                        className="bg-[var(--surface)] border border-[var(--border-subtle)] text-xs font-medium rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors flex-1 sm:flex-none"
+                                        className="bg-[var(--surface)] border border-[var(--border-subtle)] text-sm md:text-xs font-medium rounded-lg px-2 py-2 md:py-1 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors flex-1 sm:flex-none"
                                     >
                                         <option value="" disabled>Move</option>
                                         {boards.map(b => (
@@ -331,7 +331,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                         value={issue.status}
                                         onClick={(e) => e.stopPropagation()}
                                         onChange={(e) => handleStatusChange(issue._id, e.target.value)}
-                                        className="bg-[var(--surface)] border border-[var(--border-subtle)] text-xs font-medium rounded-lg px-2 py-1.5 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors flex-1 sm:flex-none"
+                                        className="bg-[var(--surface)] border border-[var(--border-subtle)] text-sm md:text-xs font-medium rounded-lg px-2 py-2 md:py-1 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors flex-1 sm:flex-none"
                                     >
                                         <option value="OPEN">Open</option>
                                         <option value="IN_PROGRESS">In Progress</option>

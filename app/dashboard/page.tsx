@@ -120,7 +120,7 @@ export default async function DashboardPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8 max-w-xl">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8 max-w-xl">
                         <div className="px-4 py-3 rounded-xl bg-[var(--flux-surface)] border border-[var(--flux-border-subtle)] hover:border-[var(--flux-brand-primary)]/30 transition-colors">
                             <p className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">{workspaces.length}</p>
                             <p className="text-xs text-[var(--text-tertiary)] mt-0.5">

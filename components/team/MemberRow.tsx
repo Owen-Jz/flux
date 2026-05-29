@@ -107,7 +107,8 @@ export function MemberRow({ member, slug, isAdmin, onError }: MemberRowProps) {
                                 <button
                                     onClick={handleSave}
                                     disabled={isPending}
-                                    className="p-2 text-[var(--success-primary)] hover:bg-[var(--success-bg)] rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--success-primary)]"
+                                    aria-label="Save role change"
+                                    className="p-2.5 text-[var(--success-primary)] hover:bg-[var(--success-bg)] rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--success-primary)]"
                                     title="Save"
                                 >
                                     {isPending ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <CheckIcon className="w-4 h-4" />}
@@ -115,7 +116,8 @@ export function MemberRow({ member, slug, isAdmin, onError }: MemberRowProps) {
                                 <button
                                     onClick={() => setIsEditing(false)}
                                     disabled={isPending}
-                                    className="p-2 text-[var(--text-tertiary)] hover:bg-[var(--background-subtle)] rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
+                                    aria-label="Cancel edit"
+                                    className="p-2.5 text-[var(--text-tertiary)] hover:bg-[var(--background-subtle)] rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
                                     title="Cancel"
                                 >
                                     <XMarkIcon className="w-4 h-4" />
@@ -124,7 +126,8 @@ export function MemberRow({ member, slug, isAdmin, onError }: MemberRowProps) {
                                 <button
                                     onClick={handleRemove}
                                     disabled={isPending}
-                                    className="p-2 text-[var(--error-primary)] hover:bg-[var(--error-bg)] rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)]"
+                                    aria-label="Remove member"
+                                    className="p-2.5 text-[var(--error-primary)] hover:bg-[var(--error-bg)] rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)]"
                                     title="Remove Member"
                                 >
                                     <TrashIcon className="w-4 h-4" />

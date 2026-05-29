@@ -176,10 +176,10 @@ export function AIDecomposeModal({
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
-                        className="fixed inset-0 m-auto max-w-2xl h-fit max-h-[90vh] overflow-hidden bg-[var(--surface)] rounded-2xl shadow-2xl z-50 border border-[var(--border-subtle)]"
+                        className="fixed inset-4 sm:inset-0 sm:m-auto w-auto sm:max-w-2xl h-fit max-h-[90vh] overflow-hidden bg-[var(--surface)] rounded-2xl shadow-2xl z-50 border border-[var(--border-subtle)]"
                     >
                         {/* Header */}
-                        <div className="relative px-6 py-5 border-b border-[var(--border-subtle)] bg-gradient-to-r from-[var(--brand-primary)]/5 to-purple-500/5">
+                        <div className="relative px-4 md:px-6 py-4 md:py-5 border-b border-[var(--border-subtle)] bg-gradient-to-r from-[var(--brand-primary)]/5 to-purple-500/5">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--brand-primary)] to-purple-600 flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/20">
@@ -196,7 +196,8 @@ export function AIDecomposeModal({
                                 </div>
                                 <button
                                     onClick={handleClose}
-                                    className="p-2 rounded-xl hover:bg-[var(--background-subtle)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
+                                    aria-label="Close"
+                                    className="p-2.5 rounded-xl hover:bg-[var(--background-subtle)] text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
                                 >
                                     <XMarkIcon className="w-5 h-5" />
                                 </button>
@@ -204,7 +205,7 @@ export function AIDecomposeModal({
                         </div>
 
                         {/* Content */}
-                        <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-140px)]">
+                        <div className="p-4 md:p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-140px)]">
                             {!result ? (
                                 <>
                                     {/* Task Title */}
@@ -218,7 +219,7 @@ export function AIDecomposeModal({
                                             value={taskTitle}
                                             onChange={(e) => setTaskTitle(e.target.value)}
                                             placeholder="e.g., Build user authentication system"
-                                            className="input text-sm"
+                                            className="input text-base md:text-sm"
                                             maxLength={120}
                                             autoFocus
                                         />
@@ -237,7 +238,7 @@ export function AIDecomposeModal({
                                             value={taskDescription}
                                             onChange={(e) => setTaskDescription(e.target.value)}
                                             placeholder="Describe what you want to accomplish. Be specific about requirements, goals, and expected outcomes..."
-                                            className="input text-sm min-h-[120px] resize-none"
+                                            className="input text-base md:text-sm min-h-[100px] md:min-h-[120px] resize-none"
                                             maxLength={2000}
                                         />
                                         <p className="text-xs text-[var(--text-tertiary)]">
@@ -255,7 +256,7 @@ export function AIDecomposeModal({
                                             value={contextLinks}
                                             onChange={(e) => setContextLinks(e.target.value)}
                                             placeholder="Paste relevant URLs to give AI context (one per line)&#10;https://docs.example.com&#10;https://github.com/..."
-                                            className="input text-sm min-h-[80px] resize-none"
+                                            className="input text-base md:text-sm min-h-[60px] sm:min-h-[80px] resize-none"
                                         />
                                         <p className="text-xs text-[var(--text-tertiary)]">
                                             Max 5 URLs - provides additional context for better decomposition
@@ -273,7 +274,7 @@ export function AIDecomposeModal({
                                             value={maxSubtasks}
                                             onChange={(e) => setMaxSubtasks(e.target.value)}
                                             placeholder="Leave empty for default (3-8)"
-                                            className="input text-sm"
+                                            className="input text-base md:text-sm"
                                             min={1}
                                             max={20}
                                         />
@@ -391,12 +392,12 @@ export function AIDecomposeModal({
                                         </div>
 
                                         {/* Action Buttons */}
-                                        <div className="flex gap-3 pt-2">
+                                        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-2">
                                             <motion.button
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={() => setResult(null)}
-                                                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--foreground)] font-semibold hover:bg-[var(--background-subtle)] transition-colors"
+                                                className="w-full sm:flex-1 flex items-center justify-center gap-2 px-4 py-2.5 md:py-3 rounded-xl border border-[var(--border-subtle)] text-[var(--foreground)] font-semibold text-base md:text-sm hover:bg-[var(--background-subtle)] transition-colors"
                                             >
                                                 <ArrowUturnLeftIcon className="w-4 h-4" />
                                                 Try Again
@@ -405,7 +406,7 @@ export function AIDecomposeModal({
                                                 whileHover={{ scale: 1.02 }}
                                                 whileTap={{ scale: 0.98 }}
                                                 onClick={handleAddToBoard}
-                                                className="flex-[2] flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--brand-primary)] to-purple-600 text-white font-semibold hover:shadow-lg hover:shadow-[var(--brand-primary)]/25 transition-all"
+                                                className="w-full sm:flex-[2] flex items-center justify-center gap-2 px-4 py-2.5 md:py-3 rounded-xl bg-gradient-to-r from-[var(--brand-primary)] to-purple-600 text-white font-semibold text-base md:text-sm hover:shadow-lg hover:shadow-[var(--brand-primary)]/25 transition-all"
                                             >
                                                 <PlusIcon className="w-4 h-4" />
                                                 Add to Board

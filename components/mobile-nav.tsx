@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './sidebar';
@@ -40,29 +40,42 @@ interface MobileNavProps {
 
 export function MobileNav(props: MobileNavProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const triggerRef = useRef<HTMLButtonElement | null>(null);
+    const closeRef = useRef<HTMLButtonElement | null>(null);
 
-    // Close on navigation (Sidebar links click)
-    // We can add logic to close when route changes if needed, 
-    // but Sidebar links use <Link> which doesn't trigger state change here automatically unless customized.
-    // However, clicking inside sidebar usually means navigation.
-    // We can wrap sidebar in a div that handles clicks? Or modify Sidebar to accept onClose?
+    // Focus management: focus close button on open, return focus to trigger on close.
+    useEffect(() => {
+        if (isOpen) {
+            // Defer to next frame so the drawer is mounted before focusing.
+            const id = window.requestAnimationFrame(() => {
+                closeRef.current?.focus();
+            });
+            return () => window.cancelAnimationFrame(id);
+        }
+        // When closed, return focus to the trigger (only if it exists).
+        triggerRef.current?.focus();
+        return undefined;
+    }, [isOpen]);
 
-    // For simplicity, we'll wrap Sidebar in an overlay and close on outside click.
-    // Ideally Sidebar links should close it too.
+    const pageContextLabel = props.currentWorkspace?.name ?? 'Flux';
 
     return (
         <div className="md:hidden">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)] bg-[var(--background)]">
+            <div className="flex items-center justify-between p-4 pt-[max(env(safe-area-inset-top),1rem)] border-b border-[var(--border-subtle)] bg-[var(--background)]">
                 <div className="flex items-center gap-2">
                     <button
+                        ref={triggerRef}
                         onClick={() => setIsOpen(true)}
-                        className="p-2.5 rounded-lg hover:bg-[var(--surface)] transition-colors"
+                        aria-label="Open menu"
+                        aria-expanded={isOpen}
+                        aria-controls="mobile-nav-drawer"
+                        className="p-2.5 min-h-[44px] min-w-[44px] rounded-lg hover:bg-[var(--surface)] transition-colors flex items-center justify-center"
                     >
                         <Bars3Icon className="w-5 h-5 text-[var(--foreground)]" />
                     </button>
-                    <span className="font-semibold text-sm">
-                        {props.currentWorkspace?.name || 'Menu'}
+                    <span className="font-semibold text-sm truncate max-w-[60vw]">
+                        {pageContextLabel}
                     </span>
                 </div>
             </div>
@@ -82,26 +95,28 @@ export function MobileNav(props: MobileNavProps) {
 
                         {/* Drawer */}
                         <motion.div
+                            id="mobile-nav-drawer"
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label="Navigation menu"
                             initial={{ x: '-100%' }}
                             animate={{ x: 0 }}
                             exit={{ x: '-100%' }}
                             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="fixed inset-y-0 left-0 w-64 bg-[var(--surface)] z-50 shadow-xl overflow-y-auto"
+                            className="fixed inset-y-0 left-0 w-[min(85vw,18rem)] bg-[var(--surface)] z-50 shadow-xl overflow-y-auto"
                         >
                             <div className="relative h-full flex flex-col">
                                 <button
+                                    ref={closeRef}
                                     onClick={() => setIsOpen(false)}
-                                    className="absolute top-2 right-2 p-2 z-10 text-[var(--text-secondary)] hover:text-[var(--foreground)]"
+                                    aria-label="Close menu"
+                                    className="absolute top-3 right-3 p-2.5 min-h-[44px] min-w-[44px] z-10 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--background)] flex items-center justify-center"
                                 >
                                     <XMarkIcon className="w-5 h-5" />
                                 </button>
-                                {/* We reuse generic Sidebar. Note: Sidebar is h-screen, w-64 fixed. 
-                                    We might need to adjust styles via props or class overrides if possible.
-                                    The Sidebar component has strict styles: "w-64 h-screen ...". 
-                                    This matches our drawer width perfectly. */}
                                 <div onClick={(e) => {
-                                    // If a link is clicked, close menu
-                                    // Using event delegation check if anchor tag
+                                    // If a link is clicked, close menu.
+                                    // Using event delegation: check if anchor tag.
                                     const target = e.target as HTMLElement;
                                     if (target.closest('a')) {
                                         setIsOpen(false);

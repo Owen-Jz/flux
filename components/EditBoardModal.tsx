@@ -141,10 +141,11 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-4">
-            <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-[2rem] w-full max-w-md p-8 relative shadow-2xl animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-[2rem] w-full max-w-[calc(100vw-2rem)] md:max-w-md p-4 md:p-8 relative shadow-2xl animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <button
                     onClick={onClose}
-                    className="absolute top-6 right-6 p-2 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                    aria-label="Close"
+                    className="absolute top-3 right-3 p-2.5 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                 >
                     <XMarkIcon className="w-5 h-5" />
                 </button>
@@ -172,7 +173,7 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full px-4 py-2.5 bg-[var(--surface)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)] transition-all font-medium placeholder-[var(--text-tertiary)]"
+                                className="w-full px-4 py-2.5 bg-[var(--surface)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)] transition-all font-medium placeholder-[var(--text-tertiary)] text-base md:text-sm"
                                 required
                                 placeholder="E.g., Marketing Campaign"
                             />
@@ -184,7 +185,7 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
                                 rows={2}
-                                className="w-full px-4 py-2.5 bg-[var(--surface)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)] transition-all font-medium placeholder-[var(--text-tertiary)] resize-none min-h-[100px]"
+                                className="w-full px-4 py-2.5 bg-[var(--surface)] border border-[var(--border-default)] text-[var(--text-primary)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)] transition-all font-medium placeholder-[var(--text-tertiary)] resize-none min-h-[100px] text-base md:text-sm"
                                 placeholder="Describe the purpose of this board..."
                             />
                         </div>
@@ -230,7 +231,7 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                                                 type="text"
                                                 value={editCatName}
                                                 onChange={(e) => setEditCatName(e.target.value)}
-                                                className="flex-1 px-3 py-1.5 text-sm bg-[var(--background-subtle)] border border-[var(--border-default)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)] text-[var(--text-primary)]"
+                                                className="flex-1 px-3 py-1.5 text-base md:text-sm bg-[var(--background-subtle)] border border-[var(--border-default)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)] text-[var(--text-primary)]"
                                                 autoFocus
                                             />
                                             <button
@@ -294,7 +295,7 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                                         value={newCatName}
                                         onChange={(e) => setNewCatName(e.target.value)}
                                         placeholder="Add new category..."
-                                        className="w-full px-4 py-2 text-sm bg-[var(--surface)] border border-[var(--border-default)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)] transition-all font-medium placeholder-[var(--text-tertiary)] text-[var(--text-primary)]"
+                                        className="w-full px-4 py-2.5 md:py-2 text-base md:text-sm bg-[var(--surface)] border border-[var(--border-default)] rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 focus:border-[var(--brand-primary)] transition-all font-medium placeholder-[var(--text-tertiary)] text-[var(--text-primary)]"
                                     />
                                 </div>
                                 <div className="w-12 h-12 relative flex-shrink-0">
@@ -328,18 +329,18 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                         </p>
                     )}
 
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex flex-col-reverse md:flex-row gap-3 pt-4">
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 px-4 py-2.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                            className="w-full md:flex-1 px-4 py-2.5 md:py-2 text-base md:text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={isLoading || !name.trim()}
-                            className="flex-[2] h-11 bg-[var(--brand-primary)] text-white rounded-xl hover:bg-[var(--brand-primary-hover)] disabled:opacity-50 flex items-center justify-center transition-all font-bold text-sm shadow-xl"
+                            className="w-full md:flex-[2] h-11 bg-[var(--brand-primary)] text-white rounded-xl hover:bg-[var(--brand-primary-hover)] disabled:opacity-50 flex items-center justify-center transition-all font-bold text-base md:text-sm shadow-xl"
                         >
                             {isLoading ? (
                                 <>

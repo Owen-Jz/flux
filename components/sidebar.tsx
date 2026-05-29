@@ -98,7 +98,10 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
             <div id="sidebar-workspace-switcher" className="p-4 border-b border-[var(--border-subtle)]">
                 <button
                     onClick={() => setIsWorkspaceSwitcherOpen(!isWorkspaceSwitcherOpen)}
-                    className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-[var(--background)] transition-colors"
+                    aria-expanded={isWorkspaceSwitcherOpen}
+                    aria-haspopup="true"
+                    aria-label="Switch workspace"
+                    className="w-full min-h-[44px] flex items-center justify-between p-3 rounded-lg hover:bg-[var(--background)] transition-colors"
                 >
                     <div className="flex items-center gap-3">
                         {currentWorkspace?.icon?.type === 'emoji' ? (
@@ -216,6 +219,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                                 <Link
                                     id={id}
                                     href={item.href}
+                                    aria-current={isActive ? 'page' : undefined}
                                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive
                                         ? 'bg-[var(--brand-primary)] text-white'
                                         : 'text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--foreground)]'
@@ -259,7 +263,8 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                     </div>
                     <button
                         onClick={() => signOut({ callbackUrl: '/login' })}
-                        className="p-2.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--background)] transition-colors"
+                        className="p-2.5 min-w-[44px] min-h-[44px] rounded-lg text-[var(--text-secondary)] hover:bg-[var(--background)] transition-colors flex items-center justify-center"
+                        aria-label="Sign out"
                         title="Sign out"
                     >
                         <ArrowRightOnRectangleIcon className="w-4 h-4" />

@@ -42,6 +42,7 @@ interface BoardProps {
     boardColor?: string;
     categories?: { id: string; name: string; color: string }[];
     currentUserId?: string;
+    isAdmin?: boolean;
     hasUnread?: React.ReactNode;
     isInWalkthrough?: boolean;
 }
@@ -68,6 +69,7 @@ export function Board({
     boardColor = '#3b82f6',
     categories = [],
     currentUserId,
+    isAdmin = false,
     hasUnread,
     isInWalkthrough = false,
 }: BoardProps) {
@@ -235,6 +237,12 @@ export function Board({
 
         const activeTask = tasks.find((t) => t.id === activeId);
         if (!activeTask) return;
+
+        // Enforce move permission: only admins can move any card; others only their own
+        if (!isAdmin && !activeTask.assignees.some((a) => a.id === currentUserId)) {
+            setActiveTask(null);
+            return;
+        }
 
         // Determine the target column
         const isOverColumn = columns.some((col) => col.id === overId);
@@ -553,7 +561,7 @@ export function Board({
     return (
         <div className="min-h-full p-3 md:p-4 overflow-x-auto md:overflow-x-hidden flex flex-col">
             {/* Enhanced Navigation Bar */}
-            <div id="board-header" className="mb-4 flex items-center justify-between gap-3">
+            <div id="board-header" className="mb-4 flex items-center justify-between gap-2 md:gap-3 flex-wrap">
                 {/* Left: Board Title & Color indicator */}
                 <div className="flex items-center gap-2 min-w-0">
                     {/* Board Color Dot & Name */}
@@ -570,7 +578,7 @@ export function Board({
                 </div>
 
                 {/* Right: Primary Actions & Tools */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 md:gap-3 flex-wrap">
                     {/* Primary Actions - Add Task */}
                     {!isReadOnly && (
                         <button
@@ -603,7 +611,7 @@ export function Board({
                         {!isReadOnly && (
                             <button
                                 onClick={() => setIsEditingBoard(true)}
-                                className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
+                                className="p-2.5 md:p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors"
                                 title="Board Settings"
                             >
                                 <Cog6ToothIcon className="w-4.5 h-4.5" />
@@ -613,7 +621,7 @@ export function Board({
                         {/* Comments */}
                         <button
                             onClick={() => setShowComments(!showComments)}
-                            className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
+                            className="p-2.5 md:p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
                             title="Comments"
                         >
                             <ChatBubbleLeftRightIcon className="w-4.5 h-4.5" />
@@ -622,7 +630,7 @@ export function Board({
                         {/* Notifications */}
                         <button
                             onClick={() => setShowNotifications(!showNotifications)}
-                            className="p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
+                            className="p-2.5 md:p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
                             title="Notifications"
                         >
                             <BellIcon className="w-4.5 h-4.5" />
@@ -634,7 +642,7 @@ export function Board({
             {/* Filter Bar */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between mb-4 gap-2">
                 {/* Left: Search */}
-                <div className="relative w-full sm:w-64">
+                <div className="relative w-full md:w-64">
                     <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                     <input
                         type="text"
@@ -732,15 +740,17 @@ export function Board({
                 modifiers={searchQuery ? [] : undefined}
             >
                 {/* Responsive columns container - horizontal scroll on mobile, grid on desktop */}
-                <div className="flex gap-2 md:gap-3 w-full min-w-0 overflow-x-auto pb-4 md:pb-0 md:overflow-visible snap-x snap-mandatory md:snap-none scroll-px-4 md:scroll-px-0 -mx-4 px-4 md:mx-0 md:px-0">
+                <div className="flex gap-2 md:gap-3 w-full min-w-0 overflow-x-auto touch-pan-x pb-4 md:pb-0 md:overflow-visible snap-x snap-mandatory md:snap-none scroll-px-4 md:scroll-px-0 -mx-4 px-4 md:mx-0 md:px-0 scrollbar-thin scrollbar-thumb-[var(--border-subtle)]">
                     {columns.map((column) => (
-                        <div key={column.id} className="flex flex-col flex-shrink-0 w-[280px] md:flex-1 md:min-w-[160px] md:max-w-[320px] snap-start first:snap-none">
+                        <div key={column.id} className="flex flex-col flex-shrink-0 w-[85vw] max-w-[320px] md:w-[280px] md:flex-1 md:min-w-[160px] md:max-w-[320px] snap-center md:snap-start first:snap-none">
                             <Column
                                 id={column.id}
                                 title={column.title}
                                 tasks={getTasksByColumn(column.id)}
                                 isReadOnly={isReadOnly}
                                 isDragDisabled={!!searchQuery}
+                                isAdmin={isAdmin}
+                                currentUserId={currentUserId}
                                 onAddTask={() => setIsAddingTask(column.id)}
                                 onUpdateTask={handleUpdateTask}
                                 onDeleteTask={handleDeleteTask}

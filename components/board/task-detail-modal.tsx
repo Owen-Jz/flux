@@ -485,7 +485,7 @@ export function TaskDetailModal({
                             className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)] overflow-x-hidden"
                         >
                             {/* Header */}
-                            <div className="flex items-start justify-between p-4 md:p-6 lg:p-8 border-b border-[var(--border-subtle)] bg-[var(--surface)]">
+                            <div className="flex items-start justify-between p-4 md:p-6 lg:p-8 border-b border-[var(--border-subtle)] bg-[var(--surface)] relative">
                                 {error && (
                                     <div className="w-full mb-4 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-3">
                                         <ExclamationCircleIcon className="w-5 h-5 text-red-500 dark:text-red-400 flex-shrink-0" />
@@ -522,7 +522,7 @@ export function TaskDetailModal({
                                         readOnly={isReadOnly}
                                         onChange={(e) => setTitle(e.target.value)}
                                         onBlur={handleSaveTitle}
-                                        className="w-full text-2xl font-bold bg-transparent border-none focus:ring-0 p-0 text-[var(--text-primary)] placeholder-[var(--text-tertiary)]"
+                                        className="w-full text-xl md:text-2xl font-bold bg-transparent border-none focus:ring-0 p-0 text-[var(--text-primary)] placeholder-[var(--text-tertiary)]"
                                         placeholder="Task Title"
                                     />
                                 </div>
@@ -531,7 +531,8 @@ export function TaskDetailModal({
                                         <div className="relative">
                                             <button
                                                 onClick={() => setShowMoreMenu(!showMoreMenu)}
-                                                className="p-2 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                                                aria-label="More options"
+                                                className="p-2.5 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                                             >
                                                 <EllipsisHorizontalIcon className="w-6 h-6" />
                                             </button>
@@ -562,7 +563,8 @@ export function TaskDetailModal({
                                     )}
                                     <button
                                         onClick={onClose}
-                                        className="p-2 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
+                                        aria-label="Close"
+                                        className="p-2.5 rounded-xl hover:bg-[var(--background-subtle)] transition-colors text-[var(--text-tertiary)] hover:text-[var(--text-primary)]"
                                     >
                                         <XMarkIcon className="w-6 h-6" />
                                     </button>
@@ -571,9 +573,9 @@ export function TaskDetailModal({
 
                             {/* Body */}
                             <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-[var(--background)]">
-                                <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
                                     {/* Main Content */}
-                                    <div className="md:col-span-8 space-y-10">
+                                    <div className="lg:col-span-8 space-y-10">
                                         {/* Description */}
                                         <div className="group">
                                             <div className="flex items-center gap-2.5 text-sm font-semibold text-[var(--text-primary)] mb-3">
@@ -586,7 +588,7 @@ export function TaskDetailModal({
                                                 onChange={(e) => setDescription(e.target.value)}
                                                 onBlur={handleSaveDescription}
                                                 placeholder={isReadOnly ? "No description provided." : "Add a more detailed description..."}
-                                                className="w-full min-h-[160px] text-[15px] text-[var(--text-primary)] leading-relaxed bg-[var(--surface)] border border-[var(--border-default)] rounded-xl p-4 focus:ring-4 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none shadow-sm"
+                                                className="w-full min-h-[100px] md:min-h-[160px] text-base md:text-[15px] text-[var(--text-primary)] leading-relaxed bg-[var(--surface)] border border-[var(--border-default)] rounded-xl p-4 focus:ring-4 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none shadow-sm"
                                             />
                                         </div>
 
@@ -676,7 +678,7 @@ export function TaskDetailModal({
                                                                 if (e.key === 'Enter') handleAddSubtask();
                                                             }}
                                                             placeholder="Add a subtask..."
-                                                            className="flex-1 bg-transparent text-[14px] border-none focus:ring-0 p-0 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] font-medium"
+                                                            className="flex-1 bg-transparent text-base md:text-[14px] border-none focus:ring-0 p-0 text-[var(--text-primary)] placeholder-[var(--text-tertiary)] font-medium"
                                                         />
                                                         {newSubtaskTitle.trim() && (
                                                             <button
@@ -900,7 +902,7 @@ export function TaskDetailModal({
                                                                                     value={replyContent}
                                                                                     onChange={(e) => setReplyContent(e.target.value)}
                                                                                     placeholder="Write a reply..."
-                                                                                    className="w-full text-[13px] bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-3 pr-10 focus:ring-2 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none min-h-[70px] shadow-sm font-medium text-[var(--text-primary)] placeholder-[var(--text-tertiary)]"
+                                                                                    className="w-full text-base md:text-[13px] bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl p-3 pr-10 focus:ring-2 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none min-h-[70px] shadow-sm font-medium text-[var(--text-primary)] placeholder-[var(--text-tertiary)]"
                                                                                     autoFocus
                                                                                 />
                                                                                 <button
@@ -1062,7 +1064,7 @@ export function TaskDetailModal({
                                                                     value={newComment}
                                                                     onChange={handleCommentChange}
                                                                     placeholder="Write a comment... (@mention someone or subtask)"
-                                                                    className="w-full text-[14px] bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl p-4 pr-12 focus:ring-4 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none min-h-[100px] shadow-sm font-medium text-[var(--text-primary)] placeholder-[var(--text-tertiary)]"
+                                                                    className="w-full text-base md:text-[14px] bg-[var(--surface)] border border-[var(--border-subtle)] rounded-2xl p-4 focus:ring-4 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none min-h-[100px] shadow-sm font-medium text-[var(--text-primary)] placeholder-[var(--text-tertiary)]"
                                                                 />
                                                                 {/* Mention Dropdown */}
                                                                 {showMentionDropdown && (filteredMembers.length > 0 || filteredSubtasks.length > 0) ? (
@@ -1116,12 +1118,15 @@ export function TaskDetailModal({
                                                                 <button
                                                                     disabled={!newComment.trim() || isSubmittingComment}
                                                                     onClick={handleAddComment}
-                                                                    className="absolute bottom-3 right-3 p-2 bg-[var(--brand-primary)] text-[var(--text-inverse)] rounded-xl hover:shadow-lg hover:shadow-[var(--brand-primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                                                    className="self-end flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--brand-primary)] text-[var(--text-inverse)] rounded-xl hover:shadow-lg hover:shadow-[var(--brand-primary)]/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-semibold"
                                                                 >
                                                                     {isSubmittingComment ? (
                                                                         <ArrowPathIcon className="w-4 h-4 animate-spin" />
                                                                     ) : (
-                                                                        <PaperAirplaneIcon className="w-4 h-4" />
+                                                                        <>
+                                                                            <PaperAirplaneIcon className="w-4 h-4" />
+                                                                            <span>Send</span>
+                                                                        </>
                                                                     )}
                                                                 </button>
                                                             </div>
@@ -1133,7 +1138,7 @@ export function TaskDetailModal({
                                     </div>
 
                                     {/* Sidebar */}
-                                    <div className="md:col-span-4 space-y-10">
+                                    <div className="lg:col-span-4 space-y-10">
                                         {/* Categories */}
                                         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                                             <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-4">
@@ -1198,7 +1203,7 @@ export function TaskDetailModal({
                                                     const dateValue = e.target.value ? new Date(e.target.value).toISOString() : undefined;
                                                     onUpdate(task.id, { dueDate: dateValue });
                                                 }}
-                                                className="input text-sm"
+                                                className="input text-base md:text-sm"
                                             />
                                             {task.dueDate && isPastDue(task.dueDate) && task.status !== 'DONE' && task.status !== 'ARCHIVED' && (
                                                 <p className="text-xs text-red-500 mt-2 font-medium">This task is overdue!</p>
@@ -1244,14 +1249,14 @@ export function TaskDetailModal({
                                                         placeholder="https://..."
                                                         value={newLinkUrl}
                                                         onChange={(e) => setNewLinkUrl(e.target.value)}
-                                                        className="input text-sm"
+                                                        className="input text-base md:text-sm"
                                                     />
                                                     <input
                                                         type="text"
                                                         placeholder="Link title (optional)"
                                                         value={newLinkTitle}
                                                         onChange={(e) => setNewLinkTitle(e.target.value)}
-                                                        className="input text-sm"
+                                                        className="input text-base md:text-sm"
                                                     />
                                                     <button
                                                         onClick={handleAddLink}
