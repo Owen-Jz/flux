@@ -89,12 +89,13 @@ export function TrialPromptWrapper({
             }
 
             // For users with active trial (hasUsedTrial && trialEndsAt set && status inactive)
-            // Show the trial reminder modal
+            // Show the trial reminder modal — mark dismissed immediately so it only shows once
             if (trialEndsAt && subscriptionStatus === 'inactive' && hasUsedTrial && !trialPromptDismissedAt) {
                 const now = new Date();
                 const ends = new Date(trialEndsAt);
                 if (ends > now) {
                     console.log('[TrialPrompt] Showing reminder modal (active trial)');
+                    dismissTrialPrompt().catch(console.error);
                     setIsEligible(true);
                     return;
                 }

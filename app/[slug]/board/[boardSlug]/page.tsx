@@ -65,6 +65,7 @@ export default async function BoardPage({
                     boardSlug={boardSlug}
                     boardId={board.id}
                     isReadOnly={isReadOnly}
+                    isAdmin={userRole === 'ADMIN'}
                     members={workspace.members.map((m: any) => ({
                         id: m.userId,
                         name: m.user?.name || 'Unknown User',

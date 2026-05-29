@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth';
+import NextAuth, { CredentialsSignin } from 'next-auth';
 import Google from 'next-auth/providers/google';
 import Credentials from 'next-auth/providers/credentials';
 import { connectDB } from '@/lib/db';
@@ -7,6 +7,16 @@ import { authConfig } from '@/lib/auth.config';
 import bcrypt from 'bcryptjs';
 import { addUserToWorkspaceFromInvite } from '@/lib/process-workspace-invite';
 import { sendWelcomeEmail } from '@/lib/email/auth-emails';
+
+class AccountLockedError extends CredentialsSignin {
+    code = 'account_locked';
+}
+class EmailNotVerifiedError extends CredentialsSignin {
+    code = 'email_not_verified';
+}
+class GoogleAccountError extends CredentialsSignin {
+    code = 'google_account';
+}
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
@@ -54,18 +64,21 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                     if (user?.lockoutUntil && user.lockoutUntil > now) {
                         console.warn(`[Auth] Login attempt on locked account: ${email}`);
+                        throw new AccountLockedError();
+                    }
+
+                    if (!user) {
                         return null;
                     }
 
-                    if (!user || !user.password) {
-                        if (user) {
-                            user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
-                            if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
-                                user.lockoutUntil = new Date(Date.now() + LOCKOUT_DURATION_MS);
-                            }
-                            await user.save();
+                    if (!user.password) {
+                        // Account exists but was created via Google OAuth
+                        user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+                        if (user.failedLoginAttempts >= MAX_LOGIN_ATTEMPTS) {
+                            user.lockoutUntil = new Date(Date.now() + LOCKOUT_DURATION_MS);
                         }
-                        return null;
+                        await user.save();
+                        throw new GoogleAccountError();
                     }
 
                     const isValidPassword = await bcrypt.compare(
@@ -84,7 +97,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                     if (!user.emailVerified) {
                         console.warn(`[Auth] Login blocked — email not verified: ${email}`);
-                        return null;
+                        throw new EmailNotVerifiedError();
                     }
 
                     user.failedLoginAttempts = 0;

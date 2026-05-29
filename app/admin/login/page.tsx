@@ -28,18 +28,16 @@ export default function AdminLoginPage() {
             });
 
             if (result?.error) {
-                if (result.error.includes('locked') || result.error.includes('too many attempts')) {
-                    setError('Too many failed attempts. Please try again in 15 minutes.');
-                } else if (result.error.includes('credentials')) {
-                    setError('Invalid admin credentials.');
+                if (result.error === 'account_locked') {
+                    setError('This account is temporarily locked after too many failed attempts. Please try again in 15 minutes.');
                 } else {
-                    setError('Something went wrong. Please try again.');
+                    setError('Invalid admin credentials.');
                 }
             } else {
                 router.push('/admin');
             }
         } catch {
-            setError('Something went wrong');
+            setError('An unexpected error occurred. Please try again.');
         } finally {
             setIsLoading(false);
         }

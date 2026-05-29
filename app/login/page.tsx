@@ -24,6 +24,12 @@ function LoginContent() {
         const verified = searchParams.get('verified');
         if (urlError === 'account-exists-with-credentials') {
             setError('An account with this email already exists. Please sign in with your email and password instead.');
+        } else if (urlError === 'account_locked') {
+            setError('Your account is temporarily locked after too many failed attempts. Please try again in 15 minutes.');
+        } else if (urlError === 'email_not_verified') {
+            setError('Please verify your email address before signing in. Check your inbox for a verification link.');
+        } else if (urlError === 'google_account') {
+            setError('This email is registered with Google. Please use "Continue with Google" to sign in.');
         } else if (urlError === 'OAuthCallback' || urlError === 'OAuthSignin') {
             setError('Google sign-in failed. Please try again.');
         } else if (urlError === 'OAuthCreateAccount') {
@@ -52,18 +58,20 @@ function LoginContent() {
             });
 
             if (result?.error) {
-                if (result.error.includes('locked') || result.error.includes('too many attempts')) {
-                    setError('Too many failed attempts. Please try again in 15 minutes.');
-                } else if (result.error.includes('credentials')) {
-                    setError('Invalid email or password. Please try again.');
+                if (result.error === 'account_locked') {
+                    setError('Your account is temporarily locked after too many failed attempts. Please try again in 15 minutes.');
+                } else if (result.error === 'email_not_verified') {
+                    setError('Please verify your email address before signing in. Check your inbox for a verification link.');
+                } else if (result.error === 'google_account') {
+                    setError('This email is registered with Google. Please use "Continue with Google" to sign in.');
                 } else {
-                    setError('Something went wrong. Please try again.');
+                    setError('Invalid email or password. Please try again.');
                 }
             } else {
                 router.push('/dashboard');
             }
         } catch {
-            setError('Something went wrong');
+            setError('An unexpected error occurred. Please try again.');
         } finally {
             setIsLoading(false);
         }
