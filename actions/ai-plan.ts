@@ -76,7 +76,7 @@ export async function createFromAIPlan(
             const userDoc = await User.findById(session.user.id).select('plan');
             const userPlan = (userDoc?.plan || 'free') as 'free' | 'starter' | 'pro' | 'enterprise';
             const currentBoardCount = await Board.countDocuments({ workspaceId: workspace._id });
-            if (!canCreateProject(userPlan, currentBoardCount + plan.boards.length - 1)) {
+            if (!canCreateProject(userPlan, currentBoardCount + plan.boards.length)) {
                 return {
                     success: false,
                     boardsCreated: 0,

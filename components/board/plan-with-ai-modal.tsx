@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import {
@@ -65,6 +65,7 @@ export function PlanWithAIModal({
     workspaceSlug,
 }: PlanWithAIModalProps) {
     const router = useRouter();
+    const cyclingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const [step, setStep] = useState<PlanStep>('scope');
     const [scale, setScale] = useState<'board' | 'project'>('board');
     const [description, setDescription] = useState('');
@@ -85,6 +86,10 @@ export function PlanWithAIModal({
     ];
 
     const handleReset = () => {
+        if (cyclingIntervalRef.current) {
+            clearInterval(cyclingIntervalRef.current);
+            cyclingIntervalRef.current = null;
+        }
         setStep('scope');
         setScale('board');
         setDescription('');
@@ -99,11 +104,19 @@ export function PlanWithAIModal({
 
     const handleClose = () => { handleReset(); onClose(); };
 
+    useEffect(() => {
+        return () => {
+            if (cyclingIntervalRef.current) {
+                clearInterval(cyclingIntervalRef.current);
+            }
+        };
+    }, []);
+
     const handleGenerate = async () => {
         if (!description.trim()) return;
         setStep('planning');
         setError('');
-        const interval = setInterval(() => setCyclingIndex(i => (i + 1) % cyclingMessages.length), 1500);
+        cyclingIntervalRef.current = setInterval(() => setCyclingIndex(i => (i + 1) % cyclingMessages.length), 1500);
         try {
             const links = contextLinks.split('\n').map(l => l.trim()).filter(l => l.length > 0).slice(0, 5);
             const body: AIPlanRequest = {
@@ -124,7 +137,10 @@ export function PlanWithAIModal({
             setError(err instanceof Error ? err.message : 'An error occurred');
             setStep('input');
         } finally {
-            clearInterval(interval);
+            if (cyclingIntervalRef.current) {
+                clearInterval(cyclingIntervalRef.current);
+                cyclingIntervalRef.current = null;
+            }
         }
     };
 
