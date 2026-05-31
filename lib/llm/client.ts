@@ -1,5 +1,10 @@
-import { DecomposeRequest, DecomposeResponse, LLMMessage, LLMResponse, MinimaxConfig } from './types';
+import { DecomposeRequest, DecomposeResponse, LLMMessage, LLMResponse, MinimaxConfig, ProjectPlanRequest, ProjectPlanResponse } from './types';
 import { SYSTEM_PROMPT, buildUserPrompt } from './prompts';
+import {
+  BOARD_PLAN_SYSTEM_PROMPT,
+  PROJECT_PLAN_SYSTEM_PROMPT,
+  buildProjectPlanUserPrompt,
+} from './project-planner';
 import { randomUUID } from 'crypto';
 
 export class MinimaxClient {
@@ -24,6 +29,65 @@ export class MinimaxClient {
 
     const response = await this.callAPI(messages);
     return this.parseResponse(response);
+  }
+
+  async planProject(request: ProjectPlanRequest): Promise<ProjectPlanResponse> {
+    const systemPrompt =
+      request.scale === 'project'
+        ? PROJECT_PLAN_SYSTEM_PROMPT
+        : BOARD_PLAN_SYSTEM_PROMPT;
+
+    const messages: LLMMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: buildProjectPlanUserPrompt(request) },
+    ];
+
+    const llmResponse = await this.callAPI(messages);
+    return this.parseProjectPlanResponse(llmResponse, request.scale);
+  }
+
+  private parseProjectPlanResponse(
+    response: LLMResponse,
+    scale: 'board' | 'project'
+  ): ProjectPlanResponse {
+    const content = response.choices[0]?.message?.content;
+    if (!content) throw new Error('No content in LLM response');
+
+    let jsonStr = content.trim();
+    const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
+
+    let parsed: ProjectPlanResponse;
+    try {
+      parsed = JSON.parse(jsonStr) as ProjectPlanResponse;
+    } catch {
+      throw new Error('Failed to parse LLM response as JSON');
+    }
+
+    if (!parsed.title) throw new Error('Plan missing required field: title');
+    if (!parsed.summary) throw new Error('Plan missing required field: summary');
+
+    if (scale === 'board') {
+      if (!parsed.tasks || !Array.isArray(parsed.tasks) || parsed.tasks.length === 0) {
+        throw new Error('Board plan missing tasks array');
+      }
+      for (const t of parsed.tasks) {
+        if (!t.title || !t.description || !t.priority || !t.estimatedHours) {
+          throw new Error('Task missing required fields');
+        }
+      }
+    } else {
+      if (!parsed.boards || !Array.isArray(parsed.boards) || parsed.boards.length === 0) {
+        throw new Error('Project plan missing boards array');
+      }
+      for (const b of parsed.boards) {
+        if (!b.name || !b.description || !Array.isArray(b.tasks)) {
+          throw new Error('Board missing required fields');
+        }
+      }
+    }
+
+    return parsed;
   }
 
   // Retry helper with exponential backoff for transient failures
