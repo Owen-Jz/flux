@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flux — Product Positioning & Strategy | May 2026</title>
+<style>
+  :root {
+    --brand: #6366f1;
+    --brand-light: #eef2ff;
+    --purple: #9333ea;
+    --text: #111827;
+    --text-secondary: #6b7280;
+    --border: #e5e7eb;
+    --bg: #ffffff;
+    --bg-subtle: #f9fafb;
+    --green: #16a34a;
+    --green-bg: #f0fdf4;
+    --red: #dc2626;
+    --amber: #d97706;
+    --amber-bg: #fffbeb;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.65;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+
+  /* Header */
+  .header {
+    border-bottom: 2px solid var(--brand);
+    padding-bottom: 24px;
+    margin-bottom: 40px;
+  }
+  .header .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brand);
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+  .header .meta {
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+
+  /* Pitch callout */
+  .pitch-block {
+    background: linear-gradient(135deg, var(--brand) 0%, var(--purple) 100%);
+    border-radius: 16px;
+    padding: 32px;
+    margin: 32px 0;
+    color: white;
+    text-align: center;
+  }
+  .pitch-block .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.75;
+    margin-bottom: 12px;
+  }
+  .pitch-block .old {
+    font-size: 16px;
+    opacity: 0.65;
+    text-decoration: line-through;
+    margin-bottom: 8px;
+  }
+  .pitch-block .new {
+    font-size: 26px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  /* Sections */
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 48px 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 24px 0 8px;
+    color: var(--text);
+  }
+  p { margin-bottom: 14px; }
+  p:last-child { margin-bottom: 0; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 14px;
+  }
+  th {
+    background: var(--bg-subtle);
+    font-weight: 600;
+    text-align: left;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+  }
+  td {
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    vertical-align: top;
+  }
+  td:first-child { font-weight: 500; }
+  .rejected { color: var(--red); font-size: 13px; }
+
+  /* Callout boxes */
+  .callout {
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  .callout.green {
+    background: var(--green-bg);
+    border: 1px solid #bbf7d0;
+  }
+  .callout.amber {
+    background: var(--amber-bg);
+    border: 1px solid #fde68a;
+  }
+  .callout.indigo {
+    background: var(--brand-light);
+    border: 1px solid #c7d2fe;
+  }
+  .callout .callout-title {
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+  .callout.green .callout-title { color: var(--green); }
+  .callout.amber .callout-title { color: var(--amber); }
+  .callout.indigo .callout-title { color: var(--brand); }
+
+  /* List */
+  ul, ol {
+    padding-left: 20px;
+    margin: 8px 0 16px;
+  }
+  li { margin-bottom: 6px; font-size: 15px; }
+  li strong { font-weight: 600; }
+
+  /* Premises */
+  .premises {
+    counter-reset: premise;
+    list-style: none;
+    padding: 0;
+  }
+  .premises li {
+    counter-increment: premise;
+    display: flex;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--bg-subtle);
+    font-size: 14px;
+  }
+  .premises li::before {
+    content: counter(premise);
+    min-width: 24px;
+    height: 24px;
+    background: var(--brand);
+    color: white;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Features shipped */
+  .feature-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 12px;
+  }
+  .feature-card .badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid #bbf7d0;
+    margin-bottom: 10px;
+  }
+  .feature-card h4 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .feature-card p { font-size: 14px; color: var(--text-secondary); }
+
+  /* Steps flow */
+  .steps {
+    display: flex;
+    gap: 0;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+  .step {
+    background: var(--brand-light);
+    border: 1px solid #c7d2fe;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--brand);
+  }
+  .step-arrow {
+    color: var(--text-secondary);
+    margin: 0 6px;
+    font-size: 16px;
+  }
+
+  /* Files list */
+  .file-list {
+    background: #1e1e2e;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 12px 0 20px;
+    list-style: none;
+    padding-left: 20px;
+  }
+  .file-list li {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: #a6e3a1;
+    margin-bottom: 4px;
+  }
+  .file-list li .comment {
+    color: #6c7086;
+    font-style: normal;
+  }
+
+  /* Economic calc */
+  .calc {
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    font-size: 14px;
+    margin: 16px 0;
+  }
+  .calc .calc-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .calc .calc-row:last-child { border-bottom: none; font-weight: 700; }
+  .calc .calc-row .value { color: var(--brand); font-weight: 600; }
+
+  /* Founder signals */
+  .signal {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: var(--bg-subtle);
+    border: 1px solid var(--border);
+    margin-bottom: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .signal .bullet {
+    font-size: 18px;
+    flex-shrink: 0;
+    line-height: 1.4;
+  }
+
+  /* Open questions */
+  .question {
+    padding: 14px 18px;
+    border-left: 3px solid var(--amber);
+    background: var(--amber-bg);
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 10px;
+    font-size: 14px;
+  }
+  .question strong { display: block; margin-bottom: 4px; }
+
+  /* Footer */
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="eyebrow">Flux · Product Strategy</div>
+  <h1>Positioning & Direction</h1>
+  <div class="meta">Captured May 2026 &nbsp;·&nbsp; Branch: master &nbsp;·&nbsp; Session: office-hours + multi-scale plan-with-ai implementation</div>
+</div>
+
+<div class="pitch-block">
+  <div class="label">The Core Shift</div>
+  <div class="old">"Task management made simple."</div>
+  <div class="new">"Describe your project. Flux plans it."</div>
+</div>
+
+<div class="callout indigo">
+  <div class="callout-title">What This Actually Means</div>
+  This is not a copy change. It's a category change. We moved from competing with Notion, Trello, and Linear (task managers) to competing with nothing — because no mainstream task tool generates your project structure from a description.
+</div>
+
+<h2>Why the Original Framing Wasn't Working</h2>
+
+<p>Task management for solo users is solved and commoditised. Notion free tier, Linear free tier, Todoist — all excellent and free. Four options were evaluated and rejected:</p>
+
+<table>
+  <tr><th>Option</th><th>Why Rejected</th></tr>
+  <tr><td>Mobile-first experience</td><td><span class="rejected">Table stakes. Every app is adding this. Not a moat.</span></td></tr>
+  <tr><td>Paystack + NGN pricing</td><td><span class="rejected">Pricing alone isn't a product story. Doesn't survive competition.</span></td></tr>
+  <tr><td>Client-shareable boards</td><td><span class="rejected">Figma, Notion, Trello all have this. Not differentiated.</span></td></tr>
+  <tr><td>AI decomposition (buried API)</td><td><span class="rejected">The hook existed — it just wasn't visible to anyone.</span></td></tr>
+</table>
+
+<div class="callout amber">
+  <div class="callout-title">The Real Discovery</div>
+  Flux already had a working AI decomposition engine (MINIMAX, <code>POST /api/v1/tasks/decompose</code>). The problem wasn't the product — it was that the capability was buried in an API call nobody knew existed.
+</div>
+
+<h2>Target User</h2>
+
+<div class="callout green">
+  <div class="callout-title">Chosen Target</div>
+  <strong>Nigerian freelance developer / designer managing client work.</strong><br>
+  Not "individuals." Not "solo users." A specific person with a specific pain.
+</div>
+
+<h3>Why This Person</h3>
+<ul>
+  <li><strong>You ARE this person.</strong> You know what frustrates them because you've lived it.</li>
+  <li>You can reach them directly — Nairaland, dev WhatsApp/Telegram groups, Twitter/X Nigerian tech.</li>
+  <li>They have a financially-consequential pain: disorganised client work leads to missed deliverables, embarrassment, and lost income.</li>
+  <li>Freelancers already budget for tools. They think of software as a business expense.</li>
+</ul>
+
+<h3>Their Status Quo</h3>
+<p>WhatsApp notes + scattered Google Docs + an abandoned Notion setup. The "plan" for each client project lives across 3 WhatsApp chats, a doc, and memory. When a client asks "where are we?" — that's the acute pain moment.</p>
+
+<h3>The Economic Case for Paying</h3>
+<div class="calc">
+  <div class="calc-row"><span>Client projects/month</span><span class="value">3–4</span></div>
+  <div class="calc-row"><span>Planning time saved per project</span><span class="value">45 min</span></div>
+  <div class="calc-row"><span>Hours recovered per month</span><span class="value">~3 hours</span></div>
+  <div class="calc-row"><span>Value at ₦3,000/hr</span><span class="value">₦9,000</span></div>
+  <div class="calc-row"><span>Flux subscription cost</span><span class="value">₦2,000–3,000/mo</span></div>
+  <div class="calc-row"><span>ROI</span><span class="value">Obvious</span></div>
+</div>
+
+<h2>The Hook</h2>
+
+<div class="pitch-block" style="padding: 24px 32px;">
+  <div class="label">The Pitch</div>
+  <div class="new" style="font-size: 22px;">"Tell Flux what you're building. It plans the project."</div>
+</div>
+
+<p>The AI is the mechanism, not the brand. The pitch is the outcome: describe your project in plain language, and a full board appears — tasks, priorities, time estimates.</p>
+
+<h3>Why This Is Actually Different</h3>
+<p>Every other task tool makes you build the structure yourself: create board → create columns → type each task → set each priority → estimate each task.</p>
+<p>Flux collapses all of that into one step. This is not a 10% improvement. It's a different interaction model.</p>
+
+<h2>What We Built (May 2026)</h2>
+
+<div class="feature-card">
+  <div class="badge">Shipped · Phase 1</div>
+  <h4>Surface the AI</h4>
+  <p>Added "Plan with AI" CTA to empty board state. Exposed existing MINIMAX decomposition via UI (was API-only). Added deadline field. Updated modal header to "Plan with AI".</p>
+</div>
+
+<div class="feature-card">
+  <div class="badge">Shipped · Phase 2</div>
+  <h4>Multi-Scale Planning Wizard</h4>
+  <p>Full replacement of the old single-task decomposer. A 6-step wizard that generates entire project structures before creating anything.</p>
+
+  <div class="steps" style="margin-top: 14px;">
+    <span class="step">Scope</span>
+    <span class="step-arrow">→</span>
+    <span class="step">Input</span>
+    <span class="step-arrow">→</span>
+    <span class="step">Planning</span>
+    <span class="step-arrow">→</span>
+    <span class="step">Review</span>
+    <span class="step-arrow">→</span>
+    <span class="step">Creating</span>
+    <span class="step-arrow">→</span>
+    <span class="step">Done</span>
+  </div>
+
+  <h3 style="margin-top: 16px;">Scope Step</h3>
+  <ul>
+    <li><strong>This board</strong> — generates tasks for the current board (existing behaviour, now accessible)</li>
+    <li><strong>Full project</strong> — generates multiple boards with tasks (entirely new capability)</li>
+  </ul>
+
+  <h3>Review Step (key innovation)</h3>
+  <p>Nothing is created until the user confirms. The review shows a full checklist — boards and tasks — that the user can edit before committing. Boards can be expanded/collapsed. Individual items can be deselected.</p>
+</div>
+
+<h3>New Files Shipped</h3>
+<ul class="file-list">
+  <li><code>types/ai-plan.ts</code> <span class="comment">— shared interfaces with PlanScale alias and ConfirmedPlan discriminated union</span></li>
+  <li><code>lib/llm/project-planner.ts</code> <span class="comment">— board and project planning LLM prompts</span></li>
+  <li><code>app/api/ai/plan/route.ts</code> <span class="comment">— dry-run planning endpoint (no DB writes)</span></li>
+  <li><code>actions/ai-plan.ts</code> <span class="comment">— bulk creation with pre-flight plan-limit check</span></li>
+  <li><code>components/board/plan-with-ai-modal.tsx</code> <span class="comment">— the 6-step wizard component</span></li>
+</ul>
+
+<h2>The Agreed Premises</h2>
+
+<ol class="premises">
+  <li>The right individual target is the Nigerian freelance developer/designer managing client work — not a generic solo user.</li>
+  <li>The status quo (WhatsApp + scattered docs + abandoned Notion) is the real competitor, not Linear or Trello.</li>
+  <li>"Better task management" is not the pitch. "Describe your project, Flux plans it" is the pitch — it changes what category Flux competes in.</li>
+  <li>The AI decomposition already existed and worked. The gap was making it the entry point, not a power-user API call.</li>
+  <li>Individual willingness to pay is directly tied to economic value. Saving 45+ min of planning per project at 3–4 projects/month = clear ROI.</li>
+  <li>Distribution before full repositioning — but the product must match the pitch before distribution runs. Otherwise, conversion from interest to signup is weak.</li>
+</ol>
+
+<h2>Distribution Strategy</h2>
+
+<h3>Where to Reach the Target User</h3>
+<ul>
+  <li>Nigerian dev WhatsApp/Telegram groups</li>
+  <li>Nairaland tech section</li>
+  <li>Twitter/X Nigerian tech community</li>
+  <li>Personal DMs to freelance developers you know</li>
+</ul>
+
+<h3>The Pitch Post</h3>
+<div class="callout indigo">
+  <div class="callout-title">Headline</div>
+  "I built the AI project planner I wish I had when I was taking on client work."<br>
+  <em style="color: var(--text-secondary); font-size: 13px;">(Not: "I built a task manager.")</em>
+</div>
+
+<h3>The Demo</h3>
+<p>Open a new board → describe a client project → AI creates the full board in seconds. This is showable. Show it.</p>
+
+<h3>Validation Targets Before Investing in Marketing</h3>
+<ul>
+  <li>10 freelancers agree to try Flux after seeing the demo</li>
+  <li>3 of those use "Plan with AI" for a real client project</li>
+  <li>1 says "this saved me time" in their own words, unprompted</li>
+</ul>
+
+<h2>Monetization Path</h2>
+
+<h3>For Individuals</h3>
+<p>Free tier works as top-of-funnel. Individual willingness-to-pay is low unless the product has direct economic value. The AI planning feature creates that value specifically for freelancers.</p>
+
+<h3>The Real Money</h3>
+<p>Teams and workspaces. An individual freelancer signs up, uses it for client work, brings in a collaborator or the client. That's where conversion happens.</p>
+
+<div class="callout amber">
+  <div class="callout-title">Suggested Gate (after 50 active users)</div>
+  Free: 3 AI project plans/month<br>
+  Paid: Unlimited AI planning + full project mode (multi-board generation)<br><br>
+  <strong>Do not gate prematurely.</strong> Get the feature used first. You need evidence before you restrict access.
+</div>
+
+<h2>Open Questions</h2>
+
+<div class="question">
+  <strong>AI output quality with real users</strong>
+  The MINIMAX integration has been tested via API but not observed with real freelancers describing projects in natural language. Quality needs to be validated with 3 real users before any marketing spend.
+</div>
+<div class="question">
+  <strong>Homepage copy</strong>
+  Still says generic task management. Should be updated to reflect the AI planner pitch — but only after validating it resonates in distribution week.
+</div>
+<div class="question">
+  <strong>Adaptive workspace (Approach C)</strong>
+  Revisit after 50+ signups with behavioral data showing meaningful differences by use case. Don't build from instinct.
+</div>
+
+<h2>What Was Noticed (Founder Signals)</h2>
+
+<div class="signal">
+  <div class="bullet">⚡</div>
+  <div>You rejected the first four positioning options with specific reasoning, not vague dissatisfaction. "I feel they move offices" (mobile is table stakes). "Everybody can share both at this point." That's taste operating before the reasoning catches up.</div>
+</div>
+<div class="signal">
+  <div class="bullet">🎯</div>
+  <div>You picked "Nigerian builder" without hesitation — didn't reach for the larger addressable market. You know who you're building for because you are that person. That specificity is the only version of this that works.</div>
+</div>
+<div class="signal">
+  <div class="bullet">💡</div>
+  <div>You said the AI decomposition "should be one of the main selling factors" — you already had the right instinct. The issue wasn't identifying the hook, it was articulating it precisely.</div>
+</div>
+<div class="signal">
+  <div class="bullet">🚀</div>
+  <div>The 30+ commits before this session were stabilisation: auth, invites, billing, emails, edge cases. The product was ready. What was missing was a reason someone would care.</div>
+</div>
+
+<h2>Related Documents</h2>
+<ul>
+  <li><strong>This file (MD):</strong> <code>docs/strategy/product-positioning-2026-05.md</code></li>
+  <li><strong>Implementation plan:</strong> <code>docs/superpowers/plans/2026-05-30-plan-with-ai-multi-scale.md</code></li>
+  <li><strong>Office hours design doc:</strong> <code>~/.gstack/projects/Owen-Jz-flux/owen-master-design-20260530-224414.md</code></li>
+  <li><strong>Prior design doc (workspace personalisation):</strong> <code>~/.gstack/projects/Owen-Jz-flux/owen-master-design-20260527-230508.md</code></li>
+</ul>
+
+<div class="footer">
+  <span>Flux · Product Strategy · May 2026</span>
+  <span>Branch: master</span>
+</div>
+
+</body>
+</html>
