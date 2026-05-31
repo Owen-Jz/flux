@@ -44,21 +44,33 @@ export function LandingNavbar() {
         return () => { document.body.style.overflow = ''; };
     }, [isMobileMenuOpen]);
 
+    const SPRING = { duration: 0.5, ease: [0.16, 1, 0.3, 1] } as const;
+
     return (
         <>
             <nav className="fixed top-0 left-0 right-0 z-50" aria-label="Main navigation">
-                <div
-                    className={`transition-all duration-300 ease-out ${
+                {/* Outer container — animates max-width + margin to create the pill shrink */}
+                <motion.div
+                    animate={
                         isScrolled
-                            ? 'max-w-3xl mx-auto mt-4 px-1'
-                            : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
-                    }`}
+                            ? { maxWidth: '52rem', marginTop: '14px', paddingLeft: '6px', paddingRight: '6px' }
+                            : { maxWidth: '80rem', marginTop: '0px', paddingLeft: '32px', paddingRight: '32px' }
+                    }
+                    transition={SPRING}
+                    style={{ marginLeft: 'auto', marginRight: 'auto' }}
                 >
-                    <div
-                        className={`flex items-center justify-between transition-all duration-300 ease-out ${
+                    {/* Inner pill — animates height, padding, border-radius */}
+                    <motion.div
+                        animate={
                             isScrolled
-                                ? 'h-12 px-5 rounded-full bg-[var(--background)]/90 backdrop-blur-xl border border-[var(--border-subtle)] shadow-lg shadow-black/[0.07] dark:shadow-black/40'
-                                : 'h-16 lg:h-20'
+                                ? { height: '56px', paddingLeft: '28px', paddingRight: '28px', borderRadius: '9999px' }
+                                : { height: '72px', paddingLeft: '0px', paddingRight: '0px', borderRadius: '0px' }
+                        }
+                        transition={SPRING}
+                        className={`flex items-center justify-between transition-[background-color,border-color,box-shadow,backdrop-filter] duration-500 ${
+                            isScrolled
+                                ? 'bg-[var(--background)]/90 backdrop-blur-xl border border-[var(--border-subtle)] shadow-xl shadow-black/[0.08] dark:shadow-black/40'
+                                : ''
                         }`}
                     >
                         <FluxLogo />
@@ -116,8 +128,8 @@ export function LandingNavbar() {
                                 <Bars3Icon className="w-5 h-5" />
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </motion.div>
+                </motion.div>
             </nav>
 
             {/* Mobile full-screen overlay */}
