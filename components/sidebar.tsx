@@ -15,6 +15,7 @@ import {
     ArchiveBoxIcon,
     ExclamationCircleIcon,
     ChartBarIcon,
+    CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
 import { signOut } from 'next-auth/react';
 import { ThemeToggle } from './theme-toggle';
@@ -70,6 +71,12 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
             href: currentWorkspace ? `/${currentWorkspace.slug}/analytics` : '/dashboard',
             label: 'Analytics',
             icon: ChartBarIcon,
+            show: true,
+        },
+        {
+            href: currentWorkspace ? `/${currentWorkspace.slug}/calendar` : '/dashboard',
+            label: 'Calendar',
+            icon: CalendarDaysIcon,
             show: true,
         },
         {
@@ -200,6 +207,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                         workspaceSlug={currentWorkspace.slug}
                         boards={boards}
                         currentBoardSlug={currentBoardSlug}
+                        userRole={userRole}
                     />
                 </div>
             )}
