@@ -2,16 +2,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
+import { Types } from 'mongoose';
 import { Board } from '@/models/Board';
 import { Workspace } from '@/models/Workspace';
 import { isWorkspaceMember } from '@/lib/workspace-utils';
 import { createMinimaxClient } from '@/lib/llm/client';
+import { checkUserRateLimit } from '@/lib/rate-limit-enhanced';
 import type { AIPlanRequest, AIPlan } from '@/types/ai-plan';
 
 export async function POST(request: NextRequest) {
     const session = await auth();
     if (!session?.user?.id) {
         return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const rateLimitResult = checkUserRateLimit(session.user.id);
+    if (!rateLimitResult.success) {
+        return NextResponse.json(
+            { error: 'Rate limit exceeded. Please wait before trying again.' },
+            { status: 429 }
+        );
     }
 
     let body: AIPlanRequest;
@@ -29,6 +39,12 @@ export async function POST(request: NextRequest) {
             { status: 400 }
         );
     }
+    if (description.trim().length > 5000) {
+        return NextResponse.json(
+            { error: 'description must not exceed 5000 characters' },
+            { status: 400 }
+        );
+    }
     if (scale !== 'board' && scale !== 'project') {
         return NextResponse.json({ error: 'scale must be "board" or "project"' }, { status: 400 });
     }
@@ -37,6 +53,24 @@ export async function POST(request: NextRequest) {
     }
     if (scale === 'board' && !boardId) {
         return NextResponse.json({ error: 'boardId is required for board scale' }, { status: 400 });
+    }
+    if (contextLinks !== undefined) {
+        if (!Array.isArray(contextLinks)) {
+            return NextResponse.json({ error: 'contextLinks must be an array' }, { status: 400 });
+        }
+        if (contextLinks.length > 5) {
+            return NextResponse.json({ error: 'contextLinks must not exceed 5 URLs' }, { status: 400 });
+        }
+        for (const link of contextLinks) {
+            try {
+                new URL(link);
+            } catch {
+                return NextResponse.json({ error: `Invalid URL in contextLinks: ${link}` }, { status: 400 });
+            }
+        }
+    }
+    if (scale === 'board' && boardId && !Types.ObjectId.isValid(boardId)) {
+        return NextResponse.json({ error: 'boardId must be a valid ObjectId' }, { status: 400 });
     }
 
     await connectDB();
@@ -108,9 +142,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(plan);
     } catch (error) {
         const msg = error instanceof Error ? error.message : 'Planning failed';
+        console.error('[ai/plan] LLM error:', msg);
         if (msg.includes('timed out')) {
             return NextResponse.json({ error: 'Request timed out — please try again' }, { status: 504 });
         }
-        return NextResponse.json({ error: msg }, { status: 502 });
+        return NextResponse.json({ error: 'Planning failed — please try again' }, { status: 502 });
     }
 }
