@@ -19,6 +19,7 @@ import { SubtaskAddedEmail } from '@/components/emails/subtask-added';
 import { render } from '@react-email/components';
 import React from 'react';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
+import { canAccessBoard, canGuestAccessBoard, boardVisibilityFilter } from '@/lib/board-access';
 import { TASK_ORDER_INCREMENT } from '@/lib/constants';
 import { triggerNotification } from '@/lib/pwa/trigger-notification';
 import { emitEvent } from '@/lib/webhook-emitter';
@@ -168,7 +169,7 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
     }
 
     // Verify user is a member OR workspace allows public access
-    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : false;
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : null;
     const hasPublicAccess = workspace.settings?.publicAccess === true;
 
     // Non-members can only access if workspace is publicly accessible
@@ -178,6 +179,14 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
 
     const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
     if (!board) {
+        return [];
+    }
+
+    // Enforce board-level visibility before returning any tasks.
+    const allowed = member
+        ? canAccessBoard(board, session?.user?.id, member)
+        : canGuestAccessBoard(board);
+    if (!allowed) {
         return [];
     }
 
@@ -218,18 +227,22 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
         })),
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        comments: (task.comments || []).map((c: any) => ({
-            id: c._id.toString(),
-            content: c.content,
-            userId: c.userId._id?.toString() || c.userId.toString(),
-            createdAt: c.createdAt.toISOString(),
-            user: {
-                id: c.userId._id?.toString() || c.userId.toString(),
-                name: c.userId.name || '',
-                email: c.userId.email || '',
-                image: c.userId.image,
-            }
-        })),
+        comments: (task.comments || []).map((c: any) => {
+            const populated = c.userId && typeof c.userId === 'object' && '_id' in c.userId ? c.userId : null;
+            const userId = populated?._id?.toString() ?? c.userId?.toString() ?? '';
+            return {
+                id: c._id.toString(),
+                content: c.content,
+                userId,
+                createdAt: c.createdAt.toISOString(),
+                user: {
+                    id: populated?._id?.toString() ?? userId,
+                    name: populated?.name ?? '',
+                    email: populated?.email ?? '',
+                    image: populated?.image,
+                },
+            };
+        }),
         dueDate: task.dueDate?.toISOString(),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         links: (task.links || []).map((l: any) => ({
@@ -260,9 +273,19 @@ export async function getArchivedTasks(workspaceSlug: string) {
         return [];
     }
 
+    // Limit archived tasks to boards this user may see.
+    const accessibleBoards = await Board.find({
+        workspaceId: workspace._id,
+        ...boardVisibilityFilter(session.user.id, member),
+    })
+        .select('_id')
+        .lean();
+    const accessibleBoardIds = accessibleBoards.map((b) => b._id);
+
     const tasks = await Task.find({
         workspaceId: workspace._id,
-        status: 'ARCHIVED'
+        status: 'ARCHIVED',
+        boardId: { $in: accessibleBoardIds },
     })
         .populate('assignees', 'name email image')
         .populate('comments.userId', 'name email image')
@@ -289,14 +312,14 @@ export async function getArchivedTasks(workspaceSlug: string) {
         comments: (task.comments || []).map((c: any) => ({
             id: c._id.toString(),
             content: c.content,
-            userId: c.userId._id?.toString() || c.userId.toString(),
+            userId: c.userId?._id?.toString() ?? c.userId?.toString() ?? '',
             createdAt: c.createdAt.toISOString(),
-            user: {
-                id: c.userId._id?.toString() || c.userId.toString(),
+            user: c.userId && typeof c.userId === 'object' && '_id' in c.userId ? {
+                id: c.userId._id.toString(),
                 name: c.userId.name || '',
                 email: c.userId.email || '',
                 image: c.userId.image,
-            }
+            } : null,
         })),
     }));
 }
@@ -327,6 +350,11 @@ export async function updateTaskPosition(
 
     // Check role - ADMIN, EDITOR, or ASSIGNEE can update task positions
     const member = isWorkspaceMember(workspace, session.user.id);
+
+    // Enforce board-level access before any mutation.
+    if (!board || !canAccessBoard(board, session.user.id, member)) {
+        throw new Error('You do not have access to this board');
+    }
 
     // Check if user is an assignee
     const isAssignee = task.assignees.some((id: Types.ObjectId) => id.toString() === session.user.id);
@@ -471,6 +499,12 @@ export async function updateTask(
 
     if (!hasRole(member, 'ADMIN', 'EDITOR') && !isAssignee) {
         throw new Error('You do not have permission to update tasks');
+    }
+
+    // Enforce board-level access before any mutation.
+    const accessBoard = await Board.findById(task.boardId).select('visibility memberIds');
+    if (!accessBoard || !canAccessBoard(accessBoard, session.user.id, member)) {
+        throw new Error('You do not have access to this board');
     }
 
     // Track if significant changes happened
@@ -744,11 +778,16 @@ export async function deleteTask(taskId: string) {
         throw new Error('You do not have permission to delete tasks');
     }
 
-    // Log activity before deleting
+    // Enforce board-level access before deletion.
     const board = await Board.findById(task.boardId);
+    if (!board || !canAccessBoard(board, session.user.id, member)) {
+        throw new Error('You do not have access to this board');
+    }
+
+    // Log activity before deleting
     const taskTitle = task.title;
     const taskWorkspaceId = workspace._id.toString();
-    if (board) {
+    {
         await logActivity({
             workspaceSlug: workspace.slug,
             boardSlug: board.slug,
@@ -804,6 +843,16 @@ export async function archiveTasks(taskIds: string[]) {
     const member = isWorkspaceMember(workspace, session.user.id);
     if (!hasRole(member, 'ADMIN', 'EDITOR')) {
         throw new Error('You do not have permission to archive tasks');
+    }
+
+    // Enforce board-level access for every board these tasks belong to.
+    const distinctBoardIds = [...new Set(tasks.map((t) => t.boardId.toString()))];
+    const involvedBoards = await Board.find({ _id: { $in: distinctBoardIds } }).select('visibility memberIds');
+    const allAccessible =
+        involvedBoards.length === distinctBoardIds.length &&
+        involvedBoards.every((b) => canAccessBoard(b, session.user.id, member));
+    if (!allAccessible) {
+        throw new Error('You do not have access to one or more of these boards');
     }
 
     const board = await Board.findById(tasks[0].boardId);
@@ -868,6 +917,13 @@ export async function addComment(taskId: string, content: string) {
         throw new Error('You do not have permission to comment');
     }
 
+    // Enforce board-level access — a restricted board's task is off-limits to
+    // members who haven't been granted access to that board.
+    const board = await Board.findById(task.boardId);
+    if (!board || !canAccessBoard(board, session.user.id, member)) {
+        throw new Error('You do not have access to this board');
+    }
+
     if (!task.comments) {
         task.comments = [];
     }
@@ -875,7 +931,6 @@ export async function addComment(taskId: string, content: string) {
     task.comments.push({
         content,
         userId: new Types.ObjectId(session.user.id),
-        likes: [],
     } as any);
 
     await task.save();
@@ -886,8 +941,7 @@ export async function addComment(taskId: string, content: string) {
     const newComment = (updatedTask?.comments as any[]).pop();
 
     // Log activity for comment
-    const board = await Board.findById(task.boardId);
-    if (board) {
+    {
         await logActivity({
             workspaceSlug: workspace.slug,
             boardSlug: board.slug,
@@ -901,13 +955,30 @@ export async function addComment(taskId: string, content: string) {
             },
         });
 
-        // EMAIL NOTIFICATION: New Comment
-        // Notify all members (except the commenter)
-        const memberIds = workspace.members.map((m: any) => m.userId.toString());
-        const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
+        // Notification targets: only people actually involved with this task —
+        // its assignees and anyone @mentioned in the comment — never the whole team,
+        // and never the commenter themselves. Targets are also filtered to users who
+        // can actually access the board, so a restricted board never leaks via a
+        // comment notification (e.g. an @mention of a non-board-member).
+        const roleByUserId = new Map<string, string | undefined>(
+            workspace.members.map((m) => [m.userId.toString(), m.role])
+        );
+        const canSeeBoard = (uid: string) => canAccessBoard(board, uid, { role: roleByUserId.get(uid) });
 
-        if (notifyIds.length > 0) {
-            const users = await User.find({ _id: { $in: notifyIds } });
+        const assigneeIds = task.assignees.map((id: Types.ObjectId) => id.toString());
+        const mentionedIds = (
+            await resolveMentionedUserIds(content, workspace.members, session.user.id)
+        ).filter(canSeeBoard);
+        const mentionedSet = new Set(mentionedIds);
+
+        // EMAIL NOTIFICATION: New Comment — assignees ∪ mentioned, minus the commenter.
+        const emailTargetIds = uniqueExcluding(
+            [...assigneeIds, ...mentionedIds],
+            session.user.id,
+        ).filter(canSeeBoard);
+
+        if (emailTargetIds.length > 0) {
+            const users = await User.find({ _id: { $in: emailTargetIds } });
             await Promise.all(users.map(async (user) => {
                 if (user.email) {
                     const html = await render(
@@ -925,57 +996,57 @@ export async function addComment(taskId: string, content: string) {
                     });
                 }
             }));
+        }
 
-            // PUSH NOTIFICATION: send two distinct pushes so mentioned users see
-            // "X mentioned you" while plain assignees see "New comment".
-            const assigneeIds = task.assignees.map((id: Types.ObjectId) => id.toString());
-            const mentionedIds = await resolveMentionedUserIds(
-                content,
-                workspace.members,
-                session.user.id,
-            );
-            const mentionedSet = new Set(mentionedIds);
-            const assigneePushTargets = uniqueExcluding(
-                assigneeIds.filter((id: string) => !mentionedSet.has(id)),
-                session.user.id,
-            );
+        // PUSH NOTIFICATION: send two distinct pushes so mentioned users see
+        // "X mentioned you" while plain assignees see "New comment".
+        const assigneePushTargets = uniqueExcluding(
+            assigneeIds.filter((id: string) => !mentionedSet.has(id)),
+            session.user.id,
+        ).filter(canSeeBoard);
 
-            const commenterName = session.user.name || 'A teammate';
-            const snippet = content.substring(0, 60) + (content.length > 60 ? '…' : '');
-            const taskTitle = task.title;
-            const workspaceSlug = workspace.slug;
-            const boardSlug = board.slug;
+        const commenterName = session.user.name || 'A teammate';
+        const snippet = content.substring(0, 60) + (content.length > 60 ? '…' : '');
+        const taskTitle = task.title;
+        const workspaceSlug = workspace.slug;
+        const boardSlug = board.slug;
 
-            if (mentionedIds.length > 0) {
-                after(() => triggerNotification({
-                    title: `${commenterName} mentioned you`,
-                    body: `On "${taskTitle}": ${snippet}`,
-                    url: `/${workspaceSlug}/board/${boardSlug}`,
-                    userIds: mentionedIds,
-                }));
-            }
-            if (assigneePushTargets.length > 0) {
-                after(() => triggerNotification({
-                    title: `New comment on "${taskTitle}"`,
-                    body: `${commenterName}: ${snippet}`,
-                    url: `/${workspaceSlug}/board/${boardSlug}`,
-                    userIds: assigneePushTargets,
-                }));
-            }
+        if (mentionedIds.length > 0) {
+            after(() => triggerNotification({
+                title: `${commenterName} mentioned you`,
+                body: `On "${taskTitle}": ${snippet}`,
+                url: `/${workspaceSlug}/board/${boardSlug}`,
+                userIds: mentionedIds,
+            }));
+        }
+        if (assigneePushTargets.length > 0) {
+            after(() => triggerNotification({
+                title: `New comment on "${taskTitle}"`,
+                body: `${commenterName}: ${snippet}`,
+                url: `/${workspaceSlug}/board/${boardSlug}`,
+                userIds: assigneePushTargets,
+            }));
         }
     }
 
     revalidatePath(`/${workspace.slug}`);
 
+    if (!newComment) {
+        throw new Error('Failed to retrieve saved comment');
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const populatedUser: any = (newComment.userId && typeof newComment.userId === 'object' && '_id' in newComment.userId) ? newComment.userId : null;
+
     return {
         id: newComment._id.toString(),
         content: newComment.content,
-        userId: newComment.userId._id.toString(),
+        userId: populatedUser?._id?.toString() ?? session.user.id,
         user: {
-            id: newComment.userId._id.toString(),
-            name: newComment.userId.name,
-            email: newComment.userId.email,
-            image: newComment.userId.image,
+            id: populatedUser?._id?.toString() ?? session.user.id,
+            name: populatedUser?.name ?? '',
+            email: populatedUser?.email ?? '',
+            image: populatedUser?.image ?? null,
         },
         createdAt: newComment.createdAt.toISOString(),
         likes: [],
@@ -1020,6 +1091,12 @@ export async function deleteComment(taskId: string, commentId: string) {
         throw new Error('You do not have permission to delete this comment');
     }
 
+    // Enforce board-level access.
+    const board = await Board.findById(task.boardId).select('visibility memberIds');
+    if (!board || !canAccessBoard(board, session.user.id, member)) {
+        throw new Error('You do not have access to this board');
+    }
+
     // Remove comment
     task.comments = task.comments.filter((c: any) => c._id.toString() !== commentId);
     await task.save();
@@ -1050,6 +1127,12 @@ export async function likeComment(taskId: string, commentId: string) {
     const member = isWorkspaceMember(workspace, session.user.id);
     if (!member) {
         throw new Error('You do not have permission to like comments');
+    }
+
+    // Enforce board-level access.
+    const accessBoard = await Board.findById(task.boardId).select('visibility memberIds');
+    if (!accessBoard || !canAccessBoard(accessBoard, session.user.id, member)) {
+        throw new Error('You do not have access to this board');
     }
 
     if (!task.comments) {
@@ -1126,6 +1209,12 @@ export async function replyToComment(taskId: string, parentCommentId: string, co
         throw new Error('You do not have permission to reply to comments');
     }
 
+    // Enforce board-level access.
+    const accessBoard = await Board.findById(task.boardId).select('visibility memberIds');
+    if (!accessBoard || !canAccessBoard(accessBoard, session.user.id, member)) {
+        throw new Error('You do not have access to this board');
+    }
+
     // Find parent comment
     const parentComment = task.comments?.find((c: any) => c._id.toString() === parentCommentId);
     if (!parentComment) {
@@ -1196,15 +1285,17 @@ export async function replyToComment(taskId: string, parentCommentId: string, co
     revalidatePath(`/${workspace.slug}`);
 
     if (newComment) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const replyPopulatedUser: any = (newComment.userId && typeof newComment.userId === 'object' && '_id' in newComment.userId) ? newComment.userId : null;
         return {
             id: newComment._id.toString(),
             content: newComment.content,
-            userId: newComment.userId._id.toString(),
+            userId: replyPopulatedUser?._id?.toString() ?? session.user.id,
             user: {
-                id: newComment.userId._id.toString(),
-                name: newComment.userId.name,
-                email: newComment.userId.email,
-                image: newComment.userId.image,
+                id: replyPopulatedUser?._id?.toString() ?? session.user.id,
+                name: replyPopulatedUser?.name ?? '',
+                email: replyPopulatedUser?.email ?? '',
+                image: replyPopulatedUser?.image ?? null,
             },
             createdAt: newComment.createdAt.toISOString(),
             parentId: parentCommentId,
@@ -1238,6 +1329,12 @@ export async function addReaction(taskId: string, commentId: string, emoji: stri
     const member = isWorkspaceMember(workspace, session.user.id);
     if (!member) {
         throw new Error('You do not have permission to react');
+    }
+
+    // Enforce board-level access.
+    const accessBoard = await Board.findById(task.boardId).select('visibility memberIds');
+    if (!accessBoard || !canAccessBoard(accessBoard, session.user.id, member)) {
+        throw new Error('You do not have access to this board');
     }
 
     if (!task.comments) {
@@ -1362,4 +1459,60 @@ export async function getWorkspaceMembers(workspaceSlug: string) {
         email: m.userId.email,
         image: m.userId.image,
     }));
+}
+
+export interface CalendarTask {
+    id: string;
+    title: string;
+    dueDate: string;           // ISO string
+    status: TaskStatus;
+    priority: TaskPriority;
+    boardId: string;
+    boardSlug: string;
+}
+
+export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarTask[]> {
+    const session = await auth();
+    if (!session?.user?.id) return [];
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) return [];
+
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) return [];
+
+    // Get all boards this member can access
+    const boards = await Board.find({
+        workspaceId: workspace._id,
+        ...boardVisibilityFilter(session.user.id, member),
+    }).select('_id slug').lean();
+
+    const boardIds = boards.map((b) => b._id);
+    const boardSlugMap = new Map(boards.map((b) => [b._id.toString(), b.slug]));
+
+    const tasks = await Task.find({
+        workspaceId: workspace._id,
+        boardId: { $in: boardIds },
+        dueDate: { $exists: true, $ne: null },
+        status: { $ne: 'ARCHIVED' },
+    })
+        .select('_id title dueDate status priority boardId')
+        .lean();
+
+    return tasks.map((t) => ({
+        id: t._id.toString(),
+        title: t.title,
+        dueDate: t.dueDate!.toISOString(),
+        status: t.status,
+        priority: t.priority,
+        boardId: t.boardId.toString(),
+        boardSlug: boardSlugMap.get(t.boardId.toString()) ?? '',
+    }));
+}
+
+export async function updateTaskDueDate(taskId: string, newDate: Date, workspaceSlug: string): Promise<void> {
+    await updateTask(taskId, { dueDate: newDate.toISOString() });
+    revalidatePath(`/${workspaceSlug}/calendar`);
 }
