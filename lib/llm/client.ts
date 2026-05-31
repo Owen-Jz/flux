@@ -72,8 +72,11 @@ export class MinimaxClient {
         throw new Error('Board plan missing tasks array');
       }
       for (const t of parsed.tasks) {
-        if (!t.title || !t.description || !t.priority || !t.estimatedHours) {
+        if (!t.title || !t.description || !t.priority || typeof t.estimatedHours !== 'number' || t.estimatedHours <= 0) {
           throw new Error('Task missing required fields');
+        }
+        if (!(['High', 'Medium', 'Low'] as string[]).includes(t.priority)) {
+          throw new Error(`Invalid priority value: ${t.priority}`);
         }
       }
     } else {
@@ -81,8 +84,16 @@ export class MinimaxClient {
         throw new Error('Project plan missing boards array');
       }
       for (const b of parsed.boards) {
-        if (!b.name || !b.description || !Array.isArray(b.tasks)) {
+        if (!b.name || !b.description || !Array.isArray(b.tasks) || b.tasks.length === 0) {
           throw new Error('Board missing required fields');
+        }
+        for (const t of b.tasks) {
+          if (!t.title || !t.description || !t.priority || typeof t.estimatedHours !== 'number' || t.estimatedHours <= 0) {
+            throw new Error('Task missing required fields');
+          }
+          if (!(['High', 'Medium', 'Low'] as string[]).includes(t.priority)) {
+            throw new Error(`Invalid priority value: ${t.priority}`);
+          }
         }
       }
     }

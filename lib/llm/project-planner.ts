@@ -61,7 +61,10 @@ export function buildProjectPlanUserPrompt(req: ProjectPlanRequest): string {
   }
 
   if (req.contextLinks && req.contextLinks.length > 0) {
-    prompt += `Reference links:\n${req.contextLinks.map(l => `- ${l}`).join('\n')}\n\n`;
+    const safeLinks = req.contextLinks.filter(l => /^https?:\/\//i.test(l) && l.length < 512);
+    if (safeLinks.length > 0) {
+      prompt += `Reference links:\n${safeLinks.map(l => `- ${l}`).join('\n')}\n\n`;
+    }
   }
 
   if (req.maxTasksPerBoard) {
