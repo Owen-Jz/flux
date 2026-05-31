@@ -1,10 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useSession, signOut } from 'next-auth/react';
 
 // Import new enhanced components
 import { HeroSection } from '@/components/landing/hero-section';
@@ -22,158 +18,7 @@ import { FAQSection } from '@/components/landing/faq-section';
 import { AnalyticsDashboard } from '@/components/landing/analytics-dashboard';
 import { LiveMetrics } from '@/components/landing/live-metrics';
 import { SmoothScroll } from '@/components/landing/smooth-scroll';
-import { ThemeToggle } from '@/components/theme-toggle';
-
-// Navigation Component
-function Navigation() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { data: session, status } = useSession();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const isLoggedIn = status === 'authenticated' && session?.user;
-
-  const navLinks = [
-    { label: 'Features', href: '#features' },
-    { label: 'How it works', href: '#how-it-works' },
-    { label: 'Pricing', href: '#pricing' },
-  ];
-
-  return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-200 ${
-        isScrolled
-          ? 'glass border-b border-[var(--border-subtle)]'
-          : 'bg-transparent'
-      }`}
-      aria-label="Main navigation"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo with icon */}
-          <Link href="/" className="flex items-center gap-3 group" aria-label="Flux home">
-            <svg width="32" height="32" viewBox="0 0 94 96" fill="none" xmlns="http://www.w3.org/2000/svg" className="flex-shrink-0">
-              <rect y="30" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.3"/>
-              <rect x="14" y="15" width="66" height="66" rx="5" fill="#7E3BE9" fillOpacity="0.6"/>
-              <rect x="28" width="66" height="66" rx="5" fill="#7E3BE9"/>
-            </svg>
-            <span className="font-black text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
-          </Link>
-
-          {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
-              >
-                {link.label}
-              </a>
-            ))}
-          </div>
-
-          {/* Right Side */}
-          <div className="flex items-center gap-3">
-            {/* Theme Toggle - Desktop */}
-            <div className="hidden lg:block">
-              <ThemeToggle />
-            </div>
-
-            {isLoggedIn ? (
-              <Link
-                href="/dashboard"
-                className="px-5 py-2.5 bg-[var(--brand-primary)] text-[var(--text-inverse)] rounded-xl text-sm font-semibold hover:opacity-90 transition-colors"
-              >
-                Go to Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="hidden sm:block text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
-                >
-                  Log in
-                </Link>
-
-                <Link
-                  href="/signup"
-                  className="px-5 py-2.5 bg-[var(--brand-primary)] text-[var(--text-inverse)] rounded-xl text-sm font-semibold hover:opacity-90 transition-colors"
-                >
-                  Get started free
-                </Link>
-              </>
-            )}
-
-            {/* Mobile Menu Button */}
-            <button
-              className="lg:hidden p-2 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--background-subtle)] transition-colors"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-expanded={isMobileMenuOpen}
-              aria-controls="mobile-menu"
-              aria-label="Toggle menu"
-            >
-              {isMobileMenuOpen ? <XMarkIcon className="w-6 h-6" /> : <Bars3Icon className="w-6 h-6" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <motion.div
-            id="mobile-menu"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden border-t border-[var(--border-subtle)] py-4"
-          >
-            {/* Theme Toggle - Mobile */}
-            <div className="mb-4">
-              <ThemeToggle />
-            </div>
-
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="block py-3 text-base font-semibold text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {link.label}
-              </a>
-            ))}
-
-            {!isLoggedIn && (
-              <div className="mt-4 pt-4 border-t border-[var(--border-subtle)] flex flex-col gap-3">
-                <Link
-                  href="/login"
-                  className="block text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--brand-primary)] transition-colors"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Log in
-                </Link>
-                <Link
-                  href="/signup"
-                  className="px-5 py-2.5 bg-[var(--brand-primary)] text-[var(--text-inverse)] rounded-xl text-sm font-semibold hover:opacity-90 transition-colors text-center"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Get started free
-                </Link>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </div>
-    </nav>
-  );
-}
+import { LandingNavbar } from '@/components/landing/navbar';
 
 // Footer Component
 function Footer() {
@@ -275,7 +120,7 @@ export default function HomePage() {
         {/* Noise overlay for texture */}
         <div className="fixed inset-0 noise opacity-[0.015] dark:opacity-[0.03] pointer-events-none z-[100]" aria-hidden="true" />
 
-        <Navigation />
+        <LandingNavbar />
 
         <main>
           {/* Hero Section - New enhanced version */}
