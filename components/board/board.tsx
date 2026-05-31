@@ -17,7 +17,7 @@ import { Column } from './column';
 import { TaskCard, TaskData, Member } from './task-card';
 import { TaskDetailModal } from './task-detail-modal';
 import { CreateTaskModal } from './create-task-modal';
-import { AIDecomposeModal } from './ai-decompose-modal';
+import { PlanWithAIModal } from './plan-with-ai-modal';
 import { updateTaskPosition, createTask, updateTask, deleteTask, archiveTasks } from '@/actions/task';
 import { updateOnboardingProgress } from '@/actions/onboarding';
 import { InteractiveBoardWalkthrough, dispatchWalkthroughEvent } from '@/components/onboarding/interactive-board-walkthrough';
@@ -96,7 +96,7 @@ export function Board({
     const [readTaskIds, setReadTaskIds] = useState<Set<string>>(new Set());
     const [isAddingTask, setIsAddingTask] = useState<ColumnId | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showAIDecomposeModal, setShowAIDecomposeModal] = useState(false);
+    const [showPlanWithAI, setShowPlanWithAI] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('MEDIUM');
     const [showSearch, setShowSearch] = useState(false);
@@ -411,59 +411,6 @@ export function Board({
         });
     };
 
-    // Handle task creation from AI Decompose modal
-    const handleCreateTaskFromAI = async (taskData: {
-        title: string;
-        description: string;
-        subtasks: { title: string; completed: boolean }[];
-    }) => {
-        const columnId = 'BACKLOG' as ColumnId;
-        const tempId = `temp-${Date.now()}`;
-        const subtasksWithIds = taskData.subtasks.map((s, i) => ({
-            id: `temp-subtask-${Date.now()}-${i}`,
-            ...s,
-        }));
-        const newTask: TaskData = {
-            id: tempId,
-            title: taskData.title,
-            description: taskData.description,
-            status: columnId,
-            priority: 'MEDIUM' as TaskPriority,
-            order: Date.now(),
-            assignees: [],
-            createdAt: new Date().toISOString(),
-            subtasks: subtasksWithIds,
-        };
-
-        startTransition(async () => {
-            dispatchOptimistic({ type: 'ADD', task: newTask });
-
-            try {
-                if (!boardSlug) {
-                    throw new Error('Board slug is required');
-                }
-                const result = await createTask(workspaceSlug, boardSlug, {
-                    title: taskData.title,
-                    description: taskData.description,
-                    status: columnId,
-                    priority: 'MEDIUM',
-                    assignees: [],
-                    subtasks: subtasksWithIds,
-                });
-
-                dispatchOptimistic({ type: 'DELETE', id: tempId });
-
-                setTasks((prev) => [
-                    ...prev.filter((t) => t.id !== tempId),
-                    { ...newTask, id: result.id },
-                ]);
-            } catch (error) {
-                console.error('Failed to create task:', error);
-                dispatchOptimistic({ type: 'DELETE', id: tempId });
-            }
-        });
-    };
-
     const handleUpdateTask = async (taskId: string, data: Partial<TaskData>) => {
         const task = tasks.find((t) => t.id === taskId);
         if (!task) return;
@@ -593,12 +540,12 @@ export function Board({
                     {/* AI Decompose Button */}
                     {!isReadOnly && (
                         <button
-                            onClick={() => setShowAIDecomposeModal(true)}
+                            onClick={() => setShowPlanWithAI(true)}
                             className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs md:text-sm font-semibold hover:from-purple-700 hover:to-blue-700 transition-colors shadow-sm"
                             title="AI Decompose Task"
                         >
                             <SparklesIcon className="w-4 h-4" />
-                            <span>AI Decompose</span>
+                            <span>Plan with AI</span>
                         </button>
                     )}
 
@@ -729,6 +676,44 @@ export function Board({
                 )}
             </div>
 
+            {optimisticTasks.length === 0 && !isReadOnly ? (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex-1 flex items-center justify-center py-12"
+                >
+                    <div className="card p-8 max-w-md w-full text-center space-y-5">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--brand-primary)] to-purple-600 flex items-center justify-center mx-auto shadow-lg shadow-[var(--brand-primary)]/20">
+                            <SparklesIcon className="w-7 h-7 text-white" />
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="text-lg font-bold text-[var(--foreground)]">
+                                Your board is empty
+                            </h3>
+                            <p className="text-sm text-[var(--text-secondary)]">
+                                Describe your project and let Flux plan it — or add tasks manually.
+                            </p>
+                        </div>
+                        <div className="flex flex-col gap-3">
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => setShowPlanWithAI(true)}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--brand-primary)] to-purple-600 text-white font-semibold hover:shadow-lg hover:shadow-[var(--brand-primary)]/25 transition-all"
+                            >
+                                <SparklesIcon className="w-5 h-5" />
+                                Plan with AI
+                            </motion.button>
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="w-full px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--background-subtle)] hover:text-[var(--foreground)] transition-colors"
+                            >
+                                Add a task manually
+                            </button>
+                        </div>
+                    </div>
+                </motion.div>
+            ) : (
             <DndContext
                 sensors={sensors}
                 collisionDetection={closestCorners}
@@ -838,6 +823,7 @@ export function Board({
                     )}
                 </DragOverlay>
             </DndContext>
+            )}
 
             <AnimatePresence>
                 {selectedTask && (
@@ -863,11 +849,13 @@ export function Board({
                 defaultColumn="TODO"
             />
 
-            <AIDecomposeModal
-                isOpen={showAIDecomposeModal}
-                onClose={() => setShowAIDecomposeModal(false)}
-                onSubmit={handleCreateTaskFromAI}
+            <PlanWithAIModal
+                isOpen={showPlanWithAI}
+                onClose={() => setShowPlanWithAI(false)}
                 boardId={boardId || ''}
+                boardSlug={boardSlug || ''}
+                boardName={boardName}
+                workspaceSlug={workspaceSlug}
             />
 
             {isEditingBoard && (
@@ -968,7 +956,7 @@ export function Board({
                                 </div>
                                 <h4 className="font-semibold text-[var(--foreground)] mb-2">All caught up!</h4>
                                 <p className="text-sm text-[var(--text-secondary)] max-w-xs mx-auto">
-                                    You'll receive notifications for task assignments, mentions, due dates, and more.
+                                    You&apos;ll receive notifications for task assignments, mentions, due dates, and more.
                                 </p>
                             </div>
                         </div>
