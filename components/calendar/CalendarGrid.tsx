@@ -19,12 +19,11 @@ function getDaysInMonth(year: number, month: number): Date[] {
     for (let d = 1; d <= lastDay.getDate(); d++) {
         days.push(new Date(year, month, d));
     }
-    // Pad end to complete the last row
-    const remaining = 7 - (days.length % 7);
-    if (remaining < 7) {
-        for (let d = 1; d <= remaining; d++) {
-            days.push(new Date(year, month + 1, d));
-        }
+    // Pad end to at least 35 cells (5 rows), completing the last row
+    const minCells = days.length <= 35 ? 35 : 42;
+    const remaining = minCells - days.length;
+    for (let d = 1; d <= remaining; d++) {
+        days.push(new Date(year, month + 1, d));
     }
     return days;
 }
@@ -51,7 +50,8 @@ export function CalendarGrid({ year, month, tasks, onDragStart, onDrop, onDayCli
     // Group tasks by date key
     const tasksByDay = new Map<string, CalendarTask[]>();
     for (const task of tasks) {
-        const key = toDateKey(new Date(task.dueDate));
+        const [yy, mm, dd] = task.dueDate.substring(0, 10).split('-').map(Number);
+        const key = toDateKey(new Date(yy, mm - 1, dd));
         if (!tasksByDay.has(key)) tasksByDay.set(key, []);
         tasksByDay.get(key)!.push(task);
     }
@@ -69,7 +69,7 @@ export function CalendarGrid({ year, month, tasks, onDragStart, onDrop, onDayCli
 
             {/* Day cells */}
             <div className="grid grid-cols-7 gap-px bg-[var(--border-subtle)] border border-[var(--border-subtle)] rounded-lg overflow-hidden">
-                {days.map((date, idx) => {
+                {days.map((date) => {
                     const key = toDateKey(date);
                     const isCurrentMonth = date.getMonth() === month;
                     const isToday = key === today;
@@ -78,7 +78,7 @@ export function CalendarGrid({ year, month, tasks, onDragStart, onDrop, onDayCli
 
                     return (
                         <div
-                            key={idx}
+                            key={key}
                             className={`bg-[var(--background)] min-h-[100px] p-1.5 flex flex-col gap-1 transition-colors ${
                                 isCurrentMonth ? '' : 'opacity-40'
                             } ${!isReadOnly ? 'cursor-pointer hover:bg-[var(--surface)]' : ''}`}
@@ -100,15 +100,14 @@ export function CalendarGrid({ year, month, tasks, onDragStart, onDrop, onDayCli
                             </span>
 
                             {dayTasks.slice(0, MAX_CHIPS_PER_DAY).map((task) => (
-                                <CalendarTaskChip
-                                    key={task.id}
-                                    task={task}
-                                    onDragStart={onDragStart}
-                                    onClick={(t) => {
-                                        onTaskClick(t);
-                                    }}
-                                    isReadOnly={isReadOnly}
-                                />
+                                <div key={task.id} onClick={(e) => e.stopPropagation()}>
+                                    <CalendarTaskChip
+                                        task={task}
+                                        onDragStart={onDragStart}
+                                        onClick={onTaskClick}
+                                        isReadOnly={isReadOnly}
+                                    />
+                                </div>
                             ))}
 
                             {overflow > 0 && (
