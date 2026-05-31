@@ -10,6 +10,8 @@ import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { createBoard } from '@/actions/board';
 import type { ConfirmedPlan, TaskPlanItem } from '@/types/ai-plan';
+import { User } from '@/models/User';
+import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
 
 async function insertTasksForBoard(
     workspaceId: Types.ObjectId,
@@ -56,13 +58,32 @@ export async function createFromAIPlan(
 
     try {
         if (plan.type === 'board') {
-            // Board mode: insert tasks into the existing current board
-            const boardObjectId = new Types.ObjectId(boardId);
-            await insertTasksForBoard(workspace._id as Types.ObjectId, boardObjectId, plan.tasks);
+            if (!Types.ObjectId.isValid(boardId)) {
+                return { success: false, boardsCreated: 0, tasksCreated: 0, error: 'Invalid board ID' };
+            }
+            const boardDoc = await Board.findOne({
+                _id: boardId,
+                workspaceId: workspace._id,
+            }).select('_id');
+            if (!boardDoc) {
+                return { success: false, boardsCreated: 0, tasksCreated: 0, error: 'Board not found' };
+            }
+            await insertTasksForBoard(workspace._id as Types.ObjectId, boardDoc._id as Types.ObjectId, plan.tasks);
             tasksCreated = plan.tasks.length;
             revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
         } else {
             // Project mode: create each board, then insert its tasks
+            const userDoc = await User.findById(session.user.id).select('plan');
+            const userPlan = (userDoc?.plan || 'free') as 'free' | 'starter' | 'pro' | 'enterprise';
+            const currentBoardCount = await Board.countDocuments({ workspaceId: workspace._id });
+            if (!canCreateProject(userPlan, currentBoardCount + plan.boards.length - 1)) {
+                return {
+                    success: false,
+                    boardsCreated: 0,
+                    tasksCreated: 0,
+                    error: getUpgradeMessage(userPlan, 'projects'),
+                };
+            }
             for (const boardPlan of plan.boards) {
                 // createBoard handles plan-limit check, slug gen, webhook
                 const newBoard = await createBoard(workspaceSlug, {
@@ -72,15 +93,13 @@ export async function createFromAIPlan(
                 boardsCreated++;
 
                 if (boardPlan.tasks && boardPlan.tasks.length > 0) {
-                    const newBoardDoc = await Board.findById(newBoard.id).select('_id');
-                    if (newBoardDoc) {
-                        await insertTasksForBoard(
-                            workspace._id as Types.ObjectId,
-                            newBoardDoc._id as Types.ObjectId,
-                            boardPlan.tasks
-                        );
-                        tasksCreated += boardPlan.tasks.length;
-                    }
+                    const newBoardObjectId = new Types.ObjectId(newBoard.id);
+                    await insertTasksForBoard(
+                        workspace._id as Types.ObjectId,
+                        newBoardObjectId,
+                        boardPlan.tasks
+                    );
+                    tasksCreated += boardPlan.tasks.length;
                 }
             }
             revalidatePath(`/${workspaceSlug}`);
