@@ -1512,7 +1512,7 @@ export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarT
             priority: t.priority,
             boardId: t.boardId.toString(),
             boardSlug: boardSlugMap.get(t.boardId.toString())!,
-            createdAt: t.createdAt instanceof Date ? t.createdAt.toISOString() : new Date(t.createdAt as unknown as string).toISOString(),
+            createdAt: (t.createdAt as Date).toISOString(),
         }));
 }
 

@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import type { CalendarTask } from '@/actions/task';
-import { updateTaskDueDate, createTask } from '@/actions/task';
+import { updateTaskDueDate, createTask, updateTask } from '@/actions/task';
 import { CalendarGrid } from './CalendarGrid';
 import { TaskDetailModal } from '@/components/board/task-detail-modal';
 import { CreateTaskModal } from '@/components/board/create-task-modal';
@@ -214,6 +214,12 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
                                 };
                             })
                         );
+                        updateTask(taskId, {
+                            ...(data.title !== undefined && { title: data.title as string }),
+                            ...(data.status !== undefined && { status: data.status as CalendarTask['status'] }),
+                            ...(data.priority !== undefined && { priority: data.priority as CalendarTask['priority'] }),
+                            ...(data.dueDate !== undefined && { dueDate: (data.dueDate as string | undefined) ?? null }),
+                        }).catch(console.error);
                     }}
                     isReadOnly={isReadOnly}
                 />
