@@ -1469,6 +1469,7 @@ export interface CalendarTask {
     priority: TaskPriority;
     boardId: string;
     boardSlug: string;
+    createdAt: string;         // ISO string
 }
 
 export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarTask[]> {
@@ -1498,7 +1499,7 @@ export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarT
         dueDate: { $exists: true, $ne: null },
         status: { $ne: 'ARCHIVED' },
     })
-        .select('_id title dueDate status priority boardId')
+        .select('_id title dueDate status priority boardId createdAt')
         .lean();
 
     return tasks
@@ -1511,6 +1512,7 @@ export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarT
             priority: t.priority,
             boardId: t.boardId.toString(),
             boardSlug: boardSlugMap.get(t.boardId.toString())!,
+            createdAt: t.createdAt instanceof Date ? t.createdAt.toISOString() : new Date(t.createdAt as unknown as string).toISOString(),
         }));
 }
 

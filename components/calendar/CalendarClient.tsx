@@ -39,6 +39,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
     const [selectedTask, setSelectedTask] = useState<CalendarTask | null>(null);
     const [createDate, setCreateDate] = useState<Date | null>(null);
     const [selectedBoardSlug, setSelectedBoardSlug] = useState<string>(boards[0]?.slug ?? '');
+    const [createError, setCreateError] = useState<string | null>(null);
 
     const isReadOnly = userRole === 'VIEWER' || userRole === null;
 
@@ -106,9 +107,11 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
                 priority: formData.priority,
                 boardId: board?.id ?? '',
                 boardSlug: selectedBoardSlug,
+                createdAt: new Date().toISOString(),
             }]);
         } catch (err) {
             console.error('Failed to create task', err);
+            setCreateError('Failed to create task. Please try again.');
         }
     }, [createDate, selectedBoardSlug, workspaceSlug, boards]);
 
@@ -121,7 +124,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
             priority: selectedTask.priority,
             order: 0,
             assignees: [],
-            createdAt: new Date().toISOString(),
+            createdAt: selectedTask.createdAt,
         }
         : null;
 
@@ -170,6 +173,13 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
                 <p className="text-sm text-[var(--text-secondary)] mb-4">
                     No scheduled tasks. Set a due date on a task to see it here.
                 </p>
+            )}
+
+            {createError && (
+                <div className="mb-4 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm flex items-center justify-between">
+                    <span>{createError}</span>
+                    <button onClick={() => setCreateError(null)} className="ml-2 text-red-500 hover:text-red-700">×</button>
+                </div>
             )}
 
             <CalendarGrid
