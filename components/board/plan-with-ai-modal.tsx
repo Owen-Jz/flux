@@ -114,6 +114,10 @@ export function PlanWithAIModal({
 
     const handleGenerate = async () => {
         if (!description.trim()) return;
+        if (scale === 'board' && !boardId) {
+            setError('No board ID found — try refreshing the page.');
+            return;
+        }
         setStep('planning');
         setError('');
         cyclingIntervalRef.current = setInterval(() => setCyclingIndex(i => (i + 1) % cyclingMessages.length), 1500);
