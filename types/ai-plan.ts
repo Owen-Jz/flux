@@ -1,5 +1,8 @@
 // types/ai-plan.ts
 
+/** Scale of an AI plan — single board or multi-board project */
+export type PlanScale = 'board' | 'project';
+
 /** A single task as returned by the LLM (no DB fields yet) */
 export interface TaskPlanItem {
     title: string;
@@ -17,7 +20,7 @@ export interface BoardPlanItem {
 
 /** The full plan returned by /api/ai/plan */
 export interface AIPlan {
-    type: 'board' | 'project';
+    type: PlanScale;
     title: string;
     summary: string;
     tasks?: TaskPlanItem[];    // board mode only
@@ -37,10 +40,7 @@ export interface UIBoardPlanItem extends Omit<BoardPlanItem, 'tasks'> {
 }
 
 /** Full UI plan (AIPlan with UI state fields) */
-export interface UIAIPlan {
-    type: 'board' | 'project';
-    title: string;
-    summary: string;
+export interface UIAIPlan extends Omit<AIPlan, 'tasks' | 'boards'> {
     tasks?: UITaskPlanItem[];
     boards?: UIBoardPlanItem[];
 }
@@ -48,7 +48,7 @@ export interface UIAIPlan {
 /** Request body for POST /api/ai/plan */
 export interface AIPlanRequest {
     description: string;
-    scale: 'board' | 'project';
+    scale: PlanScale;
     boardId?: string;            // required for board mode (access check)
     workspaceSlug: string;
     deadline?: string;           // ISO-8601 date string
@@ -57,8 +57,6 @@ export interface AIPlanRequest {
 }
 
 /** The confirmed plan sent to createFromAIPlan server action */
-export interface ConfirmedPlan {
-    type: 'board' | 'project';
-    tasks?: TaskPlanItem[];
-    boards?: BoardPlanItem[];
-}
+export type ConfirmedPlan =
+    | { type: 'board';   tasks: TaskPlanItem[] }
+    | { type: 'project'; boards: BoardPlanItem[] };
