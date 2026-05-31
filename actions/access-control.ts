@@ -262,6 +262,12 @@ export async function removeMember(workspaceSlug: string, memberId: string) {
         { $pull: { assignees: memberId } }
     );
 
+    // Remove member from any restricted-board access lists in this workspace.
+    await Board.updateMany(
+        { workspaceId: workspace._id, memberIds: memberId },
+        { $pull: { memberIds: memberId } }
+    );
+
     revalidatePath(`/${workspaceSlug}/team`);
     return { success: true };
 }

@@ -4,6 +4,7 @@ import { connectDB } from '@/lib/db';
 import { Board, Workspace } from '@/models';
 import { User } from '@/models/User';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
+import { boardVisibilityFilter } from '@/lib/board-access';
 import { canCreateProject } from '@/lib/plan-limits';
 import type { PlanType } from '@/lib/types/billing';
 
@@ -29,7 +30,11 @@ export async function GET(
         return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const boards = await Board.find({ workspaceId }).select('name slug color icon description categories').lean();
+    // Restrict to boards the authenticated key's user is allowed to see.
+    const boards = await Board.find({
+        workspaceId,
+        ...boardVisibilityFilter(auth.user.id, member),
+    }).select('name slug color icon description categories').lean();
 
     return NextResponse.json({
         boards: boards.map((b) => ({

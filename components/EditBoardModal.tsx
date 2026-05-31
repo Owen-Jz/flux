@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { XMarkIcon, ArrowPathIcon, Squares2X2Icon, PlusIcon, TrashIcon, PencilIcon, CheckIcon, BookmarkSquareIcon } from '@heroicons/react/24/outline';
 import { updateBoard, addCategory, deleteCategory, updateCategory, getBoardCategories } from '@/actions/board';
+import BoardAccessSection from './BoardAccessSection';
 
 interface EditBoardModalProps {
     workspaceSlug: string;
@@ -13,6 +14,8 @@ interface EditBoardModalProps {
         color: string;
         categories?: { id: string; name: string; color: string }[];
     };
+    /** Current user's role in the workspace. Board access controls are admin-only. */
+    userRole?: 'ADMIN' | 'EDITOR' | 'VIEWER' | null;
     onClose: () => void;
     onSuccess?: () => void;
     onCategoriesChange?: (categories: { id: string; name: string; color: string }[]) => void;
@@ -23,7 +26,7 @@ const BOARD_COLORS = [
     '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4', '#3b82f6',
 ];
 
-export default function EditBoardModal({ workspaceSlug, board, onClose, onSuccess, onCategoriesChange }: EditBoardModalProps) {
+export default function EditBoardModal({ workspaceSlug, board, userRole, onClose, onSuccess, onCategoriesChange }: EditBoardModalProps) {
     const [name, setName] = useState(board.name);
     const [description, setDescription] = useState(board.description || '');
     const [color, setColor] = useState(board.color);
@@ -322,6 +325,10 @@ export default function EditBoardModal({ workspaceSlug, board, onClose, onSucces
                             </button>
                         </div>
                     </div>
+
+                    {userRole === 'ADMIN' && (
+                        <BoardAccessSection workspaceSlug={workspaceSlug} boardSlug={board.slug} />
+                    )}
 
                     {error && (
                         <p className="text-xs font-bold text-[var(--flux-error-primary)] bg-[var(--flux-error-bg)] px-4 py-3 rounded-xl border border-[var(--flux-error-border)] animate-shake">

@@ -23,9 +23,10 @@ interface BoardListProps {
     workspaceSlug: string;
     boards: Board[];
     currentBoardSlug?: string;
+    userRole?: 'ADMIN' | 'EDITOR' | 'VIEWER' | null;
 }
 
-export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: BoardListProps) {
+export default function BoardList({ workspaceSlug, boards, currentBoardSlug, userRole }: BoardListProps) {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingBoard, setEditingBoard] = useState<Board | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -203,6 +204,7 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug }: B
                 <EditBoardModal
                     workspaceSlug={workspaceSlug}
                     board={editingBoard}
+                    userRole={userRole}
                     onClose={() => setEditingBoard(null)}
                     onSuccess={() => {
                         router.refresh();

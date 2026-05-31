@@ -11,6 +11,7 @@ import { nanoid } from 'nanoid';
 import { revalidatePath } from 'next/cache';
 import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
+import { canAccessBoard } from '@/lib/board-access';
 import { emitEvent } from '@/lib/webhook-emitter';
 import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
 import type { PlanType } from '@/lib/types/billing';
@@ -85,16 +86,32 @@ export async function getWorkspaces() {
 
     // Get board counts and most recent activity per workspace
     const workspaceIds = workspaces.map((w) => w._id);
+
+    // The current user's role in each workspace — used to decide which boards count.
+    const roleByWorkspace = new Map<string, string | undefined>(
+        workspaces.map((w) => {
+            const m = w.members?.find(
+                (mem: { userId?: { toString: () => string } }) =>
+                    mem.userId?.toString() === session.user.id
+            );
+            return [w._id.toString(), m?.role];
+        })
+    );
+
     const boards = await Board.find({
         workspaceId: { $in: workspaceIds },
     })
-        .select('workspaceId updatedAt')
+        .select('workspaceId updatedAt visibility memberIds')
         .lean();
 
-    // Aggregate board stats per workspace
+    // Aggregate board stats per workspace, counting only boards this user can see.
     const boardStats = boards.reduce(
         (acc, board) => {
             const wid = board.workspaceId.toString();
+            const role = roleByWorkspace.get(wid);
+            if (!canAccessBoard(board, session.user.id, { role })) {
+                return acc;
+            }
             if (!acc[wid]) {
                 acc[wid] = { count: 0, lastActive: new Date(0) };
             }

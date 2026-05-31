@@ -9,6 +9,22 @@ import { Task } from '@/models/Task';
 import { User } from '@/models/User';
 import { Types } from 'mongoose';
 import { isWorkspaceMember } from '@/lib/workspace-utils';
+import { canAccessBoard, boardVisibilityFilter } from '@/lib/board-access';
+
+/** Board ids the given member is allowed to see within a workspace. */
+async function getAccessibleBoardIds(
+    workspaceId: Types.ObjectId,
+    userId: string,
+    member: { role?: string } | null | undefined,
+): Promise<Types.ObjectId[]> {
+    const boards = await Board.find({
+        workspaceId,
+        ...boardVisibilityFilter(userId, member),
+    })
+        .select('_id')
+        .lean();
+    return boards.map((b) => b._id);
+}
 
 interface LogActivityParams {
     workspaceSlug: string;
@@ -81,7 +97,13 @@ export async function getActivities(workspaceSlug: string, limit: number = 20) {
     const member = isWorkspaceMember(workspace, session.user.id);
     if (!member) return [];
 
-    const activities = await ActivityLog.find({ workspaceId: workspace._id })
+    // Only surface activity from boards this user can see.
+    const boardIds = await getAccessibleBoardIds(workspace._id, session.user.id, member);
+
+    const activities = await ActivityLog.find({
+        workspaceId: workspace._id,
+        boardId: { $in: boardIds },
+    })
         .sort({ createdAt: -1 })
         .limit(limit)
         .lean();
@@ -127,9 +149,13 @@ export async function getCommentActivities(workspaceSlug: string, limit: number 
     const member = isWorkspaceMember(workspace, session.user.id);
     if (!member) return [];
 
+    // Only surface comment activity from boards this user can see.
+    const boardIds = await getAccessibleBoardIds(workspace._id, session.user.id, member);
+
     const activities = await ActivityLog.find({
         workspaceId: workspace._id,
-        type: 'COMMENT_ADDED'
+        type: 'COMMENT_ADDED',
+        boardId: { $in: boardIds },
     })
         .sort({ createdAt: -1 })
         .limit(limit)
@@ -201,8 +227,11 @@ export async function markAllActivitiesAsRead(workspaceSlug: string) {
     const member = isWorkspaceMember(workspace, session.user.id);
     if (!member) return { success: false };
 
+    // Only clear unread state for boards this user can see.
+    const boardIds = await getAccessibleBoardIds(workspace._id, session.user.id, member);
+
     await ActivityLog.updateMany(
-        { workspaceId: workspace._id, read: false },
+        { workspaceId: workspace._id, boardId: { $in: boardIds }, read: false },
         { read: true }
     );
 
@@ -220,10 +249,15 @@ export async function getUnreadActivityCount(workspaceSlug: string) {
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) return 0;
 
-    if (!isWorkspaceMember(workspace, session.user.id)) return 0;
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) return 0;
+
+    // Count only unread activity from boards this user can see.
+    const boardIds = await getAccessibleBoardIds(workspace._id, session.user.id, member);
 
     const count = await ActivityLog.countDocuments({
         workspaceId: workspace._id,
+        boardId: { $in: boardIds },
         read: false
     });
 
@@ -241,10 +275,14 @@ export async function getUnreadActivityCountForBoard(workspaceSlug: string, boar
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) return 0;
 
-    if (!isWorkspaceMember(workspace, session.user.id)) return 0;
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) return 0;
 
     const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
     if (!board) return 0;
+
+    // No access to the board → no count to report.
+    if (!canAccessBoard(board, session.user.id, member)) return 0;
 
     const count = await ActivityLog.countDocuments({
         workspaceId: workspace._id,
@@ -272,6 +310,9 @@ export async function markAllActivitiesAsReadForBoard(workspaceSlug: string, boa
 
     const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
     if (!board) return { success: false };
+
+    // No access to the board → nothing to mark.
+    if (!canAccessBoard(board, session.user.id, member)) return { success: false };
 
     await ActivityLog.updateMany(
         { workspaceId: workspace._id, boardId: board._id, read: false },

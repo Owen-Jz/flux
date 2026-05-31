@@ -10,6 +10,8 @@ import { revalidatePath } from 'next/cache';
 import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
 import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
+import { canAccessBoard, canGuestAccessBoard, boardVisibilityFilter } from '@/lib/board-access';
+import type { BoardVisibility } from '@/models/Board';
 import { emitEvent } from '@/lib/webhook-emitter';
 
 interface CreateBoardData {
@@ -93,7 +95,7 @@ export async function getBoards(workspaceSlug: string) {
     }
 
     // Verify user is a member OR workspace allows public access
-    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : false;
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : null;
     const hasPublicAccess = workspace.settings?.publicAccess === true;
 
     // Non-members can only access if workspace is publicly accessible
@@ -101,7 +103,11 @@ export async function getBoards(workspaceSlug: string) {
         return [];
     }
 
-    const boards = await Board.find({ workspaceId: workspace._id })
+    // Restrict to boards this user (or guest) may see.
+    const boards = await Board.find({
+        workspaceId: workspace._id,
+        ...boardVisibilityFilter(session?.user?.id, member),
+    })
         .sort({ createdAt: 1 })
         .lean();
 
@@ -125,7 +131,7 @@ export async function getBoardCategories(workspaceSlug: string, boardSlug: strin
     }
 
     // Verify user is a member OR workspace allows public access
-    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : false;
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : null;
     const hasPublicAccess = workspace.settings?.publicAccess === true;
 
     // Non-members can only access if workspace is publicly accessible
@@ -135,6 +141,14 @@ export async function getBoardCategories(workspaceSlug: string, boardSlug: strin
 
     const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
     if (!board) {
+        return [];
+    }
+
+    // Enforce board-level visibility.
+    const allowed = member
+        ? canAccessBoard(board, session?.user?.id, member)
+        : canGuestAccessBoard(board);
+    if (!allowed) {
         return [];
     }
 
@@ -156,7 +170,7 @@ export async function getBoardBySlug(workspaceSlug: string, boardSlug: string) {
     }
 
     // Verify user is a member OR workspace allows public access
-    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : false;
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : null;
     const hasPublicAccess = workspace.settings?.publicAccess === true;
 
     // Non-members can only access if workspace is publicly accessible
@@ -169,12 +183,21 @@ export async function getBoardBySlug(workspaceSlug: string, boardSlug: string) {
         return null;
     }
 
+    // Enforce board-level visibility — a restricted board 404s for users without access.
+    const allowed = member
+        ? canAccessBoard(board, session?.user?.id, member)
+        : canGuestAccessBoard(board);
+    if (!allowed) {
+        return null;
+    }
+
     return {
         id: board._id.toString(),
         name: board.name,
         slug: board.slug,
         description: board.description,
         color: board.color,
+        visibility: board.visibility,
         categories: (board.categories || []).map((c: any) => ({
             id: c._id.toString(),
             name: c.name,
@@ -389,4 +412,101 @@ export async function updateCategory(
     revalidatePath(`/${workspaceSlug}`);
     revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
     return { success: true };
+}
+
+/**
+ * Read a board's access configuration. ADMIN-only — this is a management surface,
+ * not something regular members need to see.
+ */
+export async function getBoardAccess(workspaceSlug: string, boardSlug: string) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('Unauthorized');
+    }
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) {
+        throw new Error('Workspace not found');
+    }
+
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN')) {
+        throw new Error('Only the workspace admin can manage board access');
+    }
+
+    const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
+    if (!board) {
+        throw new Error('Board not found');
+    }
+
+    return {
+        visibility: board.visibility as BoardVisibility,
+        memberIds: (board.memberIds || []).map((id) => id.toString()),
+    };
+}
+
+/**
+ * Update a board's access configuration. ADMIN-only.
+ *
+ * - WORKSPACE  → board is open to all members; the member list is cleared.
+ * - RESTRICTED → board is limited to the supplied member list (admins always retain
+ *                access regardless). Only genuine workspace members can be granted access.
+ */
+export async function updateBoardAccess(
+    workspaceSlug: string,
+    boardSlug: string,
+    data: { visibility: BoardVisibility; memberIds: string[] }
+) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        throw new Error('Unauthorized');
+    }
+
+    if (data.visibility !== 'WORKSPACE' && data.visibility !== 'RESTRICTED') {
+        throw new Error('Invalid visibility value');
+    }
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) {
+        throw new Error('Workspace not found');
+    }
+
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN')) {
+        throw new Error('Only the workspace admin can manage board access');
+    }
+
+    const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
+    if (!board) {
+        throw new Error('Board not found');
+    }
+
+    if (data.visibility === 'RESTRICTED') {
+        // Only ids that are actually workspace members may be granted access.
+        const workspaceMemberIds = new Set(
+            workspace.members.map((m: { userId: { toString: () => string } }) => m.userId.toString())
+        );
+        const validIds = Array.from(new Set(data.memberIds)).filter((id) => workspaceMemberIds.has(id));
+
+        board.visibility = 'RESTRICTED';
+        board.memberIds = validIds.map((id) => new Types.ObjectId(id));
+    } else {
+        board.visibility = 'WORKSPACE';
+        board.memberIds = [];
+    }
+
+    await board.save();
+
+    revalidatePath(`/${workspaceSlug}`);
+    revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
+
+    return {
+        success: true,
+        visibility: board.visibility as BoardVisibility,
+        memberIds: board.memberIds.map((id) => id.toString()),
+    };
 }

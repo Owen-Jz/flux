@@ -7,6 +7,7 @@ import { Workspace } from "@/models/Workspace";
 import mongoose from "mongoose";
 import { auth } from "@/lib/auth";
 import { isWorkspaceMember } from "@/lib/workspace-utils";
+import { boardVisibilityFilter } from "@/lib/board-access";
 import { connectDB } from "@/lib/db";
 
 export interface TaskTrendData {
@@ -76,7 +77,11 @@ export async function getWorkspaceAnalytics(workspaceId: string): Promise<Worksp
 
     const objectId = new mongoose.Types.ObjectId(workspaceId);
 
-    const boards = await Board.find({ workspaceId: objectId }).select("_id").lean();
+    // Analytics only reflect boards this user is allowed to see.
+    const boards = await Board.find({
+        workspaceId: objectId,
+        ...boardVisibilityFilter(session.user.id, member),
+    }).select("_id").lean();
     const boardIds = boards.map(b => b._id);
 
     if (boardIds.length === 0) {
