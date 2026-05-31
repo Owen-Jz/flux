@@ -56,18 +56,19 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
         const taskId = draggingTaskId;
         setDraggingTaskId(null);
 
-        // Optimistic update
-        setTasks(prev =>
-            prev.map(t => t.id === taskId ? { ...t, dueDate: date.toISOString() } : t)
-        );
+        // Capture pre-optimistic snapshot for revert
+        let previousTasks: CalendarTask[] = [];
+        setTasks(prev => {
+            previousTasks = prev;
+            return prev.map(t => t.id === taskId ? { ...t, dueDate: date.toISOString() } : t);
+        });
 
         try {
             await updateTaskDueDate(taskId, date, workspaceSlug);
         } catch {
-            // Revert on failure
-            setTasks(initialTasks);
+            setTasks(previousTasks);
         }
-    }, [draggingTaskId, workspaceSlug, initialTasks]);
+    }, [draggingTaskId, workspaceSlug]);
 
     const handleDayClick = useCallback((date: Date) => {
         if (isReadOnly || boards.length === 0) return;
