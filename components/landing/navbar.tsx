@@ -63,7 +63,7 @@ export function LandingNavbar() {
                     <motion.div
                         animate={
                             isScrolled
-                                ? { height: '56px', paddingLeft: '28px', paddingRight: '28px', borderRadius: '9999px' }
+                                ? { height: '64px', paddingLeft: '40px', paddingRight: '40px', borderRadius: '9999px' }
                                 : { height: '72px', paddingLeft: '0px', paddingRight: '0px', borderRadius: '0px' }
                         }
                         transition={SPRING}
