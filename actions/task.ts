@@ -1501,18 +1501,21 @@ export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarT
         .select('_id title dueDate status priority boardId')
         .lean();
 
-    return tasks.map((t) => ({
-        id: t._id.toString(),
-        title: t.title,
-        dueDate: t.dueDate!.toISOString(),
-        status: t.status,
-        priority: t.priority,
-        boardId: t.boardId.toString(),
-        boardSlug: boardSlugMap.get(t.boardId.toString()) ?? '',
-    }));
+    return tasks
+        .filter((t) => boardSlugMap.has(t.boardId.toString()))
+        .map((t) => ({
+            id: t._id.toString(),
+            title: t.title,
+            dueDate: t.dueDate!.toISOString(),
+            status: t.status,
+            priority: t.priority,
+            boardId: t.boardId.toString(),
+            boardSlug: boardSlugMap.get(t.boardId.toString())!,
+        }));
 }
 
 export async function updateTaskDueDate(taskId: string, newDate: Date, workspaceSlug: string): Promise<void> {
     await updateTask(taskId, { dueDate: newDate.toISOString() });
+    // updateTask revalidates the workspace root; this additionally invalidates the calendar sub-path.
     revalidatePath(`/${workspaceSlug}/calendar`);
 }
