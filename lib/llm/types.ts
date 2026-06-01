@@ -67,3 +67,32 @@ export interface ProjectPlanResponse {
   tasks?: LLMTaskPlanItem[];    // board mode
   boards?: LLMBoardPlanItem[];  // project mode
 }
+
+// --- Board-mode live streaming planner ---
+
+/** One workstream/phase in the skeleton (no tasks yet) */
+export interface BoardSection {
+  name: string;
+  description: string;
+}
+
+/** Phase-1 skeleton response from the LLM */
+export interface BoardSkeletonResponse {
+  title: string;
+  summary: string;
+  sections: BoardSection[]; // 3-5
+}
+
+/** One task within a section, as returned by the LLM (title-case enums) */
+export interface LLMSectionTask {
+  title: string;
+  description: string;
+  priority: 'High' | 'Medium' | 'Low';
+  status: 'Backlog' | 'Todo' | 'In Progress';
+  estimatedHours: number;
+}
+
+/** Phase-2 per-section response from the LLM */
+export interface SectionTasksResponse {
+  tasks: LLMSectionTask[];
+}

@@ -60,3 +60,49 @@ export interface AIPlanRequest {
 export type ConfirmedPlan =
     | { type: 'board';   tasks: TaskPlanItem[] }
     | { type: 'project'; boards: BoardPlanItem[] };
+
+// --- Board-mode live streaming ---
+
+/** The starting columns the AI may assign to a freshly-planned task */
+export type StreamTaskStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS';
+
+/** Request body for POST /api/ai/plan/stream */
+export interface BoardStreamRequest {
+    description: string;
+    boardId: string;
+    boardSlug: string;
+    workspaceSlug: string;
+    deadline?: string;
+    contextLinks?: string[];
+    maxTasks?: number; // total cap across all sections, default 12
+}
+
+/** A task created server-side and streamed back to the board (real DB id) */
+export interface StreamedTask {
+    id: string;
+    title: string;
+    description: string;
+    status: StreamTaskStatus;
+    priority: 'LOW' | 'MEDIUM' | 'HIGH';
+    estimatedHours: number;
+    order: number;
+    sectionIndex: number;
+}
+
+/** Discriminated union of every SSE event the stream endpoint emits */
+export type PlanStreamEvent =
+    | {
+          type: 'skeleton';
+          title: string;
+          summary: string;
+          sections: { name: string; description: string }[];
+      }
+    | { type: 'section'; sectionIndex: number; tasks: StreamedTask[] }
+    | { type: 'section_error'; sectionIndex: number; message: string }
+    | {
+          type: 'done';
+          taskIds: string[];
+          columnTotals: Record<string, number>;
+          tasksCreated: number;
+      }
+    | { type: 'error'; message: string };
