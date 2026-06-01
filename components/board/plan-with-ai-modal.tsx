@@ -22,6 +22,7 @@ import type {
     AIPlan,
     UIAIPlan,
     UITaskPlanItem,
+    BoardStreamRequest,
 } from '@/types/ai-plan';
 
 type PlanStep = 'scope' | 'input' | 'planning' | 'review' | 'creating' | 'done';
@@ -33,6 +34,14 @@ interface PlanWithAIModalProps {
     boardSlug: string;
     boardName: string;
     workspaceSlug: string;
+    /** Step to open on (default 'scope'). Used by the onboarding intro handoff. */
+    initialStep?: PlanStep;
+    /** Pre-seed the description textarea (default ''). */
+    initialDescription?: string;
+    /** Lock the plan scale and hide the scope step (default undefined). */
+    forceScale?: 'board' | 'project';
+    /** When provided, board-scale Generate hands off to live streaming instead of the blocking flow. */
+    onStartBoardStream?: (req: BoardStreamRequest) => void;
 }
 
 function toUIPlan(plan: AIPlan): UIAIPlan {
@@ -63,12 +72,16 @@ export function PlanWithAIModal({
     boardSlug,
     boardName,
     workspaceSlug,
+    initialStep,
+    initialDescription,
+    forceScale,
+    onStartBoardStream,
 }: PlanWithAIModalProps) {
     const router = useRouter();
     const cyclingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const [step, setStep] = useState<PlanStep>('scope');
-    const [scale, setScale] = useState<'board' | 'project'>('board');
-    const [description, setDescription] = useState('');
+    const [step, setStep] = useState<PlanStep>(initialStep ?? 'scope');
+    const [scale, setScale] = useState<'board' | 'project'>(forceScale ?? 'board');
+    const [description, setDescription] = useState(initialDescription ?? '');
     const [deadline, setDeadline] = useState('');
     const [contextLinks, setContextLinks] = useState('');
     const [maxTasksPerBoard, setMaxTasksPerBoard] = useState('');
@@ -90,9 +103,9 @@ export function PlanWithAIModal({
             clearInterval(cyclingIntervalRef.current);
             cyclingIntervalRef.current = null;
         }
-        setStep('scope');
-        setScale('board');
-        setDescription('');
+        setStep(initialStep ?? 'scope');
+        setScale(forceScale ?? 'board');
+        setDescription(initialDescription ?? '');
         setDeadline('');
         setContextLinks('');
         setMaxTasksPerBoard('');
@@ -116,6 +129,21 @@ export function PlanWithAIModal({
         if (!description.trim()) return;
         if (scale === 'board' && !boardId) {
             setError('No board ID found — try refreshing the page.');
+            return;
+        }
+        // Live-streaming hand-off for board scale
+        if (scale === 'board' && onStartBoardStream) {
+            const links = contextLinks.split('\n').map(l => l.trim()).filter(l => l.length > 0).slice(0, 5);
+            onStartBoardStream({
+                description: description.trim(),
+                boardId,
+                boardSlug,
+                workspaceSlug,
+                deadline: deadline || undefined,
+                contextLinks: links.length > 0 ? links : undefined,
+                maxTasks: maxTasksPerBoard ? parseInt(maxTasksPerBoard, 10) : undefined,
+            });
+            handleClose();
             return;
         }
         setStep('planning');
@@ -301,10 +329,12 @@ export function PlanWithAIModal({
                                         </motion.div>
                                     )}
                                     <div className="flex gap-3">
-                                        <button onClick={() => setStep('scope')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--background-subtle)] transition-colors">
-                                            <ArrowUturnLeftIcon className="w-4 h-4" />
-                                            Back
-                                        </button>
+                                        {!forceScale && (
+                                            <button onClick={() => setStep('scope')} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[var(--border-subtle)] text-[var(--text-secondary)] text-sm font-medium hover:bg-[var(--background-subtle)] transition-colors">
+                                                <ArrowUturnLeftIcon className="w-4 h-4" />
+                                                Back
+                                            </button>
+                                        )}
                                         <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.99 }} onClick={handleGenerate} disabled={!description.trim()} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--brand-primary)] to-purple-600 text-white font-semibold hover:shadow-lg hover:shadow-[var(--brand-primary)]/25 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
                                             <SparklesIcon className="w-5 h-5" />
                                             Generate plan
