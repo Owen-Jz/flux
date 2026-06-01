@@ -18,10 +18,17 @@ import { TaskCard, TaskData, Member } from './task-card';
 import { TaskDetailModal } from './task-detail-modal';
 import { CreateTaskModal } from './create-task-modal';
 import { PlanWithAIModal } from './plan-with-ai-modal';
+import { PlanStreamBanner } from './plan-stream-banner';
+import { PlanCompleteModal } from './plan-complete-modal';
+import { usePlanStream } from './use-plan-stream';
+import { undoAIPlan } from '@/actions/ai-plan';
+import type { BoardStreamRequest, StreamedTask } from '@/types/ai-plan';
 import { updateTaskPosition, createTask, updateTask, deleteTask, archiveTasks } from '@/actions/task';
 import { updateOnboardingProgress } from '@/actions/onboarding';
 import { InteractiveBoardWalkthrough, dispatchWalkthroughEvent } from '@/components/onboarding/interactive-board-walkthrough';
 import { BoardContextualTooltips } from './board-contextual-tooltips';
+import { CommentsPanel, NotificationsPanel } from './board-activity-panels';
+import { getUnreadActivityCountForBoard } from '@/actions/activity';
 import type { TaskStatus, TaskPriority } from '@/models/Task';
 import { PlusIcon, XMarkIcon, ArrowPathIcon, MagnifyingGlassIcon, UserIcon, Cog6ToothIcon, UsersIcon, BellIcon, ChatBubbleLeftRightIcon, MoonIcon, SunIcon, ChevronDownIcon, EllipsisHorizontalIcon, SparklesIcon, FunnelIcon, XCircleIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -91,17 +98,105 @@ export function Board({
         setLocalCategories(categories);
     }, [categories]);
 
+    // Unread-activity badge on the bell. Refreshed on mount and whenever the
+    // notifications panel reports it cleared items.
+    const refreshUnreadCount = useCallback(() => {
+        if (!boardSlug) return;
+        getUnreadActivityCountForBoard(workspaceSlug, boardSlug)
+            .then(setBoardUnreadCount)
+            .catch(() => {
+                /* badge is best-effort; ignore transient failures */
+            });
+    }, [workspaceSlug, boardSlug]);
+
+    useEffect(() => {
+        refreshUnreadCount();
+    }, [refreshUnreadCount]);
+
+    // Open a task's detail modal from an activity/comment entry (by id), closing
+    // whichever side panel triggered it. Marks the task locally read.
+    const handleOpenTaskById = useCallback((taskId?: string) => {
+        if (!taskId) return;
+        const target = tasks.find((t) => t.id === taskId);
+        setShowComments(false);
+        setShowNotifications(false);
+        if (target) {
+            setSelectedTask(target);
+            setReadTaskIds((prev) => new Set([...prev, target.id]));
+        }
+    }, [tasks]);
+
     const [activeTask, setActiveTask] = useState<TaskData | null>(null);
     const [selectedTask, setSelectedTask] = useState<TaskData | null>(null);
     const [readTaskIds, setReadTaskIds] = useState<Set<string>>(new Set());
     const [isAddingTask, setIsAddingTask] = useState<ColumnId | null>(null);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showPlanWithAI, setShowPlanWithAI] = useState(false);
+    const [showPlanComplete, setShowPlanComplete] = useState(false);
+
+    // Append streamed AI tasks into board state as real cards
+    const handleStreamedTasks = useCallback((streamed: StreamedTask[]) => {
+        setTasks((prev) => [
+            ...prev,
+            ...streamed.map((t): TaskData => ({
+                id: t.id,
+                title: t.title,
+                description: t.description,
+                status: t.status,
+                priority: t.priority,
+                order: t.order,
+                assignees: [],
+                createdAt: new Date().toISOString(),
+            })),
+        ]);
+    }, []);
+
+    const handleStreamDone = useCallback((taskIds: string[]) => {
+        if (taskIds.length > 0) {
+            setShowPlanComplete(true);
+        }
+    }, []);
+
+    const planStream = usePlanStream({
+        onTasks: handleStreamedTasks,
+        onDone: handleStreamDone,
+    });
+
+    const handleStartBoardStream = useCallback((req: BoardStreamRequest) => {
+        planStream.start(req);
+    }, [planStream]);
+
+    const handleUndoAIPlan = useCallback(async () => {
+        const ids = planStream.state.createdTaskIds;
+        if (ids.length === 0) return;
+        const idSet = new Set(ids);
+        const removed = tasks.filter((t) => idSet.has(t.id));
+        // Optimistic removal
+        setTasks((prev) => prev.filter((t) => !idSet.has(t.id)));
+        setShowPlanComplete(false);
+        try {
+            const result = await undoAIPlan(workspaceSlug, boardSlug || '', ids);
+            if (!result.success) {
+                // Re-add on failure
+                setTasks((prev) => [...prev, ...removed]);
+            }
+        } catch {
+            setTasks((prev) => [...prev, ...removed]);
+        } finally {
+            planStream.reset();
+        }
+    }, [planStream, tasks, workspaceSlug, boardSlug]);
+
+    const handleKeepPlan = useCallback(() => {
+        setShowPlanComplete(false);
+        planStream.reset();
+    }, [planStream]);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('MEDIUM');
     const [showSearch, setShowSearch] = useState(false);
     const [showComments, setShowComments] = useState(false);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [boardUnreadCount, setBoardUnreadCount] = useState(0);
     const [showMoreMenu, setShowMoreMenu] = useState(false);
     const [isPending, startTransition] = useTransition();
     const { theme, setTheme } = useTheme();
@@ -579,8 +674,14 @@ export function Board({
                             onClick={() => setShowNotifications(!showNotifications)}
                             className="p-2.5 md:p-2 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] transition-colors relative"
                             title="Notifications"
+                            aria-label={boardUnreadCount > 0 ? `Notifications, ${boardUnreadCount} unread` : 'Notifications'}
                         >
                             <BellIcon className="w-4.5 h-4.5" />
+                            {boardUnreadCount > 0 && (
+                                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-[var(--error-primary)] text-white text-[9px] font-bold leading-none ring-2 ring-[var(--surface)]">
+                                    {boardUnreadCount > 99 ? '99+' : boardUnreadCount}
+                                </span>
+                            )}
                         </button>
                     </div>
                 </div>
@@ -675,6 +776,8 @@ export function Board({
                     </div>
                 )}
             </div>
+
+            <PlanStreamBanner state={planStream.state} onCancel={planStream.cancel} />
 
             {optimisticTasks.length === 0 && !isReadOnly ? (
                 <motion.div
@@ -856,6 +959,15 @@ export function Board({
                 boardSlug={boardSlug || ''}
                 boardName={boardName}
                 workspaceSlug={workspaceSlug}
+                onStartBoardStream={handleStartBoardStream}
+            />
+
+            <PlanCompleteModal
+                isOpen={showPlanComplete}
+                tasksCreated={planStream.state.tasksCreated}
+                columnTotals={planStream.state.columnTotals}
+                onUndo={handleUndoAIPlan}
+                onKeep={handleKeepPlan}
             />
 
             {isEditingBoard && (
@@ -874,102 +986,25 @@ export function Board({
                 />
             )}
 
-            {/* Comments Panel */}
-            {showComments && (
-                <>
-                    {/* Backdrop */}
-                    <div
-                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-in fade-in duration-200"
-                        onClick={() => setShowComments(false)}
-                    />
-                    {/* Panel */}
-                    <div className="fixed inset-y-0 right-0 w-full md:w-96 max-w-full bg-[var(--surface)] shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-xl bg-[var(--brand-primary)]/10 flex items-center justify-center">
-                                    <ChatBubbleLeftRightIcon className="w-4 h-4 text-[var(--brand-primary)]" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-[var(--foreground)]">Comments</h3>
-                                    <p className="text-xs text-[var(--text-secondary)]">Recent activity</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setShowComments(false)}
-                                className="p-2 hover:bg-[var(--background-subtle)] rounded-xl transition-colors text-[var(--text-secondary)] hover:text-[var(--foreground)]"
-                            >
-                                <XMarkIcon className="w-5 h-5" />
-                            </button>
-                        </div>
+            {/* Comments Panel — every comment on this board, click-through to the task */}
+            <CommentsPanel
+                isOpen={showComments}
+                onClose={() => setShowComments(false)}
+                workspaceSlug={workspaceSlug}
+                boardSlug={boardSlug || ''}
+                currentUserId={currentUserId}
+                onOpenTask={handleOpenTaskById}
+            />
 
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-4">
-                            <div className="text-center py-12">
-                                <div className="w-16 h-16 rounded-2xl bg-[var(--brand-primary)]/10 flex items-center justify-center mx-auto mb-4">
-                                    <ChatBubbleLeftRightIcon className="w-8 h-8 text-[var(--brand-primary)]/50" />
-                                </div>
-                                <h4 className="font-semibold text-[var(--foreground)] mb-2">No comments yet</h4>
-                                <p className="text-sm text-[var(--text-secondary)] max-w-xs mx-auto">
-                                    Click on any task to view or add comments. All comments on this board will appear here.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
-
-            {/* Notifications Panel */}
-            {showNotifications && (
-                <>
-                    {/* Backdrop */}
-                    <div
-                        className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 animate-in fade-in duration-200"
-                        onClick={() => setShowNotifications(false)}
-                    />
-                    {/* Panel */}
-                    <div className="fixed inset-y-0 right-0 w-full md:w-96 max-w-full bg-[var(--surface)] shadow-2xl z-50 flex flex-col animate-in slide-in-from-right duration-300">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-xl bg-purple-500/10 flex items-center justify-center">
-                                    <BellIcon className="w-4 h-4 text-purple-500" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-[var(--foreground)]">Notifications</h3>
-                                    <p className="text-xs text-[var(--text-secondary)]">Stay updated</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setShowNotifications(false)}
-                                className="p-2 hover:bg-[var(--background-subtle)] rounded-xl transition-colors text-[var(--text-secondary)] hover:text-[var(--foreground)]"
-                            >
-                                <XMarkIcon className="w-5 h-5" />
-                            </button>
-                        </div>
-
-                        {/* Content */}
-                        <div className="flex-1 overflow-y-auto p-4">
-                            <div className="text-center py-12">
-                                <div className="w-16 h-16 rounded-2xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
-                                    <BellIcon className="w-8 h-8 text-purple-500/50" />
-                                </div>
-                                <h4 className="font-semibold text-[var(--foreground)] mb-2">All caught up!</h4>
-                                <p className="text-sm text-[var(--text-secondary)] max-w-xs mx-auto">
-                                    You&apos;ll receive notifications for task assignments, mentions, due dates, and more.
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="p-4 border-t border-[var(--border-subtle)]">
-                            <button className="w-full py-2.5 text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--background-subtle)] rounded-xl transition-colors">
-                                Notification settings
-                            </button>
-                        </div>
-                    </div>
-                </>
-            )}
+            {/* Notifications Panel — board activity feed with mark-as-read */}
+            <NotificationsPanel
+                isOpen={showNotifications}
+                onClose={() => setShowNotifications(false)}
+                workspaceSlug={workspaceSlug}
+                boardSlug={boardSlug || ''}
+                onOpenTask={handleOpenTaskById}
+                onUnreadChange={refreshUnreadCount}
+            />
 
             {/* Interactive Board Walkthrough for Onboarding */}
             {showWalkthrough && (
