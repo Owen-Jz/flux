@@ -151,16 +151,21 @@ export function Board({
         ]);
     }, []);
 
-    const handleStreamDone = useCallback((taskIds: string[]) => {
-        if (taskIds.length > 0) {
-            setShowPlanComplete(true);
-        }
-    }, []);
-
     const planStream = usePlanStream({
         onTasks: handleStreamedTasks,
-        onDone: handleStreamDone,
     });
+
+    // Open the completion modal once the stream reaches a terminal state with
+    // created tasks — deterministic for both a clean finish and a cancellation
+    // (a cancelled stream may never deliver the final `done` event).
+    useEffect(() => {
+        if (
+            (planStream.state.phase === 'done' || planStream.state.phase === 'cancelled') &&
+            planStream.state.createdTaskIds.length > 0
+        ) {
+            setShowPlanComplete(true);
+        }
+    }, [planStream.state.phase, planStream.state.createdTaskIds.length]);
 
     const handleStartBoardStream = useCallback((req: BoardStreamRequest) => {
         planStream.start(req);
@@ -778,7 +783,7 @@ export function Board({
                 )}
             </div>
 
-            <PlanStreamBanner state={planStream.state} onCancel={planStream.cancel} />
+            <PlanStreamBanner state={planStream.state} onCancel={planStream.cancel} onDismiss={planStream.reset} />
 
             {optimisticTasks.length === 0 && !isReadOnly ? (
                 <motion.div
@@ -965,6 +970,7 @@ export function Board({
 
             <PlanCompleteModal
                 isOpen={showPlanComplete}
+                cancelled={planStream.state.phase === 'cancelled'}
                 tasksCreated={planStream.state.tasksCreated}
                 columnTotals={planStream.state.columnTotals}
                 onUndo={handleUndoAIPlan}

@@ -17,6 +17,8 @@ interface PlanCompleteModalProps {
   columnTotals: Record<string, number>;
   onUndo: () => Promise<void>;
   onKeep: () => void;
+  /** True when the plan was stopped early by the user (affects copy only). */
+  cancelled?: boolean;
 }
 
 export function PlanCompleteModal({
@@ -25,6 +27,7 @@ export function PlanCompleteModal({
   columnTotals,
   onUndo,
   onKeep,
+  cancelled = false,
 }: PlanCompleteModalProps) {
   const [isUndoing, setIsUndoing] = useState(false);
   const columnCount = Object.keys(columnTotals).length;
@@ -62,7 +65,7 @@ export function PlanCompleteModal({
               </div>
               <div className="space-y-1">
                 <h2 className="text-lg font-bold text-[var(--foreground)]">
-                  {tasksCreated > 0 ? 'Plan complete!' : 'Nothing was added'}
+                  {cancelled ? 'Plan stopped' : tasksCreated > 0 ? 'Plan complete!' : 'Nothing was added'}
                 </h2>
                 {tasksCreated > 0 && (
                   <p className="text-sm text-[var(--text-secondary)]">

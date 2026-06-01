@@ -39,10 +39,9 @@ const INITIAL_STATE: PlanStreamState = {
 
 interface UsePlanStreamCallbacks {
   onTasks: (tasks: StreamedTask[]) => void;
-  onDone: (taskIds: string[], columnTotals: Record<string, number>) => void;
 }
 
-export function usePlanStream({ onTasks, onDone }: UsePlanStreamCallbacks) {
+export function usePlanStream({ onTasks }: UsePlanStreamCallbacks) {
   const [state, setState] = useState<PlanStreamState>(INITIAL_STATE);
   const controllerRef = useRef<AbortController | null>(null);
 
@@ -73,17 +72,31 @@ export function usePlanStream({ onTasks, onDone }: UsePlanStreamCallbacks) {
             })),
           }));
           break;
-        case 'section':
+        case 'section': {
           onTasks(event.tasks);
+          const ids = event.tasks.map(t => t.id);
           setState(prev => {
             const sections = prev.sections.map((s, i) =>
               i === event.sectionIndex
                 ? { ...s, status: 'done' as SectionStatus, taskCount: event.tasks.length }
                 : s
             );
-            return { ...prev, sections };
+            // Accumulate live totals so the banner/modal have data even if the
+            // user cancels before the final `done` event arrives.
+            const columnTotals = { ...prev.columnTotals };
+            for (const t of event.tasks) {
+              columnTotals[t.status] = (columnTotals[t.status] ?? 0) + 1;
+            }
+            return {
+              ...prev,
+              sections,
+              createdTaskIds: [...prev.createdTaskIds, ...ids],
+              tasksCreated: prev.tasksCreated + ids.length,
+              columnTotals,
+            };
           });
           break;
+        }
         case 'section_error':
           setState(prev => {
             const sections = prev.sections.map((s, i) =>
@@ -93,6 +106,8 @@ export function usePlanStream({ onTasks, onDone }: UsePlanStreamCallbacks) {
           });
           break;
         case 'done':
+          // Reconcile with the server's authoritative totals (equal to what we
+          // accumulated from `section` events, but trust the final word).
           setState(prev => ({
             ...prev,
             phase: prev.phase === 'cancelled' ? 'cancelled' : 'done',
@@ -100,14 +115,13 @@ export function usePlanStream({ onTasks, onDone }: UsePlanStreamCallbacks) {
             columnTotals: event.columnTotals,
             createdTaskIds: event.taskIds,
           }));
-          onDone(event.taskIds, event.columnTotals);
           break;
         case 'error':
           setState(prev => ({ ...prev, phase: 'error', errorMessage: event.message }));
           break;
       }
     },
-    [onTasks, onDone]
+    [onTasks]
   );
 
   const start = useCallback(

@@ -14,9 +14,10 @@ import type { PlanStreamState } from './use-plan-stream';
 interface PlanStreamBannerProps {
   state: PlanStreamState;
   onCancel: () => void;
+  onDismiss: () => void;
 }
 
-export function PlanStreamBanner({ state, onCancel }: PlanStreamBannerProps) {
+export function PlanStreamBanner({ state, onCancel, onDismiss }: PlanStreamBannerProps) {
   const { phase, title, sections, errorMessage } = state;
   const isActive = phase === 'streaming';
   const completed = sections.filter(s => s.status !== 'pending').length;
@@ -62,6 +63,15 @@ export function PlanStreamBanner({ state, onCancel }: PlanStreamBannerProps) {
               >
                 <XMarkIcon className="w-3.5 h-3.5" />
                 Cancel
+              </button>
+            )}
+            {(phase === 'error' || phase === 'cancelled') && (
+              <button
+                onClick={onDismiss}
+                aria-label="Dismiss"
+                className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:bg-[var(--background-subtle)] hover:text-[var(--foreground)] transition-colors flex-shrink-0"
+              >
+                <XMarkIcon className="w-4 h-4" />
               </button>
             )}
           </div>

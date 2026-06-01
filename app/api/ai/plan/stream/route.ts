@@ -14,7 +14,7 @@ import { normalizeSectionTask } from '@/lib/llm/board-stream-planner';
 import type { BoardStreamRequest, PlanStreamEvent, StreamedTask } from '@/types/ai-plan';
 
 const SECTION_CONCURRENCY = 3;
-const DEFAULT_MAX_TASKS = 12;
+const DEFAULT_MAX_TASKS = 10;
 
 function sse(event: PlanStreamEvent): string {
   return `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`;
