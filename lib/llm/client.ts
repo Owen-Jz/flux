@@ -1,10 +1,21 @@
 import { DecomposeRequest, DecomposeResponse, LLMMessage, LLMResponse, MinimaxConfig, ProjectPlanRequest, ProjectPlanResponse } from './types';
+import type { BoardSkeletonResponse, SectionTasksResponse } from './types';
 import { SYSTEM_PROMPT, buildUserPrompt } from './prompts';
 import {
   BOARD_PLAN_SYSTEM_PROMPT,
   PROJECT_PLAN_SYSTEM_PROMPT,
   buildProjectPlanUserPrompt,
 } from './project-planner';
+import {
+  SKELETON_SYSTEM_PROMPT,
+  SECTION_SYSTEM_PROMPT,
+  buildSkeletonUserPrompt,
+  buildSectionUserPrompt,
+  parseSkeletonResponse,
+  parseSectionResponse,
+  type SkeletonPromptInput,
+  type SectionPromptInput,
+} from './board-stream-planner';
 import { randomUUID } from 'crypto';
 
 export class MinimaxClient {
@@ -44,6 +55,26 @@ export class MinimaxClient {
 
     const llmResponse = await this.callAPI(messages);
     return this.parseProjectPlanResponse(llmResponse, request.scale);
+  }
+
+  async planSkeleton(input: SkeletonPromptInput): Promise<BoardSkeletonResponse> {
+    const messages: LLMMessage[] = [
+      { role: 'system', content: SKELETON_SYSTEM_PROMPT },
+      { role: 'user', content: buildSkeletonUserPrompt(input) },
+    ];
+    const response = await this.callAPI(messages);
+    const content = response.choices[0]?.message?.content ?? '';
+    return parseSkeletonResponse(content);
+  }
+
+  async planSection(input: SectionPromptInput): Promise<SectionTasksResponse> {
+    const messages: LLMMessage[] = [
+      { role: 'system', content: SECTION_SYSTEM_PROMPT },
+      { role: 'user', content: buildSectionUserPrompt(input) },
+    ];
+    const response = await this.callAPI(messages);
+    const content = response.choices[0]?.message?.content ?? '';
+    return parseSectionResponse(content);
   }
 
   private parseProjectPlanResponse(
