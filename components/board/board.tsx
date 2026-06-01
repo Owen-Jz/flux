@@ -171,19 +171,20 @@ export function Board({
         if (ids.length === 0) return;
         const idSet = new Set(ids);
         const removed = tasks.filter((t) => idSet.has(t.id));
-        // Optimistic removal
+        // Optimistic removal — keep the modal open until we know it succeeded
         setTasks((prev) => prev.filter((t) => !idSet.has(t.id)));
-        setShowPlanComplete(false);
         try {
             const result = await undoAIPlan(workspaceSlug, boardSlug || '', ids);
             if (!result.success) {
-                // Re-add on failure
+                // Restore and leave the modal open so the user can retry
                 setTasks((prev) => [...prev, ...removed]);
+                return;
             }
-        } catch {
-            setTasks((prev) => [...prev, ...removed]);
-        } finally {
+            setShowPlanComplete(false);
             planStream.reset();
+        } catch {
+            // Restore and leave the modal open so the user can retry
+            setTasks((prev) => [...prev, ...removed]);
         }
     }, [planStream, tasks, workspaceSlug, boardSlug]);
 
