@@ -111,3 +111,52 @@ export async function createFromAIPlan(
         return { success: false, boardsCreated, tasksCreated, error: msg };
     }
 }
+
+export async function undoAIPlan(
+    workspaceSlug: string,
+    boardSlug: string,
+    taskIds: string[]
+): Promise<{ success: boolean; deleted: number; error?: string }> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, deleted: 0, error: 'Unauthorized' };
+    }
+
+    if (!Array.isArray(taskIds) || taskIds.length === 0) {
+        return { success: true, deleted: 0 };
+    }
+    const validIds = taskIds.filter(id => Types.ObjectId.isValid(id));
+    if (validIds.length === 0) {
+        return { success: true, deleted: 0 };
+    }
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) {
+        return { success: false, deleted: 0, error: 'Workspace not found' };
+    }
+
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
+        return { success: false, deleted: 0, error: 'Permission denied' };
+    }
+
+    const boardDoc = await Board.findOne({ slug: boardSlug, workspaceId: workspace._id }).select('_id');
+    if (!boardDoc) {
+        return { success: false, deleted: 0, error: 'Board not found' };
+    }
+
+    try {
+        const result = await Task.deleteMany({
+            _id: { $in: validIds.map(id => new Types.ObjectId(id)) },
+            boardId: boardDoc._id,
+            workspaceId: workspace._id,
+        });
+        revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
+        return { success: true, deleted: result.deletedCount ?? 0 };
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : 'Undo failed';
+        return { success: false, deleted: 0, error: msg };
+    }
+}
