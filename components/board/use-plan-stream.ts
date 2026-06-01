@@ -1,0 +1,183 @@
+// components/board/use-plan-stream.ts
+'use client';
+
+import { useCallback, useRef, useState } from 'react';
+import type { BoardStreamRequest, PlanStreamEvent, StreamedTask } from '@/types/ai-plan';
+
+export type SectionStatus = 'pending' | 'done' | 'error';
+
+export interface BannerSection {
+  name: string;
+  description: string;
+  status: SectionStatus;
+  taskCount: number;
+}
+
+export type PlanStreamPhase = 'idle' | 'streaming' | 'done' | 'error' | 'cancelled';
+
+export interface PlanStreamState {
+  phase: PlanStreamPhase;
+  title: string;
+  summary: string;
+  sections: BannerSection[];
+  tasksCreated: number;
+  columnTotals: Record<string, number>;
+  createdTaskIds: string[];
+  errorMessage: string;
+}
+
+const INITIAL_STATE: PlanStreamState = {
+  phase: 'idle',
+  title: '',
+  summary: '',
+  sections: [],
+  tasksCreated: 0,
+  columnTotals: {},
+  createdTaskIds: [],
+  errorMessage: '',
+};
+
+interface UsePlanStreamCallbacks {
+  onTasks: (tasks: StreamedTask[]) => void;
+  onDone: (taskIds: string[], columnTotals: Record<string, number>) => void;
+}
+
+export function usePlanStream({ onTasks, onDone }: UsePlanStreamCallbacks) {
+  const [state, setState] = useState<PlanStreamState>(INITIAL_STATE);
+  const controllerRef = useRef<AbortController | null>(null);
+
+  const reset = useCallback(() => {
+    setState(INITIAL_STATE);
+  }, []);
+
+  const cancel = useCallback(() => {
+    controllerRef.current?.abort();
+    controllerRef.current = null;
+    setState(prev => (prev.phase === 'streaming' ? { ...prev, phase: 'cancelled' } : prev));
+  }, []);
+
+  const handleEvent = useCallback(
+    (event: PlanStreamEvent) => {
+      switch (event.type) {
+        case 'skeleton':
+          setState(prev => ({
+            ...prev,
+            phase: 'streaming',
+            title: event.title,
+            summary: event.summary,
+            sections: event.sections.map(s => ({
+              name: s.name,
+              description: s.description,
+              status: 'pending' as SectionStatus,
+              taskCount: 0,
+            })),
+          }));
+          break;
+        case 'section':
+          onTasks(event.tasks);
+          setState(prev => {
+            const sections = prev.sections.map((s, i) =>
+              i === event.sectionIndex
+                ? { ...s, status: 'done' as SectionStatus, taskCount: event.tasks.length }
+                : s
+            );
+            return { ...prev, sections };
+          });
+          break;
+        case 'section_error':
+          setState(prev => {
+            const sections = prev.sections.map((s, i) =>
+              i === event.sectionIndex ? { ...s, status: 'error' as SectionStatus } : s
+            );
+            return { ...prev, sections };
+          });
+          break;
+        case 'done':
+          setState(prev => ({
+            ...prev,
+            phase: prev.phase === 'cancelled' ? 'cancelled' : 'done',
+            tasksCreated: event.tasksCreated,
+            columnTotals: event.columnTotals,
+            createdTaskIds: event.taskIds,
+          }));
+          onDone(event.taskIds, event.columnTotals);
+          break;
+        case 'error':
+          setState(prev => ({ ...prev, phase: 'error', errorMessage: event.message }));
+          break;
+      }
+    },
+    [onTasks, onDone]
+  );
+
+  const start = useCallback(
+    async (req: BoardStreamRequest) => {
+      const controller = new AbortController();
+      controllerRef.current = controller;
+      setState({ ...INITIAL_STATE, phase: 'streaming' });
+
+      try {
+        const res = await fetch('/api/ai/plan/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(req),
+          signal: controller.signal,
+        });
+
+        if (!res.ok || !res.body) {
+          let message = 'Planning failed — please try again';
+          try {
+            const data = await res.json();
+            if (data?.error) message = data.error;
+          } catch {
+            /* non-JSON error body; keep default */
+          }
+          setState(prev => ({ ...prev, phase: 'error', errorMessage: message }));
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        // SSE frames are separated by a blank line. Each frame has `event:` and `data:` lines.
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          let sep: number;
+          while ((sep = buffer.indexOf('\n\n')) !== -1) {
+            const frame = buffer.slice(0, sep);
+            buffer = buffer.slice(sep + 2);
+
+            const dataLine = frame
+              .split('\n')
+              .find(line => line.startsWith('data:'));
+            if (!dataLine) continue;
+
+            const json = dataLine.slice('data:'.length).trim();
+            if (!json) continue;
+            try {
+              handleEvent(JSON.parse(json) as PlanStreamEvent);
+            } catch {
+              /* ignore malformed frame */
+            }
+          }
+        }
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          // user cancelled — state already set by cancel()
+          return;
+        }
+        const message = err instanceof Error ? err.message : 'Connection lost';
+        setState(prev => ({ ...prev, phase: 'error', errorMessage: message }));
+      } finally {
+        controllerRef.current = null;
+      }
+    },
+    [handleEvent]
+  );
+
+  return { state, start, cancel, reset };
+}
