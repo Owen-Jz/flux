@@ -97,6 +97,11 @@ export async function POST(request: NextRequest) {
   const safeLinks = Array.isArray(contextLinks)
     ? contextLinks.filter(l => typeof l === 'string' && /^https?:\/\//i.test(l)).slice(0, 5)
     : undefined;
+  // Only forward a deadline that is a short string — it flows into the LLM prompt.
+  const safeDeadline =
+    typeof deadline === 'string' && deadline.trim().length > 0 && deadline.length <= 50
+      ? deadline
+      : undefined;
 
   const encoder = new TextEncoder();
   const baseOrder = Date.now();
@@ -104,7 +109,13 @@ export async function POST(request: NextRequest) {
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const send = (event: PlanStreamEvent) => controller.enqueue(encoder.encode(sse(event)));
+      const send = (event: PlanStreamEvent) => {
+        try {
+          controller.enqueue(encoder.encode(sse(event)));
+        } catch {
+          /* client disconnected — controller already closed/cancelled */
+        }
+      };
       const aborted = () => request.signal.aborted;
 
       const createdTaskIds: string[] = [];
@@ -116,7 +127,7 @@ export async function POST(request: NextRequest) {
         // Phase 1: skeleton
         const skeleton = await client.planSkeleton({
           description: description.trim(),
-          deadline,
+          deadline: safeDeadline,
           contextLinks: safeLinks,
           maxTasks: cap,
         });
@@ -139,18 +150,25 @@ export async function POST(request: NextRequest) {
               section: sections[index],
               allSections: sections,
               maxTasksForSection: perSectionCap,
-              deadline,
+              deadline: safeDeadline,
             });
 
+            // Don't write tasks for a plan the user already cancelled.
+            if (aborted()) return;
+
             const normalized = result.tasks.map(normalizeSectionTask);
-            const docs = normalized.map(t => ({
+            // Reserve this section's order range atomically (synchronous — no
+            // await between read and advance, so concurrent workers can't overlap).
+            const startOrder = orderCounter;
+            orderCounter += normalized.length;
+            const docs = normalized.map((t, i) => ({
               workspaceId,
               boardId: boardObjectId,
               title: t.title,
               description: t.description,
               status: t.status,
               priority: t.priority,
-              order: baseOrder + orderCounter++,
+              order: baseOrder + startOrder + i,
             }));
 
             const inserted = await Task.insertMany(docs);
@@ -213,7 +231,11 @@ export async function POST(request: NextRequest) {
           send({ type: 'error', message: friendly });
         }
       } finally {
-        controller.close();
+        try {
+          controller.close();
+        } catch {
+          /* already closed/cancelled */
+        }
       }
     },
   });
