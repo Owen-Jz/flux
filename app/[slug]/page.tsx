@@ -1,15 +1,24 @@
+import Link from 'next/link';
 import { auth } from '@/lib/auth';
 import { getWorkspaceBySlug } from '@/actions/workspace';
-import { getBoards } from '@/actions/board';
+import { getBoards, getBoardTaskStats } from '@/actions/board';
 import { getUserRole, hasPendingRequest } from '@/actions/access-control';
-import { getUnreadActivityCount, markAllActivitiesAsRead } from '@/actions/activity';
-import Link from 'next/link';
-import { Squares2X2Icon, PlusIcon, EyeIcon } from '@heroicons/react/24/outline';
+import {
+    EyeIcon,
+    Squares2X2Icon,
+    UsersIcon,
+    ClipboardDocumentListIcon,
+    CheckCircleIcon,
+    GlobeAltIcon,
+} from '@heroicons/react/24/outline';
 import { RequestAccessButton } from '@/components/RequestAccessButton';
 import BoardGrid from '@/components/BoardGrid';
+import { DashboardHeader } from '@/components/dashboard/dashboard-header';
+import { StatTile } from '@/components/dashboard/stat-tile';
 import { WorkspaceUnreadDot } from './workspace-unread-dot';
 import { ReferralPromptWrapper } from '@/components/onboarding/referral-prompt-wrapper';
 import { TrialPromptWrapper } from '@/components/onboarding/TrialPromptWrapper';
+import { PlanWithAIIntroWrapper } from '@/components/onboarding/plan-with-ai-intro-wrapper';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 
@@ -24,15 +33,29 @@ export default async function WorkspacePage({
     const workspace = await getWorkspaceBySlug(slug);
     if (!workspace) {
         return (
-            <div className="flex items-center justify-center h-full">
-                <p className="text-[var(--text-secondary)]">Workspace not found</p>
+            <div className="mx-auto flex min-h-[60vh] max-w-6xl flex-col items-center justify-center px-4 text-center">
+                <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
+                    Workspace not found
+                </h1>
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">
+                    This workspace may have been deleted, or you may not have access to it.
+                </p>
+                <Link href="/dashboard" className="btn btn-primary mt-6 inline-flex">
+                    Back to dashboard
+                </Link>
             </div>
         );
     }
 
     const boards = await getBoards(slug);
+    const boardStats = await getBoardTaskStats(slug);
     const userRole = await getUserRole(slug);
     const hasPending = session?.user ? await hasPendingRequest(slug) : false;
+
+    const totalTasks = Object.values(boardStats).reduce((acc, s) => acc + s.total, 0);
+    const doneTasks = Object.values(boardStats).reduce((acc, s) => acc + s.done, 0);
+    const donePct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
+    const memberCount = workspace.members.length;
 
     // Fetch trial status for the trial prompt modal
     let trialEndsAt: string | null = null;
@@ -65,45 +88,83 @@ export default async function WorkspacePage({
                 hasUsedTrial={hasUsedTrial}
                 trialPromptDismissedAt={trialPromptDismissedAt}
             />
-            <div className="p-4 md:p-6 lg:p-8 max-w-5xl mx-auto overflow-x-hidden">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-2 flex items-center gap-2 tracking-tight">
-                        {workspace.name}
-                        <WorkspaceUnreadDot workspaceSlug={slug} />
-                    </h1>
-                        <div className="flex flex-wrap items-center gap-3">
-                            <p className="text-sm text-[var(--text-secondary)]">
-                                {boards.length} board{boards.length !== 1 ? 's' : ''} in this workspace
-                            </p>
+            <div className="mx-auto max-w-6xl overflow-x-hidden px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+                <DashboardHeader
+                    eyebrow="Workspace"
+                    title={
+                        <>
+                            <span className="min-w-0 truncate">{workspace.name}</span>
+                            <span className="flex-shrink-0">
+                                <WorkspaceUnreadDot workspaceSlug={slug} />
+                            </span>
+                        </>
+                    }
+                    subtitle={
+                        <span className="flex flex-wrap items-center gap-2">
                             {userRole && (
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${userRole === 'ADMIN'
-                                    ? 'bg-purple-100 text-purple-700'
-                                    : userRole === 'EDITOR'
-                                        ? 'bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]'
-                                        : 'bg-gray-100 text-gray-600'
-                                    }`}>
+                                <span
+                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                        userRole === 'ADMIN'
+                                            ? 'bg-[var(--flux-info-bg)] text-[var(--flux-info-text-strong)] border border-[var(--flux-info-border)]'
+                                            : userRole === 'EDITOR'
+                                              ? 'bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]'
+                                              : 'bg-[var(--background-subtle)] text-[var(--text-secondary)]'
+                                    }`}
+                                >
                                     {userRole}
                                 </span>
                             )}
-                        </div>
-                    </div>
+                            {workspace.publicAccess && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-[var(--background-subtle)] px-2 py-0.5 text-xs font-medium text-[var(--text-secondary)]">
+                                    <GlobeAltIcon className="h-3.5 w-3.5" />
+                                    Public
+                                </span>
+                            )}
+                        </span>
+                    }
+                    actions={
+                        <>
+                            {isViewer && !hasPending && session?.user && <RequestAccessButton slug={slug} />}
+                            {isViewer && hasPending && (
+                                <div className="flex items-center gap-2 rounded-lg border border-[var(--flux-warning-border)] bg-[var(--flux-warning-bg)] px-4 py-2 text-sm font-medium text-[var(--flux-warning-text-strong)]">
+                                    <EyeIcon className="h-4 w-4" />
+                                    Request Pending
+                                </div>
+                            )}
+                        </>
+                    }
+                />
 
-                    {/* Request Edit Access button for viewers */}
-                    {isViewer && !hasPending && session?.user && (
-                        <RequestAccessButton slug={slug} />
-                    )}
-                    {isViewer && hasPending && (
-                        <div className="px-4 py-2 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium border border-amber-200 flex items-center gap-2">
-                            <EyeIcon className="w-4 h-4" />
-                            Request Pending
-                        </div>
-                    )}
-                </div>
+                <dl className="mb-6 grid grid-cols-2 gap-3 sm:mb-8 sm:gap-4 lg:grid-cols-4">
+                    <StatTile
+                        label={boards.length === 1 ? 'Board' : 'Boards'}
+                        value={boards.length}
+                        icon={<Squares2X2Icon className="h-5 w-5" />}
+                    />
+                    <StatTile
+                        label={memberCount === 1 ? 'Member' : 'Members'}
+                        value={memberCount}
+                        icon={<UsersIcon className="h-5 w-5" />}
+                    />
+                    <StatTile
+                        label={totalTasks === 1 ? 'Task' : 'Tasks'}
+                        value={totalTasks}
+                        icon={<ClipboardDocumentListIcon className="h-5 w-5" />}
+                    />
+                    <StatTile
+                        label="Completed"
+                        value={`${donePct}%`}
+                        icon={<CheckCircleIcon className="h-5 w-5" />}
+                        hint={totalTasks > 0 ? `${doneTasks} of ${totalTasks} done` : 'No tasks yet'}
+                    />
+                </dl>
 
-                <BoardGrid workspaceSlug={slug} initialBoards={boards} canEdit={canEdit} />
+                <BoardGrid workspaceSlug={slug} initialBoards={boards} canEdit={canEdit} boardStats={boardStats} />
             </div>
             <ReferralPromptWrapper workspaceSlug={slug} />
+            {canEdit && session?.user && (
+                <PlanWithAIIntroWrapper workspaceSlug={slug} />
+            )}
         </>
     );
 }

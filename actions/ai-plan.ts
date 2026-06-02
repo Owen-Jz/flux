@@ -13,6 +13,43 @@ import type { ConfirmedPlan, TaskPlanItem } from '@/types/ai-plan';
 import { User } from '@/models/User';
 import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
 
+// This server action is a public entry point: the browser calls it directly
+// with a `plan` payload, so the LLM-output validation done in the API route is
+// NOT a trust boundary here. Treat every field as untrusted and bound it before
+// it reaches the DB (the Task schema has no maxlength / array caps of its own).
+const MAX_BOARDS = 20;
+const MAX_TASKS_PER_BOARD = 200;
+const MAX_TITLE_LEN = 200;
+const MAX_DESCRIPTION_LEN = 2000;
+const VALID_PRIORITIES: ReadonlyArray<TaskPlanItem['priority']> = ['LOW', 'MEDIUM', 'HIGH'];
+
+function clampString(value: unknown, max: number): string {
+    return typeof value === 'string' ? value.trim().slice(0, max) : '';
+}
+
+function sanitizeTaskPlanItems(tasks: unknown): TaskPlanItem[] {
+    if (!Array.isArray(tasks)) return [];
+    return tasks
+        .slice(0, MAX_TASKS_PER_BOARD)
+        .map((t): TaskPlanItem => {
+            const item = (t ?? {}) as Partial<TaskPlanItem>;
+            const priority = VALID_PRIORITIES.includes(item.priority as TaskPlanItem['priority'])
+                ? (item.priority as TaskPlanItem['priority'])
+                : 'MEDIUM';
+            const estimatedHours =
+                typeof item.estimatedHours === 'number' && Number.isFinite(item.estimatedHours) && item.estimatedHours > 0
+                    ? item.estimatedHours
+                    : 1;
+            return {
+                title: clampString(item.title, MAX_TITLE_LEN),
+                description: clampString(item.description, MAX_DESCRIPTION_LEN),
+                priority,
+                estimatedHours,
+            };
+        })
+        .filter((t) => t.title.length > 0);
+}
+
 async function insertTasksForBoard(
     workspaceId: Types.ObjectId,
     boardId: Types.ObjectId,
@@ -68,15 +105,23 @@ export async function createFromAIPlan(
             if (!boardDoc) {
                 return { success: false, boardsCreated: 0, tasksCreated: 0, error: 'Board not found' };
             }
-            await insertTasksForBoard(workspace._id as Types.ObjectId, boardDoc._id as Types.ObjectId, plan.tasks);
-            tasksCreated = plan.tasks.length;
+            const tasks = sanitizeTaskPlanItems(plan.tasks);
+            if (tasks.length === 0) {
+                return { success: false, boardsCreated: 0, tasksCreated: 0, error: 'Plan contained no valid tasks' };
+            }
+            await insertTasksForBoard(workspace._id as Types.ObjectId, boardDoc._id as Types.ObjectId, tasks);
+            tasksCreated = tasks.length;
             revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
         } else {
             // Project mode: create each board, then insert its tasks
+            const boards = (Array.isArray(plan.boards) ? plan.boards : []).slice(0, MAX_BOARDS);
+            if (boards.length === 0) {
+                return { success: false, boardsCreated: 0, tasksCreated: 0, error: 'Plan contained no valid boards' };
+            }
             const userDoc = await User.findById(session.user.id).select('plan');
             const userPlan = (userDoc?.plan || 'free') as 'free' | 'starter' | 'pro' | 'enterprise';
             const currentBoardCount = await Board.countDocuments({ workspaceId: workspace._id });
-            if (!canCreateProject(userPlan, currentBoardCount + plan.boards.length)) {
+            if (!canCreateProject(userPlan, currentBoardCount + boards.length)) {
                 return {
                     success: false,
                     boardsCreated: 0,
@@ -84,22 +129,25 @@ export async function createFromAIPlan(
                     error: getUpgradeMessage(userPlan, 'projects'),
                 };
             }
-            for (const boardPlan of plan.boards) {
+            for (const boardPlan of boards) {
+                const boardName = clampString(boardPlan.name, MAX_TITLE_LEN);
+                if (!boardName) continue;
                 // createBoard handles plan-limit check, slug gen, webhook
                 const newBoard = await createBoard(workspaceSlug, {
-                    name: boardPlan.name,
-                    description: boardPlan.description,
+                    name: boardName,
+                    description: clampString(boardPlan.description, MAX_DESCRIPTION_LEN),
                 });
                 boardsCreated++;
 
-                if (boardPlan.tasks && boardPlan.tasks.length > 0) {
+                const boardTasks = sanitizeTaskPlanItems(boardPlan.tasks);
+                if (boardTasks.length > 0) {
                     const newBoardObjectId = new Types.ObjectId(newBoard.id);
                     await insertTasksForBoard(
                         workspace._id as Types.ObjectId,
                         newBoardObjectId,
-                        boardPlan.tasks
+                        boardTasks
                     );
-                    tasksCreated += boardPlan.tasks.length;
+                    tasksCreated += boardTasks.length;
                 }
             }
             revalidatePath(`/${workspaceSlug}`);

@@ -57,17 +57,24 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
         const taskId = draggingTaskId;
         setDraggingTaskId(null);
 
-        // Capture pre-optimistic snapshot for revert
-        let previousTasks: CalendarTask[] = [];
-        setTasks(prev => {
-            previousTasks = prev;
-            return prev.map(t => t.id === taskId ? { ...t, dueDate: date.toISOString() } : t);
-        });
+        // Capture the original task (guarded so React 18 StrictMode's
+        // double-invocation of the updater can't overwrite it with the
+        // already-optimistic value). Revert patches only this task on failure,
+        // so a concurrent edit to another task isn't clobbered.
+        let previousTask: CalendarTask | undefined;
+        setTasks(prev => prev.map(t => {
+            if (t.id !== taskId) return t;
+            if (!previousTask) previousTask = t;
+            return { ...t, dueDate: date.toISOString() };
+        }));
 
         try {
             await updateTaskDueDate(taskId, date, workspaceSlug);
         } catch {
-            setTasks(previousTasks);
+            const restore = previousTask;
+            if (restore) {
+                setTasks(prev => prev.map(t => (t.id === taskId ? restore : t)));
+            }
         }
     }, [draggingTaskId, workspaceSlug]);
 
@@ -200,6 +207,10 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
                     isOpen={!!selectedTask}
                     onClose={() => setSelectedTask(null)}
                     onUpdate={(taskId: string, data: Partial<TaskData>) => {
+                        // Snapshot the task before the optimistic update so we can
+                        // revert if the server write fails (otherwise a failed save
+                        // silently stays on screen looking persisted — data loss).
+                        const previous = tasks.find(t => t.id === taskId);
                         setTasks(prev =>
                             prev.map(t => {
                                 if (t.id !== taskId) return t;
@@ -219,7 +230,12 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
                             ...(data.status !== undefined && { status: data.status as CalendarTask['status'] }),
                             ...(data.priority !== undefined && { priority: data.priority as CalendarTask['priority'] }),
                             ...(data.dueDate !== undefined && { dueDate: (data.dueDate as string | undefined) ?? null }),
-                        }).catch(console.error);
+                        }).catch((err) => {
+                            console.error('Failed to update task', err);
+                            if (previous) {
+                                setTasks(prev => prev.map(t => (t.id === taskId ? previous : t)));
+                            }
+                        });
                     }}
                     isReadOnly={isReadOnly}
                 />

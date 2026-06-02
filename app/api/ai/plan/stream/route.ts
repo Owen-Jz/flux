@@ -226,6 +226,9 @@ export async function POST(request: NextRequest) {
           : 'Planning failed — please try again';
         // Surface what was created so the client can still offer Undo
         if (createdTaskIds.length > 0) {
+          // Revalidate here too — tasks were inserted before the failure, and
+          // without this other members won't see them until the cache expires.
+          revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
           send({ type: 'done', taskIds: createdTaskIds, columnTotals, tasksCreated: createdTaskIds.length });
         } else {
           send({ type: 'error', message: friendly });

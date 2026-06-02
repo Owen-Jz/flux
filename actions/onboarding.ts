@@ -230,6 +230,67 @@ export async function shouldShowReferralPrompt(): Promise<boolean> {
     }
 }
 
+// Check whether to show the "What are you working on today?" Plan with AI intro.
+// Shows once for new users (within their 7-day onboarding window / brand new),
+// who haven't already seen or skipped it.
+export async function shouldShowPlanWithAIIntro(): Promise<boolean> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return false;
+    }
+
+    try {
+        await connectDB();
+        const user = await User.findById(session.user.id).select('createdAt onboardingProgress').lean();
+
+        if (!user) return false;
+
+        // Already shown or skipped — never show again
+        if (user.onboardingProgress?.planWithAIIntroShown) {
+            return false;
+        }
+
+        // Brand new user with no onboarding record yet
+        if (!user.onboardingProgress) {
+            return true;
+        }
+
+        // New user created within the last 7 days
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const userCreatedAt = user.createdAt ? new Date(user.createdAt) : null;
+        if (userCreatedAt && userCreatedAt > sevenDaysAgo) {
+            return true;
+        }
+
+        return false;
+    } catch (error) {
+        console.error('Failed to check Plan with AI intro status:', error);
+        return false;
+    }
+}
+
+// Mark the Plan with AI intro as shown (on submit or skip) so it never reappears.
+export async function markPlanWithAIIntroShown(): Promise<{ success: boolean; error?: string }> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: 'Unauthorized' };
+    }
+
+    try {
+        await connectDB();
+
+        await User.findByIdAndUpdate(session.user.id, {
+            $set: { 'onboardingProgress.planWithAIIntroShown': true },
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error('Failed to mark Plan with AI intro shown:', error);
+        return { success: false, error: 'Failed to update' };
+    }
+}
+
 export async function dismissTrialPrompt(): Promise<{ success: boolean; error?: string }> {
     const session = await auth();
     if (!session?.user?.id) {

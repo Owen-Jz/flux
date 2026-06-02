@@ -2,9 +2,14 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid';
-import { StarIcon } from '@heroicons/react/24/outline';
+import {
+    StarIcon,
+    UsersIcon,
+    Squares2X2Icon,
+    ArrowRightIcon,
+} from '@heroicons/react/24/outline';
 
 interface WorkspaceCardProps {
     name: string;
@@ -17,7 +22,7 @@ interface WorkspaceCardProps {
     };
     memberCount: number;
     boardCount: number;
-    lastActiveAt: Date;
+    lastActiveAt: string | Date;
     hasUnread?: boolean;
     userPlan?: string;
 }
@@ -46,10 +51,11 @@ function formatLastActive(date: Date): string {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return 'Just now';
+    if (Number.isNaN(diff)) return 'recently';
+    if (minutes < 1) return 'just now';
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
-    if (days === 1) return 'Yesterday';
+    if (days === 1) return 'yesterday';
     if (days < 7) return `${days}d ago`;
     return date.toLocaleDateString();
 }
@@ -69,113 +75,120 @@ export function WorkspaceCard({
     hasUnread,
     userPlan,
 }: WorkspaceCardProps) {
+    const prefersReducedMotion = useReducedMotion();
     const { from, to } = getGradient(name, accentColor);
     const gradient = `linear-gradient(135deg, ${from} 0%, ${to} 100%)`;
     const initial = name.charAt(0).toUpperCase();
+    const isPremium = userPlan === 'pro' || userPlan === 'enterprise';
+    const isStarter = userPlan === 'starter';
 
     return (
-        <Link href={`/${slug}`} className="block">
+        <Link
+            href={`/${slug}`}
+            aria-label={`Open ${name} workspace — ${formatCount(boardCount, 'board', 'boards')}, ${formatCount(
+                memberCount,
+                'member',
+                'members'
+            )}${hasUnread ? ', has unread activity' : ''}`}
+            className="block rounded-[var(--flux-radius-xl)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)]"
+        >
             <motion.div
-                className="card overflow-hidden cursor-pointer group p-5 relative"
-                whileHover={{ y: -4 }}
+                className="card group relative h-full cursor-pointer overflow-hidden p-5"
+                whileHover={prefersReducedMotion ? undefined : { y: -4 }}
                 transition={{ duration: 0.2 }}
-                style={{
-                    boxShadow: 'var(--flux-shadow-sm)',
-                }}
             >
                 {/* Subtle gradient overlay on hover */}
                 <div
-                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                    style={{
-                        background: `linear-gradient(135deg, ${from}08 0%, ${to}08 100%)`,
-                    }}
+                    className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    style={{ background: `linear-gradient(135deg, ${from}0d 0%, ${to}0d 100%)` }}
                 />
 
-                {/* Unread beacon - positioned at top-right of the card, offset for plan badge */}
-                {hasUnread && (
-                    <span className="absolute -top-2 w-4 h-4 bg-[var(--error-primary)] rounded-full border-2 border-[var(--surface)] animate-pulse z-10"
-                        style={{ right: userPlan && userPlan !== 'free' ? '3.5rem' : '-0.5rem' }}
-                    />
-                )}
-
-                {/* Plan badge for premium users */}
-                {(userPlan === 'pro' || userPlan === 'enterprise') && (
-                    <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs font-bold shadow-lg shadow-purple-500/25">
-                        <SparklesIconSolid className="w-3 h-3" />
+                {/* Plan badge — top-right */}
+                {isPremium && (
+                    <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                        <SparklesIconSolid className="h-3 w-3" />
                         PRO
                     </div>
                 )}
-                {userPlan === 'starter' && (
-                    <div className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-white text-xs font-bold shadow-lg shadow-amber-500/25">
-                        <StarIcon className="w-3 h-3" />
-                        INDIVIDUAL
+                {isStarter && (
+                    <div className="absolute right-3 top-3 z-10 flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                        <StarIcon className="h-3 w-3" />
+                        PLUS
                     </div>
                 )}
 
-                <div className="flex items-start gap-4 relative">
-                    {/* Avatar Circle with glow effect */}
+                <div className="relative flex items-start gap-4">
+                    {/* Avatar */}
                     <div className="relative flex-shrink-0">
                         <div
-                            className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold shadow-lg overflow-hidden transition-transform duration-200 group-hover:scale-105 ${
+                            className={`flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl text-lg font-bold shadow-md transition-transform duration-200 group-hover:scale-105 sm:h-14 sm:w-14 sm:text-xl ${
                                 icon?.type === 'upload' ? '' : 'text-white'
                             }`}
                             style={icon?.type === 'upload' ? {} : { background: gradient }}
                         >
                             {icon?.type === 'emoji' ? (
-                                <span className="text-3xl">{icon.emoji}</span>
+                                <span className="text-2xl sm:text-3xl">{icon.emoji}</span>
                             ) : icon?.type === 'upload' ? (
-                                <Image src={icon.url || ''} alt="" width={56} height={56} className="w-full h-full object-cover" />
+                                <Image
+                                    src={icon.url || ''}
+                                    alt=""
+                                    width={56}
+                                    height={56}
+                                    className="h-full w-full object-cover"
+                                />
                             ) : (
                                 initial
                             )}
                         </div>
+                        {/* Unread beacon on the avatar — unambiguous, never collides with badge */}
+                        {hasUnread && (
+                            <span
+                                className="absolute -right-1 -top-1 flex h-3.5 w-3.5"
+                                aria-hidden="true"
+                            >
+                                {!prefersReducedMotion && (
+                                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--error-primary)] opacity-60" />
+                                )}
+                                <span className="relative inline-flex h-3.5 w-3.5 rounded-full border-2 border-[var(--surface)] bg-[var(--error-primary)]" />
+                            </span>
+                        )}
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0">
-                        {/* Workspace name and arrow */}
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3 className="font-semibold text-[var(--text-primary)] text-base truncate group-hover:text-[var(--flux-brand-primary)] transition-colors">
-                                {name}
-                            </h3>
-                            <span className="opacity-100 md:opacity-0 md:group-hover:opacity-100 md:translate-x-[-8px] md:group-hover:translate-x-0 transition-all text-[var(--text-tertiary)] flex-shrink-0">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                </svg>
-                            </span>
-                        </div>
-
-                        {/* Slug */}
-                        <p className="text-xs text-[var(--text-tertiary)] mb-3 font-mono opacity-70">
+                    <div className="min-w-0 flex-1 pr-6">
+                        <h3 className="truncate text-base font-semibold text-[var(--text-primary)] transition-colors group-hover:text-[var(--brand-primary)]">
+                            {name}
+                        </h3>
+                        <p className="mb-3 truncate font-mono text-xs text-[var(--text-tertiary)] opacity-70">
                             /{slug}
                         </p>
 
-                        {/* Stats row */}
-                        <div className="flex items-center gap-4 text-sm text-[var(--text-secondary)]">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--text-secondary)]">
                             <span className="flex items-center gap-1.5">
-                                <svg className="w-4 h-4 text-[var(--flux-brand-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
+                                <UsersIcon className="h-4 w-4 text-[var(--brand-primary)]" />
                                 {formatCount(memberCount, 'member', 'members')}
                             </span>
                             <span className="flex items-center gap-1.5">
-                                <svg className="w-4 h-4 text-[var(--flux-brand-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-                                </svg>
+                                <Squares2X2Icon className="h-4 w-4 text-[var(--brand-primary)]" />
                                 {formatCount(boardCount, 'board', 'boards')}
                             </span>
                         </div>
                     </div>
+
+                    {/* Hover affordance arrow */}
+                    <ArrowRightIcon className="absolute right-0 top-1 h-5 w-5 flex-shrink-0 text-[var(--text-tertiary)] opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100 md:-translate-x-1" />
                 </div>
 
-                {/* Activity indicator */}
-                <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[var(--flux-border-subtle)] relative">
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--flux-success-primary)] opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-[var(--flux-success-primary)]" />
+                {/* Activity footer */}
+                <div className="relative mt-4 flex items-center gap-2 border-t border-[var(--border-subtle)] pt-3">
+                    <span className="relative flex h-2 w-2" aria-hidden="true">
+                        {!prefersReducedMotion && (
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--flux-success-primary)] opacity-75" />
+                        )}
+                        <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--flux-success-primary)]" />
                     </span>
                     <span className="text-xs text-[var(--text-tertiary)]">
-                        Last active {formatLastActive(new Date(lastActiveAt))}
+                        Active {formatLastActive(new Date(lastActiveAt))}
                     </span>
                 </div>
             </motion.div>

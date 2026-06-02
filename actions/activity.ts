@@ -184,6 +184,119 @@ export async function getCommentActivities(workspaceSlug: string, limit: number 
     });
 }
 
+/**
+ * Activity feed scoped to a single board — powers the board's Notifications panel.
+ * Returns the most recent activity (any type) for the board, newest first, with
+ * the acting user resolved. Empty if the caller can't access the board.
+ */
+export async function getBoardActivities(workspaceSlug: string, boardSlug: string, limit: number = 30) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return [];
+    }
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) return [];
+
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) return [];
+
+    const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
+    if (!board) return [];
+
+    // No access to the board → nothing to surface.
+    if (!canAccessBoard(board, session.user.id, member)) return [];
+
+    const activities = await ActivityLog.find({
+        workspaceId: workspace._id,
+        boardId: board._id,
+    })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .lean();
+
+    const userIds = [...new Set(activities.map(a => a.userId.toString()))];
+    const users = await User.find({ _id: { $in: userIds } }).lean();
+    const userMap = new Map(users.map(u => [u._id.toString(), u]));
+
+    return activities.map(activity => {
+        const user = userMap.get(activity.userId.toString());
+        return {
+            id: activity._id.toString(),
+            type: activity.type,
+            title: activity.title,
+            description: activity.description,
+            metadata: activity.metadata,
+            taskId: activity.taskId?.toString(),
+            boardSlug: activity.metadata?.boardSlug,
+            read: activity.read,
+            createdAt: activity.createdAt.toISOString(),
+            user: user ? {
+                id: user._id.toString(),
+                name: user.name || 'Unknown',
+                image: user.image,
+            } : null,
+        };
+    });
+}
+
+/**
+ * Comment activity scoped to a single board — powers the board's Comments panel.
+ * Returns the most recent COMMENT_ADDED activity for the board, newest first.
+ * Empty if the caller can't access the board.
+ */
+export async function getBoardCommentActivities(workspaceSlug: string, boardSlug: string, limit: number = 30) {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return [];
+    }
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) return [];
+
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) return [];
+
+    const board = await Board.findOne({ workspaceId: workspace._id, slug: boardSlug });
+    if (!board) return [];
+
+    if (!canAccessBoard(board, session.user.id, member)) return [];
+
+    const activities = await ActivityLog.find({
+        workspaceId: workspace._id,
+        boardId: board._id,
+        type: 'COMMENT_ADDED',
+    })
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .lean();
+
+    const userIds = [...new Set(activities.map(a => a.userId.toString()))];
+    const users = await User.find({ _id: { $in: userIds } }).lean();
+    const userMap = new Map(users.map(u => [u._id.toString(), u]));
+
+    return activities.map(activity => {
+        const user = userMap.get(activity.userId.toString());
+        return {
+            id: activity._id.toString(),
+            content: activity.metadata?.commentContent || '',
+            taskTitle: activity.metadata?.taskTitle || 'Untitled task',
+            taskId: activity.taskId?.toString(),
+            boardSlug: activity.metadata?.boardSlug,
+            createdAt: activity.createdAt.toISOString(),
+            user: user ? {
+                id: user._id.toString(),
+                name: user.name || 'Unknown',
+                image: user.image,
+            } : null,
+        };
+    });
+}
+
 export async function markActivityAsRead(activityId: string, workspaceSlug?: string) {
     const session = await auth();
     if (!session?.user?.id) {

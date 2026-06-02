@@ -105,9 +105,10 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
         },
     });
 
-    // EMAIL NOTIFICATION: Task Created
-    const memberIds = workspace.members.map((m: any) => m.userId.toString());
-    const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
+    // EMAIL NOTIFICATION: Task Created — only the task's assignees and workspace
+    // admins are notified, never the whole board.
+    const assigneeIds = (data.assignees && data.assignees.length > 0 ? data.assignees : [session.user.id]);
+    const notifyIds = taskNotifyTargets(assigneeIds, workspace.members, session.user.id);
 
     if (notifyIds.length > 0) {
         const users = await User.find({ _id: { $in: notifyIds } });
@@ -131,7 +132,6 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
     }
 
     // PUSH: notify assignees other than the creator.
-    const assigneeIds = (data.assignees && data.assignees.length > 0 ? data.assignees : [session.user.id]);
     const pushTargets = assigneeIds.filter((id) => id !== session.user.id);
     if (pushTargets.length > 0) {
         const creatorName = session.user.name || 'A teammate';
@@ -403,10 +403,12 @@ export async function updateTaskPosition(
             },
         });
 
-        // EMAIL NOTIFICATION: Task Moved
-        // Notify all members (except the mover)
-        const memberIds = workspace.members.map((m: any) => m.userId.toString());
-        const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
+        // EMAIL NOTIFICATION: Task Moved — assignees + admins only, not the board.
+        const notifyIds = taskNotifyTargets(
+            task.assignees.map((id: Types.ObjectId) => id.toString()),
+            workspace.members,
+            session.user.id,
+        );
 
         if (notifyIds.length > 0) {
             const users = await User.find({ _id: { $in: notifyIds } });
@@ -554,8 +556,12 @@ export async function updateTask(
             .filter(title => !previousSubtaskTitles.includes(title));
 
         if (newSubtaskTitles.length > 0) {
-            const memberIds = workspace.members.map((m: any) => m.userId.toString());
-            const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
+            // Assignees + admins only — not the whole board.
+            const notifyIds = taskNotifyTargets(
+                task.assignees.map((id: Types.ObjectId) => id.toString()),
+                workspace.members,
+                session.user.id,
+            );
 
             if (notifyIds.length > 0) {
                 const board = await Board.findById(task.boardId);
@@ -612,9 +618,8 @@ export async function updateTask(
             const newAssigneeUsers = await User.find({ _id: { $in: newAssignees } });
             const newAssigneeNames = newAssigneeUsers.map(u => u.name || 'Someone').join(', ');
 
-            // Find users to notify (all members except the assigner)
-            const memberIds = workspace.members.map((m: any) => m.userId.toString());
-            const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
+            // Notify the newly-assigned people plus admins — minus the assigner.
+            const notifyIds = taskNotifyTargets(newAssignees, workspace.members, session.user.id);
             const usersToNotify = await User.find({ _id: { $in: notifyIds } });
 
             // Get board for URL
@@ -678,9 +683,12 @@ export async function updateTask(
                 },
             });
 
-            // EMAIL: Status Change via Edit Modal (duplicate logic from updateTaskPosition, could be refactored)
-            const memberIds = workspace.members.map((m: any) => m.userId.toString());
-            const notifyIds = memberIds.filter((id: string) => id !== session.user.id);
+            // EMAIL: Status Change via Edit Modal — assignees + admins only.
+            const notifyIds = taskNotifyTargets(
+                task.assignees.map((id: Types.ObjectId) => id.toString()),
+                workspace.members,
+                session.user.id,
+            );
 
             if (notifyIds.length > 0) {
                 const users = await User.find({ _id: { $in: notifyIds } });
@@ -971,10 +979,13 @@ export async function addComment(taskId: string, content: string) {
         ).filter(canSeeBoard);
         const mentionedSet = new Set(mentionedIds);
 
-        // EMAIL NOTIFICATION: New Comment — assignees ∪ mentioned, minus the commenter.
-        const emailTargetIds = uniqueExcluding(
-            [...assigneeIds, ...mentionedIds],
+        // EMAIL NOTIFICATION: New Comment — assignees ∪ admins ∪ mentioned, minus
+        // the commenter. Admins are folded in so they see every comment.
+        const emailTargetIds = taskNotifyTargets(
+            assigneeIds,
+            workspace.members,
             session.user.id,
+            mentionedIds,
         ).filter(canSeeBoard);
 
         if (emailTargetIds.length > 0) {
@@ -1001,7 +1012,7 @@ export async function addComment(taskId: string, content: string) {
         // PUSH NOTIFICATION: send two distinct pushes so mentioned users see
         // "X mentioned you" while plain assignees see "New comment".
         const assigneePushTargets = uniqueExcluding(
-            assigneeIds.filter((id: string) => !mentionedSet.has(id)),
+            [...assigneeIds, ...adminUserIds(workspace.members)].filter((id: string) => !mentionedSet.has(id)),
             session.user.id,
         ).filter(canSeeBoard);
 
@@ -1435,6 +1446,35 @@ function uniqueExcluding(ids: string[], excludeId: string): string[] {
     const set = new Set(ids);
     set.delete(excludeId);
     return Array.from(set);
+}
+
+/** User IDs of every workspace ADMIN. Admins get oversight of all task activity. */
+function adminUserIds(
+    members: Array<{ userId: { toString(): string }; role?: string }>,
+): string[] {
+    return members
+        .filter((m) => m.role === 'ADMIN')
+        .map((m) => m.userId.toString());
+}
+
+/**
+ * Recipients for a task-scoped notification: the task's assignees plus every
+ * workspace admin, minus the person who performed the action. This is the
+ * single source of truth for "who hears about this task" — assignees because
+ * it's their task, admins because they oversee everything. The whole board is
+ * deliberately NOT notified. `extra` folds in ad-hoc recipients (e.g. the
+ * @mentioned users on a comment) before de-duplication.
+ */
+function taskNotifyTargets(
+    assigneeIds: string[],
+    members: Array<{ userId: { toString(): string }; role?: string }>,
+    actorId: string,
+    extra: string[] = [],
+): string[] {
+    return uniqueExcluding(
+        [...assigneeIds, ...adminUserIds(members), ...extra],
+        actorId,
+    );
 }
 
 // Get workspace members for @mention autocomplete

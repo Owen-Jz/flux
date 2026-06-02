@@ -16,6 +16,7 @@ import {
     ExclamationCircleIcon,
     ChartBarIcon,
     CalendarDaysIcon,
+    Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 import { signOut } from 'next-auth/react';
 import { ThemeToggle } from './theme-toggle';
@@ -147,6 +148,17 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                             className="overflow-hidden"
                         >
                             <div className="mt-2 space-y-1">
+                                <Link
+                                    href="/dashboard"
+                                    className="flex items-center gap-3 p-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--background)] hover:text-[var(--foreground)] transition-colors"
+                                    onClick={() => setIsWorkspaceSwitcherOpen(false)}
+                                >
+                                    <div className="w-6 h-6 rounded bg-[var(--background)] flex items-center justify-center">
+                                        <Squares2X2Icon className="w-4 h-4" />
+                                    </div>
+                                    <span className="truncate flex-1">All workspaces</span>
+                                </Link>
+                                <div className="my-1 border-t border-[var(--border-subtle)]" />
                                 {workspaces.map((workspace) => (
                                     <Link
                                         key={workspace.id}

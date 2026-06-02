@@ -220,7 +220,7 @@ export async function getWorkspaceBySlug(slug: string) {
 
 export async function updateWorkspaceSettings(
     slug: string,
-    settings: { publicAccess?: boolean; accentColor?: string; icon?: { type: 'upload' | 'emoji'; url?: string; emoji?: string } | null }
+    settings: { name?: string; publicAccess?: boolean; accentColor?: string; icon?: { type: 'upload' | 'emoji'; url?: string; emoji?: string } | null }
 ) {
     const session = await auth();
     if (!session?.user?.id) {
@@ -248,6 +248,17 @@ export async function updateWorkspaceSettings(
     // Build update object
     const updateFields: Record<string, unknown> = {};
 
+    if (settings.name !== undefined) {
+        const trimmedName = settings.name.trim();
+        if (trimmedName.length === 0) {
+            throw new Error('Workspace name cannot be empty');
+        }
+        if (trimmedName.length > 60) {
+            throw new Error('Workspace name must be 60 characters or fewer');
+        }
+        // The slug is intentionally NOT regenerated — existing URLs must stay valid.
+        updateFields['name'] = trimmedName;
+    }
     if (settings.publicAccess !== undefined) {
         updateFields['settings.publicAccess'] = settings.publicAccess;
     }
@@ -282,6 +293,7 @@ export async function updateWorkspaceSettings(
     ).catch(console.error);
 
     revalidatePath(`/${slug}`);
+    revalidatePath('/dashboard');
 
     return { success: true };
 }

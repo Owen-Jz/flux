@@ -120,6 +120,73 @@ export async function getBoards(workspaceSlug: string) {
     }));
 }
 
+export interface BoardTaskStat {
+    total: number;
+    done: number;
+    inProgress: number;
+}
+
+/**
+ * Per-board task rollup for a workspace, keyed by board id (string).
+ * Read-only and page-scoped — deliberately separate from getBoards() so the
+ * sidebar/layout path is not burdened with a tasks aggregation on every load.
+ * ARCHIVED tasks are excluded from totals.
+ */
+export async function getBoardTaskStats(
+    workspaceSlug: string
+): Promise<Record<string, BoardTaskStat>> {
+    const session = await auth();
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug }).select('_id settings members');
+    if (!workspace) {
+        return {};
+    }
+
+    // Mirror getBoards() access rules: members or publicly-accessible workspaces only.
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : null;
+    const hasPublicAccess = workspace.settings?.publicAccess === true;
+    if (!member && !hasPublicAccess) {
+        return {};
+    }
+
+    // Restrict the rollup to boards the caller can actually see. Without this,
+    // a RESTRICTED board's task counts leak into the workspace stat tiles and
+    // into the serialized client payload (boardStats is passed to a 'use client'
+    // grid), defeating board-level visibility.
+    const visibleBoards = await Board.find({
+        workspaceId: workspace._id,
+        ...boardVisibilityFilter(session?.user?.id, member),
+    }).select('_id').lean();
+    if (visibleBoards.length === 0) {
+        return {};
+    }
+    const visibleBoardIds = visibleBoards.map((b) => b._id);
+
+    const rows = await Task.aggregate<{ _id: Types.ObjectId; total: number; done: number; inProgress: number }>([
+        { $match: { workspaceId: workspace._id, boardId: { $in: visibleBoardIds }, status: { $ne: 'ARCHIVED' } } },
+        {
+            $group: {
+                _id: '$boardId',
+                total: { $sum: 1 },
+                done: { $sum: { $cond: [{ $eq: ['$status', 'DONE'] }, 1, 0] } },
+                inProgress: { $sum: { $cond: [{ $eq: ['$status', 'IN_PROGRESS'] }, 1, 0] } },
+            },
+        },
+    ]);
+
+    const stats: Record<string, BoardTaskStat> = {};
+    for (const row of rows) {
+        stats[row._id.toString()] = {
+            total: row.total,
+            done: row.done,
+            inProgress: row.inProgress,
+        };
+    }
+    return stats;
+}
+
 export async function getBoardCategories(workspaceSlug: string, boardSlug: string) {
     const session = await auth();
 

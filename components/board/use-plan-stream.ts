@@ -1,7 +1,7 @@
 // components/board/use-plan-stream.ts
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BoardStreamRequest, PlanStreamEvent, StreamedTask } from '@/types/ai-plan';
 
 export type SectionStatus = 'pending' | 'done' | 'error';
@@ -44,6 +44,11 @@ interface UsePlanStreamCallbacks {
 export function usePlanStream({ onTasks }: UsePlanStreamCallbacks) {
   const [state, setState] = useState<PlanStreamState>(INITIAL_STATE);
   const controllerRef = useRef<AbortController | null>(null);
+
+  // Abort any in-flight stream when the consuming component unmounts, so
+  // navigating away mid-stream does not leak the fetch reader or fire
+  // setState on an unmounted component.
+  useEffect(() => () => controllerRef.current?.abort(), []);
 
   const reset = useCallback(() => {
     setState(INITIAL_STATE);
@@ -126,6 +131,10 @@ export function usePlanStream({ onTasks }: UsePlanStreamCallbacks) {
 
   const start = useCallback(
     async (req: BoardStreamRequest) => {
+      // Double-submit guard: abort any stream already in flight so we never
+      // run two concurrent streams writing to the same board (which would
+      // orphan the first run's task IDs and make Undo unable to remove them).
+      controllerRef.current?.abort();
       const controller = new AbortController();
       controllerRef.current = controller;
       setState({ ...INITIAL_STATE, phase: 'streaming' });

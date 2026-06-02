@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { XMarkIcon, PhotoIcon, FaceSmileIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline';
+import { XMarkIcon, PhotoIcon, FaceSmileIcon, ArrowUpTrayIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { updateWorkspaceSettings } from '@/actions/workspace';
 
 const EMOJI_CATEGORIES = [
@@ -19,7 +19,7 @@ const EMOJI_CATEGORIES = [
     },
     {
         name: 'Nature',
-        emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🌵', '🎄', '🌲', '🌳', '🌴', '🎋', '🎍', '🎎', '�樱花', '🎐', '🎑'],
+        emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🐧', '🐦', '🐤', '🦆', '🦅', '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🦟', '🦗', '🌵', '🎄', '🌲', '🌳', '🌴', '🎋', '🎍', '🎎', '🌼', '🎐', '🎑'],
     },
     {
         name: 'Activities',
@@ -134,10 +134,11 @@ export function WorkspaceIconPicker({
             <div className="relative w-full max-w-md mx-4 bg-[var(--surface)] rounded-2xl shadow-2xl border border-[var(--border-subtle)] overflow-hidden">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-[var(--border-subtle)]">
-                    <h2 className="text-lg font-semibold">Change Workspace Icon</h2>
+                    <h2 className="text-lg font-semibold text-[var(--text-primary)]">Change Workspace Icon</h2>
                     <button
                         onClick={onClose}
-                        className="p-2 rounded-lg hover:bg-[var(--background)] transition-colors"
+                        aria-label="Close"
+                        className="flex h-9 w-9 items-center justify-center rounded-lg text-[var(--text-secondary)] transition-colors hover:bg-[var(--background-subtle)] hover:text-[var(--text-primary)]"
                     >
                         <XMarkIcon className="w-5 h-5" />
                     </button>
@@ -172,7 +173,10 @@ export function WorkspaceIconPicker({
                 {/* Content */}
                 <div className="p-4 max-h-80 overflow-y-auto">
                     {error && (
-                        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                        <div
+                            role="alert"
+                            className="mb-4 rounded-lg border border-[var(--flux-error-border)] bg-[var(--flux-error-bg)] p-3 text-sm text-[var(--flux-error-text-strong)]"
+                        >
                             {error}
                         </div>
                     )}
@@ -188,7 +192,8 @@ export function WorkspaceIconPicker({
                                     />
                                     <button
                                         onClick={() => setPreviewUrl(null)}
-                                        className="absolute top-0 right-1/2 translate-x-10 -translate-y-2 p-1 bg-red-500 text-white rounded-full"
+                                        aria-label="Remove uploaded image"
+                                        className="absolute top-0 right-1/2 translate-x-10 -translate-y-2 rounded-full bg-[var(--flux-error-primary)] p-1 text-white"
                                     >
                                         <XMarkIcon className="w-3 h-3" />
                                     </button>
@@ -242,27 +247,31 @@ export function WorkspaceIconPicker({
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between p-4 border-t border-[var(--border-subtle)] bg-[var(--background)]">
+                <div className="flex items-center justify-between gap-3 border-t border-[var(--border-subtle)] bg-[var(--background-subtle)] p-4">
                     <button
                         onClick={handleRemoveIcon}
-                        disabled={isSaving || (!currentIcon)}
-                        className="text-sm text-red-500 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                        disabled={isSaving || !currentIcon}
+                        className="text-sm font-medium text-[var(--flux-error-primary)] transition-opacity hover:opacity-70 disabled:cursor-not-allowed disabled:opacity-40"
                     >
                         Remove icon
                     </button>
                     <div className="flex gap-2">
-                        <button
-                            onClick={onClose}
-                            className="px-4 py-2 text-sm font-medium rounded-lg border border-[var(--border-subtle)] hover:bg-[var(--surface)] transition-colors"
-                        >
+                        <button onClick={onClose} className="btn btn-secondary">
                             Cancel
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={isSaving || (activeTab === 'upload' && !previewUrl) || (activeTab === 'emoji' && !selectedEmoji)}
-                            className="px-4 py-2 text-sm font-medium rounded-lg bg-[var(--brand-primary)] text-white hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="btn btn-primary disabled:cursor-not-allowed disabled:opacity-50"
                         >
-                            {isSaving ? 'Saving...' : 'Save'}
+                            {isSaving ? (
+                                <>
+                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                    Saving
+                                </>
+                            ) : (
+                                'Save'
+                            )}
                         </button>
                     </div>
                 </div>

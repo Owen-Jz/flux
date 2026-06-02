@@ -1,10 +1,17 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Cog6ToothIcon } from '@heroicons/react/24/outline';
+import {
+    Cog6ToothIcon,
+    BuildingOffice2Icon,
+    Squares2X2Icon,
+    UsersIcon,
+    BellAlertIcon,
+} from '@heroicons/react/24/outline';
 import { auth } from '@/lib/auth';
 import { getWorkspaceUnreadCounts, getWorkspaces } from '@/actions/workspace';
-import { WorkspaceCard } from '@/components/dashboard/WorkspaceCard';
-import { EmptyWorkspaces } from '@/components/dashboard/EmptyWorkspaces';
+import { DashboardHeader } from '@/components/dashboard/dashboard-header';
+import { StatTile } from '@/components/dashboard/stat-tile';
+import { WorkspaceBrowser, type WorkspaceBrowserItem } from '@/components/dashboard/workspace-browser';
 import NewWorkspaceButton from '@/components/dashboard/NewWorkspaceButton';
 import { TrialPromptWrapper } from '@/components/onboarding/TrialPromptWrapper';
 import { UpgradeWelcomeWrapper } from '@/components/billing/upgrade-welcome-wrapper';
@@ -64,6 +71,22 @@ export default async function DashboardPage() {
 
     const userName = session.user.name?.split(' ')[0] || 'there';
 
+    const totalBoards = workspaces.reduce((acc, w) => acc + w.boardCount, 0);
+    const totalMembers = workspaces.reduce((acc, w) => acc + w.memberCount, 0);
+    const totalUnread = Object.values(unreadCounts).reduce((acc, n) => acc + n, 0);
+
+    const browserItems: WorkspaceBrowserItem[] = workspaces.map((w) => ({
+        id: w.id,
+        name: w.name,
+        slug: w.slug,
+        accentColor: w.accentColor,
+        icon: w.icon,
+        memberCount: w.memberCount,
+        boardCount: w.boardCount,
+        lastActiveAt: new Date(w.lastActiveAt).toISOString(),
+        hasUnread: (unreadCounts[w.slug] ?? 0) > 0,
+    }));
+
     return (
         <>
             <TrialPromptWrapper
@@ -76,17 +99,17 @@ export default async function DashboardPage() {
                 lastUpgradeAt={lastUpgradeAt}
                 plan={userPlan}
             />
-            <div className="min-h-screen bg-[var(--background)] overflow-x-hidden">
-                <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+            <div className="min-h-screen overflow-x-hidden bg-[var(--background)]">
+                <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
                     <div
-                        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] opacity-30 animate-pulse"
+                        className="absolute left-1/2 top-0 h-[400px] w-[800px] max-w-full -translate-x-1/2 animate-pulse opacity-30"
                         style={{
                             background: 'radial-gradient(ellipse, var(--flux-brand-primary) 0%, transparent 70%)',
                             filter: 'blur(80px)',
                         }}
                     />
                     <div
-                        className="absolute bottom-0 right-0 w-[600px] h-[300px] opacity-20"
+                        className="absolute bottom-0 right-0 h-[300px] w-[600px] max-w-full opacity-20"
                         style={{
                             background: 'radial-gradient(circle, var(--flux-brand-secondary) 0%, transparent 70%)',
                             filter: 'blur(100px)',
@@ -94,78 +117,53 @@ export default async function DashboardPage() {
                     />
                 </div>
 
-                <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-10">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 md:mb-10 gap-4">
-                        <div>
-                            <p className="text-sm font-medium text-[var(--flux-brand-primary)] mb-1 tracking-wide uppercase text-xs">
-                                Dashboard
-                            </p>
-                            <h1 className="text-2xl md:text-4xl font-bold text-[var(--text-primary)] tracking-tight">
-                                Your Workspaces
-                            </h1>
-                            <p className="text-[var(--text-secondary)] mt-1 hidden sm:block text-sm md:text-base">
+                <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+                    <DashboardHeader
+                        eyebrow="Dashboard"
+                        title="Your workspaces"
+                        subtitle={
+                            <span className="hidden sm:inline">
                                 Welcome back, {userName}. Select a workspace to continue.
-                            </p>
-                        </div>
+                            </span>
+                        }
+                        actions={
+                            <>
+                                <NewWorkspaceButton />
+                                <Link
+                                    href="/settings"
+                                    className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] transition-colors hover:border-[var(--brand-primary)]/30 sm:h-10 sm:w-10"
+                                    aria-label="Settings"
+                                >
+                                    <Cog6ToothIcon className="h-5 w-5 text-[var(--text-secondary)]" />
+                                </Link>
+                            </>
+                        }
+                    />
 
-                        <div className="flex items-center gap-3">
-                            <NewWorkspaceButton />
-                            <Link
-                                href="/settings"
-                                className="p-3 rounded-xl bg-[var(--surface)] border border-[var(--border-subtle)] hover:border-[var(--brand-primary)]/30 transition-colors"
-                                aria-label="Settings"
-                            >
-                                <Cog6ToothIcon className="w-5 h-5 text-[var(--text-secondary)]" />
-                            </Link>
-                        </div>
-                    </div>
+                    <dl className="mb-6 grid grid-cols-2 gap-3 sm:mb-8 sm:gap-4 lg:grid-cols-4">
+                        <StatTile
+                            label={workspaces.length === 1 ? 'Workspace' : 'Workspaces'}
+                            value={workspaces.length}
+                            icon={<BuildingOffice2Icon className="h-5 w-5" />}
+                        />
+                        <StatTile
+                            label={totalBoards === 1 ? 'Board' : 'Boards'}
+                            value={totalBoards}
+                            icon={<Squares2X2Icon className="h-5 w-5" />}
+                        />
+                        <StatTile
+                            label={totalMembers === 1 ? 'Member' : 'Members'}
+                            value={totalMembers}
+                            icon={<UsersIcon className="h-5 w-5" />}
+                        />
+                        <StatTile
+                            label={totalUnread === 1 ? 'Update' : 'Updates'}
+                            value={totalUnread}
+                            icon={<BellAlertIcon className="h-5 w-5" />}
+                        />
+                    </dl>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8 max-w-xl">
-                        <div className="px-4 py-3 rounded-xl bg-[var(--flux-surface)] border border-[var(--flux-border-subtle)] hover:border-[var(--flux-brand-primary)]/30 transition-colors">
-                            <p className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">{workspaces.length}</p>
-                            <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
-                                {workspaces.length === 1 ? 'Workspace' : 'Workspaces'}
-                            </p>
-                        </div>
-                        <div className="px-4 py-3 rounded-xl bg-[var(--flux-surface)] border border-[var(--flux-border-subtle)] hover:border-[var(--flux-brand-primary)]/30 transition-colors">
-                            <p className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
-                                {workspaces.reduce((acc, w) => acc + w.boardCount, 0)}
-                            </p>
-                            <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
-                                {workspaces.reduce((acc, w) => acc + w.boardCount, 0) === 1 ? 'Board' : 'Boards'}
-                            </p>
-                        </div>
-                        <div className="px-4 py-3 rounded-xl bg-[var(--flux-surface)] border border-[var(--flux-border-subtle)] hover:border-[var(--flux-brand-primary)]/30 transition-colors">
-                            <p className="text-2xl md:text-3xl font-bold text-[var(--text-primary)]">
-                                {workspaces.reduce((acc, w) => acc + w.memberCount, 0)}
-                            </p>
-                            <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
-                                {workspaces.reduce((acc, w) => acc + w.memberCount, 0) === 1 ? 'Member' : 'Members'}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                        {workspaces.map((workspace, index) => (
-                            <div
-                                key={workspace.id}
-                                className="animate-fade-in-up"
-                                style={{ animationDelay: `${index * 80}ms` }}
-                            >
-                                <WorkspaceCard
-                                    name={workspace.name}
-                                    slug={workspace.slug}
-                                    accentColor={workspace.accentColor}
-                                    icon={workspace.icon}
-                                    memberCount={workspace.memberCount}
-                                    boardCount={workspace.boardCount}
-                                    lastActiveAt={workspace.lastActiveAt}
-                                    hasUnread={(unreadCounts[workspace.slug] ?? 0) > 0}
-                                    userPlan={userPlan}
-                                />
-                            </div>
-                        ))}
-                    </div>
+                    <WorkspaceBrowser workspaces={browserItems} userPlan={userPlan} />
                 </div>
             </div>
         </>

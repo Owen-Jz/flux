@@ -316,7 +316,7 @@ describe('Input Validation', () => {
       const result = signupSchema.safeParse({
         name: 'Test User',
         email: 'test@example.com',
-        password: 'password123',
+        password: 'Password123!',
       });
       // This tests the schema, not title length specifically
       expect(result.success).toBe(true);
@@ -404,7 +404,7 @@ describe('Additional Input Security', () => {
         const result = signupSchema.safeParse({
           name,
           email: 'test@example.com',
-          password: 'password123',
+          password: 'Password123!',
         });
         expect(result.success).toBe(true);
       }
@@ -415,25 +415,32 @@ describe('Additional Input Security', () => {
         const result = signupSchema.safeParse({
           name,
           email: 'test@example.com',
-          password: 'password123',
+          password: 'Password123!',
         });
         expect(result.success).toBe(false);
       }
     });
 
-    it('should require password minimum of 6 characters', () => {
-      // Valid passwords
+    it('should require password of at least 8 characters with complexity', () => {
+      // Valid: 8+ chars with at least 3 of 4 character classes
       expect(signupSchema.safeParse({
         name: 'Test',
         email: 'test@example.com',
-        password: '123456',
+        password: 'Password123!',
       }).success).toBe(true);
 
-      // Invalid passwords
+      // Invalid: too short (under 8 characters)
       expect(signupSchema.safeParse({
         name: 'Test',
         email: 'test@example.com',
-        password: '12345',
+        password: 'Pass1!',
+      }).success).toBe(false);
+
+      // Invalid: long enough but insufficient complexity (only lowercase + digits)
+      expect(signupSchema.safeParse({
+        name: 'Test',
+        email: 'test@example.com',
+        password: 'password123',
       }).success).toBe(false);
     });
   });

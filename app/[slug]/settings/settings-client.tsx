@@ -3,9 +3,10 @@
 import { useState, useTransition, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
-import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon, PhotoIcon, BellIcon, KeyIcon, PuzzlePieceIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, GlobeAltIcon, ShieldCheckIcon, TrashIcon, ArrowPathIcon, PaintBrushIcon, CheckIcon, ExclamationCircleIcon, XMarkIcon, CreditCardIcon, PhotoIcon, BellIcon, KeyIcon, PuzzlePieceIcon, ClipboardDocumentIcon } from '@heroicons/react/24/outline';
 import { updateWorkspaceSettings } from '@/actions/workspace';
 import { deleteWorkspace } from '@/actions/access-control';
+import { DashboardHeader } from '@/components/dashboard/dashboard-header';
 import { BillingSection } from '@/components/billing/billing-section';
 import { WorkspaceIconPicker } from '@/components/workspace/workspace-icon-picker';
 import { NotificationPermissionBanner } from '@/components/pwa/notification-permission-banner';
@@ -53,6 +54,12 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     const [pushEnabled, setPushEnabled] = useState(false);
     const [pushLoading, setPushLoading] = useState(false);
     const [userPlan, setUserPlan] = useState<string>('free');
+    const [name, setName] = useState(workspace.name);
+    const [isSavingName, setIsSavingName] = useState(false);
+    const [slugCopied, setSlugCopied] = useState(false);
+
+    const trimmedName = name.trim();
+    const nameDirty = trimmedName.length > 0 && trimmedName !== workspace.name;
 
     useEffect(() => {
         let cancelled = false;
@@ -90,6 +97,31 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                 setError(err instanceof Error ? err.message : 'Failed to update settings');
             }
         });
+    };
+
+    const handleSaveName = async () => {
+        if (!nameDirty || isSavingName) return;
+        setIsSavingName(true);
+        setError(null);
+        try {
+            await updateWorkspaceSettings(workspace.slug, { name: trimmedName });
+            router.refresh();
+        } catch (err) {
+            setName(workspace.name); // Revert on error
+            setError(err instanceof Error ? err.message : 'Failed to rename workspace');
+        } finally {
+            setIsSavingName(false);
+        }
+    };
+
+    const handleCopySlug = async () => {
+        try {
+            await navigator.clipboard.writeText(`${window.location.origin}/${workspace.slug}`);
+            setSlugCopied(true);
+            setTimeout(() => setSlugCopied(false), 2000);
+        } catch {
+            // Clipboard API unavailable (e.g. insecure context) — silently ignore.
+        }
     };
 
     const handleUpdateAccentColor = async (color: string) => {
@@ -159,20 +191,28 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
     };
 
     return (
-        <div className="p-4 md:p-8 pt-12 md:pt-16 max-w-3xl mx-auto overflow-x-hidden">
+        <div className="mx-auto max-w-3xl overflow-x-hidden px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
             {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-center gap-3">
-                    <ExclamationCircleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
-                    <p className="text-sm font-medium text-red-800">{error}</p>
-                    <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">
-                        <XMarkIcon className="w-4 h-4" />
+                <div
+                    role="alert"
+                    className="mb-6 flex items-center gap-3 rounded-xl border border-[var(--flux-error-border)] bg-[var(--flux-error-bg)] p-4"
+                >
+                    <ExclamationCircleIcon className="h-5 w-5 flex-shrink-0 text-[var(--flux-error-primary)]" />
+                    <p className="text-sm font-medium text-[var(--flux-error-text-strong)]">{error}</p>
+                    <button
+                        onClick={() => setError(null)}
+                        aria-label="Dismiss error"
+                        className="ml-auto text-[var(--flux-error-primary)] transition-opacity hover:opacity-70"
+                    >
+                        <XMarkIcon className="h-4 w-4" />
                     </button>
                 </div>
             )}
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-[var(--foreground)]">Settings</h1>
-                <p className="text-[var(--text-secondary)]">Configure your workspace preferences</p>
-            </div>
+            <DashboardHeader
+                eyebrow="Workspace"
+                title="Settings"
+                subtitle={`Configure ${workspace.name}`}
+            />
 
             {/* Tab Navigation */}
             <div className="overflow-x-auto -mx-4 px-4 mb-6 border-b border-[var(--border-subtle)] pb-4">
@@ -244,15 +284,67 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                     </div>
                     <div className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium mb-1">Workspace Name</label>
-                            <input type="text" value={workspace.name} className="input" readOnly />
+                            <label htmlFor="workspace-name" className="mb-1 block text-sm font-medium">
+                                Workspace Name
+                            </label>
+                            <div className="flex flex-col gap-2 sm:flex-row">
+                                <input
+                                    id="workspace-name"
+                                    type="text"
+                                    value={name}
+                                    maxLength={60}
+                                    onChange={(e) => setName(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleSaveName();
+                                    }}
+                                    className="input"
+                                    placeholder="e.g. Acme Inc."
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleSaveName}
+                                    disabled={!nameDirty || isSavingName}
+                                    className="btn btn-primary flex-shrink-0 disabled:opacity-50"
+                                >
+                                    {isSavingName ? (
+                                        <>
+                                            <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                            Saving
+                                        </>
+                                    ) : (
+                                        'Save'
+                                    )}
+                                </button>
+                            </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-1">Workspace Slug</label>
-                            <div className="flex items-center gap-2 p-3 bg-[var(--surface)] rounded-lg border border-[var(--border-subtle)]">
-                                <span className="text-xs text-[var(--text-secondary)]">flux.com/</span>
-                                <span className="text-sm font-medium">{workspace.slug}</span>
+                            <label className="mb-1 block text-sm font-medium">Workspace URL</label>
+                            <div className="flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] p-2 pl-3">
+                                <span className="truncate text-sm text-[var(--text-secondary)]">
+                                    flux.com/<span className="font-medium text-[var(--text-primary)]">{workspace.slug}</span>
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={handleCopySlug}
+                                    aria-label="Copy workspace URL"
+                                    className="ml-auto flex flex-shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--text-primary)]"
+                                >
+                                    {slugCopied ? (
+                                        <>
+                                            <CheckIcon className="h-3.5 w-3.5 text-[var(--flux-success-primary)]" />
+                                            Copied
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ClipboardDocumentIcon className="h-3.5 w-3.5" />
+                                            Copy
+                                        </>
+                                    )}
+                                </button>
                             </div>
+                            <p className="mt-1.5 text-xs text-[var(--text-tertiary)]">
+                                The URL stays fixed even if you rename the workspace, so existing links keep working.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -267,7 +359,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                         <div>
                             <p className="text-sm font-medium">Public Access</p>
                             <p className="text-xs text-[var(--text-secondary)] mt-1">
-                                Allow anyone with the link to view this board (read-only)
+                                Allow anyone with the link to view this workspace (read-only)
                             </p>
                         </div>
                         <button
@@ -356,7 +448,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                         <div>
                             <p className="text-sm font-medium">Brand Color</p>
                             <p className="text-xs text-[var(--text-secondary)] mt-1 mb-4">
-                                Choose a primary color for this workspace's dashboard and interface.
+                                Choose a primary color for this workspace&apos;s dashboard and interface.
                             </p>
                             <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 md:gap-3">
                                 {BRAND_COLORS.map((color) => (
@@ -366,7 +458,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                                         disabled={isPending}
                                         className={`group relative w-10 h-10 rounded-xl border-2 transition-all flex items-center justify-center ${accentColor === color.value
                                             ? 'border-[var(--brand-primary)] scale-110 shadow-lg'
-                                            : 'border-transparent hover:scale-105 hover:border-gray-200'}`}
+                                            : 'border-transparent hover:scale-105 hover:border-[var(--border-default)]'}`}
                                         title={color.label}
                                     >
                                         <div
@@ -413,14 +505,14 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                             </div>
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
-                                className="btn btn-secondary text-red-600 border-red-200 hover:bg-red-50"
+                                className="btn btn-secondary flex-shrink-0 text-[var(--flux-error-primary)] hover:border-[var(--flux-error-border)] hover:bg-[var(--flux-error-bg)]"
                             >
                                 Delete
                             </button>
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            <p className="text-sm text-red-600">
+                            <p className="text-sm text-[var(--flux-error-text-strong)]">
                                 This action cannot be undone. This will permanently delete the workspace{' '}
                                 <strong>{workspace.name}</strong> and all associated data.
                             </p>
@@ -440,7 +532,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                                 <button
                                     onClick={handleDeleteWorkspace}
                                     disabled={deleteConfirmText !== workspace.name || isPending}
-                                    className="btn bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="btn btn-danger disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     {isPending ? (
                                         <>

@@ -33,6 +33,7 @@ export interface IUser extends Document {
         completedTutorial: boolean;
         dismissedAt?: Date;
         referralPromptShown?: boolean;
+        planWithAIIntroShown?: boolean;
     };
     hasCompletedOnboarding: boolean;
     // Billing fields
@@ -79,6 +80,7 @@ const UserSchema = new Schema<IUser>(
             completedTutorial: { type: Boolean, default: false },
             dismissedAt: { type: Date },
             referralPromptShown: { type: Boolean, default: false },
+            planWithAIIntroShown: { type: Boolean, default: false },
         },
         hasCompletedOnboarding: { type: Boolean, default: false },
         // Billing fields

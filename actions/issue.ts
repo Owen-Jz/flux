@@ -37,6 +37,17 @@ export async function createIssue(workspaceSlug: string, data: CreateIssueData) 
         throw new Error('Access denied');
     }
 
+    // An assignee must be a real member of this workspace — otherwise a crafted
+    // call could store an arbitrary user id and fire an issue email at them.
+    if (data.assigneeId) {
+        const assigneeIsMember = workspace.members.some(
+            (m: { userId: { toString(): string } }) => m.userId.toString() === data.assigneeId!.toString()
+        );
+        if (!assigneeIsMember) {
+            throw new Error('Assignee must be a workspace member');
+        }
+    }
+
     const issue = await Issue.create({
         workspaceId: workspace._id,
         title: data.title,
@@ -58,17 +69,24 @@ export async function createIssue(workspaceSlug: string, data: CreateIssueData) 
     });
 
     // EMAIL NOTIFICATION LOGIC
-    // Notify all workspace members about the new issue
-    // In a large workspace, we might want to limit this to admins or just the assignee
-    // But for now, "everyone gets an email" per requirement.
+    // Notify the people who actually need to act on the issue: every workspace
+    // admin (they oversee everything) plus the assignee if one was set — never
+    // the whole workspace. The reporter is never emailed about their own report.
+    const targetIds = new Set<string>(
+        workspace.members
+            .filter((m: { role?: string }) => m.role === 'ADMIN')
+            .map((m: { userId: { toString(): string } }) => m.userId.toString())
+    );
+    if (data.assigneeId) {
+        targetIds.add(data.assigneeId.toString());
+    }
+    targetIds.delete(session.user.id);
 
-    // Get all member user IDs
-    const memberIds = workspace.members.map((m: any) => m.userId);
-    const users = await User.find({ _id: { $in: memberIds } });
+    const users = await User.find({ _id: { $in: Array.from(targetIds) } });
 
     // Send emails in parallel
     await Promise.all(users.map(async (user) => {
-        if (user.email && user._id.toString() !== session.user.id) { // Don't email the reporter
+        if (user.email) {
             const html = await render(
                 React.createElement(IssueCreatedEmail, {
                     workspaceName: workspace.name,

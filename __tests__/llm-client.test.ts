@@ -224,37 +224,58 @@ describe('MinimaxClient', () => {
   });
 
   describe('callAPI timeout', () => {
-    it('should timeout after 15 seconds', async () => {
-      const client = new MinimaxClient({ apiKey: 'test-key' });
+    // callAPI retries transient failures with exponential backoff (2s, 4s).
+    // Use fake timers so the backoff delays resolve instantly and
+    // deterministically instead of waiting on real wall-clock time.
+    it('should surface a timeout error when the request aborts', async () => {
+      vi.useFakeTimers();
+      try {
+        const client = new MinimaxClient({ apiKey: 'test-key' });
 
-      // Mock fetch to reject with AbortError (simulating a timeout)
-      const abortError = new Error('The operation was aborted.');
-      abortError.name = 'AbortError';
-      vi.mocked(fetch).mockRejectedValue(abortError);
+        // Mock fetch to reject with AbortError (simulating a timeout)
+        const abortError = new Error('The operation was aborted.');
+        abortError.name = 'AbortError';
+        vi.mocked(fetch).mockRejectedValue(abortError);
 
-      const messages: LLMMessage[] = [
-        { role: 'system', content: 'You are a helpful assistant' },
-        { role: 'user', content: 'Hello' }
-      ];
+        const messages: LLMMessage[] = [
+          { role: 'system', content: 'You are a helpful assistant' },
+          { role: 'user', content: 'Hello' }
+        ];
 
-      await expect(client.callAPI(messages)).rejects.toThrow('Request timed out after 15 seconds');
-    }, 20000);
+        const assertion = expect(client.callAPI(messages)).rejects.toThrow(
+          'Request timed out after 30 seconds'
+        );
+        await vi.runAllTimersAsync();
+        await assertion;
+      } finally {
+        vi.useRealTimers();
+      }
+    });
 
     it('should handle API errors', async () => {
-      const client = new MinimaxClient({ apiKey: 'test-key' });
+      vi.useFakeTimers();
+      try {
+        const client = new MinimaxClient({ apiKey: 'test-key' });
 
-      vi.mocked(fetch).mockResolvedValue({
-        ok: false,
-        status: 401,
-        text: vi.fn().mockResolvedValue('Unauthorized')
-      } as any);
+        vi.mocked(fetch).mockResolvedValue({
+          ok: false,
+          status: 401,
+          text: vi.fn().mockResolvedValue('Unauthorized')
+        } as any);
 
-      const messages: LLMMessage[] = [
-        { role: 'system', content: 'You are a helpful assistant' },
-        { role: 'user', content: 'Hello' }
-      ];
+        const messages: LLMMessage[] = [
+          { role: 'system', content: 'You are a helpful assistant' },
+          { role: 'user', content: 'Hello' }
+        ];
 
-      await expect(client.callAPI(messages)).rejects.toThrow('Minimax API error: 401 - Unauthorized');
+        const assertion = expect(client.callAPI(messages)).rejects.toThrow(
+          'Minimax API error: 401 - Unauthorized'
+        );
+        await vi.runAllTimersAsync();
+        await assertion;
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock verifyWebhookSignature
+// Mock paystack helpers used by the webhook route
 vi.mock('@/lib/paystack', () => ({
     verifyWebhookSignature: vi.fn(),
+    planFromPaystackCode: vi.fn(() => null),
 }));
 
 // Mock connectDB
@@ -10,7 +11,23 @@ vi.mock('@/lib/db', () => ({
     connectDB: vi.fn().mockResolvedValue(undefined),
 }));
 
-// Mock models with factory functions
+// Mock rate limiter so every request is allowed through
+vi.mock('@/lib/rate-limit', () => ({
+    rateLimit: vi.fn(() => ({ success: true })),
+    getClientIp: vi.fn(() => '127.0.0.1'),
+}));
+
+// Mock email notifications so the post-response `after()` callbacks have no
+// real side effects even if they were to run.
+vi.mock('@/lib/email/subscription-notifications', () => ({
+    sendSubscriptionActivatedEmail: vi.fn().mockResolvedValue(undefined),
+    sendSubscriptionCancelledEmail: vi.fn().mockResolvedValue(undefined),
+    sendSubscriptionPastDueEmail: vi.fn().mockResolvedValue(undefined),
+    sendSubscriptionDisabledEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock models with factory functions. The route uses ProcessedWebhook with an
+// atomic findOneAndUpdate upsert for idempotency.
 vi.mock('@/models/User', () => ({
     User: {
         findOne: vi.fn(),
@@ -19,8 +36,7 @@ vi.mock('@/models/User', () => ({
 
 vi.mock('@/models/ProcessedWebhook', () => ({
     ProcessedWebhook: {
-        findOne: vi.fn(),
-        create: vi.fn(),
+        findOneAndUpdate: vi.fn(),
     },
 }));
 
@@ -29,6 +45,22 @@ vi.mock('@/models/FailedWebhook', () => ({
         create: vi.fn(),
     },
 }));
+
+vi.mock('@/models/AuditLog', () => ({
+    AuditLog: {
+        create: vi.fn(),
+    },
+}));
+
+// Keep the real NextRequest/NextResponse but stub `after` so post-response
+// callbacks become no-ops in the unit test (no request scope to flush them).
+vi.mock('next/server', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('next/server')>();
+    return {
+        ...actual,
+        after: vi.fn(),
+    };
+});
 
 // Import after mocks
 import { NextRequest } from 'next/server';
@@ -44,9 +76,7 @@ describe('Billing Webhook Handler', () => {
         data: {
             id: 'evt_123456',
             customer: 'CUS_abc123',
-            subscription: {
-                subscription_code: 'SUB_xyz789',
-            },
+            subscription_code: 'SUB_xyz789',
         },
     };
 
@@ -56,9 +86,10 @@ describe('Billing Webhook Handler', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.mocked(verifyWebhookSignature).mockReturnValue(true);
-        vi.mocked(ProcessedWebhook.findOne).mockResolvedValue(null);
-        vi.mocked(ProcessedWebhook.create).mockResolvedValue({ eventId: 'evt_123456' } as any);
-        vi.mocked(FailedWebhook.create).mockResolvedValue({} as any);
+        // findOneAndUpdate returns null when the event is new (just inserted),
+        // and a non-null doc when the event already existed (duplicate).
+        vi.mocked(ProcessedWebhook.findOneAndUpdate).mockResolvedValue(null as never);
+        vi.mocked(FailedWebhook.create).mockResolvedValue({} as never);
     });
 
     afterEach(() => {
@@ -102,7 +133,7 @@ describe('Billing Webhook Handler', () => {
                 subscriptionId: undefined,
                 subscriptionStatus: undefined,
                 save: vi.fn(),
-            } as any);
+            } as never);
             const request = createMockRequest(validPayloadString, validSignature);
             const response = await POST(request);
 
@@ -113,28 +144,55 @@ describe('Billing Webhook Handler', () => {
 
     describe('Idempotency', () => {
         it('returns {received: true, duplicate: true} when event already processed', async () => {
-            vi.mocked(ProcessedWebhook.findOne).mockResolvedValue({ eventId: 'evt_123456' } as any);
+            // A non-null result means the event doc already existed -> duplicate.
+            vi.mocked(ProcessedWebhook.findOneAndUpdate).mockResolvedValue({
+                eventId: 'subscription.created:evt_123456',
+            } as never);
             const request = createMockRequest(validPayloadString, validSignature);
             const response = await POST(request);
             const json = await response.json();
 
             expect(response.status).toBe(200);
             expect(json).toEqual({ received: true, duplicate: true });
-            expect(ProcessedWebhook.create).not.toHaveBeenCalled();
+            // Duplicate events must not reach the event-processing switch.
+            expect(User.findOne).not.toHaveBeenCalled();
         });
 
         it('processes new events normally when not previously processed', async () => {
-            vi.mocked(ProcessedWebhook.findOne).mockResolvedValue(null);
+            vi.mocked(ProcessedWebhook.findOneAndUpdate).mockResolvedValue(null as never);
             vi.mocked(User.findOne).mockResolvedValue({
                 subscriptionId: undefined,
                 subscriptionStatus: undefined,
                 save: vi.fn(),
-            } as any);
+            } as never);
             const request = createMockRequest(validPayloadString, validSignature);
             const response = await POST(request);
 
             expect(response.status).toBe(200);
-            expect(ProcessedWebhook.create).toHaveBeenCalledWith({ eventId: 'evt_123456' });
+            // Idempotency key is `${event.event}:${event.data.id}`.
+            expect(ProcessedWebhook.findOneAndUpdate).toHaveBeenCalledWith(
+                { eventId: 'subscription.created:evt_123456' },
+                expect.objectContaining({
+                    $setOnInsert: expect.objectContaining({
+                        eventId: 'subscription.created:evt_123456',
+                    }),
+                }),
+                expect.objectContaining({ upsert: true, new: false })
+            );
+            // New events proceed to processing.
+            expect(User.findOne).toHaveBeenCalled();
+        });
+
+        it('treats a duplicate-key race (code 11000) as a duplicate', async () => {
+            const dupKeyError = Object.assign(new Error('E11000 duplicate key'), { code: 11000 });
+            vi.mocked(ProcessedWebhook.findOneAndUpdate).mockRejectedValue(dupKeyError as never);
+            const request = createMockRequest(validPayloadString, validSignature);
+            const response = await POST(request);
+            const json = await response.json();
+
+            expect(response.status).toBe(200);
+            expect(json).toEqual({ received: true, duplicate: true });
+            expect(User.findOne).not.toHaveBeenCalled();
         });
     });
 
@@ -146,16 +204,14 @@ describe('Billing Webhook Handler', () => {
                     subscriptionStatus: undefined,
                     save: vi.fn(),
                 };
-                vi.mocked(User.findOne).mockResolvedValue(mockUser as any);
+                vi.mocked(User.findOne).mockResolvedValue(mockUser as never);
 
                 const payload = {
                     event: 'subscription.created',
                     data: {
                         id: 'evt_123',
                         customer: 'CUS_abc',
-                        subscription: {
-                            subscription_code: 'SUB_new',
-                        },
+                        subscription_code: 'SUB_new',
                     },
                 };
                 const request = createMockRequest(JSON.stringify(payload), validSignature);
@@ -175,14 +231,13 @@ describe('Billing Webhook Handler', () => {
                     subscriptionStatus: 'active',
                     save: vi.fn(),
                 };
-                vi.mocked(User.findOne).mockResolvedValue(mockUser as any);
+                vi.mocked(User.findOne).mockResolvedValue(mockUser as never);
 
                 const payload = {
                     event: 'subscription.not_renewed',
                     data: {
-                        subscription: {
-                            subscription_code: 'SUB_xyz',
-                        },
+                        id: 'evt_nr',
+                        subscription_code: 'SUB_xyz',
                     },
                 };
                 const request = createMockRequest(JSON.stringify(payload), validSignature);
@@ -202,14 +257,13 @@ describe('Billing Webhook Handler', () => {
                     plan: 'pro',
                     save: vi.fn(),
                 };
-                vi.mocked(User.findOne).mockResolvedValue(mockUser as any);
+                vi.mocked(User.findOne).mockResolvedValue(mockUser as never);
 
                 const payload = {
                     event: 'subscription.disabled',
                     data: {
-                        subscription: {
-                            subscription_code: 'SUB_xyz',
-                        },
+                        id: 'evt_dis',
+                        subscription_code: 'SUB_xyz',
                     },
                 };
                 const request = createMockRequest(JSON.stringify(payload), validSignature);
@@ -229,11 +283,12 @@ describe('Billing Webhook Handler', () => {
                     subscriptionStatus: 'past_due',
                     save: vi.fn(),
                 };
-                vi.mocked(User.findOne).mockResolvedValue(mockUser as any);
+                vi.mocked(User.findOne).mockResolvedValue(mockUser as never);
 
                 const payload = {
                     event: 'charge.success',
                     data: {
+                        id: 'evt_charge',
                         customer: 'CUS_customer',
                         amount: 50000,
                         reference: 'REF_new',
@@ -254,11 +309,12 @@ describe('Billing Webhook Handler', () => {
                     subscriptionStatus: 'active',
                     save: vi.fn(),
                 };
-                vi.mocked(User.findOne).mockResolvedValue(mockUser as any);
+                vi.mocked(User.findOne).mockResolvedValue(mockUser as never);
 
                 const payload = {
                     event: 'charge.success',
                     data: {
+                        id: 'evt_charge2',
                         customer: 'CUS_customer',
                         amount: 50000,
                         reference: 'REF_new',
@@ -268,6 +324,8 @@ describe('Billing Webhook Handler', () => {
                 await POST(request);
 
                 expect(mockUser.subscriptionStatus).toBe('active');
+                // An existing subscriptionId must not be overwritten by the reference.
+                expect(mockUser.subscriptionId).toBe('SUB_existing');
                 expect(mockUser.save).toHaveBeenCalled();
             });
         });
@@ -279,11 +337,12 @@ describe('Billing Webhook Handler', () => {
                     subscriptionStatus: 'active',
                     save: vi.fn(),
                 };
-                vi.mocked(User.findOne).mockResolvedValue(mockUser as any);
+                vi.mocked(User.findOne).mockResolvedValue(mockUser as never);
 
                 const payload = {
                     event: 'invoice.payment_failed',
                     data: {
+                        id: 'evt_inv',
                         customer: 'CUS_customer',
                     },
                 };
@@ -304,21 +363,18 @@ describe('Billing Webhook Handler', () => {
                 subscriptionId: undefined,
                 subscriptionStatus: undefined,
                 save: mockSave,
-            } as any);
+            } as never);
 
             const payload = {
                 event: 'subscription.created',
                 data: {
                     id: 'evt_fail',
                     customer: 'CUS_fail',
-                    subscription: {
-                        subscription_code: 'SUB_fail',
-                    },
+                    subscription_code: 'SUB_fail',
                 },
             };
             const request = createMockRequest(JSON.stringify(payload), validSignature);
             const response = await POST(request);
-            const json = await response.json();
 
             expect(response.status).toBe(500);
             expect(FailedWebhook.create).toHaveBeenCalledWith({
@@ -331,22 +387,20 @@ describe('Billing Webhook Handler', () => {
             });
         });
 
-        it('returns 500 with error message on failure', async () => {
+        it('returns a generic 500 error message on failure (no internal leak)', async () => {
             const mockSave = vi.fn().mockRejectedValue(new Error('Save failed'));
             vi.mocked(User.findOne).mockResolvedValue({
                 subscriptionId: undefined,
                 subscriptionStatus: undefined,
                 save: mockSave,
-            } as any);
+            } as never);
 
             const payload = {
                 event: 'subscription.created',
                 data: {
                     id: 'evt_error',
                     customer: 'CUS_error',
-                    subscription: {
-                        subscription_code: 'SUB_error',
-                    },
+                    subscription_code: 'SUB_error',
                 },
             };
             const request = createMockRequest(JSON.stringify(payload), validSignature);
@@ -354,20 +408,20 @@ describe('Billing Webhook Handler', () => {
             const json = await response.json();
 
             expect(response.status).toBe(500);
-            expect(json.error).toBe('Save failed');
+            // The route intentionally returns a generic message and stores the
+            // real error in the dead letter queue rather than leaking it.
+            expect(json.error).toBe('Webhook processing failed');
         });
 
         it('handles case when no user found for event', async () => {
-            vi.mocked(User.findOne).mockResolvedValue(null);
+            vi.mocked(User.findOne).mockResolvedValue(null as never);
 
             const payload = {
                 event: 'subscription.created',
                 data: {
                     id: 'evt_nouser',
                     customer: 'CUS_nouser',
-                    subscription: {
-                        subscription_code: 'SUB_nouser',
-                    },
+                    subscription_code: 'SUB_nouser',
                 },
             };
             const request = createMockRequest(JSON.stringify(payload), validSignature);

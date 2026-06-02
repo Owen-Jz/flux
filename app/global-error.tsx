@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 export default function GlobalError({
     error,
     reset,
@@ -7,6 +9,12 @@ export default function GlobalError({
     error: Error & { digest?: string };
     reset: () => void;
 }) {
+    useEffect(() => {
+        // Surface the error (and its digest) so global render failures are
+        // not swallowed silently in production.
+        console.error('GlobalError boundary caught:', error);
+    }, [error]);
+
     return (
         <html>
             <body style={{ fontFamily: 'system-ui, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', margin: 0, background: '#0a0a0a', color: '#e4e4e7' }}>

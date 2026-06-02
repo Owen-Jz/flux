@@ -2,14 +2,13 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { EnvelopeIcon, LockClosedIcon, ArrowRightIcon, ArrowPathIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { FcGoogle } from 'react-icons/fc';
 
 function LoginContent() {
-    const router = useRouter();
     const searchParams = useSearchParams();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -68,7 +67,10 @@ function LoginContent() {
                     setError('Invalid email or password. Please try again.');
                 }
             } else {
-                router.push('/dashboard');
+                // Hard navigation (not router.push): a full document load guarantees the
+                // freshly-set NextAuth session cookie is sent so the session-guarded
+                // /dashboard route resolves the user instead of bouncing back to /login.
+                window.location.assign('/dashboard');
             }
         } catch {
             setError('An unexpected error occurred. Please try again.');

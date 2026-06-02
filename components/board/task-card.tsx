@@ -201,10 +201,16 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                 ${isDragging ? 'transition-transform duration-150' : ''}
             `}
         >
-            {/* Comments Icon (Hovering) */}
-            {task.comments && task.comments.length > 0 && !isEditing && (
-                <div className={`absolute -top-1 -right-1 z-30 ${hasUnreadComments ? 'bg-[var(--error-primary)]' : 'bg-[var(--text-tertiary)]'} text-[var(--text-inverse)] px-1 py-0.5 text-[9px] font-bold rounded-bl rounded-tr shadow-md flex items-center justify-center`}>
-                    <ChatBubbleLeftIcon className="w-2.5 h-2.5" />
+            {/* Unread-comment pulse — an at-a-glance "new activity" signal that
+                survives even when the card is dense. The labelled count lives in
+                the footer; this dot just screams "look here". */}
+            {hasUnreadComments && !isEditing && (
+                <div
+                    className="absolute -top-1.5 -right-1.5 z-30 flex items-center justify-center"
+                    aria-hidden="true"
+                >
+                    <span className="absolute inline-flex h-3.5 w-3.5 animate-ping rounded-full bg-[var(--error-primary)] opacity-60" />
+                    <span className="relative inline-flex h-3 w-3 rounded-full bg-[var(--error-primary)] ring-2 ring-[var(--surface)]" />
                 </div>
             )}
             {/* Drag Handle (desktop hover) */}
@@ -503,8 +509,28 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                     </div>
                 </div>
 
-                {/* Bottom row: Due Date & Links */}
+                {/* Bottom row: Comments, Due Date & Links */}
                 <div className="flex items-center gap-2">
+                    {task.comments && task.comments.length > 0 && (
+                        <div
+                            className={`flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded-md transition-colors ${
+                                hasUnreadComments
+                                    ? 'bg-[var(--error-bg)] text-[var(--error-text-strong)] ring-1 ring-inset ring-[var(--error-border)]'
+                                    : 'bg-[var(--background-subtle)] text-[var(--text-secondary)]'
+                            }`}
+                            title={
+                                hasUnreadComments
+                                    ? `${task.comments.length} comment${task.comments.length === 1 ? '' : 's'} — new activity`
+                                    : `${task.comments.length} comment${task.comments.length === 1 ? '' : 's'}`
+                            }
+                        >
+                            <ChatBubbleLeftIcon className="w-3 h-3" />
+                            <span>{task.comments.length}</span>
+                            {hasUnreadComments && (
+                                <span className="ml-0.5 uppercase tracking-wide text-[8px] font-extrabold">New</span>
+                            )}
+                        </div>
+                    )}
                     {task.dueDate && (
                         <div className={`flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded-md ${
                             isPastDue(task.dueDate) && task.status !== 'DONE' && task.status !== 'ARCHIVED'
