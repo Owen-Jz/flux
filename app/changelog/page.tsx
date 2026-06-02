@@ -9,6 +9,20 @@ export const metadata: Metadata = {
 
 const releases = [
   {
+    version: '2.5.0',
+    date: 'June 2026',
+    tag: 'New',
+    tagColor: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+    changes: [
+      'AI Plan streaming — watch tasks generate live on your board',
+      'PlanStreamBanner — real-time progress indicator during AI decomposition',
+      'PlanCompleteModal with Undo All — review and revoke AI-generated tasks instantly',
+      'Hardened trust boundaries for AI-plan — prevents unauthorized execution',
+      'Robust terminal states — live counts, cancel-aware modal, dismissable banner',
+      'Calendar data-loss fix — board state preserved across all session types',
+    ],
+  },
+  {
     version: '2.4.0',
     date: 'May 2026',
     tag: 'New',
@@ -57,7 +71,7 @@ export default function ChangelogPage() {
               Changelog
             </h1>
             <p className="text-lg text-[var(--text-secondary)]">
-              We ship every week. Here&apos;s what&apos;s new.
+              We ship every week. Here's what's new.
             </p>
           </div>
 
