@@ -11,6 +11,7 @@ import { createMinimaxClient } from '@/lib/llm/client';
 import { checkUserRateLimit } from '@/lib/rate-limit-enhanced';
 import { revalidatePath } from 'next/cache';
 import { normalizeSectionTask } from '@/lib/llm/board-stream-planner';
+import { sanitizeContextLinks } from '@/lib/llm/sanitize';
 import type { BoardStreamRequest, PlanStreamEvent, StreamedTask } from '@/types/ai-plan';
 
 const SECTION_CONCURRENCY = 3;
@@ -94,9 +95,7 @@ export async function POST(request: NextRequest) {
   const workspaceId = workspace._id as Types.ObjectId;
   const boardObjectId = board._id as Types.ObjectId;
   const cap = typeof maxTasks === 'number' && maxTasks > 0 ? Math.min(maxTasks, 30) : DEFAULT_MAX_TASKS;
-  const safeLinks = Array.isArray(contextLinks)
-    ? contextLinks.filter(l => typeof l === 'string' && /^https?:\/\//i.test(l)).slice(0, 5)
-    : undefined;
+  const safeLinks = sanitizeContextLinks(contextLinks);
   // Only forward a deadline that is a short string — it flows into the LLM prompt.
   const safeDeadline =
     typeof deadline === 'string' && deadline.trim().length > 0 && deadline.length <= 50

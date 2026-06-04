@@ -1,5 +1,6 @@
 import { ProjectPlanRequest, ProjectPlanResponse } from './types';
 import { extractJsonString } from './board-stream-planner';
+import { sanitizeContextLinks } from './sanitize';
 
 const VALID_LLM_PRIORITIES = ['High', 'Medium', 'Low'];
 
@@ -120,11 +121,9 @@ export function buildProjectPlanUserPrompt(req: ProjectPlanRequest): string {
     prompt += `Target completion date: ${req.deadline}\n\n`;
   }
 
-  if (req.contextLinks && req.contextLinks.length > 0) {
-    const safeLinks = req.contextLinks.filter(l => /^https?:\/\//i.test(l) && l.length < 512);
-    if (safeLinks.length > 0) {
-      prompt += `Reference links:\n${safeLinks.map(l => `- ${l}`).join('\n')}\n\n`;
-    }
+  const safeLinks = sanitizeContextLinks(req.contextLinks);
+  if (safeLinks.length > 0) {
+    prompt += `Reference links:\n${safeLinks.map(l => `- ${l}`).join('\n')}\n\n`;
   }
 
   if (req.maxTasksPerBoard) {

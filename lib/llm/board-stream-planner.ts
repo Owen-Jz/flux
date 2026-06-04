@@ -6,6 +6,7 @@ import type {
   SectionTasksResponse,
 } from './types';
 import type { StreamTaskStatus } from '@/types/ai-plan';
+import { sanitizeContextLinks } from './sanitize';
 
 // ---------------------------------------------------------------------------
 // Prompts
@@ -64,10 +65,8 @@ export interface SkeletonPromptInput {
 export function buildSkeletonUserPrompt(input: SkeletonPromptInput): string {
   let prompt = `Project description:\n${input.description}\n\n`;
   if (input.deadline) prompt += `Target completion date: ${input.deadline}\n\n`;
-  if (input.contextLinks && input.contextLinks.length > 0) {
-    const safe = input.contextLinks.filter(l => /^https?:\/\//i.test(l) && l.length < 512);
-    if (safe.length > 0) prompt += `Reference links:\n${safe.map(l => `- ${l}`).join('\n')}\n\n`;
-  }
+  const safe = sanitizeContextLinks(input.contextLinks);
+  if (safe.length > 0) prompt += `Reference links:\n${safe.map(l => `- ${l}`).join('\n')}\n\n`;
   if (input.maxTasks) prompt += `The whole project should total about ${input.maxTasks} tasks across all sections.\n\n`;
   prompt += `Break this project into 3-5 high-level sections.`;
   return prompt;
