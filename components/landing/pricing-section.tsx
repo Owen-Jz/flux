@@ -32,13 +32,13 @@ const plansData = [
         period: "/mo",
         description: "For individuals who want to get organized. Completely free, no credit card needed.",
         features: [
+            "AI planning — 3 plans/month",
             "Up to 3 Projects",
             "Up to 3 Team Members",
             "Unlimited Tasks",
-            "Basic Analytics",
             "Community Support"
         ],
-        cta: "Start for Free",
+        cta: "Start planning free",
         href: "/signup",
         popular: false
     },
@@ -48,6 +48,7 @@ const plansData = [
         period: "/mo",
         description: "Perfect for small teams or solo freelancers managing client work.",
         features: [
+            "Unlimited AI project planning",
             "Up to 5 Projects",
             "Up to 10 Active Members",
             "Unlimited Tasks",
@@ -65,6 +66,7 @@ const plansData = [
         period: "/mo",
         description: "For growing agencies and teams that need more flexibility and client-facing features.",
         features: [
+            "Unlimited AI planning + full project mode",
             "Unlimited Projects",
             "Up to 25 Active Members",
             "Unlimited Tasks",

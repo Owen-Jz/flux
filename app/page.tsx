@@ -2,21 +2,14 @@
 
 import Link from 'next/link';
 
-// Import new enhanced components
+// Landing page sections — AI project planner positioning
 import { HeroSection } from '@/components/landing/hero-section';
-import { HeroPreviewSection } from '@/components/landing/hero-preview';
-import { StatsSection } from '@/components/landing/stats-section';
+import { HowItWorksSection } from '@/components/landing/how-it-works-section';
 import { ValueProposition } from '@/components/landing/value-proposition';
-import { CTASection } from '@/components/landing/cta-section';
 import { WhoItsForSection } from '@/components/landing/who-its-for-section';
-import { FeaturesGrid } from '@/components/landing/features-grid';
-import { LandingPageAnimation } from '@/components/landing/scroll-animation';
-import { LogoMarquee } from '@/components/landing/logo-marquee';
-import { TestimonialsSection } from '@/components/landing/testimonials-section';
 import { PricingSection } from '@/components/landing/pricing-section';
 import { FAQSection } from '@/components/landing/faq-section';
-import { AnalyticsDashboard } from '@/components/landing/analytics-dashboard';
-import { LiveMetrics } from '@/components/landing/live-metrics';
+import { CTASection } from '@/components/landing/cta-section';
 import { SmoothScroll } from '@/components/landing/smooth-scroll';
 import { LandingNavbar } from '@/components/landing/navbar';
 
@@ -65,7 +58,7 @@ function Footer() {
               <span className="font-black text-2xl tracking-tight text-[var(--text-primary)]">flux</span>
             </Link>
             <p className="text-[var(--text-tertiary)] max-w-xs mb-6 leading-relaxed">
-              One place where your engineering team collaborates, stays aligned, and ships faster—without the chaos.
+              Describe your project. Flux plans it.
             </p>
             <div className="flex gap-3">
               {/* Social icons would go here */}
@@ -123,60 +116,17 @@ export default function HomePage() {
         <LandingNavbar />
 
         <main>
-          {/* Hero Section - New enhanced version */}
+          {/* Hero — the whole pitch, with live AI planning demo */}
           <HeroSection />
 
-          {/* Hero Preview Section - Kanban animation that appears after hero */}
-          <HeroPreviewSection />
+          {/* How it works — Describe / Review / Done */}
+          <HowItWorksSection />
 
-          {/* Social Proof - Trusted by */}
-          <section className="py-12 lg:py-16 bg-[var(--background-subtle)] border-b border-[var(--border-subtle)]">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <p className="text-center text-sm font-bold text-[var(--text-tertiary)] uppercase tracking-[0.2em] mb-8">
-                Trusted by industry leaders
-              </p>
-              <LogoMarquee />
-            </div>
-          </section>
-
-          {/* Live Metrics Ticker */}
-          <LiveMetrics />
-
-          {/* Stats Section - New enhanced version */}
-          <StatsSection />
-
-          {/* Value Proposition - New enhanced version */}
+          {/* Why Flux — three AI-planning benefits */}
           <ValueProposition />
 
-          {/* Analytics Dashboard */}
-          <AnalyticsDashboard />
-
-          {/* Who it's for */}
+          {/* Who it's for — freelancers, indie builders, small teams */}
           <WhoItsForSection />
-
-          {/* Features */}
-          <section id="features" className="py-16 md:py-20 lg:py-32 px-4 sm:px-6 lg:px-8 bg-[var(--background)]">
-            <div className="max-w-7xl mx-auto">
-              <div className="max-w-3xl mb-10 md:mb-16">
-                <span className="inline-block px-3 py-1 rounded-full bg-[var(--brand-primary)]/10 text-[var(--brand-primary)] text-xs font-bold uppercase tracking-widest mb-4">
-                  Features
-                </span>
-                <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-[var(--text-primary)] tracking-tight mb-4 md:mb-6">
-                  Everything your team needs
-                </h2>
-                <p className="text-base md:text-lg text-[var(--text-secondary)]">
-                  Powerful features that actually make sense—not a bloated tool with checkboxes.
-                </p>
-              </div>
-              <FeaturesGrid />
-            </div>
-          </section>
-
-          {/* How it works */}
-          <LandingPageAnimation />
-
-          {/* Testimonials */}
-          <TestimonialsSection />
 
           {/* Pricing */}
           <section id="pricing">
@@ -186,7 +136,7 @@ export default function HomePage() {
           {/* FAQ */}
           <FAQSection />
 
-          {/* CTA - New enhanced version */}
+          {/* Footer CTA */}
           <CTASection />
         </main>
 

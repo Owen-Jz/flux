@@ -7,36 +7,24 @@ import Link from "next/link";
 
 const faqs = [
     {
-        question: "Is Flux free to use?",
-        answer: "Yes, our Free plan is completely free forever for individuals. It includes unlimited tasks and up to 3 projects."
+        question: "How good is the AI plan it generates?",
+        answer: "Good enough to start from, not so rigid you're stuck with it. Flux breaks your description into real tasks with priorities and time estimates, organised into columns. You review everything before it's created — keep what fits, drop what doesn't."
     },
     {
-        question: "Can I use Flux as a solo user?",
-        answer: "Absolutely. Many of our most dedicated users are solo professionals—freelancers, indie hackers, and personal productivity enthusiasts. The Free plan has everything you need to stay organized."
+        question: "Can I edit the plan before it creates anything?",
+        answer: "Yes. Nothing is created until you confirm. You see the full board first — every task, priority, and estimate — and check off exactly what you want. You can also undo an entire generated plan in one click after the fact."
     },
     {
-        question: "Can I share project progress with clients?",
-        answer: "Yes. With every plan, you can share a public link to a board so clients can see progress without needing to log in or be invited."
+        question: "Does it work for any type of project?",
+        answer: "It works best for project and client work that breaks down into concrete tasks — building a site, shipping a feature, launching something. The more context you give in your description, the sharper the plan."
     },
     {
-        question: "Can I import data from other tools?",
-        answer: "Absolutely. We offer one-click imports from Jira, Trello, and Asana so you can switch tools without losing any context."
+        question: "What happens to my data?",
+        answer: "Your project descriptions are used only to generate your plan. Your boards and tasks are yours — encrypted, private, and never sold. You can export or delete them at any time."
     },
     {
-        question: "How secure is my data?",
-        answer: "Super secure. Your data is encrypted, protected, and we undergo regular security reviews. Think bank-level protection."
-    },
-    {
-        question: "Do you offer discounts for non-profits?",
-        answer: "Yes! We offer a 50% discount on all paid plans for verified non-profit organizations and educational institutions."
-    },
-    {
-        question: "What payment methods do you accept?",
-        answer: "We accept all major credit cards and bank transfers. All payments are processed securely through Paystack."
-    },
-    {
-        question: "Can I cancel my subscription anytime?",
-        answer: "Yes, you can cancel your subscription at any time. Your access will continue until the end of your billing period."
+        question: "Is there a free plan?",
+        answer: "Yes. The Free plan lets you try AI planning and manage real projects at no cost. Paid plans unlock unlimited AI planning and full multi-board project generation."
     }
 ];
 
@@ -65,7 +53,7 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
                 </div>
                 <div
                     className={`overflow-hidden transition-all duration-300 ${
-                        isOpen ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'
+                        isOpen ? 'max-h-72 opacity-100' : 'max-h-0 opacity-0'
                     }`}
                 >
                     <div className="px-5 lg:px-6 pb-5 lg:pb-6 text-[var(--text-secondary)] leading-relaxed text-sm lg:text-base">

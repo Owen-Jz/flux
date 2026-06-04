@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { ArrowRightIcon, CheckIcon, BoltIcon, ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { ArrowRightIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 export function CTASection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -40,55 +40,35 @@ export function CTASection() {
           transition={{ duration: 0.6 }}
         >
           <span className="inline-block px-4 py-1.5 rounded-full bg-[var(--brand-primary)]/10 border border-[var(--brand-primary)]/20 text-[var(--brand-primary)] text-xs font-bold uppercase tracking-widest mb-6">
-            Get Started Today
+            Get started
           </span>
 
           <h2 id="cta-heading" className="text-4xl lg:text-5xl xl:text-6xl font-black text-[var(--text-primary)] mb-6 tracking-tight">
-            Ready to stop the
+            Your next client project
             <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--brand-primary)] to-[var(--info-primary)]">
-              chaos?
+              starts here.
             </span>
           </h2>
 
           <p className="text-lg text-[var(--text-secondary)] mb-10 max-w-2xl mx-auto leading-relaxed">
-            Join thousands of teams who finally got organized. Get started in minutes.
+            Describe it. Flux plans it. You ship it.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-            {/* Primary CTA */}
+          <div className="flex items-center justify-center mb-8">
             <Link
-              href="/signup?plan=pro"
-              className="group relative px-8 py-4 bg-gradient-to-r from-[var(--brand-primary)] to-[var(--brand-primary)] text-[var(--text-inverse)] rounded-2xl text-base font-extrabold shadow-xl shadow-[var(--brand-primary)]/25 hover:shadow-2xl hover:shadow-[var(--brand-primary)]/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
+              href="/signup"
+              className="group relative px-8 py-4 bg-[var(--brand-primary)] text-white rounded-2xl text-base font-extrabold shadow-xl shadow-[var(--brand-primary)]/25 hover:shadow-2xl hover:shadow-[var(--brand-primary)]/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-2"
             >
-              <span className="flex items-center gap-2">
-                Start your free trial
-                <ArrowRightIcon className="w-5 h-5 transition-transform group-hover:translate-x-1" />
-              </span>
-            </Link>
-
-            <Link
-              href="#contact"
-              className="px-8 py-4 bg-[var(--surface)] text-[var(--text-secondary)] border border-[var(--border-subtle)] rounded-2xl text-base font-bold hover:bg-[var(--background-subtle)] hover:border-[var(--border-default)] transition-all flex items-center gap-2 backdrop-blur-xl"
-            >
-              Contact sales
+              Get started free
+              <ArrowRightIcon className="w-5 h-5 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
 
-          {/* Trust indicators */}
-          <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-[var(--text-tertiary)]">
-            <div className="flex items-center gap-2">
-              <CheckIcon className="w-4 h-4 text-[var(--brand-primary)]" />
-              <span>Free for teams up to 5 members</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <BoltIcon className="w-4 h-4 text-[var(--warning-primary)]" />
-              <span>Setup in minutes</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <ShieldCheckIcon className="w-4 h-4 text-[var(--info-primary)]" />
-              <span>Cancel anytime</span>
-            </div>
+          {/* Trust indicator */}
+          <div className="flex items-center justify-center gap-2 text-sm text-[var(--text-tertiary)]">
+            <CheckIcon className="w-4 h-4 text-[var(--brand-primary)]" />
+            <span>No credit card required. Start planning in 60 seconds.</span>
           </div>
         </motion.div>
       </motion.div>

@@ -8,7 +8,6 @@ import { useSession } from 'next-auth/react';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 const navLinks = [
-    { label: 'Features', href: '#features' },
     { label: 'How it works', href: '#how-it-works' },
     { label: 'Pricing', href: '#pricing' },
 ];
@@ -113,7 +112,7 @@ export function LandingNavbar() {
                                         href="/signup"
                                         className="px-4 py-2 bg-[var(--brand-primary)] text-white rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
                                     >
-                                        Get started
+                                        Get started free
                                     </Link>
                                 </>
                             )}
