@@ -155,6 +155,19 @@ export function normalizePriority(p: string): 'LOW' | 'MEDIUM' | 'HIGH' {
   return map[p] ?? 'MEDIUM';
 }
 
+/**
+ * Clamp an LLM-provided hour estimate to the 1-24 contract. The model is
+ * asked for a realistic integer 1-24, but can return NaN, Infinity, 0,
+ * negatives, or absurd values — coerce all of those to a safe default/range
+ * rather than persisting garbage.
+ */
+export function normalizeEstimatedHours(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    return 2; // sensible default when the model gives us nothing usable
+  }
+  return Math.min(Math.round(value), 24);
+}
+
 /** Clamp any model status to one of the three allowed starting columns. */
 export function normalizeStatus(s: string): StreamTaskStatus {
   const key = (s ?? '').toString().trim().toLowerCase();
@@ -181,6 +194,6 @@ export function normalizeSectionTask(t: LLMSectionTask): {
     description: t.description,
     priority: normalizePriority(t.priority),
     status: normalizeStatus(t.status),
-    estimatedHours: t.estimatedHours,
+    estimatedHours: normalizeEstimatedHours(t.estimatedHours),
   };
 }

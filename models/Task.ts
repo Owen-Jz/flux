@@ -11,6 +11,7 @@ export interface ITask extends Document {
     description?: string;
     status: TaskStatus;
     priority: TaskPriority;
+    estimatedHours?: number;
     categoryId?: Types.ObjectId;
     order: number;
     subtasks: { _id: Types.ObjectId; title: string; completed: boolean; createdAt: Date; createdBy?: Types.ObjectId }[];
@@ -44,6 +45,7 @@ const TaskSchema = new Schema<ITask>(
         description: { type: String },
         status: { type: String, enum: ['BACKLOG', 'TODO', 'IN_PROGRESS', 'REVIEW', 'DONE', 'ARCHIVED'], default: 'BACKLOG', index: true },
         priority: { type: String, enum: ['LOW', 'MEDIUM', 'HIGH'], default: 'MEDIUM' },
+        estimatedHours: { type: Number, min: 0 },
         categoryId: { type: Schema.Types.ObjectId },
         order: { type: Number, default: 0 },
         assignees: [{ type: Schema.Types.ObjectId, ref: 'User' }],

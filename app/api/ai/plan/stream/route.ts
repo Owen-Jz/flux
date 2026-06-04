@@ -168,6 +168,7 @@ export async function POST(request: NextRequest) {
               description: t.description,
               status: t.status,
               priority: t.priority,
+              estimatedHours: t.estimatedHours,
               order: baseOrder + startOrder + i,
             }));
 

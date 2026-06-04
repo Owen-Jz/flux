@@ -12,6 +12,7 @@ import { createBoard } from '@/actions/board';
 import type { ConfirmedPlan, TaskPlanItem } from '@/types/ai-plan';
 import { User } from '@/models/User';
 import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
+import { normalizeEstimatedHours } from '@/lib/llm/board-stream-planner';
 
 // This server action is a public entry point: the browser calls it directly
 // with a `plan` payload, so the LLM-output validation done in the API route is
@@ -36,15 +37,11 @@ function sanitizeTaskPlanItems(tasks: unknown): TaskPlanItem[] {
             const priority = VALID_PRIORITIES.includes(item.priority as TaskPlanItem['priority'])
                 ? (item.priority as TaskPlanItem['priority'])
                 : 'MEDIUM';
-            const estimatedHours =
-                typeof item.estimatedHours === 'number' && Number.isFinite(item.estimatedHours) && item.estimatedHours > 0
-                    ? item.estimatedHours
-                    : 1;
             return {
                 title: clampString(item.title, MAX_TITLE_LEN),
                 description: clampString(item.description, MAX_DESCRIPTION_LEN),
                 priority,
-                estimatedHours,
+                estimatedHours: normalizeEstimatedHours(item.estimatedHours),
             };
         })
         .filter((t) => t.title.length > 0);
@@ -62,6 +59,7 @@ async function insertTasksForBoard(
         description: t.description,
         status: 'BACKLOG' as const,
         priority: t.priority,
+        estimatedHours: t.estimatedHours,
         order: index,
     }));
     await Task.insertMany(docs);

@@ -6,6 +6,7 @@ import {
   parseSectionResponse,
   normalizePriority,
   normalizeStatus,
+  normalizeEstimatedHours,
   normalizeSectionTask,
 } from '../lib/llm/board-stream-planner';
 
@@ -96,6 +97,28 @@ describe('normalizeStatus', () => {
   });
 });
 
+describe('normalizeEstimatedHours', () => {
+  it('keeps a valid integer in range', () => {
+    expect(normalizeEstimatedHours(3)).toBe(3);
+    expect(normalizeEstimatedHours(24)).toBe(24);
+  });
+  it('rounds fractional values', () => {
+    expect(normalizeEstimatedHours(2.4)).toBe(2);
+    expect(normalizeEstimatedHours(2.6)).toBe(3);
+  });
+  it('clamps values above 24', () => {
+    expect(normalizeEstimatedHours(1000)).toBe(24);
+  });
+  it('defaults to 2 for NaN, Infinity, zero, negatives, and non-numbers', () => {
+    expect(normalizeEstimatedHours(NaN)).toBe(2);
+    expect(normalizeEstimatedHours(Infinity)).toBe(2);
+    expect(normalizeEstimatedHours(0)).toBe(2);
+    expect(normalizeEstimatedHours(-5)).toBe(2);
+    expect(normalizeEstimatedHours('3' as unknown)).toBe(2);
+    expect(normalizeEstimatedHours(undefined)).toBe(2);
+  });
+});
+
 describe('normalizeSectionTask', () => {
   it('normalizes priority and status together', () => {
     const t = normalizeSectionTask({
@@ -103,5 +126,12 @@ describe('normalizeSectionTask', () => {
     });
     expect(t.priority).toBe('LOW');
     expect(t.status).toBe('BACKLOG');
+  });
+  it('clamps a garbage estimatedHours to the safe default', () => {
+    const t = normalizeSectionTask({
+      title: 'a', description: 'b', priority: 'High', status: 'Todo' as 'Backlog',
+      estimatedHours: Number.POSITIVE_INFINITY,
+    });
+    expect(t.estimatedHours).toBe(2);
   });
 });
