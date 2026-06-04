@@ -1,4 +1,64 @@
-import { ProjectPlanRequest } from './types';
+import { ProjectPlanRequest, ProjectPlanResponse } from './types';
+import { extractJsonString } from './board-stream-planner';
+
+const VALID_LLM_PRIORITIES = ['High', 'Medium', 'Low'];
+
+interface PlanTaskLike {
+  title?: string;
+  description?: string;
+  priority?: string;
+  estimatedHours?: number;
+}
+
+function validatePlanTask(t: PlanTaskLike): void {
+  if (!t.title || !t.description || !t.priority || typeof t.estimatedHours !== 'number' || t.estimatedHours <= 0) {
+    throw new Error('Task missing required fields');
+  }
+  if (!VALID_LLM_PRIORITIES.includes(t.priority)) {
+    throw new Error(`Invalid priority value: ${t.priority}`);
+  }
+}
+
+/**
+ * Parse and validate the raw LLM content for a board- or project-scale plan.
+ * Pure (takes the raw string, not an LLMResponse) so it can be unit-tested
+ * across every failure branch.
+ */
+export function parseProjectPlanResponse(
+  content: string,
+  scale: 'board' | 'project'
+): ProjectPlanResponse {
+  if (!content) throw new Error('No content in LLM response');
+
+  let parsed: ProjectPlanResponse;
+  try {
+    parsed = JSON.parse(extractJsonString(content)) as ProjectPlanResponse;
+  } catch {
+    throw new Error('Failed to parse LLM response as JSON');
+  }
+
+  if (!parsed.title) throw new Error('Plan missing required field: title');
+  if (!parsed.summary) throw new Error('Plan missing required field: summary');
+
+  if (scale === 'board') {
+    if (!parsed.tasks || !Array.isArray(parsed.tasks) || parsed.tasks.length === 0) {
+      throw new Error('Board plan missing tasks array');
+    }
+    for (const t of parsed.tasks) validatePlanTask(t);
+  } else {
+    if (!parsed.boards || !Array.isArray(parsed.boards) || parsed.boards.length === 0) {
+      throw new Error('Project plan missing boards array');
+    }
+    for (const b of parsed.boards) {
+      if (!b.name || !b.description || !Array.isArray(b.tasks) || b.tasks.length === 0) {
+        throw new Error('Board missing required fields');
+      }
+      for (const t of b.tasks) validatePlanTask(t);
+    }
+  }
+
+  return parsed;
+}
 
 export const BOARD_PLAN_SYSTEM_PROMPT = `You are a project planning assistant. Given a project description, generate a flat list of tasks to accomplish it.
 

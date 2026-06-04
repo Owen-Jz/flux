@@ -5,6 +5,7 @@ import {
   BOARD_PLAN_SYSTEM_PROMPT,
   PROJECT_PLAN_SYSTEM_PROMPT,
   buildProjectPlanUserPrompt,
+  parseProjectPlanResponse,
 } from './project-planner';
 import {
   SKELETON_SYSTEM_PROMPT,
@@ -13,6 +14,7 @@ import {
   buildSectionUserPrompt,
   parseSkeletonResponse,
   parseSectionResponse,
+  extractJsonString,
   type SkeletonPromptInput,
   type SectionPromptInput,
 } from './board-stream-planner';
@@ -54,7 +56,8 @@ export class MinimaxClient {
     ];
 
     const llmResponse = await this.callAPI(messages);
-    return this.parseProjectPlanResponse(llmResponse, request.scale);
+    const content = llmResponse.choices[0]?.message?.content ?? '';
+    return parseProjectPlanResponse(content, request.scale);
   }
 
   async planSkeleton(input: SkeletonPromptInput): Promise<BoardSkeletonResponse> {
@@ -75,61 +78,6 @@ export class MinimaxClient {
     const response = await this.callAPI(messages);
     const content = response.choices[0]?.message?.content ?? '';
     return parseSectionResponse(content);
-  }
-
-  private parseProjectPlanResponse(
-    response: LLMResponse,
-    scale: 'board' | 'project'
-  ): ProjectPlanResponse {
-    const content = response.choices[0]?.message?.content;
-    if (!content) throw new Error('No content in LLM response');
-
-    let jsonStr = content.trim();
-    const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (codeBlockMatch) jsonStr = codeBlockMatch[1].trim();
-
-    let parsed: ProjectPlanResponse;
-    try {
-      parsed = JSON.parse(jsonStr) as ProjectPlanResponse;
-    } catch {
-      throw new Error('Failed to parse LLM response as JSON');
-    }
-
-    if (!parsed.title) throw new Error('Plan missing required field: title');
-    if (!parsed.summary) throw new Error('Plan missing required field: summary');
-
-    if (scale === 'board') {
-      if (!parsed.tasks || !Array.isArray(parsed.tasks) || parsed.tasks.length === 0) {
-        throw new Error('Board plan missing tasks array');
-      }
-      for (const t of parsed.tasks) {
-        if (!t.title || !t.description || !t.priority || typeof t.estimatedHours !== 'number' || t.estimatedHours <= 0) {
-          throw new Error('Task missing required fields');
-        }
-        if (!(['High', 'Medium', 'Low'] as string[]).includes(t.priority)) {
-          throw new Error(`Invalid priority value: ${t.priority}`);
-        }
-      }
-    } else {
-      if (!parsed.boards || !Array.isArray(parsed.boards) || parsed.boards.length === 0) {
-        throw new Error('Project plan missing boards array');
-      }
-      for (const b of parsed.boards) {
-        if (!b.name || !b.description || !Array.isArray(b.tasks) || b.tasks.length === 0) {
-          throw new Error('Board missing required fields');
-        }
-        for (const t of b.tasks) {
-          if (!t.title || !t.description || !t.priority || typeof t.estimatedHours !== 'number' || t.estimatedHours <= 0) {
-            throw new Error('Task missing required fields');
-          }
-          if (!(['High', 'Medium', 'Low'] as string[]).includes(t.priority)) {
-            throw new Error(`Invalid priority value: ${t.priority}`);
-          }
-        }
-      }
-    }
-
-    return parsed;
   }
 
   // Retry helper with exponential backoff for transient failures
@@ -206,11 +154,7 @@ export class MinimaxClient {
     }
 
     // Extract JSON from markdown code blocks if present
-    let jsonStr = content.trim();
-    const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if (codeBlockMatch) {
-      jsonStr = codeBlockMatch[1].trim();
-    }
+    const jsonStr = extractJsonString(content);
 
     try {
       const parsed = JSON.parse(jsonStr) as DecomposeResponse;
