@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRightIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { HeroPlanningDemo } from "@/components/landing/hero-planning-demo";
@@ -55,6 +56,23 @@ function GridPattern() {
 }
 
 export function HeroSection() {
+  const router = useRouter();
+
+  // The visitor's typed prompt becomes the signup hook — stash it (in
+  // sessionStorage, so their project text never lands in the URL/history) and
+  // send them to signup. After they have an account, the board picks it up and
+  // generates the real plan. We never call the paid planning endpoint
+  // anonymously.
+  const handleDemoSubmit = (prompt: string) => {
+    const q = prompt.trim().slice(0, 500);
+    try {
+      if (q) sessionStorage.setItem("flux_pending_plan", q);
+    } catch {
+      /* sessionStorage unavailable (private mode / blocked) — proceed anyway */
+    }
+    router.push("/signup");
+  };
+
   return (
     <section
       className="relative min-h-screen overflow-hidden bg-[var(--background)] flex items-center"
@@ -128,7 +146,7 @@ export function HeroSection() {
             transition={{ duration: 0.8, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
             className="flex justify-center lg:justify-end"
           >
-            <HeroPlanningDemo />
+            <HeroPlanningDemo onSubmit={handleDemoSubmit} />
           </motion.div>
         </div>
       </div>

@@ -134,6 +134,26 @@ export function Board({
     const [showPlanWithAI, setShowPlanWithAI] = useState(false);
     const [showPlanComplete, setShowPlanComplete] = useState(false);
     const [undoError, setUndoError] = useState<string | null>(null);
+    const [pendingPlanPrompt, setPendingPlanPrompt] = useState<string | null>(null);
+
+    // If the visitor typed a project on the marketing hero before signing up,
+    // pick it up here (once) and open Plan with AI pre-filled with their idea.
+    useEffect(() => {
+        if (isReadOnly) return;
+        let prompt: string | null = null;
+        try {
+            prompt = sessionStorage.getItem('flux_pending_plan');
+            if (prompt) sessionStorage.removeItem('flux_pending_plan');
+        } catch {
+            /* sessionStorage unavailable */
+        }
+        if (prompt && prompt.trim()) {
+            setPendingPlanPrompt(prompt.trim());
+            setShowPlanWithAI(true);
+        }
+        // Run once on mount.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Append streamed AI tasks into board state as real cards
     const handleStreamedTasks = useCallback((streamed: StreamedTask[]) => {
@@ -973,12 +993,16 @@ export function Board({
             />
 
             <PlanWithAIModal
+                // Re-mount when a pending prompt arrives so the modal seeds its
+                // description from initialDescription (it only reads it on mount).
+                key={pendingPlanPrompt ? 'plan-modal-seeded' : 'plan-modal'}
                 isOpen={showPlanWithAI}
-                onClose={() => setShowPlanWithAI(false)}
+                onClose={() => { setShowPlanWithAI(false); setPendingPlanPrompt(null); }}
                 boardId={boardId || ''}
                 boardSlug={boardSlug || ''}
                 boardName={boardName}
                 workspaceSlug={workspaceSlug}
+                initialDescription={pendingPlanPrompt ?? undefined}
                 onStartBoardStream={handleStartBoardStream}
             />
 

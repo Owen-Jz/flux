@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { EnvelopeIcon, LockClosedIcon, UserIcon, ArrowRightIcon, ArrowPathIcon, CheckIcon, XMarkIcon, EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, LockClosedIcon, UserIcon, ArrowRightIcon, ArrowPathIcon, CheckIcon, XMarkIcon, EyeIcon, EyeSlashIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import { FcGoogle } from 'react-icons/fc';
 import { signIn, useSession } from 'next-auth/react';
 import { usePasswordStrength } from '@/hooks/use-password-strength';
@@ -31,6 +31,18 @@ export default function SignupPage() {
     const [emailChecking, setEmailChecking] = useState(false);
     const [emailAvailable, setEmailAvailable] = useState<boolean | null>(null);
     const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+    const [pendingPlan, setPendingPlan] = useState<string | null>(null);
+
+    // Surface the project the visitor typed on the marketing hero, so signing up
+    // feels like a continuation. The board consumes the stored value after auth.
+    useEffect(() => {
+        try {
+            const p = sessionStorage.getItem('flux_pending_plan');
+            if (p && p.trim()) setPendingPlan(p.trim());
+        } catch {
+            /* sessionStorage unavailable */
+        }
+    }, []);
 
     // Get plan from URL query parameter (e.g., /signup?plan=starter)
     const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
@@ -286,6 +298,17 @@ export default function SignupPage() {
                                 : 'Get started for free. No credit card needed.'}
                         </p>
                     </div>
+
+                    {pendingPlan && (
+                        <div className="mb-6 rounded-xl border border-[var(--brand-primary)]/20 bg-[var(--brand-primary)]/5 px-4 py-3">
+                            <p className="text-xs font-semibold text-[var(--brand-primary)] mb-1 flex items-center gap-1.5">
+                                <SparklesIcon className="w-3.5 h-3.5" /> Your plan is saved
+                            </p>
+                            <p className="text-sm text-[var(--text-secondary)] line-clamp-2">
+                                We&apos;ll turn &ldquo;{pendingPlan}&rdquo; into a board right after you sign up.
+                            </p>
+                        </div>
+                    )}
 
                     {/* Pro trial banner */}
                     {planParam === 'pro' && (
