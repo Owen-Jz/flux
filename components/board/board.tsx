@@ -133,6 +133,7 @@ export function Board({
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showPlanWithAI, setShowPlanWithAI] = useState(false);
     const [showPlanComplete, setShowPlanComplete] = useState(false);
+    const [undoError, setUndoError] = useState<string | null>(null);
 
     // Append streamed AI tasks into board state as real cards
     const handleStreamedTasks = useCallback((streamed: StreamedTask[]) => {
@@ -177,25 +178,37 @@ export function Board({
         if (ids.length === 0) return;
         const idSet = new Set(ids);
         const removed = tasks.filter((t) => idSet.has(t.id));
-        // Optimistic removal — keep the modal open until we know it succeeded
+        setUndoError(null);
+        // Optimistic removal — keep the modal open until we know it succeeded.
+        // On failure, restore only the cards that aren't already present (no
+        // duplicates) and re-sort by order so they return to their positions
+        // rather than getting appended to the end.
+        const restore = () =>
+            setTasks((prev) => {
+                const present = new Set(prev.map((t) => t.id));
+                const toRestore = removed.filter((t) => !present.has(t.id));
+                if (toRestore.length === 0) return prev;
+                return [...prev, ...toRestore].sort((a, b) => a.order - b.order);
+            });
         setTasks((prev) => prev.filter((t) => !idSet.has(t.id)));
         try {
             const result = await undoAIPlan(workspaceSlug, boardSlug || '', ids);
             if (!result.success) {
-                // Restore and leave the modal open so the user can retry
-                setTasks((prev) => [...prev, ...removed]);
+                restore();
+                setUndoError(result.error || 'Could not undo the plan. Please try again.');
                 return;
             }
             setShowPlanComplete(false);
             planStream.reset();
         } catch {
-            // Restore and leave the modal open so the user can retry
-            setTasks((prev) => [...prev, ...removed]);
+            restore();
+            setUndoError('Could not undo the plan. Please try again.');
         }
     }, [planStream, tasks, workspaceSlug, boardSlug]);
 
     const handleKeepPlan = useCallback(() => {
         setShowPlanComplete(false);
+        setUndoError(null);
         planStream.reset();
     }, [planStream]);
     const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -974,6 +987,7 @@ export function Board({
                 cancelled={planStream.state.phase === 'cancelled'}
                 tasksCreated={planStream.state.tasksCreated}
                 columnTotals={planStream.state.columnTotals}
+                error={undoError}
                 onUndo={handleUndoAIPlan}
                 onKeep={handleKeepPlan}
             />

@@ -19,6 +19,8 @@ interface PlanCompleteModalProps {
   onKeep: () => void;
   /** True when the plan was stopped early by the user (affects copy only). */
   cancelled?: boolean;
+  /** Message shown when an undo attempt failed, so the user knows to retry. */
+  error?: string | null;
 }
 
 export function PlanCompleteModal({
@@ -28,6 +30,7 @@ export function PlanCompleteModal({
   onUndo,
   onKeep,
   cancelled = false,
+  error = null,
 }: PlanCompleteModalProps) {
   const [isUndoing, setIsUndoing] = useState(false);
   const columnCount = Object.keys(columnTotals).length;
@@ -86,6 +89,15 @@ export function PlanCompleteModal({
                     </span>
                   ))}
                 </div>
+              )}
+
+              {error && (
+                <p
+                  role="alert"
+                  className="text-sm text-[var(--error-text-strong)] bg-[var(--error-bg)] border border-[var(--error-border)] rounded-lg px-3 py-2 w-full"
+                >
+                  {error}
+                </p>
               )}
 
               <div className="flex flex-col-reverse sm:flex-row gap-3 w-full pt-2">
