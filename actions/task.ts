@@ -203,6 +203,7 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
         description: task.description,
         status: task.status,
         priority: task.priority,
+        estimatedHours: task.estimatedHours,
         categoryId: task.categoryId?.toString(),
         order: task.order,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any

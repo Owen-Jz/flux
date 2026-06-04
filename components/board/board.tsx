@@ -144,6 +144,7 @@ export function Board({
                 description: t.description,
                 status: t.status,
                 priority: t.priority,
+                estimatedHours: t.estimatedHours,
                 order: t.order,
                 assignees: [],
                 createdAt: new Date().toISOString(),

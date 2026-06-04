@@ -30,6 +30,7 @@ export interface TaskData {
     description?: string;
     status: string;
     priority: TaskPriority;
+    estimatedHours?: number;
     categoryId?: string | null;
     order: number;
     assignees: Member[];
@@ -503,9 +504,19 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                         )}
                     </div>
 
-                    {/* Priority Badge */}
-                    <div className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${config.badge}`}>
-                        {priorityLabels[task.priority]}
+                    {/* Estimate + Priority Badge */}
+                    <div className="flex items-center gap-1.5">
+                        {typeof task.estimatedHours === 'number' && task.estimatedHours > 0 && (
+                            <span
+                                className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-[var(--background-subtle)] text-[var(--text-secondary)]"
+                                title="Estimated time"
+                            >
+                                ~{task.estimatedHours}h
+                            </span>
+                        )}
+                        <div className={`text-[11px] font-semibold px-1.5 py-0.5 rounded-md ${config.badge}`}>
+                            {priorityLabels[task.priority]}
+                        </div>
                     </div>
                 </div>
 
