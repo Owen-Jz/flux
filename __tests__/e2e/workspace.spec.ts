@@ -87,7 +87,7 @@ test.describe('Workspace', () => {
     await page.goto(`/${workspace.slug}`);
 
     // Verify sidebar nav items
-    const navItems = ['Board', 'Issues', 'Analytics', 'Team', 'Settings', 'Archive'];
+    const navItems = ['Board', 'Feedback', 'Analytics', 'Team', 'Settings', 'Archive'];
     for (const item of navItems) {
       const navLink = page.locator(`nav a:has-text("${item}"), aside a:has-text("${item}"), [class*="sidebar"] a:has-text("${item}")`).first();
       await expect(navLink).toBeVisible({ timeout: 5000 });

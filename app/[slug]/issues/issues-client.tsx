@@ -26,16 +26,76 @@ interface BoardData {
     slug: string;
 }
 
+type IssueStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
+type IssuePriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+type IssueType = 'BUG' | 'FEATURE' | 'IMPROVEMENT';
+
+interface IssuePerson {
+    name: string;
+    image?: string;
+}
+
 interface Issue {
     _id: string;
     title: string;
     description?: string;
-    status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
-    priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-    type: 'BUG' | 'FEATURE' | 'IMPROVEMENT';
-    reporter: { name: string; image?: string };
-    assignee?: { name: string; image?: string };
+    status: IssueStatus;
+    priority: IssuePriority;
+    type: IssueType;
+    reporter: IssuePerson;
+    assignee?: IssuePerson;
     createdAt: string;
+}
+
+/**
+ * Shape of an issue exactly as returned by `getIssues` in actions/issue.ts
+ * (Mongoose lean() + manual serialization → JSON-safe primitives).
+ */
+interface SerializedIssue {
+    _id: string;
+    workspaceId: string;
+    title: string;
+    description: string | null;
+    status: IssueStatus;
+    priority: IssuePriority;
+    type: IssueType;
+    reporterId: string | null;
+    reporter: { name: string; image: string | null } | null;
+    assigneeId: string | null;
+    assignee: { name: string; image: string | null } | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
+/** Fields the detail modal / inline controls are allowed to mutate. */
+type IssueUpdateData = Partial<{
+    title: string;
+    description: string;
+    priority: IssuePriority;
+    type: IssueType;
+    status: IssueStatus;
+    assigneeId: string | null;
+}>;
+
+/** Normalize a serialized person into the non-null shape the UI/modal expects. */
+function toIssuePerson(person: { name: string; image: string | null } | null): IssuePerson | undefined {
+    if (!person) return undefined;
+    return { name: person.name, image: person.image ?? undefined };
+}
+
+/** Map the server's serialized issue into the client-side working shape. */
+function toIssue(issue: SerializedIssue): Issue {
+    return {
+        _id: issue._id,
+        title: issue.title,
+        description: issue.description ?? undefined,
+        status: issue.status,
+        priority: issue.priority,
+        type: issue.type,
+        reporter: toIssuePerson(issue.reporter) ?? { name: 'A teammate' },
+        assignee: toIssuePerson(issue.assignee),
+        createdAt: issue.createdAt,
+    };
 }
 
 interface WorkspaceMember {
@@ -49,14 +109,14 @@ interface WorkspaceMember {
 
 interface IssuesClientProps {
     workspaceSlug: string;
-    initialIssues: any[]; // Using any to bypass some strict typing issues with serializable data
+    initialIssues: SerializedIssue[];
     workspaceName: string;
     workspaceMembers: WorkspaceMember[];
     boards: BoardData[];
 }
 
 export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, workspaceMembers, boards }: IssuesClientProps) {
-    const [issues, setIssues] = useState<Issue[]>(initialIssues);
+    const [issues, setIssues] = useState<Issue[]>(() => initialIssues.map(toIssue));
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filterStatus, setFilterStatus] = useState<string>('ALL');
     const [searchQuery, setSearchQuery] = useState('');
@@ -106,7 +166,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
         }
     };
 
-    const handleStatusChange = async (issueId: string, newStatus: any) => {
+    const handleStatusChange = async (issueId: string, newStatus: IssueStatus) => {
         // Optimistic update
         setIssues(issues.map(i => i._id === issueId ? { ...i, status: newStatus } : i));
         try {
@@ -119,8 +179,8 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
         }
     };
 
-    const handleUpdateIssue = async (issueId: string, data: any) => {
-        let assigneeObj: any = undefined;
+    const handleUpdateIssue = async (issueId: string, data: IssueUpdateData) => {
+        let assigneeObj: IssuePerson | undefined = undefined;
         let setAssignee = false;
         if ('assigneeId' in data) {
             setAssignee = true;
@@ -226,15 +286,15 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                 <div>
                     <h1 className="text-lg md:text-xl font-bold text-[var(--foreground)] flex items-center gap-2">
                         <InboxIcon className="w-5 h-5 text-[var(--brand-primary)]" />
-                        <span className="hidden sm:inline">Issues</span>
+                        <span className="hidden sm:inline">Feedback</span>
                     </h1>
-                    <p className="text-xs md:text-sm text-[var(--text-secondary)] hidden md:block">Track bugs and improvements for {workspaceName}</p>
+                    <p className="text-xs md:text-sm text-[var(--text-secondary)] hidden md:block">Capture bugs &amp; feature requests for {workspaceName}, then convert them into board tasks when you&apos;re ready to work on them.</p>
                 </div>
                 <button
                     onClick={() => setIsCreateModalOpen(true)}
                     className="btn btn-primary shadow-lg shadow-indigo-500/20 text-sm"
                 >
-                    <PlusIcon className="w-4 h-4" /> New Issue
+                    <PlusIcon className="w-4 h-4" /> New Feedback
                 </button>
             </header>
 
@@ -244,7 +304,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                     <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search issues..."
+                        placeholder="Search feedback..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="input pl-9 h-9 text-sm w-full"
@@ -275,8 +335,8 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                             <div className="w-16 h-16 bg-[var(--surface)] rounded-full flex items-center justify-center mx-auto mb-4">
                                 <InboxIcon className="w-8 h-8 text-gray-300" />
                             </div>
-                            <h3 className="font-medium text-[var(--foreground)]">No issues found</h3>
-                            <p className="text-sm">Create a new issue to get started.</p>
+                            <h3 className="font-medium text-[var(--foreground)]">No feedback yet</h3>
+                            <p className="text-sm max-w-md mx-auto">Capture bugs &amp; feature requests here, then convert them into board tasks when you&apos;re ready to work on them.</p>
                         </div>
                     ) : (
                         filteredIssues.map(issue => (
@@ -322,7 +382,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                         }}
                                         className="bg-[var(--surface)] border border-[var(--border-subtle)] text-sm md:text-xs font-medium rounded-lg px-2 py-2 md:py-1 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors flex-1 sm:flex-none"
                                     >
-                                        <option value="" disabled>Move</option>
+                                        <option value="" disabled>Convert to task</option>
                                         {boards.map(b => (
                                             <option key={b.id} value={b.id}>{b.name}</option>
                                         ))}
@@ -330,7 +390,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                     <select
                                         value={issue.status}
                                         onClick={(e) => e.stopPropagation()}
-                                        onChange={(e) => handleStatusChange(issue._id, e.target.value)}
+                                        onChange={(e) => handleStatusChange(issue._id, e.target.value as IssueStatus)}
                                         className="bg-[var(--surface)] border border-[var(--border-subtle)] text-sm md:text-xs font-medium rounded-lg px-2 py-2 md:py-1 outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/20 cursor-pointer hover:border-[var(--brand-primary)]/50 transition-colors flex-1 sm:flex-none"
                                     >
                                         <option value="OPEN">Open</option>
@@ -356,7 +416,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                             className="bg-[var(--background)] w-full max-w-lg rounded-2xl shadow-2xl border border-[var(--border-subtle)] overflow-hidden"
                         >
                             <div className="p-4 border-b border-[var(--border-subtle)] flex justify-between items-center bg-[var(--surface)]">
-                                <h3 className="font-bold text-lg">Create New Issue</h3>
+                                <h3 className="font-bold text-lg">Submit Feedback</h3>
                                 <button onClick={() => setIsCreateModalOpen(false)} className="p-1 hover:bg-[var(--background)] rounded-lg text-gray-500">
                                     <XMarkIcon className="w-5 h-5" />
                                 </button>
@@ -379,7 +439,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                         <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Type</label>
                                         <select
                                             value={newType}
-                                            onChange={e => setNewType(e.target.value as any)}
+                                            onChange={e => setNewType(e.target.value as IssueType)}
                                             className="input"
                                         >
                                             <option value="BUG">Bug</option>
@@ -391,7 +451,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                         <label className="block text-xs font-bold uppercase text-gray-500 mb-1.5">Priority</label>
                                         <select
                                             value={newPriority}
-                                            onChange={e => setNewPriority(e.target.value as any)}
+                                            onChange={e => setNewPriority(e.target.value as IssuePriority)}
                                             className="input"
                                         >
                                             <option value="LOW">Low</option>
@@ -438,7 +498,7 @@ export function IssuesClient({ workspaceSlug, initialIssues, workspaceName, work
                                         disabled={isSubmitting}
                                         className="btn btn-primary"
                                     >
-                                        {isSubmitting ? 'Creating...' : 'Create Issue'}
+                                        {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
                                     </button>
                                 </div>
                             </form>

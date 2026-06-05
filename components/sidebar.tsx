@@ -13,7 +13,7 @@ import {
     CheckIcon,
     ArrowRightOnRectangleIcon,
     ArchiveBoxIcon,
-    ExclamationCircleIcon,
+    InboxIcon,
     ChartBarIcon,
     CalendarDaysIcon,
     Squares2X2Icon,
@@ -63,12 +63,6 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
 
     const navItems = [
         {
-            href: currentWorkspace ? `/${currentWorkspace.slug}/issues` : '/dashboard',
-            label: 'Issues',
-            icon: ExclamationCircleIcon,
-            show: true,
-        },
-        {
             href: currentWorkspace ? `/${currentWorkspace.slug}/analytics` : '/dashboard',
             label: 'Analytics',
             icon: ChartBarIcon,
@@ -84,6 +78,12 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
             href: currentWorkspace ? `/${currentWorkspace.slug}/team` : '/dashboard',
             label: 'Team',
             icon: UsersIcon,
+            show: true,
+        },
+        {
+            href: currentWorkspace ? `/${currentWorkspace.slug}/issues` : '/dashboard',
+            label: 'Feedback',
+            icon: InboxIcon,
             show: true,
         },
         {

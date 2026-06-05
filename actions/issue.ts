@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Issue, IssueStatus, IssuePriority, IssueType } from '@/models/Issue';
 import { Workspace } from '@/models/Workspace';
-import { isWorkspaceMember } from '@/lib/workspace-utils';
+import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { User } from '@/models/User';
 import { Task } from '@/models/Task';
 import { Board } from '@/models/Board';
@@ -169,6 +169,11 @@ export async function updateIssueStatus(workspaceSlug: string, issueId: string, 
     const member = isWorkspaceMember(workspace, session.user.id);
     if (!member) throw new Error('Unauthorized');
 
+    // Only ADMIN and EDITOR may change issue status
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
+        throw new Error('You do not have permission to update issues');
+    }
+
     await Issue.findByIdAndUpdate(issueId, { status });
     revalidatePath(`/${workspaceSlug}/issues`);
     return { success: true };
@@ -191,6 +196,11 @@ export async function updateIssue(workspaceSlug: string, issueId: string, data: 
     const member = isWorkspaceMember(workspace, session.user.id);
     if (!member) throw new Error('Unauthorized');
 
+    // Only ADMIN and EDITOR may edit issues
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
+        throw new Error('You do not have permission to update issues');
+    }
+
     await Issue.findByIdAndUpdate(issueId, data);
     revalidatePath(`/${workspaceSlug}/issues`);
     return { success: true };
@@ -205,8 +215,14 @@ export async function moveIssueToBoard(workspaceSlug: string, issueId: string, b
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) throw new Error('Workspace not found');
 
-    if (!isWorkspaceMember(workspace, session.user.id)) {
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) {
         throw new Error('Access denied');
+    }
+
+    // Only ADMIN and EDITOR may convert issues into board tasks
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
+        throw new Error('You do not have permission to convert issues to tasks');
     }
 
     const issue = await Issue.findOne({ _id: issueId, workspaceId: workspace._id });
