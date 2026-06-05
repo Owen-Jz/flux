@@ -20,6 +20,28 @@ import {
 } from './board-stream-planner';
 import { randomUUID } from 'crypto';
 
+/**
+ * Per-attempt network timeout. Applied FRESH on every retry (via a new
+ * AbortController each attempt) so a slow attempt can never poison the next one.
+ */
+const ATTEMPT_TIMEOUT_MS = 24000;
+
+/** Tuning knobs passed per call so each planning phase gets a right-sized budget. */
+interface CallOptions {
+  /** Hard cap on generated tokens — bounds worst-case latency without truncating realistic plans. */
+  maxTokens?: number;
+  /** Lower temperature = more deterministic, faster, more reliably-parseable JSON. */
+  temperature?: number;
+}
+
+/** Carries the HTTP status so retry logic can distinguish transient from permanent failures. */
+class MinimaxApiError extends Error {
+  constructor(public readonly status: number, body: string) {
+    super(`Minimax API error: ${status}${body ? ` - ${body}` : ''}`);
+    this.name = 'MinimaxApiError';
+  }
+}
+
 export class MinimaxClient {
   private apiKey: string;
   private baseUrl: string;
@@ -40,7 +62,7 @@ export class MinimaxClient {
       { role: 'user', content: buildUserPrompt(request) }
     ];
 
-    const response = await this.callAPI(messages);
+    const response = await this.callAPI(messages, { maxTokens: 2048 });
     return this.parseResponse(response);
   }
 
@@ -55,7 +77,11 @@ export class MinimaxClient {
       { role: 'user', content: buildProjectPlanUserPrompt(request) },
     ];
 
-    const llmResponse = await this.callAPI(messages);
+    // Project plans are multi-board and the largest single generation — give them
+    // plenty of headroom so a big plan never truncates mid-JSON.
+    const llmResponse = await this.callAPI(messages, {
+      maxTokens: request.scale === 'project' ? 8000 : 4000,
+    });
     const content = llmResponse.choices[0]?.message?.content ?? '';
     return parseProjectPlanResponse(content, request.scale);
   }
@@ -65,7 +91,8 @@ export class MinimaxClient {
       { role: 'system', content: SKELETON_SYSTEM_PROMPT },
       { role: 'user', content: buildSkeletonUserPrompt(input) },
     ];
-    const response = await this.callAPI(messages);
+    // The skeleton is just section names + descriptions — small and fast.
+    const response = await this.callAPI(messages, { maxTokens: 1500, temperature: 0.5 });
     const content = response.choices[0]?.message?.content ?? '';
     return parseSkeletonResponse(content);
   }
@@ -75,13 +102,33 @@ export class MinimaxClient {
       { role: 'system', content: SECTION_SYSTEM_PROMPT },
       { role: 'user', content: buildSectionUserPrompt(input) },
     ];
-    const response = await this.callAPI(messages);
+    // One section's worth of tasks — bounded by perSectionCap upstream.
+    const response = await this.callAPI(messages, { maxTokens: 2500 });
     const content = response.choices[0]?.message?.content ?? '';
     return parseSectionResponse(content);
   }
 
-  // Retry helper with exponential backoff for transient failures
-  private async withRetry<T>(fn: () => Promise<T>, maxAttempts: number = 3, baseDelayMs: number = 2000): Promise<T> {
+  /** Transient failures worth retrying: rate-limit, overload, 5xx, network, timeout. */
+  private isRetryable(error: unknown): boolean {
+    if (error instanceof MinimaxApiError) {
+      return error.status === 429 || error.status === 529 || error.status >= 500;
+    }
+    if (error instanceof Error) {
+      // Per-attempt timeout (mapped below) or a fetch/network failure (TypeError).
+      return error.name === 'TypeError' || error.message.includes('timed out');
+    }
+    return false;
+  }
+
+  private isOverload(error: unknown): boolean {
+    if (error instanceof MinimaxApiError) return error.status === 429 || error.status === 529;
+    return error instanceof Error && error.message.toLowerCase().includes('overloaded');
+  }
+
+  // Retry helper with exponential backoff — only for transient failures. Permanent
+  // errors (4xx other than 429, malformed JSON, bad key) fail fast instead of
+  // wasting 6s+ of backoff before the inevitable failure.
+  private async withRetry<T>(fn: () => Promise<T>, maxAttempts: number = 3, baseDelayMs: number = 1500): Promise<T> {
     let lastError: Error | undefined;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -90,60 +137,57 @@ export class MinimaxClient {
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
-        // Check if it's a server overload error (529)
-        const isOverload = error instanceof Error &&
-          (error.message.includes('529') || error.message.includes('overloaded'));
+        if (attempt >= maxAttempts || !this.isRetryable(error)) break;
 
-        if (attempt < maxAttempts) {
-          const delay = isOverload
-            ? baseDelayMs * Math.pow(3, attempt - 1) // Longer backoff for server overload: 2s, 6s, 18s
-            : baseDelayMs * Math.pow(2, attempt - 1); // Normal backoff: 2s, 4s, 8s
-          console.log(`LLM API attempt ${attempt} failed (${lastError.message}), retrying in ${delay}ms...`);
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
+        const delay = this.isOverload(error)
+          ? baseDelayMs * Math.pow(3, attempt - 1) // Longer backoff for overload: 1.5s, 4.5s
+          : baseDelayMs * Math.pow(2, attempt - 1); // Normal backoff: 1.5s, 3s
+        console.log(`LLM API attempt ${attempt} failed (${lastError.message}), retrying in ${delay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
     throw lastError;
   }
 
-  async callAPI(messages: LLMMessage[]): Promise<LLMResponse> {
-    const controller = new AbortController();
-    // Increased timeout from 15s to 30s to handle server overload scenarios
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
+  async callAPI(messages: LLMMessage[], options: CallOptions = {}): Promise<LLMResponse> {
+    // A fresh AbortController + timeout PER ATTEMPT (inside withRetry), so retries
+    // after a slow first attempt get a clean clock instead of an already-aborted signal.
+    return this.withRetry(async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), ATTEMPT_TIMEOUT_MS);
 
-    try {
-      const response = await this.withRetry(async () => {
+      try {
         const res = await fetch(`${this.baseUrl}/text/chatcompletion_v2`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${this.apiKey}`
+            'Authorization': `Bearer ${this.apiKey}`,
           },
           body: JSON.stringify({
             model: this.model,
-            messages: messages
+            messages,
+            temperature: options.temperature ?? 0.6,
+            max_tokens: options.maxTokens ?? 2048,
           }),
-          signal: controller.signal
+          signal: controller.signal,
         });
 
         if (!res.ok) {
-          const error = await res.text();
-          throw new Error(`Minimax API error: ${res.status} - ${error}`);
+          const error = await res.text().catch(() => '');
+          throw new MinimaxApiError(res.status, error);
         }
 
-        return res.json() as Promise<LLMResponse>;
-      });
-
-      clearTimeout(timeoutId);
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId);
-      if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Request timed out after 30 seconds');
+        return (await res.json()) as LLMResponse;
+      } catch (error) {
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error(`Request timed out after ${ATTEMPT_TIMEOUT_MS / 1000} seconds`);
+        }
+        throw error;
+      } finally {
+        clearTimeout(timeoutId);
       }
-      throw error;
-    }
+    });
   }
 
   parseResponse(response: LLMResponse): DecomposeResponse {

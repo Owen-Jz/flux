@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
 
   const workspaceId = workspace._id as Types.ObjectId;
   const boardObjectId = board._id as Types.ObjectId;
+  const creatorObjectId = new Types.ObjectId(session.user.id);
   const cap = typeof maxTasks === 'number' && maxTasks > 0 ? Math.min(maxTasks, 30) : DEFAULT_MAX_TASKS;
   const safeLinks = sanitizeContextLinks(contextLinks);
   // Only forward a deadline that is a short string — it flows into the LLM prompt.
@@ -115,6 +116,17 @@ export async function POST(request: NextRequest) {
           /* client disconnected — controller already closed/cancelled */
         }
       };
+      // SSE comment line — ignored by the client parser, but keeps the connection
+      // warm through proxies/load balancers during the multi-second skeleton call
+      // and any long section generation, so the stream never looks "hung".
+      const ping = () => {
+        try {
+          controller.enqueue(encoder.encode(`: ping\n\n`));
+        } catch {
+          /* client disconnected */
+        }
+      };
+      const heartbeat = setInterval(ping, 10000);
       const aborted = () => request.signal.aborted;
 
       const createdTaskIds: string[] = [];
@@ -168,6 +180,7 @@ export async function POST(request: NextRequest) {
               status: t.status,
               priority: t.priority,
               estimatedHours: t.estimatedHours,
+              assignees: [creatorObjectId],
               order: baseOrder + startOrder + i,
             }));
 
@@ -191,8 +204,10 @@ export async function POST(request: NextRequest) {
 
             send({ type: 'section', sectionIndex: index, tasks: streamed });
           } catch (err) {
-            const message = err instanceof Error ? err.message : 'Section failed';
-            send({ type: 'section_error', sectionIndex: index, message });
+            // Never leak raw provider/JSON errors to the UI — keep it friendly and
+            // consistent with the rest of the planning copy.
+            console.error('[ai/plan/stream] section error:', err instanceof Error ? err.message : err);
+            send({ type: 'section_error', sectionIndex: index, message: 'Could not plan this section' });
           }
         };
 
@@ -234,6 +249,7 @@ export async function POST(request: NextRequest) {
           send({ type: 'error', message: friendly });
         }
       } finally {
+        clearInterval(heartbeat);
         try {
           controller.close();
         } catch {

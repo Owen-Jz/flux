@@ -243,7 +243,7 @@ describe('MinimaxClient', () => {
         ];
 
         const assertion = expect(client.callAPI(messages)).rejects.toThrow(
-          'Request timed out after 30 seconds'
+          'Request timed out after 24 seconds'
         );
         await vi.runAllTimersAsync();
         await assertion;
