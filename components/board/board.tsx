@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useOptimistic, useTransition, useEffect, useMemo, useCallback } from 'react';
+import { useState, useOptimistic, useTransition, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
     DndContext,
     DragEndEvent,
@@ -8,11 +8,15 @@ import {
     DragOverlay,
     DragStartEvent,
     PointerSensor,
+    TouchSensor,
+    KeyboardSensor,
     useSensor,
     useSensors,
-    closestCorners,
+    pointerWithin,
+    rectIntersection,
+    type CollisionDetection,
 } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
+import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Column } from './column';
 import { TaskCard, TaskData, Member } from './task-card';
 import { TaskDetailModal } from './task-detail-modal';
@@ -22,6 +26,7 @@ import { PlanStreamBanner } from './plan-stream-banner';
 import { PlanCompleteModal } from './plan-complete-modal';
 import { usePlanStream } from './use-plan-stream';
 import { undoAIPlan } from '@/actions/ai-plan';
+import { getPlanLoadingMessages } from '@/lib/plan-loading-messages';
 import type { BoardStreamRequest, StreamedTask } from '@/types/ai-plan';
 import { updateTaskPosition, createTask, updateTask, deleteTask, archiveTasks } from '@/actions/task';
 import { updateOnboardingProgress } from '@/actions/onboarding';
@@ -64,6 +69,22 @@ const columns: { id: ColumnId; title: string }[] = [
     { id: 'DONE', title: 'Done' },
 ];
 
+const columnIdSet = new Set<string>(columns.map((c) => c.id));
+
+// Pointer-first collision detection. `closestCorners` resolved the drop target by
+// the dragged card's geometry, so a card would "stick" to the nearest column
+// rather than the one under the cursor. `pointerWithin` makes the column the
+// pointer is actually inside the target — so the highlight + drop follow the
+// cursor immediately. We still prefer a task card under the pointer (precise
+// reordering) and fall back to the column droppable for empty-area drops.
+const collisionDetectionStrategy: CollisionDetection = (args) => {
+    const pointer = pointerWithin(args);
+    const collisions = pointer.length > 0 ? pointer : rectIntersection(args);
+    if (collisions.length === 0) return collisions;
+    const cardCollision = collisions.find((c) => !columnIdSet.has(c.id as string));
+    return [cardCollision ?? collisions[0]];
+};
+
 export function Board({
     initialTasks,
     workspaceSlug,
@@ -89,8 +110,18 @@ export function Board({
     const [tasks, setTasks] = useState<TaskData[]>(initialTasks);
     const [localCategories, setLocalCategories] = useState(categories);
 
-    // Sync state with props when initialTasks or categories changes
+    // Tracks whether an AI plan is mid-flight (or awaiting keep/undo) so prop
+    // syncs don't clobber the optimistic cards we're streaming in. Kept current
+    // by an effect declared once `planStream` exists, below.
+    const isStreamingRef = useRef(false);
+    // Timers for staggered streamed-card insertion (cleaned up on unmount).
+    const streamInsertTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+    useEffect(() => () => { streamInsertTimers.current.forEach(clearTimeout); }, []);
+
+    // Sync state with props when initialTasks changes — but never while a plan is
+    // streaming, or a mid-stream revalidation would wipe the cards being inserted.
     useEffect(() => {
+        if (isStreamingRef.current) return;
         setTasks(initialTasks);
     }, [initialTasks]);
 
@@ -135,6 +166,8 @@ export function Board({
     const [showPlanComplete, setShowPlanComplete] = useState(false);
     const [undoError, setUndoError] = useState<string | null>(null);
     const [pendingPlanPrompt, setPendingPlanPrompt] = useState<string | null>(null);
+    // Domain-aware loading phrases shown in the stream banner before sections arrive.
+    const [streamLoadingMessages, setStreamLoadingMessages] = useState<string[]>([]);
 
     // If the visitor typed a project on the marketing hero before signing up,
     // pick it up here (once) and open Plan with AI pre-filled with their idea.
@@ -155,22 +188,29 @@ export function Board({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Append streamed AI tasks into board state as real cards
+    // Append streamed AI tasks into board state as real cards. Insertion is
+    // staggered (~70ms/card) so a section's batch streams in card-by-card and each
+    // card plays its own enter animation — instead of a whole block landing in one
+    // frame and snapping the column's height.
     const handleStreamedTasks = useCallback((streamed: StreamedTask[]) => {
-        setTasks((prev) => [
-            ...prev,
-            ...streamed.map((t): TaskData => ({
-                id: t.id,
-                title: t.title,
-                description: t.description,
-                status: t.status,
-                priority: t.priority,
-                estimatedHours: t.estimatedHours,
-                order: t.order,
-                assignees: [],
-                createdAt: new Date().toISOString(),
-            })),
-        ]);
+        const toCard = (t: StreamedTask): TaskData => ({
+            id: t.id,
+            title: t.title,
+            description: t.description,
+            status: t.status,
+            priority: t.priority,
+            estimatedHours: t.estimatedHours,
+            order: t.order,
+            assignees: [],
+            createdAt: new Date().toISOString(),
+        });
+        streamed.forEach((t, i) => {
+            const card = toCard(t);
+            const timer = setTimeout(() => {
+                setTasks((prev) => (prev.some((p) => p.id === card.id) ? prev : [...prev, card]));
+            }, i * 70);
+            streamInsertTimers.current.push(timer);
+        });
     }, []);
 
     const planStream = usePlanStream({
@@ -189,7 +229,18 @@ export function Board({
         }
     }, [planStream.state.phase, planStream.state.createdTaskIds.length]);
 
+    // Mirror the stream phase into a ref the prop-sync effect can read without
+    // re-subscribing. Stays "active" through the done/cancelled review window so a
+    // late revalidation can't wipe freshly-streamed cards before the user decides.
+    useEffect(() => {
+        isStreamingRef.current = planStream.state.phase !== 'idle';
+    }, [planStream.state.phase]);
+
     const handleStartBoardStream = useCallback((req: BoardStreamRequest) => {
+        // Never stack a second stream on top of an in-flight one — that would
+        // orphan the first run's tasks from Undo and double-write the board.
+        if (planStream.state.phase === 'streaming') return;
+        setStreamLoadingMessages(getPlanLoadingMessages(req.description));
         planStream.start(req);
     }, [planStream]);
 
@@ -231,6 +282,15 @@ export function Board({
         setUndoError(null);
         planStream.reset();
     }, [planStream]);
+
+    // A plan is "busy" while it's actively streaming or its results are awaiting
+    // keep/undo. The Plan-with-AI triggers are disabled during this window so a
+    // second plan can't be generated on top of the current one.
+    const planBusy = planStream.state.phase === 'streaming' || showPlanComplete;
+    const openPlanWithAI = useCallback(() => {
+        if (planStream.state.phase === 'streaming' || showPlanComplete) return;
+        setShowPlanWithAI(true);
+    }, [planStream.state.phase, showPlanComplete]);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>('MEDIUM');
     const [showSearch, setShowSearch] = useState(false);
@@ -284,14 +344,28 @@ export function Board({
     );
 
     const sensors = useSensors(
+        // Mouse/trackpad: an 8px movement threshold starts the drag immediately
+        // (the old `delay: 200` here was an invalid key on the distance constraint
+        // and made desktop drags feel sticky).
         useSensor(PointerSensor, {
-            activationConstraint: {
-                distance: 8,
-            },
-            delay: 200,
-            delayTolerance: 50,
-        })
+            activationConstraint: { distance: 8 },
+        }),
+        // Touch: a short press-and-hold so vertical scrolling a column doesn't
+        // accidentally start a drag.
+        useSensor(TouchSensor, {
+            activationConstraint: { delay: 200, tolerance: 8 },
+        }),
+        // Keyboard accessibility for drag-and-drop.
+        useSensor(KeyboardSensor, {
+            coordinateGetter: sortableKeyboardCoordinates,
+        }),
     );
+
+    // A solo board (you're the only member) makes assignee-based controls
+    // meaningless — every task is yours. We hide those controls and, defensively,
+    // ignore their state in the predicate so a filter left over from when the
+    // board had more members can never strand tasks out of view.
+    const isSoloBoard = members.length <= 1;
 
     const filteredTasks = useMemo(() => {
         const lowerSearchQuery = searchQuery.toLowerCase();
@@ -300,18 +374,18 @@ export function Board({
                 task.title.toLowerCase().includes(lowerSearchQuery) ||
                 task.description?.toLowerCase().includes(lowerSearchQuery);
 
-            const matchesMyTasks = !filterMyTasks ||
+            const matchesMyTasks = isSoloBoard || !filterMyTasks ||
                 (currentUserId && task.assignees.some(a => a.id === currentUserId));
 
             const matchesPriority = filterPriority === 'ALL' || task.priority === filterPriority;
 
-            const matchesMember = filterMemberId === 'ALL' || task.assignees.some(a => a.id === filterMemberId);
+            const matchesMember = isSoloBoard || filterMemberId === 'ALL' || task.assignees.some(a => a.id === filterMemberId);
 
             const matchesCategory = filterCategoryId === 'ALL' || task.categoryId === filterCategoryId;
 
             return matchesSearch && matchesMyTasks && matchesPriority && matchesMember && matchesCategory;
         });
-    }, [optimisticTasks, searchQuery, filterMyTasks, filterPriority, filterMemberId, filterCategoryId, currentUserId]);
+    }, [optimisticTasks, searchQuery, filterMyTasks, filterPriority, filterMemberId, filterCategoryId, currentUserId, isSoloBoard]);
 
     const getTasksByColumn = useCallback((columnId: string) => {
         return filteredTasks
@@ -599,6 +673,11 @@ export function Board({
         });
     };
 
+    const handleCommentsChange = useCallback((taskId: string, comments: TaskData['comments']) => {
+        setTasks(prev => prev.map(t => (t.id === taskId ? { ...t, comments } : t)));
+        setSelectedTask(prev => (prev && prev.id === taskId ? { ...prev, comments } : prev));
+    }, []);
+
     const handleDeleteTask = async (taskId: string) => {
         const task = tasks.find((t) => t.id === taskId);
         if (!task) return;
@@ -672,15 +751,25 @@ export function Board({
                         </button>
                     )}
 
-                    {/* AI Decompose Button */}
+                    {/* Plan with AI */}
                     {!isReadOnly && (
                         <button
-                            onClick={() => setShowPlanWithAI(true)}
-                            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs md:text-sm font-semibold hover:from-purple-700 hover:to-blue-700 transition-colors shadow-sm"
-                            title="AI Decompose Task"
+                            onClick={openPlanWithAI}
+                            disabled={planBusy}
+                            className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-[var(--brand-primary)] to-purple-600 text-white text-xs md:text-sm font-semibold hover:shadow-md hover:shadow-[var(--brand-primary)]/25 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-sm"
+                            title={planBusy ? 'Planning in progress…' : 'Plan with AI'}
                         >
-                            <SparklesIcon className="w-4 h-4" />
-                            <span>Plan with AI</span>
+                            {planStream.state.phase === 'streaming' ? (
+                                <>
+                                    <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                                    <span>Planning…</span>
+                                </>
+                            ) : (
+                                <>
+                                    <SparklesIcon className="w-4 h-4" />
+                                    <span>Plan with AI</span>
+                                </>
+                            )}
                         </button>
                     )}
 
@@ -689,6 +778,24 @@ export function Board({
 
                     {/* Quick Actions - Icon Buttons */}
                     <div className="flex items-center gap-0.5">
+                        {/* Plan with AI — mobile entry (the labelled button is desktop-only,
+                            so without this a non-empty board has no AI entry on mobile) */}
+                        {!isReadOnly && (
+                            <button
+                                onClick={openPlanWithAI}
+                                disabled={planBusy}
+                                className="md:hidden p-2.5 min-w-[40px] min-h-[40px] flex items-center justify-center rounded-lg text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                title={planBusy ? 'Planning in progress…' : 'Plan with AI'}
+                                aria-label={planBusy ? 'Planning in progress' : 'Plan with AI'}
+                            >
+                                {planStream.state.phase === 'streaming' ? (
+                                    <ArrowPathIcon className="w-4.5 h-4.5 animate-spin" />
+                                ) : (
+                                    <SparklesIcon className="w-4.5 h-4.5" />
+                                )}
+                            </button>
+                        )}
+
                         {/* Settings */}
                         {!isReadOnly && (
                             <button
@@ -760,7 +867,7 @@ export function Board({
                         </button>
                     )}
 
-                    {currentUserId && (
+                    {currentUserId && !isSoloBoard && (
                         <button
                             onClick={() => setFilterMyTasks(!filterMyTasks)}
                             className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors border ${filterMyTasks
@@ -785,15 +892,17 @@ export function Board({
                         minWidth="130px"
                     />
 
-                    <CustomSelect
-                        value={filterMemberId}
-                        onChange={setFilterMemberId}
-                        options={[
-                            { value: 'ALL', label: 'All Members' },
-                            ...members.map(member => ({ value: member.id, label: member.name }))
-                        ]}
-                        minWidth="130px"
-                    />
+                    {!isSoloBoard && (
+                        <CustomSelect
+                            value={filterMemberId}
+                            onChange={setFilterMemberId}
+                            options={[
+                                { value: 'ALL', label: 'All Members' },
+                                ...members.map(member => ({ value: member.id, label: member.name }))
+                            ]}
+                            minWidth="130px"
+                        />
+                    )}
 
                     {localCategories.length > 0 && (
                         <CustomSelect
@@ -817,7 +926,7 @@ export function Board({
                 )}
             </div>
 
-            <PlanStreamBanner state={planStream.state} onCancel={planStream.cancel} onDismiss={planStream.reset} />
+            <PlanStreamBanner state={planStream.state} onCancel={planStream.cancel} onDismiss={planStream.reset} loadingMessages={streamLoadingMessages} />
 
             {optimisticTasks.length === 0 && !isReadOnly ? (
                 <motion.div
@@ -839,13 +948,23 @@ export function Board({
                         </div>
                         <div className="flex flex-col gap-3">
                             <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => setShowPlanWithAI(true)}
-                                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--brand-primary)] to-purple-600 text-white font-semibold hover:shadow-lg hover:shadow-[var(--brand-primary)]/25 transition-all"
+                                whileHover={planBusy ? undefined : { scale: 1.02 }}
+                                whileTap={planBusy ? undefined : { scale: 0.98 }}
+                                onClick={openPlanWithAI}
+                                disabled={planBusy}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--brand-primary)] to-purple-600 text-white font-semibold hover:shadow-lg hover:shadow-[var(--brand-primary)]/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none"
                             >
-                                <SparklesIcon className="w-5 h-5" />
-                                Plan with AI
+                                {planStream.state.phase === 'streaming' ? (
+                                    <>
+                                        <ArrowPathIcon className="w-5 h-5 animate-spin" />
+                                        Planning…
+                                    </>
+                                ) : (
+                                    <>
+                                        <SparklesIcon className="w-5 h-5" />
+                                        Plan with AI
+                                    </>
+                                )}
                             </motion.button>
                             <button
                                 onClick={() => setShowCreateModal(true)}
@@ -859,7 +978,7 @@ export function Board({
             ) : (
             <DndContext
                 sensors={sensors}
-                collisionDetection={closestCorners}
+                collisionDetection={collisionDetectionStrategy}
                 onDragStart={handleDragStart}
                 onDragOver={handleDragOver}
                 onDragEnd={handleDragEnd}
@@ -975,6 +1094,7 @@ export function Board({
                         isOpen={!!selectedTask}
                         onClose={() => setSelectedTask(null)}
                         onUpdate={handleUpdateTask}
+                        onCommentsChange={handleCommentsChange}
                         onDelete={handleDeleteTask}
                         members={members}
                         isReadOnly={isReadOnly}

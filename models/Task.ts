@@ -21,6 +21,8 @@ export interface ITask extends Document {
         content: string;
         userId: Types.ObjectId;
         parentId?: Types.ObjectId;
+        likes: Types.ObjectId[];
+        reactions: { _id: Types.ObjectId; emoji: string; userId: Types.ObjectId }[];
         createdAt: Date;
         updatedAt: Date;
     }[];
@@ -70,6 +72,8 @@ const TaskSchema = new Schema<ITask>(
                     content: { type: String, required: true },
                     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
                     parentId: { type: Schema.Types.ObjectId, default: null },
+                    likes: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+                    reactions: [{ emoji: { type: String }, userId: { type: Schema.Types.ObjectId, ref: 'User' } }],
                 },
                 { timestamps: true }
             ),

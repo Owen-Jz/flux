@@ -176,6 +176,10 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
             style={style}
             initial={isOverlay ? false : { opacity: 0, scale: 0.9, y: 20 }}
             animate={isOverlay ? false : { opacity: 1, scale: 1, y: 0 }}
+            // Hover lift via framer (composes cleanly with `layout`) instead of CSS
+            // transforms, which fought the layout animation and read as jagged.
+            whileHover={isOverlay || isDragging ? undefined : { y: -2, scale: 1.01 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 32, mass: 0.6 }}
             exit={{
                 opacity: 0,
                 scale: 0.9,
@@ -195,7 +199,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                     ? 'shadow-[0_20px_40px_-12px_rgba(0,0,0,0.25)] ring-2 ring-[var(--brand-primary)]/30 rotate-1 scale-[1.02] opacity-95 z-[100] cursor-grabbing overflow-hidden'
                     : isMenuOpen
                         ? 'cursor-pointer shadow-md z-[60] overflow-visible'
-                        : 'cursor-pointer shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:scale-[1.01] focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-all duration-200 overflow-visible'
+                        : 'cursor-pointer shadow-sm hover:shadow-lg focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-[box-shadow] duration-200 overflow-visible'
                 }
                 ${isDone ? 'opacity-60 grayscale hover:opacity-80 hover:grayscale-0' : ''}
                 p-3.5 flex flex-col gap-2 origin-center outline-none min-h-[56px] md:min-h-0
@@ -494,9 +498,9 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                                     <span className="truncate max-w-[35px]">{assignee.name.split(' ')[0]}</span>
                                 </div>
                             ))
-                        ) : (
+                        ) : members.length > 1 ? (
                             <div className="text-[11px] text-[var(--text-tertiary)] italic">Unassigned</div>
-                        )}
+                        ) : null}
                         {task.assignees.length > 2 && (
                             <div className="px-1 py-0.5 rounded-full bg-[var(--background-subtle)] text-[11px] font-semibold text-[var(--text-secondary)]">
                                 +{task.assignees.length - 2}

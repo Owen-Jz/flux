@@ -89,16 +89,25 @@ export function Column({
             {/* Task List - scrollable container */}
             <div
                 ref={setNodeRef}
-                className={`flex-1 flex flex-col gap-2 relative p-1.5 rounded-xl transition-all duration-200 min-h-[60px] md:min-h-[100px] overflow-y-auto overflow-x-visible ${
+                className={`flex-1 flex flex-col gap-2 relative p-1.5 rounded-xl min-h-[60px] md:min-h-[100px] overflow-y-auto overflow-x-visible ring-2 ring-inset transition-[background-color,box-shadow] duration-150 ease-out ${
                     isOver
-                        ? 'bg-[var(--brand-primary)]/10 ring-2 ring-[var(--brand-primary)]/30 scale-[1.01]'
-                        : 'bg-[var(--background-subtle)]/50'
+                        ? 'bg-[var(--brand-primary)]/10 ring-[var(--brand-primary)]/40'
+                        : 'bg-[var(--background-subtle)]/50 ring-transparent'
                 }`}
             >
-                {/* Drop indicator line */}
-                {isOver && (
-                    <div className="absolute left-2 right-2 h-1 bg-[var(--brand-primary)] rounded-full opacity-50 animate-pulse z-10" />
-                )}
+                {/* Drop indicator — fades in immediately as a card enters this column */}
+                <AnimatePresence>
+                    {isOver && (
+                        <motion.div
+                            key="drop-indicator"
+                            initial={{ opacity: 0, scaleX: 0.6 }}
+                            animate={{ opacity: 0.55, scaleX: 1 }}
+                            exit={{ opacity: 0, scaleX: 0.6 }}
+                            transition={{ duration: 0.12, ease: 'easeOut' }}
+                            className="absolute left-2 right-2 top-1.5 h-1 origin-center bg-[var(--brand-primary)] rounded-full z-10"
+                        />
+                    )}
+                </AnimatePresence>
                 <SortableContext
                     items={tasks.map((t) => t.id)}
                     strategy={verticalListSortingStrategy}
