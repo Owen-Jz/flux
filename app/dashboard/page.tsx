@@ -14,6 +14,7 @@ import { StatTile } from '@/components/dashboard/stat-tile';
 import { WorkspaceBrowser, type WorkspaceBrowserItem } from '@/components/dashboard/workspace-browser';
 import NewWorkspaceButton from '@/components/dashboard/NewWorkspaceButton';
 import { TrialPromptWrapper } from '@/components/onboarding/TrialPromptWrapper';
+import { PendingPlanRedirect } from '@/components/onboarding/pending-plan-redirect';
 import { UpgradeWelcomeWrapper } from '@/components/billing/upgrade-welcome-wrapper';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
@@ -89,6 +90,7 @@ export default async function DashboardPage() {
 
     return (
         <>
+            <PendingPlanRedirect workspaceSlug={workspaces[0]?.slug ?? ''} />
             <TrialPromptWrapper
                 trialEndsAt={trialEndsAt}
                 subscriptionStatus={subscriptionStatus}

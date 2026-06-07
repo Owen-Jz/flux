@@ -50,6 +50,7 @@ function sanitizeTaskPlanItems(tasks: unknown): TaskPlanItem[] {
 async function insertTasksForBoard(
     workspaceId: Types.ObjectId,
     boardId: Types.ObjectId,
+    creatorId: Types.ObjectId,
     tasks: TaskPlanItem[]
 ): Promise<void> {
     const docs = tasks.map((t, index) => ({
@@ -60,6 +61,7 @@ async function insertTasksForBoard(
         status: 'BACKLOG' as const,
         priority: t.priority,
         estimatedHours: t.estimatedHours,
+        assignees: [creatorId],
         order: index,
     }));
     await Task.insertMany(docs);
@@ -107,7 +109,12 @@ export async function createFromAIPlan(
             if (tasks.length === 0) {
                 return { success: false, boardsCreated: 0, tasksCreated: 0, error: 'Plan contained no valid tasks' };
             }
-            await insertTasksForBoard(workspace._id as Types.ObjectId, boardDoc._id as Types.ObjectId, tasks);
+            await insertTasksForBoard(
+                workspace._id as Types.ObjectId,
+                boardDoc._id as Types.ObjectId,
+                new Types.ObjectId(session.user.id),
+                tasks
+            );
             tasksCreated = tasks.length;
             revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
         } else {
@@ -143,6 +150,7 @@ export async function createFromAIPlan(
                     await insertTasksForBoard(
                         workspace._id as Types.ObjectId,
                         newBoardObjectId,
+                        new Types.ObjectId(session.user.id),
                         boardTasks
                     );
                     tasksCreated += boardTasks.length;

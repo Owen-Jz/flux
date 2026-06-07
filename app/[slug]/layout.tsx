@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { getWorkspaces, getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoards } from '@/actions/board';
@@ -23,8 +23,10 @@ export default async function WorkspaceLayout({
     // Check if public access is allowed
     const workspace = await getWorkspaceBySlug(slug);
 
+    // Deleted / non-existent workspace → show the dedicated not-found state
+    // (app/[slug]/not-found.tsx) instead of a silent bounce to the dashboard.
     if (!workspace) {
-        redirect('/dashboard');
+        notFound();
     }
 
     // If not logged in and not public, redirect to login

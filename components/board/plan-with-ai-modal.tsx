@@ -17,6 +17,7 @@ import {
     LinkIcon,
 } from '@heroicons/react/24/outline';
 import { createFromAIPlan } from '@/actions/ai-plan';
+import { getPlanLoadingMessages } from '@/lib/plan-loading-messages';
 import type {
     AIPlanRequest,
     AIPlan,
@@ -40,6 +41,8 @@ interface PlanWithAIModalProps {
     initialDescription?: string;
     /** Lock the plan scale and hide the scope step (default undefined). */
     forceScale?: 'board' | 'project';
+    /** Show a "picking up where you left off" banner — set when seeded from the hero prompt. */
+    welcomeBack?: boolean;
     /** When provided, board-scale Generate hands off to live streaming instead of the blocking flow. */
     onStartBoardStream?: (req: BoardStreamRequest) => void;
 }
@@ -75,6 +78,7 @@ export function PlanWithAIModal({
     initialStep,
     initialDescription,
     forceScale,
+    welcomeBack = false,
     onStartBoardStream,
 }: PlanWithAIModalProps) {
     const router = useRouter();
@@ -90,13 +94,8 @@ export function PlanWithAIModal({
     const [error, setError] = useState('');
     const [creationResult, setCreationResult] = useState<{ boardsCreated: number; tasksCreated: number } | null>(null);
 
-    const cyclingMessages = [
-        'Analysing your project...',
-        'Identifying workstreams...',
-        'Planning tasks...',
-        'Estimating effort...',
-        'Structuring the plan...',
-    ];
+    // Domain-aware loading phrases — set from the description when planning starts.
+    const [cyclingMessages, setCyclingMessages] = useState<string[]>(() => getPlanLoadingMessages(''));
 
     const handleReset = () => {
         if (cyclingIntervalRef.current) {
@@ -146,9 +145,11 @@ export function PlanWithAIModal({
             handleClose();
             return;
         }
+        setCyclingMessages(getPlanLoadingMessages(description));
+        setCyclingIndex(0);
         setStep('planning');
         setError('');
-        cyclingIntervalRef.current = setInterval(() => setCyclingIndex(i => (i + 1) % cyclingMessages.length), 1500);
+        cyclingIntervalRef.current = setInterval(() => setCyclingIndex(i => i + 1), 1500);
         try {
             const links = contextLinks.split('\n').map(l => l.trim()).filter(l => l.length > 0).slice(0, 5);
             const body: AIPlanRequest = {
@@ -293,6 +294,20 @@ export function PlanWithAIModal({
                             {/* Input step */}
                             {step === 'input' && (
                                 <div className="space-y-4">
+                                    {welcomeBack && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                                            className="flex items-start gap-2.5 p-3 rounded-xl bg-gradient-to-r from-[var(--brand-primary)]/10 to-purple-500/10 border border-[var(--brand-primary)]/20"
+                                        >
+                                            <SparklesIcon className="w-4 h-4 text-[var(--brand-primary)] mt-0.5 flex-shrink-0" />
+                                            <p className="text-xs text-[var(--text-secondary)]">
+                                                <span className="font-semibold text-[var(--foreground)]">Picking up where you left off.</span>{' '}
+                                                Here&apos;s the project you described — generate your plan to save it.
+                                            </p>
+                                        </motion.div>
+                                    )}
                                     <div className="space-y-2">
                                         <label className="flex items-center gap-2 text-sm font-semibold text-[var(--foreground)]">
                                             <SparklesIcon className="w-4 h-4 text-[var(--brand-primary)]" />
@@ -349,7 +364,18 @@ export function PlanWithAIModal({
                                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[var(--brand-primary)] to-purple-600 flex items-center justify-center shadow-lg shadow-[var(--brand-primary)]/20">
                                         <ArrowPathIcon className="w-8 h-8 text-white animate-spin" />
                                     </div>
-                                    <p className="text-base font-semibold text-[var(--foreground)]">{cyclingMessages[cyclingIndex]}</p>
+                                    <AnimatePresence mode="wait">
+                                        <motion.p
+                                            key={cyclingIndex}
+                                            initial={{ opacity: 0, y: 6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -6 }}
+                                            transition={{ duration: 0.25 }}
+                                            className="text-base font-semibold text-[var(--foreground)]"
+                                        >
+                                            {cyclingMessages[cyclingIndex % cyclingMessages.length]}…
+                                        </motion.p>
+                                    </AnimatePresence>
                                     <p className="text-sm text-[var(--text-secondary)]">This usually takes 5-15 seconds.</p>
                                 </div>
                             )}

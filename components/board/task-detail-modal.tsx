@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { TaskData, Member } from './task-card';
 import { addComment, deleteComment, likeComment, replyToComment, addReaction, getWorkspaceMembers } from '@/actions/task';
 import CustomSelect from '../ui/custom-select';
+import { DatePicker } from '@/components/ui/date-picker';
 import { useSession } from 'next-auth/react';
 
 const EMOJI_LIST = ['👍', '❤️', '😂', '🎉', '😮', '😢', '🙏', '👀'];
@@ -32,6 +33,7 @@ interface TaskDetailModalProps {
     isOpen: boolean;
     onClose: () => void;
     onUpdate: (taskId: string, data: Partial<TaskData>) => void;
+    onCommentsChange?: (taskId: string, comments: any[]) => void;
     onDelete?: (taskId: string) => void;
     members?: Member[];
     isReadOnly?: boolean;
@@ -49,6 +51,7 @@ export function TaskDetailModal({
     isOpen,
     onClose,
     onUpdate,
+    onCommentsChange,
     onDelete,
     members = [],
     isReadOnly = false,
@@ -118,6 +121,17 @@ export function TaskDetailModal({
         }
     };
 
+    // Comment mutations persist via their own server actions (addComment, etc.),
+    // so we only sync the local comment list — we must NOT route through onUpdate
+    // (which fires a redundant full-task save + spurious task.updated webhook).
+    const applyComments = (comments: any[]) => {
+        if (onCommentsChange) {
+            onCommentsChange(task.id, comments);
+        } else {
+            onUpdate(task.id, { comments });
+        }
+    };
+
     const handleToggleAssignee = (memberId: string) => {
         const isAssigned = task.assignees.some((a) => a.id === memberId);
         let newAssignees;
@@ -181,9 +195,7 @@ export function TaskDetailModal({
         try {
             const content = buildCommentContent(newComment, commentChips);
             const comment = await addComment(task.id, content);
-            onUpdate(task.id, {
-                comments: [...(task.comments || []), comment]
-            });
+            applyComments([...(task.comments || []), comment]);
             setNewComment('');
             setCommentChips([]);
 
@@ -208,9 +220,7 @@ export function TaskDetailModal({
         setError(null);
         try {
             await deleteComment(task.id, commentId);
-            onUpdate(task.id, {
-                comments: (task.comments || []).filter(c => c.id !== commentId)
-            });
+            applyComments((task.comments || []).filter(c => c.id !== commentId));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to delete comment');
         }
@@ -241,11 +251,11 @@ export function TaskDetailModal({
                 }
                 return c;
             });
-            onUpdate(task.id, { comments: updatedComments });
+            applyComments(updatedComments);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to like comment');
             // Rollback optimistic update
-            onUpdate(task.id, { comments: previousComments });
+            applyComments(previousComments);
         } finally {
             setLikingCommentId(null);
         }
@@ -260,9 +270,7 @@ export function TaskDetailModal({
             const content = buildCommentContent(replyContent, replyChips);
             const reply = await replyToComment(task.id, parentCommentId, content) as any;
             if (reply && 'id' in reply) {
-                onUpdate(task.id, {
-                    comments: [...(task.comments || []), reply as any]
-                });
+                applyComments([...(task.comments || []), reply as any]);
             }
             setReplyContent('');
             setReplyChips([]);
@@ -288,7 +296,7 @@ export function TaskDetailModal({
                 }
                 return c;
             });
-            onUpdate(task.id, { comments: updatedComments });
+            applyComments(updatedComments);
             setShowEmojiPicker(null);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to add reaction');
@@ -474,15 +482,16 @@ export function TaskDetailModal({
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-2 sm:p-4"
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-end justify-center sm:items-center sm:p-4"
                     >
                         {/* Modal */}
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            initial={{ opacity: 0, y: '100%' }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: '100%' }}
+                            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-[var(--surface)] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)] overflow-x-hidden"
+                            className="bg-[var(--surface)] rounded-t-2xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl h-[92vh] sm:h-auto sm:max-h-[90vh] overflow-hidden flex flex-col border border-[var(--border-subtle)] overflow-x-hidden pb-[env(safe-area-inset-bottom)]"
                         >
                             {/* Header */}
                             <div className="flex items-start justify-between p-4 md:p-6 lg:p-8 border-b border-[var(--border-subtle)] bg-[var(--surface)] relative">
@@ -573,9 +582,9 @@ export function TaskDetailModal({
 
                             {/* Body */}
                             <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 bg-[var(--background)]">
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-                                    {/* Main Content */}
-                                    <div className="lg:col-span-8 space-y-10">
+                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12">
+                                    {/* Main Content: Description + Subtasks */}
+                                    <div className="order-2 lg:order-1 lg:col-span-8 space-y-6 lg:space-y-10">
                                         {/* Description */}
                                         <div className="group">
                                             <div className="flex items-center gap-2.5 text-sm font-semibold text-[var(--text-primary)] mb-3">
@@ -742,7 +751,10 @@ export function TaskDetailModal({
                                             </div>
                                         )}
 
-                                        {/* Activity */}
+                                    </div>
+
+                                    {/* Activity / Comments — pushed below metadata on mobile */}
+                                    <div className="order-last lg:order-3 lg:col-span-8">
                                         <div className="pt-8 border-t border-[var(--border-subtle)]">
                                             <div className="flex items-center gap-2.5 text-sm font-semibold text-[var(--text-primary)] mb-6">
                                                 <ClockIcon className="w-4 h-4 text-[var(--text-tertiary)]" />
@@ -772,6 +784,17 @@ export function TaskDetailModal({
                                                             }
                                                             return acc;
                                                         }, {} as Record<string, typeof task.comments>);
+
+                                                        if (topLevelComments.length === 0) {
+                                                            return (
+                                                                <div className="relative">
+                                                                    <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-[var(--background-subtle)] border-2 border-[var(--surface)]" />
+                                                                    <p className="text-[13px] text-[var(--text-tertiary)] italic">
+                                                                        No comments yet — start the conversation.
+                                                                    </p>
+                                                                </div>
+                                                            );
+                                                        }
 
                                                         return topLevelComments.map((comment) => (
                                                             <div key={comment.id} className="flex gap-4 group/comment relative">
@@ -1138,7 +1161,7 @@ export function TaskDetailModal({
                                     </div>
 
                                     {/* Sidebar */}
-                                    <div className="lg:col-span-4 space-y-10">
+                                    <div className="order-1 lg:order-2 lg:col-span-4 space-y-6 lg:space-y-10">
                                         {/* Categories */}
                                         <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                                             <div className="flex items-center gap-2 text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-4">
@@ -1195,15 +1218,10 @@ export function TaskDetailModal({
                                                 <CalendarIcon className="w-3.5 h-3.5" />
                                                 Due Date
                                             </div>
-                                            <input
-                                                type="date"
+                                            <DatePicker
+                                                value={task.dueDate}
                                                 disabled={isReadOnly}
-                                                value={task.dueDate ? task.dueDate.split('T')[0] : ''}
-                                                onChange={(e) => {
-                                                    const dateValue = e.target.value ? new Date(e.target.value).toISOString() : undefined;
-                                                    onUpdate(task.id, { dueDate: dateValue });
-                                                }}
-                                                className="input text-base md:text-sm"
+                                                onChange={(iso) => onUpdate(task.id, { dueDate: iso })}
                                             />
                                             {task.dueDate && isPastDue(task.dueDate) && task.status !== 'DONE' && task.status !== 'ARCHIVED' && (
                                                 <p className="text-xs text-red-500 mt-2 font-medium">This task is overdue!</p>
@@ -1304,7 +1322,7 @@ export function TaskDetailModal({
                                                 Assignees
                                             </div>
                                             <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-3xl overflow-hidden shadow-sm">
-                                                <div className="divide-y divide-[var(--border-subtle)] max-h-[300px] overflow-y-auto custom-scrollbar">
+                                                <div className="divide-y divide-[var(--border-subtle)] lg:max-h-[300px] overflow-y-auto custom-scrollbar">
                                                     {members.map((member) => {
                                                         const isAssigned = task.assignees.some((a) => a.id === member.id);
                                                         return (

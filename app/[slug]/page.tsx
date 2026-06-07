@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { auth } from '@/lib/auth';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoards, getBoardTaskStats } from '@/actions/board';
@@ -19,6 +19,7 @@ import { WorkspaceUnreadDot } from './workspace-unread-dot';
 import { ReferralPromptWrapper } from '@/components/onboarding/referral-prompt-wrapper';
 import { TrialPromptWrapper } from '@/components/onboarding/TrialPromptWrapper';
 import { PlanWithAIIntroWrapper } from '@/components/onboarding/plan-with-ai-intro-wrapper';
+import { PlanWorkspaceButton } from '@/components/workspace/plan-workspace-button';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 
@@ -32,19 +33,7 @@ export default async function WorkspacePage({
 
     const workspace = await getWorkspaceBySlug(slug);
     if (!workspace) {
-        return (
-            <div className="mx-auto flex min-h-[60vh] max-w-6xl flex-col items-center justify-center px-4 text-center">
-                <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">
-                    Workspace not found
-                </h1>
-                <p className="mt-2 text-sm text-[var(--text-secondary)]">
-                    This workspace may have been deleted, or you may not have access to it.
-                </p>
-                <Link href="/dashboard" className="btn btn-primary mt-6 inline-flex">
-                    Back to dashboard
-                </Link>
-            </div>
-        );
+        notFound();
     }
 
     const boards = await getBoards(slug);
@@ -124,6 +113,7 @@ export default async function WorkspacePage({
                     }
                     actions={
                         <>
+                            {canEdit && session?.user && <PlanWorkspaceButton workspaceSlug={slug} />}
                             {isViewer && !hasPending && session?.user && <RequestAccessButton slug={slug} />}
                             {isViewer && hasPending && (
                                 <div className="flex items-center gap-2 rounded-lg border border-[var(--flux-warning-border)] bg-[var(--flux-warning-bg)] px-4 py-2 text-sm font-medium text-[var(--flux-warning-text-strong)]">

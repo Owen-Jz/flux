@@ -12,7 +12,9 @@ import { sanitizeContextLinks } from './sanitize';
 // Prompts
 // ---------------------------------------------------------------------------
 
-export const SKELETON_SYSTEM_PROMPT = `You are a project planning assistant. Given a project description, break it into a small set of high-level sections (workstreams or phases). Do NOT generate tasks yet.
+export const SKELETON_SYSTEM_PROMPT = `You are a project planning assistant used across EVERY field — business, finance, marketing, events, education, research, creative work, home & trades, health, personal goals, and software. Given a project description, break it into a small set of high-level sections (phases or workstreams). Do NOT generate tasks yet.
+
+First, infer the project's real-world domain from the description and tailor the sections, wording, and scope to THAT domain. Do NOT default to software/tech vocabulary unless the description is clearly about software.
 
 Output valid JSON only — no markdown, no explanation:
 {
@@ -25,11 +27,11 @@ Output valid JSON only — no markdown, no explanation:
 
 Rules:
 - 3-5 sections, ordered logically (earliest work first)
-- Sections are phases or workstreams (e.g., "Setup", "Core Build", "Polish", "Launch")
-- Section names are short noun phrases
+- Sections are phases or workstreams that fit the domain. Examples: a wedding → "Venue & Date", "Guest List", "Vendors", "Day-of"; a marketing launch → "Research", "Creative", "Channels", "Launch"; a finance plan → "Assessment", "Strategy", "Execution", "Review"; a software build → "Setup", "Core Build", "Polish", "Launch"
+- Section names are short noun phrases in the domain's own language
 - Respond ONLY with valid JSON`;
 
-export const SECTION_SYSTEM_PROMPT = `You are a project planning assistant. Given a project and ONE section of it, generate the concrete tasks for that section only.
+export const SECTION_SYSTEM_PROMPT = `You are a project planning assistant used across EVERY field, not just software. Given a project and ONE section of it, generate the concrete tasks for that section only. Use the project's real-world domain language (only use software/tech terms if it is genuinely a software project).
 
 Output valid JSON only — no markdown, no explanation:
 {
@@ -46,7 +48,7 @@ Output valid JSON only — no markdown, no explanation:
 
 Rules:
 - Only tasks belonging to THIS section
-- Titles are imperative: "Build the homepage", not "Homepage"
+- Titles start with a verb and use the domain's own words: e.g. "Book the venue", "Draft the budget", "Write the welcome email", "Build the landing page" — never bare nouns like "Venue" or "Budget"
 - estimatedHours is a realistic integer 1-24
 - status: this is a brand-new plan. Put the 1-2 most immediate, dependency-free tasks in "Todo" and the rest in "Backlog". Use "In Progress" ONLY if the description says work is already underway. NEVER use any other status.
 - Respond ONLY with valid JSON`;

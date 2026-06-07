@@ -153,13 +153,44 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             console.error('[Auth] Error creating user from Google:', creationError);
                             return '/login?error=OAuthCreateAccount';
                         }
-                    } else if (existingUser.password) {
-                        return '/login?error=account-exists-with-credentials';
                     } else {
+                        // Existing account found. Google has cryptographically
+                        // verified that the person signing in controls this email
+                        // address, so we link the Google identity to the existing
+                        // account instead of blocking the sign-in. This lets a
+                        // user who originally registered with email + password
+                        // also sign in with Google for the same address.
+                        //
+                        // Security (account pre-hijacking): a password on an
+                        // account that was NEVER email-verified is untrusted — it
+                        // may have been set by someone who does not control this
+                        // inbox in the hope of inheriting it later. Clear that
+                        // password before marking the account verified, otherwise
+                        // verification would silently activate an attacker-chosen
+                        // password. A password on an already-verified account
+                        // genuinely belongs to the owner and is preserved, so
+                        // both sign-in methods keep working.
+                        let needsSave = false;
+
+                        if (existingUser.password && !existingUser.emailVerified) {
+                            existingUser.password = undefined;
+                            needsSave = true;
+                        }
+
+                        if (!existingUser.emailVerified) {
+                            existingUser.emailVerified = new Date();
+                            needsSave = true;
+                        }
+
                         if (user.image && existingUser.image !== user.image) {
                             existingUser.image = user.image;
+                            needsSave = true;
+                        }
+
+                        if (needsSave) {
                             await existingUser.save();
                         }
+
                         userId = existingUser._id.toString();
                     }
 

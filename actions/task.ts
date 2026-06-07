@@ -229,18 +229,24 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         comments: (task.comments || []).map((c: any) => {
-            const populated = c.userId && typeof c.userId === 'object' && '_id' in c.userId ? c.userId : null;
-            const userId = populated?._id?.toString() ?? c.userId?.toString() ?? '';
+            const populatedUser = c.userId && typeof c.userId === 'object' && '_id' in c.userId ? c.userId : null;
+            const userId = populatedUser?._id?.toString() ?? c.userId?.toString() ?? '';
             return {
                 id: c._id.toString(),
                 content: c.content,
                 userId,
+                parentId: c.parentId ? c.parentId.toString() : null,
+                likes: (c.likes ?? []).map((id: Types.ObjectId) => id.toString()),
+                reactions: (c.reactions ?? []).map((r: { emoji: string; userId?: Types.ObjectId }) => ({
+                    emoji: r.emoji,
+                    userId: r.userId?.toString(),
+                })),
                 createdAt: c.createdAt.toISOString(),
                 user: {
-                    id: populated?._id?.toString() ?? userId,
-                    name: populated?.name ?? '',
-                    email: populated?.email ?? '',
-                    image: populated?.image,
+                    id: populatedUser?._id?.toString() ?? userId,
+                    name: populatedUser?.name || 'Unknown User',
+                    email: populatedUser?.email ?? '',
+                    image: populatedUser?.image,
                 },
             };
         }),
@@ -310,18 +316,27 @@ export async function getArchivedTasks(workspaceSlug: string) {
         createdAt: task.createdAt.toISOString(),
         updatedAt: task.updatedAt.toISOString(),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        comments: (task.comments || []).map((c: any) => ({
-            id: c._id.toString(),
-            content: c.content,
-            userId: c.userId?._id?.toString() ?? c.userId?.toString() ?? '',
-            createdAt: c.createdAt.toISOString(),
-            user: c.userId && typeof c.userId === 'object' && '_id' in c.userId ? {
-                id: c.userId._id.toString(),
-                name: c.userId.name || '',
-                email: c.userId.email || '',
-                image: c.userId.image,
-            } : null,
-        })),
+        comments: (task.comments || []).map((c: any) => {
+            const populatedUser = c.userId && typeof c.userId === 'object' && '_id' in c.userId ? c.userId : null;
+            return {
+                id: c._id.toString(),
+                content: c.content,
+                userId: populatedUser?._id?.toString() ?? c.userId?.toString() ?? '',
+                parentId: c.parentId ? c.parentId.toString() : null,
+                likes: (c.likes ?? []).map((id: Types.ObjectId) => id.toString()),
+                reactions: (c.reactions ?? []).map((r: { emoji: string; userId?: Types.ObjectId }) => ({
+                    emoji: r.emoji,
+                    userId: r.userId?.toString(),
+                })),
+                createdAt: c.createdAt.toISOString(),
+                user: populatedUser ? {
+                    id: populatedUser._id.toString(),
+                    name: populatedUser.name || 'Unknown User',
+                    email: populatedUser.email || '',
+                    image: populatedUser.image,
+                } : null,
+            };
+        }),
     }));
 }
 
@@ -944,10 +959,14 @@ export async function addComment(taskId: string, content: string) {
 
     await task.save();
 
-    // Re-fetch to populate user
+    // Capture the just-pushed subdoc directly (its _id is the source of truth).
+    const created = task.comments[task.comments.length - 1];
+    const createdId = created._id.toString();
+
+    // Re-fetch to populate the comment author, then locate the exact subdoc by id.
     const updatedTask = await Task.findById(taskId).populate('comments.userId', 'name email image');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newComment = (updatedTask?.comments as any[]).pop();
+    const newComment = (updatedTask?.comments as any[]).find((c) => c._id.toString() === createdId);
 
     // Log activity for comment
     {
@@ -1051,12 +1070,12 @@ export async function addComment(taskId: string, content: string) {
     const populatedUser: any = (newComment.userId && typeof newComment.userId === 'object' && '_id' in newComment.userId) ? newComment.userId : null;
 
     return {
-        id: newComment._id.toString(),
+        id: createdId,
         content: newComment.content,
         userId: populatedUser?._id?.toString() ?? session.user.id,
         user: {
             id: populatedUser?._id?.toString() ?? session.user.id,
-            name: populatedUser?.name ?? '',
+            name: populatedUser?.name || 'Unknown User',
             email: populatedUser?.email ?? '',
             image: populatedUser?.image ?? null,
         },
@@ -1247,12 +1266,14 @@ export async function replyToComment(taskId: string, parentCommentId: string, co
 
     await task.save();
 
-    // Re-fetch to populate user
+    // Capture the just-pushed subdoc directly (its _id is the source of truth).
+    const created = task.comments[task.comments.length - 1];
+    const createdId = created._id.toString();
+
+    // Re-fetch to populate the comment author, then locate the exact subdoc by id.
     const updatedTask = await Task.findById(taskId).populate('comments.userId', 'name email image');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const newComment = (updatedTask?.comments as any[]).find(
-        (c: any) => c.parentId?.toString() === parentCommentId && c.content === content
-    );
+    const newComment = (updatedTask?.comments as any[]).find((c) => c._id.toString() === createdId);
 
     // PUSH NOTIFICATION: parent author ∪ assignees ∪ mentions, split between
     // "mentioned you" and the standard reply title.
@@ -1300,12 +1321,12 @@ export async function replyToComment(taskId: string, parentCommentId: string, co
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const replyPopulatedUser: any = (newComment.userId && typeof newComment.userId === 'object' && '_id' in newComment.userId) ? newComment.userId : null;
         return {
-            id: newComment._id.toString(),
+            id: createdId,
             content: newComment.content,
             userId: replyPopulatedUser?._id?.toString() ?? session.user.id,
             user: {
                 id: replyPopulatedUser?._id?.toString() ?? session.user.id,
-                name: replyPopulatedUser?.name ?? '',
+                name: replyPopulatedUser?.name || 'Unknown User',
                 email: replyPopulatedUser?.email ?? '',
                 image: replyPopulatedUser?.image ?? null,
             },
@@ -1402,12 +1423,28 @@ export async function addReaction(taskId: string, commentId: string, emoji: stri
     return { success: true, reactions: comment.reactions };
 }
 
-// Helper function to extract @mentions from content
+// Matches chip-style mentions emitted by the composer: `@[user:<24-hex-id>]`.
+const MENTION_CHIP_REGEX = /@\[user:([a-f\d]{24})\]/gi;
+
+// Helper: extract the raw ObjectId strings from `@[user:<id>]` chip tokens.
+function extractMentionChipIds(content: string): string[] {
+    const ids: string[] = [];
+    let match: RegExpExecArray | null;
+    MENTION_CHIP_REGEX.lastIndex = 0;
+    while ((match = MENTION_CHIP_REGEX.exec(content)) !== null) {
+        ids.push(match[1]);
+    }
+    return ids;
+}
+
+// Helper function to extract @Name mentions from content. Chip tokens
+// (`@[user:<id>]`) are stripped first so their ids aren't mis-parsed as names.
 function extractMentions(content: string): string[] {
+    const withoutChips = content.replace(MENTION_CHIP_REGEX, ' ');
     const mentionRegex = /@(\w+(?:\s\w+)*)/g;
     const mentions: string[] = [];
     let match;
-    while ((match = mentionRegex.exec(content)) !== null) {
+    while ((match = mentionRegex.exec(withoutChips)) !== null) {
         mentions.push(match[1]);
     }
     return mentions;
@@ -1418,28 +1455,37 @@ function escapeForRegex(s: string): string {
 }
 
 /**
- * Resolve @Name mentions in `content` to userId strings, scoped to a workspace's
- * members. Matching is case-insensitive and exact (no partial name matching, so
- * "@John" won't match "Johnny"). Ambiguous names (two members named "John")
- * notify all matches, mirroring the existing extractMentions behavior.
+ * Resolve mentions in `content` to userId strings, scoped to a workspace's
+ * members. Two mention forms are supported:
+ *   1. Chip tokens `@[user:<id>]` emitted by the composer — the id is taken
+ *      directly and validated against the workspace member list.
+ *   2. `@Name` fallback — matched case-insensitively and exactly (no partial
+ *      name matching, so "@John" won't match "Johnny"). Ambiguous names (two
+ *      members named "John") notify all matches.
  */
 async function resolveMentionedUserIds(
     content: string,
     members: Array<{ userId: { toString(): string } }>,
     excludeUserId: string,
 ): Promise<string[]> {
+    const memberIdSet = new Set(members.map((m) => m.userId.toString()));
+
+    // Form 1: chip ids — keep only ids that are actually workspace members.
+    const chipIds = extractMentionChipIds(content).filter((id) => memberIdSet.has(id));
+
+    // Form 2: @Name fallback — resolve names against the member roster.
     const names = extractMentions(content);
-    if (names.length === 0) return [];
+    let nameIds: string[] = [];
+    if (names.length > 0) {
+        const matchers = names.map((n) => new RegExp(`^${escapeForRegex(n.trim())}$`, 'i'));
+        const users = await User.find({
+            _id: { $in: Array.from(memberIdSet) },
+            $or: matchers.map((rx) => ({ name: rx })),
+        }).select('_id');
+        nameIds = users.map((u) => u._id.toString());
+    }
 
-    const memberIds = members.map((m) => m.userId.toString());
-    const matchers = names.map((n) => new RegExp(`^${escapeForRegex(n.trim())}$`, 'i'));
-
-    const users = await User.find({
-        _id: { $in: memberIds },
-        $or: matchers.map((rx) => ({ name: rx })),
-    }).select('_id');
-
-    const ids = users.map((u) => u._id.toString()).filter((id) => id !== excludeUserId);
+    const ids = [...chipIds, ...nameIds].filter((id) => id !== excludeUserId);
     return Array.from(new Set(ids));
 }
 

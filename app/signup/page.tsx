@@ -305,7 +305,7 @@ export default function SignupPage() {
                                 <SparklesIcon className="w-3.5 h-3.5" /> Your plan is saved
                             </p>
                             <p className="text-sm text-[var(--text-secondary)] line-clamp-2">
-                                We&apos;ll turn &ldquo;{pendingPlan}&rdquo; into a board right after you sign up.
+                                We&apos;ll turn &ldquo;{pendingPlan}&rdquo; into a plan as soon as your workspace is ready.
                             </p>
                         </div>
                     )}

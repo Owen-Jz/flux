@@ -202,18 +202,23 @@ export async function getWorkspaceBySlug(slug: string) {
         publicAccess: workspace.settings?.publicAccess || false,
         accentColor: workspace.settings?.accentColor,
         icon: workspace.settings?.icon,
-        members: workspace.members.map((m: {
-            userId: { _id: { toString: () => string }; name: string; email: string; image?: string } | { toString: () => string };
-            role: string;
-        }) => ({
-            userId: typeof m.userId === 'object' && '_id' in m.userId ? m.userId._id.toString() : m.userId.toString(),
-            role: m.role,
-            user: typeof m.userId === 'object' && 'name' in m.userId ? {
-                name: m.userId.name,
-                email: m.userId.email,
-                image: m.userId.image,
-            } : null,
-        })),
+        // Drop orphaned memberships whose user account was deleted — populate
+        // yields `null` for them, and `typeof null === 'object'` would otherwise
+        // make the `'_id' in m.userId` check throw and crash the whole route.
+        members: workspace.members
+            .filter((m: { userId?: unknown }) => m.userId != null)
+            .map((m: {
+                userId: { _id: { toString: () => string }; name: string; email: string; image?: string } | { toString: () => string };
+                role: string;
+            }) => ({
+                userId: typeof m.userId === 'object' && '_id' in m.userId ? m.userId._id.toString() : m.userId.toString(),
+                role: m.role,
+                user: typeof m.userId === 'object' && 'name' in m.userId ? {
+                    name: m.userId.name,
+                    email: m.userId.email,
+                    image: m.userId.image,
+                } : null,
+            })),
         inviteCode: workspace.inviteCode,
     };
 }

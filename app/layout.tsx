@@ -5,6 +5,11 @@ import { Providers } from "@/components/providers";
 import { PWAUpdateBanner } from "@/components/pwa/update-banner";
 import { PWAInit } from "@/components/pwa/pwa-init";
 import { PWAInstallPrompt } from "@/components/pwa/install-prompt";
+import { SITE_URL, SITE_NAME } from "@/lib/site-url";
+
+const TITLE = "Flux — Describe your project, AI plans it";
+const DESCRIPTION =
+  "Flux turns a plain-English description of any project — a product launch, a wedding, a finance plan, a marketing campaign — into a complete board of tasks with priorities and time estimates, in seconds.";
 
 const sans = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -27,11 +32,32 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: process.env.NEXT_PUBLIC_BASE_URL ? new URL(process.env.NEXT_PUBLIC_BASE_URL) : undefined,
-  applicationName: "Flux",
-  title: "Flux | Modern Project Management",
-  description: "A cutting-edge project management SaaS with real-time collaboration.",
+  // Always defined so OG/canonical/preview image URLs resolve to absolute paths.
+  metadataBase: new URL(SITE_URL),
+  applicationName: SITE_NAME,
+  // Plain string (not a template): existing pages set full "<Page> | Flux"
+  // titles that already include the brand, so a template would double-brand them.
+  // This default is used for the homepage and any page without its own title.
+  title: TITLE,
+  description: DESCRIPTION,
+  keywords: [
+    "AI project planning",
+    "AI task management",
+    "project planner",
+    "kanban board",
+    "AI to-do list",
+    "task breakdown",
+    "project management software",
+    "Flux",
+  ],
+  authors: [{ name: "Flux" }],
+  creator: "Flux",
+  publisher: "Flux",
+  category: "productivity",
   manifest: "/manifest.json",
+  alternates: {
+    canonical: "/",
+  },
   appleWebApp: {
     capable: true,
     title: "Flux",
@@ -39,6 +65,16 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
   icons: {
     icon: [
@@ -51,16 +87,19 @@ export const metadata: Metadata = {
     apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
   },
   openGraph: {
-    title: "Flux | Modern Project Management",
-    description: "A cutting-edge project management SaaS with real-time collaboration.",
+    title: TITLE,
+    description: DESCRIPTION,
     type: "website",
-    images: ["/icon.svg"],
+    siteName: SITE_NAME,
+    url: SITE_URL,
+    locale: "en_US",
+    // og:image comes from app/opengraph-image.tsx (a real 1200×630 PNG) — SVG
+    // OG images are not rendered by Facebook/LinkedIn/X.
   },
   twitter: {
-    card: "summary",
-    title: "Flux | Modern Project Management",
-    description: "A cutting-edge project management SaaS with real-time collaboration.",
-    images: ["/icon.svg"],
+    card: "summary_large_image",
+    title: TITLE,
+    description: DESCRIPTION,
   },
 };
 
@@ -396,6 +435,45 @@ export default function RootLayout({
         className={`${sans.variable} ${mono.variable} antialiased`}
         suppressHydrationWarning
       >
+        <script
+          type="application/ld+json"
+          // Structured data so search engines understand the product + brand.
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": `${SITE_URL}/#organization`,
+                  name: SITE_NAME,
+                  url: SITE_URL,
+                  logo: `${SITE_URL}/icons/icon-512.png`,
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": `${SITE_URL}/#website`,
+                  url: SITE_URL,
+                  name: SITE_NAME,
+                  description: DESCRIPTION,
+                  publisher: { "@id": `${SITE_URL}/#organization` },
+                },
+                {
+                  "@type": "SoftwareApplication",
+                  name: SITE_NAME,
+                  applicationCategory: "BusinessApplication",
+                  operatingSystem: "Web",
+                  url: SITE_URL,
+                  description: DESCRIPTION,
+                  offers: {
+                    "@type": "Offer",
+                    price: "0",
+                    priceCurrency: "USD",
+                  },
+                },
+              ],
+            }),
+          }}
+        />
         <Providers>{children}</Providers>
         <PWAInit />
         <PWAUpdateBanner />
