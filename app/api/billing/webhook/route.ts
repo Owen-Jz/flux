@@ -77,6 +77,9 @@ export async function POST(request: NextRequest) {
                     const wasInactive = user.subscriptionStatus !== 'active';
                     user.subscriptionId = subData.subscription_code;
                     user.subscriptionStatus = 'active';
+                    // Fresh active subscription — clear any prior dunning state.
+                    user.pastDueSince = undefined;
+                    user.pastDueReminderSent = false;
 
                     // Use plan code mapping instead of fragile regex
                     const planObj = subData.plan;
@@ -147,6 +150,9 @@ export async function POST(request: NextRequest) {
 
                     // Update subscription status
                     user.subscriptionStatus = 'active';
+                    // Payment recovered — clear any dunning state.
+                    user.pastDueSince = undefined;
+                    user.pastDueReminderSent = false;
                     if (!user.subscriptionId) {
                         user.subscriptionId = reference;
                     }
@@ -178,6 +184,12 @@ export async function POST(request: NextRequest) {
 
                 if (user) {
                     user.subscriptionStatus = 'past_due';
+                    // Stamp the start of the dunning window on first failure so the
+                    // check-past-due cron can apply the grace period and downgrade.
+                    if (!user.pastDueSince) {
+                        user.pastDueSince = new Date();
+                        user.pastDueReminderSent = false;
+                    }
                     await user.save();
                     after(() =>
                         sendSubscriptionPastDueEmail(user).catch((error) => {

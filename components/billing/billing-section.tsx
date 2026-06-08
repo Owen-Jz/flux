@@ -24,6 +24,15 @@ interface GeoInfo {
     exchangeRate: number;
 }
 
+interface BillingTransaction {
+    reference: string;
+    amount: number;
+    currency: string;
+    status: string;
+    date: string;
+    channel: string | null;
+}
+
 const PLAN_FEATURES = {
     free: {
         projects: '3 Projects',
@@ -266,7 +275,24 @@ export function BillingSection() {
     const [showTrialActivation, setShowTrialActivation] = useState(false);
     const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);
     const [upgradedPlan, setUpgradedPlan] = useState<string | null>(null);
+    const [transactions, setTransactions] = useState<BillingTransaction[]>([]);
     const trialActivating = useRef(false);
+
+    // Load billing history (payment receipts).
+    useEffect(() => {
+        let cancelled = false;
+        fetch('/api/billing/history')
+            .then((res) => (res.ok ? res.json() : { transactions: [] }))
+            .then((data) => {
+                if (!cancelled) setTransactions(data.transactions || []);
+            })
+            .catch(() => {
+                if (!cancelled) setTransactions([]);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     // Fetch user's geo location for currency detection
     useEffect(() => {
@@ -697,6 +723,63 @@ export function BillingSection() {
                     })}
                 </div>
             </div>
+
+            {/* Billing History */}
+            {transactions.length > 0 && (
+                <div className="card p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <DocumentChartBarIcon className="w-4 h-4 text-[var(--brand-primary)]" />
+                        <h2 className="font-semibold">Billing History</h2>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="text-left text-xs text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">
+                                    <th className="py-2 pr-4 font-medium">Date</th>
+                                    <th className="py-2 pr-4 font-medium">Amount</th>
+                                    <th className="py-2 pr-4 font-medium">Status</th>
+                                    <th className="py-2 font-medium text-right">Receipt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {transactions.map((t) => (
+                                    <tr key={t.reference} className="border-b border-[var(--border-subtle)] last:border-0">
+                                        <td className="py-3 pr-4 whitespace-nowrap">
+                                            {new Date(t.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                        </td>
+                                        <td className="py-3 pr-4 whitespace-nowrap font-medium">
+                                            {t.currency} {t.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </td>
+                                        <td className="py-3 pr-4">
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                                                t.status === 'success'
+                                                    ? 'bg-green-500/10 text-green-600'
+                                                    : 'bg-red-500/10 text-red-600'
+                                            }`}>
+                                                {t.status === 'success' ? 'Paid' : t.status}
+                                            </span>
+                                        </td>
+                                        <td className="py-3 text-right">
+                                            {t.status === 'success' ? (
+                                                <a
+                                                    href={`/api/billing/receipt/${encodeURIComponent(t.reference)}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-[var(--brand-primary)] hover:underline font-medium"
+                                                >
+                                                    View
+                                                </a>
+                                            ) : (
+                                                <span className="text-[var(--text-tertiary)]">—</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
 
             {/* Trial Activation Modal */}
             <AnimatePresence>

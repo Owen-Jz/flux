@@ -237,6 +237,35 @@ export async function verifyTransaction(reference: string): Promise<VerifyTransa
     return result.data;
 }
 
+export interface PaystackTransaction {
+    id: number;
+    reference: string;
+    amount: number; // smallest currency unit (kobo / cents)
+    currency: string;
+    status: string; // 'success' | 'failed' | 'abandoned' | ...
+    paid_at: string | null;
+    created_at: string;
+    channel?: string;
+}
+
+// List a customer's transactions (most recent first). Returns [] on any error so
+// the billing page degrades gracefully rather than throwing.
+export async function listCustomerTransactions(
+    customerId: number,
+    perPage: number = 50
+): Promise<PaystackTransaction[]> {
+    try {
+        const result = await paystackFetch<{ status: boolean; data: PaystackTransaction[] }>(
+            `/transaction?customer=${customerId}&perPage=${perPage}`,
+            'GET'
+        );
+        return result.status ? result.data : [];
+    } catch (error) {
+        console.error('Failed to list customer transactions:', error);
+        return [];
+    }
+}
+
 // Create a subscription
 export async function createSubscription(data: PaystackSubscription): Promise<string> {
     const result = await paystackFetch<{ status: boolean; message: string; data: { subscription_code: string } }>(
