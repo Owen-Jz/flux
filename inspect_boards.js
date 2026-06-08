@@ -38,7 +38,7 @@ const Workspace = mongoose.models.Workspace || mongoose.model('Workspace', Works
 
 async function checkBoards() {
     try {
-        await mongoose.connect(MONGODB_URI);
+        await mongoose.connect(MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
         console.log('Connected to DB');
 
         const workspaceSlug = 'closet-full-of-coco';

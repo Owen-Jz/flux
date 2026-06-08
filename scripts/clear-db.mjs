@@ -40,13 +40,29 @@ try {
     console.warn('Failed to set custom DNS servers:', e);
 }
 
+const TARGET_DB = process.env.MONGODB_DB || 'flux';
+// Never allow this destructive script to touch the shared/default or system DBs.
+const PROTECTED_DBS = new Set(['test', 'admin', 'local', 'config']);
+
 async function clearDatabase() {
-    console.log('Connecting to MongoDB...');
+    if (PROTECTED_DBS.has(TARGET_DB)) {
+        console.error(`❌ Refusing to clear protected/shared database "${TARGET_DB}". This script only clears a dedicated app database (set MONGODB_DB).`);
+        process.exit(1);
+    }
+    // Require an explicit confirmation that matches the exact target DB name.
+    if (process.env.CONFIRM_CLEAR !== TARGET_DB) {
+        console.error(`❌ Safety guard: this will DROP EVERY collection in database "${TARGET_DB}".`);
+        console.error(`   To proceed, re-run with:  CONFIRM_CLEAR=${TARGET_DB} node scripts/clear-db.mjs`);
+        process.exit(1);
+    }
+
+    console.log(`Connecting to MongoDB (target database: ${TARGET_DB})...`);
     try {
         await mongoose.connect(MONGODB_URI, {
             serverSelectionTimeoutMS: 5000,
+            dbName: TARGET_DB,
         });
-        console.log('✅ MongoDB connection successful!');
+        console.log(`✅ Connected. Clearing database: ${mongoose.connection.db.databaseName}`);
 
         const collections = await mongoose.connection.db.listCollections().toArray();
         if (collections.length === 0) {

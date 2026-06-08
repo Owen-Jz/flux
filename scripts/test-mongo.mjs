@@ -38,6 +38,7 @@ async function testConnection() {
     try {
         await mongoose.connect(MONGODB_URI, {
             serverSelectionTimeoutMS: 5000,
+            dbName: process.env.MONGODB_DB || 'flux',
         });
         console.log('✅ MongoDB connection successful!');
 

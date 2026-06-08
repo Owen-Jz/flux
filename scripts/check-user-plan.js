@@ -2,7 +2,7 @@ require('dotenv').config({ path: '.env.local' });
 const mongoose = require('mongoose');
 
 async function checkUser() {
-  await mongoose.connect(process.env.MONGODB_URI);
+  await mongoose.connect(process.env.MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
 
   const User = require('../models/User').default;
   const user = await User.findOne({ email: 'sabiva6484@ellbit.com' }).lean();

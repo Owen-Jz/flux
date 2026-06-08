@@ -10,7 +10,7 @@ async function checkUser() {
     process.exit(1);
   }
 
-  await mongoose.connect(MONGODB_URI);
+  await mongoose.connect(MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
 
   const user = await User.findOne({ email: 'sabiva6484@ellbit.com' }).lean();
 

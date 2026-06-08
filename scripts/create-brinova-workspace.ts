@@ -10,7 +10,7 @@ async function createWorkspace() {
     return;
   }
 
-  await mongoose.connect(process.env.MONGODB_URI);
+  await mongoose.connect(process.env.MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
 
   const user = await User.findOne({ email: 'owendigitals@gmail.com' });
   if (!user) {

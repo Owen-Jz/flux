@@ -8,7 +8,7 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 async function update() {
     try {
-        await mongoose.connect(MONGODB_URI);
+        await mongoose.connect(MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
         const workspaceSchema = new mongoose.Schema({ 
             settings: { publicAccess: Boolean }
         });

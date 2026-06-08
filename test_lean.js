@@ -17,7 +17,7 @@ const Parent = mongoose.models.Parent || mongoose.model('Parent', ParentSchema);
 
 async function run() {
     try {
-        await mongoose.connect(MONGODB_URI);
+        await mongoose.connect(MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
 
         // Create doc
         const p = new Parent({

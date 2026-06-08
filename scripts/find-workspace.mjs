@@ -6,7 +6,7 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 async function findWorkspace() {
     try {
-        await mongoose.connect(MONGODB_URI);
+        await mongoose.connect(MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
         
         // Define schemas only if they haven't been defined
         const workspaceSchema = new mongoose.Schema({ name: String, slug: String, ownerId: mongoose.Schema.Types.ObjectId });

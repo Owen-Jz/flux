@@ -8,7 +8,7 @@ const MONGODB_URI = 'mongodb://new_owen_user:oyt09oiswTLH6XEt@ac-8fpezwt-shard-0
 
 async function markExistingUsersOnboarded() {
     console.log('Connecting to database...');
-    await mongoose.connect(MONGODB_URI);
+    await mongoose.connect(MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
 
     console.log('Updating all users to mark hasCompletedOnboarding = true...');
     const result = await mongoose.connection.db!.collection('users').updateMany(

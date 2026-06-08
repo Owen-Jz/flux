@@ -9,7 +9,7 @@ dns.setServers(['8.8.8.8', '8.8.4.4']);
 
 async function populate() {
     try {
-        await mongoose.connect(MONGODB_URI);
+        await mongoose.connect(MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
         
         const boardSchema = new mongoose.Schema({ 
             workspaceId: mongoose.Schema.Types.ObjectId, 

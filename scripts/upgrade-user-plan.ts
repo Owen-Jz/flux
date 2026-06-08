@@ -10,7 +10,7 @@ async function upgradeUser(email: string, plan: 'starter' | 'pro' | 'enterprise'
     process.exit(1);
   }
 
-  await mongoose.connect(MONGODB_URI);
+  await mongoose.connect(MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
 
   const user = await User.findOne({ email });
 

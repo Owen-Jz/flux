@@ -38,6 +38,10 @@ export async function connectDB() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
+            // Pin Flux to its own database. Without this, Mongoose falls back to
+            // the cluster default ("test"), where it collided with other projects
+            // sharing this cluster. Override per-environment with MONGODB_DB.
+            dbName: process.env.MONGODB_DB || 'flux',
         };
         cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => mongoose);
     }

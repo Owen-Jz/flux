@@ -7,7 +7,7 @@ async function run() {
         // Fix for DNS in Windows
         require('dns').setServers(['8.8.8.8', '8.8.4.4']);
 
-        const conn = await mongoose.connect(uri);
+        const conn = await mongoose.connect(uri, { dbName: process.env.MONGODB_DB || 'flux' });
         // User is probably in "users" collection
         const users = await conn.connection.db.collection('users').find({}).toArray();
         console.log(JSON.stringify(users, null, 2));

@@ -8,7 +8,7 @@ async function checkTrialExpiration() {
     process.exit(1);
   }
 
-  await mongoose.connect(process.env.MONGODB_URI);
+  await mongoose.connect(process.env.MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
 
   const now = new Date();
 

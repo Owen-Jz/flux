@@ -9,7 +9,7 @@ async function addTasks() {
     return;
   }
 
-  await mongoose.connect(process.env.MONGODB_URI);
+  await mongoose.connect(process.env.MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
 
   const workspace = await Workspace.findOne({ slug: 'brinova' });
   if (!workspace) {

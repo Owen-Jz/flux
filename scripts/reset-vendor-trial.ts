@@ -7,7 +7,7 @@ async function resetVendor() {
     process.exit(1);
   }
 
-  await mongoose.connect(process.env.MONGODB_URI);
+  await mongoose.connect(process.env.MONGODB_URI, { dbName: process.env.MONGODB_DB || 'flux' });
 
   const result = await User.updateOne(
     { email: 'sabiva6484@ellbit.com' },
