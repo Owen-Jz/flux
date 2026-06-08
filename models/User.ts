@@ -36,6 +36,10 @@ export interface IUser extends Document {
         planWithAIIntroShown?: boolean;
     };
     hasCompletedOnboarding: boolean;
+    notificationPreferences?: {
+        taskAssigned: boolean;
+        comments: boolean;
+    };
     // Billing fields
     plan: PlanType;
     paystackCustomerCode?: string;
@@ -49,6 +53,10 @@ export interface IUser extends Document {
     trialWarningSent: boolean;
     trialPromptDismissedAt?: Date;
     lastUpgradeAt?: Date;
+    // Dunning: when the subscription first went past_due, and whether the
+    // past-due reminder email has been sent for the current dunning cycle.
+    pastDueSince?: Date;
+    pastDueReminderSent?: boolean;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -83,6 +91,10 @@ const UserSchema = new Schema<IUser>(
             planWithAIIntroShown: { type: Boolean, default: false },
         },
         hasCompletedOnboarding: { type: Boolean, default: false },
+        notificationPreferences: {
+            taskAssigned: { type: Boolean, default: true },
+            comments: { type: Boolean, default: true },
+        },
         // Billing fields
         plan: { type: String, enum: ['free', 'starter', 'pro', 'enterprise'], default: 'free' },
         paystackCustomerCode: { type: String },
@@ -96,6 +108,8 @@ const UserSchema = new Schema<IUser>(
         trialWarningSent: { type: Boolean, default: false },
         trialPromptDismissedAt: { type: Date },
         lastUpgradeAt: { type: Date },
+        pastDueSince: { type: Date },
+        pastDueReminderSent: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

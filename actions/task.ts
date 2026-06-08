@@ -642,9 +642,17 @@ export async function updateTask(
             const board = await Board.findById(task.boardId);
             const boardSlug = board?.slug || 'main';
 
+            // Respect each recipient's email preference (defaults to on for
+            // accounts created before the preference existed).
+            const optedOutOfAssignment = new Set(
+                usersToNotify
+                    .filter((u) => u.notificationPreferences?.taskAssigned === false)
+                    .map((u) => u._id.toString())
+            );
+
             // Send emails in parallel
             await Promise.all(usersToNotify.map(async (user) => {
-                if (user.email) {
+                if (user.email && !optedOutOfAssignment.has(user._id.toString())) {
                     const html = await render(
                         React.createElement(TaskAssignedEmail, {
                             recipientName: user.name || 'Teammate',
@@ -664,19 +672,23 @@ export async function updateTask(
                 }
             }));
 
-            // PUSH NOTIFICATION: target the NEW assignees only (single fanout, not N broadcasts).
-            const assignerName = session.user.name || 'A teammate';
-            const taskTitle = task.title;
-            const boardName = board?.name || 'a board';
-            const workspaceSlug = workspace.slug;
-            const actorId = session.user.id;
-            after(() => triggerNotification({
-                title: 'Task assigned to you',
-                body: `${assignerName} assigned "${taskTitle}" in ${boardName}`,
-                url: `/${workspaceSlug}/board/${boardSlug}`,
-                userIds: newAssignees,
-                excludeUserId: actorId,
-            }));
+            // PUSH NOTIFICATION: target the NEW assignees only (single fanout, not N broadcasts),
+            // minus anyone who turned assignment notifications off.
+            const pushAssignees = newAssignees.filter((id) => !optedOutOfAssignment.has(id));
+            if (pushAssignees.length > 0) {
+                const assignerName = session.user.name || 'A teammate';
+                const taskTitle = task.title;
+                const boardName = board?.name || 'a board';
+                const workspaceSlug = workspace.slug;
+                const actorId = session.user.id;
+                after(() => triggerNotification({
+                    title: 'Task assigned to you',
+                    body: `${assignerName} assigned "${taskTitle}" in ${boardName}`,
+                    url: `/${workspaceSlug}/board/${boardSlug}`,
+                    userIds: pushAssignees,
+                    excludeUserId: actorId,
+                }));
+            }
         }
     }
 
@@ -1011,7 +1023,8 @@ export async function addComment(taskId: string, content: string) {
         if (emailTargetIds.length > 0) {
             const users = await User.find({ _id: { $in: emailTargetIds } });
             await Promise.all(users.map(async (user) => {
-                if (user.email) {
+                // Respect each recipient's comment-email preference (defaults to on).
+                if (user.email && user.notificationPreferences?.comments !== false) {
                     const html = await render(
                         React.createElement(NewCommentEmail, {
                             taskTitle: task.title,

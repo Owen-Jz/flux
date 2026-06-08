@@ -10,6 +10,7 @@ import {
     BellIcon,
     TrashIcon,
     ArrowPathIcon,
+    ArrowDownTrayIcon,
     CheckIcon,
     ExclamationCircleIcon,
     XMarkIcon,
@@ -19,6 +20,8 @@ import {
 import { BillingSection } from '@/components/billing/billing-section';
 import { signOut } from 'next-auth/react';
 import { PLAN_META } from '@/lib/plan-limits';
+import { deleteAccount } from '@/actions/account';
+import { updateNotificationPreferences, type NotificationPreferences } from '@/actions/notification-preferences';
 
 interface UserSettingsClientProps {
     user: {
@@ -30,6 +33,7 @@ interface UserSettingsClientProps {
         subscriptionStatus: string | null;
         trialEndsAt: string | null;
         hasUsedTrial: boolean;
+        notificationPreferences: NotificationPreferences;
     };
     billingParam?: string | null;
     actionParam?: string | null;
@@ -47,6 +51,28 @@ export function UserSettingsClient({ user, billingParam, actionParam }: UserSett
     );
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(user.notificationPreferences);
+    const [savingPref, setSavingPref] = useState<keyof NotificationPreferences | null>(null);
+
+    const handleToggleNotifPref = (key: keyof NotificationPreferences) => {
+        const next = !notifPrefs[key];
+        const previous = notifPrefs;
+        // Optimistically update, then persist; roll back on failure.
+        setNotifPrefs({ ...notifPrefs, [key]: next });
+        setSavingPref(key);
+        setError(null);
+        startTransition(async () => {
+            try {
+                const saved = await updateNotificationPreferences({ [key]: next });
+                setNotifPrefs(saved);
+            } catch {
+                setNotifPrefs(previous);
+                setError('Could not save your notification preference. Please try again.');
+            } finally {
+                setSavingPref(null);
+            }
+        });
+    };
 
     const planMeta = PLAN_META[user.plan as keyof typeof PLAN_META] || PLAN_META.free;
 
@@ -135,6 +161,29 @@ export function UserSettingsClient({ user, billingParam, actionParam }: UserSett
 
             {activeTab === 'danger' ? (
                 <div className="space-y-6">
+                    {/* Export Data */}
+                    <div className="card p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <ArrowDownTrayIcon className="w-4 h-4 text-[var(--brand-primary)]" />
+                            <h2 className="font-semibold">Export Your Data</h2>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                            <div>
+                                <p className="text-sm font-medium">Download a copy of your data</p>
+                                <p className="text-xs text-[var(--text-secondary)] mt-1">
+                                    Export your profile, workspaces, boards, tasks, and issues as a JSON file.
+                                </p>
+                            </div>
+                            <a
+                                href="/api/account/export"
+                                download
+                                className="px-4 py-2 bg-[var(--surface)] border border-[var(--border-subtle)] rounded-lg text-sm font-medium hover:bg-[var(--background)] transition-colors whitespace-nowrap"
+                            >
+                                Export Data
+                            </a>
+                        </div>
+                    </div>
+
                     <div className="card p-6 border-red-200 bg-red-50/30">
                         <div className="flex items-center gap-2 mb-4 text-red-600">
                             <TrashIcon className="w-4 h-4" />
@@ -159,7 +208,7 @@ export function UserSettingsClient({ user, billingParam, actionParam }: UserSett
                         ) : (
                             <div className="space-y-4">
                                 <p className="text-sm text-red-600">
-                                    <strong>Warning:</strong> This action cannot be undone. All your workspaces, boards, tasks, and data will be permanently deleted.
+                                    <strong>Warning:</strong> This action cannot be undone. Workspaces you own will be deleted for everyone in them, along with their boards and tasks. You will be removed from any other workspaces you&apos;ve joined.
                                 </p>
                                 <div>
                                     <label className="block text-sm font-medium mb-1">
@@ -176,12 +225,18 @@ export function UserSettingsClient({ user, billingParam, actionParam }: UserSett
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => {
-                                            if (deleteConfirmText === 'delete') {
-                                                // TODO: Implement account deletion
-                                                setError('Account deletion is not yet implemented');
-                                                setShowDeleteConfirm(false);
-                                                setDeleteConfirmText('');
-                                            }
+                                            if (deleteConfirmText !== 'delete' || isPending) return;
+                                            setError(null);
+                                            startTransition(async () => {
+                                                try {
+                                                    await deleteAccount(deleteConfirmText);
+                                                    await signOut({ callbackUrl: '/signup' });
+                                                } catch (err) {
+                                                    setError(err instanceof Error ? err.message : 'Failed to delete account. Please try again.');
+                                                    setShowDeleteConfirm(false);
+                                                    setDeleteConfirmText('');
+                                                }
+                                            });
                                         }}
                                         disabled={deleteConfirmText !== 'delete' || isPending}
                                         className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
@@ -222,31 +277,39 @@ export function UserSettingsClient({ user, billingParam, actionParam }: UserSett
                             <div className="flex items-center justify-between py-3 border-b border-[var(--border-subtle)]">
                                 <div>
                                     <p className="text-sm font-medium">Task Assignments</p>
-                                    <p className="text-xs text-[var(--text-secondary)]">Get notified when a task is assigned to you</p>
+                                    <p className="text-xs text-[var(--text-secondary)]">Get an email when a task is assigned to you</p>
                                 </div>
-                                <button className="w-12 h-6 rounded-full relative bg-[var(--brand-primary)] transition-colors cursor-pointer">
-                                    <div className="absolute top-1 bottom-1 right-1 w-4 rounded-full bg-white" />
-                                </button>
-                            </div>
-                            <div className="flex items-center justify-between py-3 border-b border-[var(--border-subtle)]">
-                                <div>
-                                    <p className="text-sm font-medium">Workspace Updates</p>
-                                    <p className="text-xs text-[var(--text-secondary)]">Get notified about workspace changes</p>
-                                </div>
-                                <button className="w-12 h-6 rounded-full relative bg-[var(--brand-primary)] transition-colors cursor-pointer">
-                                    <div className="absolute top-1 bottom-1 right-1 w-4 rounded-full bg-white" />
+                                <button
+                                    onClick={() => handleToggleNotifPref('taskAssigned')}
+                                    disabled={savingPref === 'taskAssigned'}
+                                    role="switch"
+                                    aria-checked={notifPrefs.taskAssigned}
+                                    aria-label="Task assignment emails"
+                                    className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${notifPrefs.taskAssigned ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-subtle)]'} ${savingPref === 'taskAssigned' ? 'opacity-50' : ''}`}
+                                >
+                                    <div className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${notifPrefs.taskAssigned ? 'right-1' : 'left-1'}`} />
                                 </button>
                             </div>
                             <div className="flex items-center justify-between py-3">
                                 <div>
-                                    <p className="text-sm font-medium">Billing Alerts</p>
-                                    <p className="text-xs text-[var(--text-secondary)]">Get notified about payment and subscription events</p>
+                                    <p className="text-sm font-medium">Comments &amp; Mentions</p>
+                                    <p className="text-xs text-[var(--text-secondary)]">Get an email for new comments and @mentions on your tasks</p>
                                 </div>
-                                <button className="w-12 h-6 rounded-full relative bg-[var(--brand-primary)] transition-colors cursor-pointer">
-                                    <div className="absolute top-1 bottom-1 right-1 w-4 rounded-full bg-white" />
+                                <button
+                                    onClick={() => handleToggleNotifPref('comments')}
+                                    disabled={savingPref === 'comments'}
+                                    role="switch"
+                                    aria-checked={notifPrefs.comments}
+                                    aria-label="Comment and mention emails"
+                                    className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${notifPrefs.comments ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-subtle)]'} ${savingPref === 'comments' ? 'opacity-50' : ''}`}
+                                >
+                                    <div className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${notifPrefs.comments ? 'right-1' : 'left-1'}`} />
                                 </button>
                             </div>
                         </div>
+                        <p className="text-xs text-[var(--text-tertiary)] mt-4">
+                            Essential account and billing emails are always sent.
+                        </p>
                     </div>
                 </div>
             ) : (

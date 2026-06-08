@@ -35,6 +35,10 @@ export default async function SettingsPage({
                 subscriptionStatus: user.subscriptionStatus || null,
                 trialEndsAt: user.trialEndsAt ? user.trialEndsAt.toISOString() : null,
                 hasUsedTrial: user.hasUsedTrial || false,
+                notificationPreferences: {
+                    taskAssigned: user.notificationPreferences?.taskAssigned ?? true,
+                    comments: user.notificationPreferences?.comments ?? true,
+                },
             }}
             billingParam={params.billing}
             actionParam={params.action}
