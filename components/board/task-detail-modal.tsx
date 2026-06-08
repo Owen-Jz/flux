@@ -190,24 +190,51 @@ export function TaskDetailModal({
     const handleAddComment = async () => {
         if (!newComment.trim() || isSubmittingComment) return;
 
-        setIsSubmittingComment(true);
-        setError(null);
-        try {
-            const content = buildCommentContent(newComment, commentChips);
-            const comment = await addComment(task.id, content);
-            applyComments([...(task.comments || []), comment]);
-            setNewComment('');
-            setCommentChips([]);
+        const content = buildCommentContent(newComment, commentChips);
+        // Capture the pre-mutation list so reconcile/rollback are immune to the
+        // stale `task` closure after the optimistic update re-renders the parent.
+        const baseComments = task.comments || [];
+        const optimisticComment = {
+            id: `temp-${Date.now()}`,
+            content,
+            parentId: null,
+            createdAt: new Date().toISOString(),
+            user: {
+                name: session?.user?.name ?? 'You',
+                image: session?.user?.image ?? null,
+            },
+            likes: 0,
+            likedBy: [],
+            reactions: [],
+        };
 
-            // Dispatch walkthrough event for interactive onboarding
-            if (typeof window !== 'undefined') {
-                window.dispatchEvent(
-                    new CustomEvent('walkthrough:interaction', {
-                        detail: { type: 'comment_added', taskId: task.id },
-                    })
-                );
-            }
+        // Optimistic: render the comment instantly and clear the composer.
+        applyComments([...baseComments, optimisticComment]);
+        const sentText = newComment;
+        const sentChips = commentChips;
+        setNewComment('');
+        setCommentChips([]);
+        setError(null);
+        setIsSubmittingComment(true);
+
+        // Dispatch walkthrough event for interactive onboarding
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+                new CustomEvent('walkthrough:interaction', {
+                    detail: { type: 'comment_added', taskId: task.id },
+                })
+            );
+        }
+
+        try {
+            const comment = await addComment(task.id, content);
+            // Swap the optimistic placeholder for the persisted comment.
+            applyComments([...baseComments, comment]);
         } catch (err) {
+            // Roll back the optimistic comment and restore the composer.
+            applyComments(baseComments);
+            setNewComment(sentText);
+            setCommentChips(sentChips);
             setError(err instanceof Error ? err.message : 'Failed to add comment');
         } finally {
             setIsSubmittingComment(false);
@@ -751,11 +778,11 @@ export function TaskDetailModal({
                                             </div>
                                         )}
 
-                                    </div>
-
-                                    {/* Activity / Comments — pushed below metadata on mobile */}
-                                    <div className="order-last lg:order-3 lg:col-span-8">
-                                        <div className="pt-8 border-t border-[var(--border-subtle)]">
+                                    {/* Activity / Comments — stacked directly under the subtasks
+                                        (inside the left column) so the tall metadata sidebar no
+                                        longer pushes this into a second grid row with a huge gap. */}
+                                    <div>
+                                        <div className="pt-6 border-t border-[var(--border-subtle)]">
                                             <div className="flex items-center gap-2.5 text-sm font-semibold text-[var(--text-primary)] mb-6">
                                                 <ClockIcon className="w-4 h-4 text-[var(--text-tertiary)]" />
                                                 Activity
@@ -797,7 +824,7 @@ export function TaskDetailModal({
                                                         }
 
                                                         return topLevelComments.map((comment) => (
-                                                            <div key={comment.id} className="flex gap-4 group/comment relative">
+                                                            <div key={comment.id} className={`flex gap-4 group/comment relative transition-opacity ${String(comment.id).startsWith('temp-') ? 'opacity-60' : ''}`}>
                                                                 <div className="absolute -left-[31px] top-1 w-2.5 h-2.5 rounded-full bg-[var(--brand-primary)] border-2 border-white dark:border-neutral-800" />
                                                                 <div className="w-9 h-9 rounded-full bg-[var(--flux-info-bg)] border border-[var(--flux-info-border)] flex-shrink-0 overflow-hidden shadow-sm">
                                                                     {comment.user?.image ? (
@@ -1158,6 +1185,7 @@ export function TaskDetailModal({
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
                                     </div>
 
                                     {/* Sidebar */}
