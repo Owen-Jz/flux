@@ -1,18 +1,19 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 import { PageHeader } from '@/components/layout/page-header';
 import { PageFooter } from '@/components/layout/page-footer';
-import { UsersIcon, Squares2X2Icon, ChartBarIcon, CheckIcon, BuildingOffice2Icon, BoltIcon, ShieldCheckIcon, ClockIcon, ArrowsRightLeftIcon, BookOpenIcon, CubeTransparentIcon, UserCircleIcon } from '@heroicons/react/24/outline';
+import { UsersIcon, Squares2X2Icon, ChartBarIcon, CheckIcon, BuildingOffice2Icon, BoltIcon, ShieldCheckIcon, ClockIcon, ArrowsRightLeftIcon, CubeTransparentIcon, UserCircleIcon, SparklesIcon } from '@heroicons/react/24/outline';
 
 export const metadata: Metadata = {
   title: 'Features | Flux',
-  description: 'Powerful features for modern teams. Real-time collaboration, Kanban boards, analytics, and more to help your team ship faster.',
+  description: 'Powerful features for modern teams. Kanban boards, AI planning, analytics, and team collaboration to help your team ship faster.',
 };
 
 const features = [
   {
     icon: UsersIcon,
     title: 'Real-time Collaboration',
-    description: 'See who\'s working on what in real-time. Avatars, live cursors, and instant updates keep everyone synchronized.',
+    description: 'See who\'s working on what. Member avatars, instant task updates, and a live activity feed keep everyone aligned.',
     color: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
   },
   {
@@ -22,15 +23,21 @@ const features = [
     color: 'bg-purple-500/10 text-purple-600 dark:text-purple-400',
   },
   {
+    icon: SparklesIcon,
+    title: 'Plan with AI',
+    description: 'Describe a project and Flux generates structured boards, tasks, and subtasks in seconds. Decompose any task with one click.',
+    color: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  },
+  {
     icon: ChartBarIcon,
     title: 'Analytics Dashboard',
-    description: 'Track team velocity, burndown charts, and productivity metrics with beautiful, actionable visualizations.',
+    description: 'Track completion rates, task status breakdowns, and productivity metrics with clear, actionable visualizations.',
     color: 'bg-pink-500/10 text-pink-600 dark:text-pink-400',
   },
   {
     icon: CheckIcon,
     title: 'Task Management',
-    description: 'Powerful task management with subtasks, dependencies, priorities, and custom fields to fit any workflow.',
+    description: 'Subtasks, priorities, assignees, due dates, labels, comments, and threaded replies to fit how your team works.',
     color: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
   },
   {
@@ -39,34 +46,51 @@ const features = [
     description: 'Organize teams with dedicated workspaces. Control access, set permissions, and manage multiple teams effortlessly.',
     color: 'bg-orange-500/10 text-orange-600 dark:text-orange-400',
   },
-  {
-    icon: BoltIcon,
-    title: 'Integrations',
-    description: 'Connect with your favorite tools. Slack, GitHub, Jira, Figma, and many more integrations available.',
-    color: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
-  },
 ];
 
 const additionalFeatures = [
   {
-    icon: BoltIcon,
-    title: 'Lightning Fast',
-    description: 'Under 50ms latency for every action. Built for speed to keep you in flow.',
+    icon: CubeTransparentIcon,
+    title: 'REST API & Webhooks',
+    description: 'Build on Flux with a versioned REST API, scoped API keys, and signed webhook events.',
   },
   {
     icon: ShieldCheckIcon,
-    title: 'Enterprise Security',
-    description: 'Bank-grade encryption, SSO, and granular role-based access controls.',
+    title: 'Roles & Permissions',
+    description: 'Admin, Editor, and Viewer roles with per-board access control and audit logging.',
+  },
+  {
+    icon: UserCircleIcon,
+    title: 'Secure Sign-In',
+    description: 'One-click Google sign-in, email verification, and account protection with login lockout.',
+  },
+  {
+    icon: BoltIcon,
+    title: 'Calendar & Archive',
+    description: 'See tasks by due date on the calendar, and restore completed work from the archive anytime.',
+  },
+];
+
+const comingSoon = [
+  {
+    icon: ArrowsRightLeftIcon,
+    title: 'Integrations',
+    description: 'Connect Slack, GitHub, Google Workspace, and more to keep your stack in sync.',
   },
   {
     icon: ClockIcon,
     title: 'Time Tracking',
-    description: 'Built-in time tracking to monitor productivity and bill accurately.',
+    description: 'Track time on tasks to monitor productivity and bill accurately.',
   },
   {
-    icon: ArrowsRightLeftIcon,
+    icon: BoltIcon,
     title: 'Workflow Automation',
-    description: 'Automate repetitive tasks with custom triggers and actions.',
+    description: 'Automate repetitive work with custom triggers and actions.',
+  },
+  {
+    icon: ShieldCheckIcon,
+    title: 'SSO & SAML',
+    description: 'Enterprise single sign-on for centralized access management.',
   },
 ];
 
@@ -130,27 +154,56 @@ export default function FeaturesPage() {
             </div>
           </div>
 
+          {/* Coming Soon */}
+          <div className="mb-24">
+            <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] text-center mb-3">
+              On the roadmap
+            </h2>
+            <p className="text-center text-[var(--text-secondary)] mb-12">
+              Features we&apos;re actively building. Want one sooner? <Link href="/contact" className="text-[var(--brand-primary)] font-semibold hover:underline">Let us know.</Link>
+            </p>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {comingSoon.map((feature) => (
+                <div
+                  key={feature.title}
+                  className="group relative rounded-[var(--radius)] bg-[var(--surface-subtle)] p-6 border border-dashed border-[var(--border-subtle)]"
+                >
+                  <span className="absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider text-[var(--brand-primary)] bg-[var(--brand-primary)]/10 px-2 py-1 rounded-full">
+                    Coming soon
+                  </span>
+                  <feature.icon className="w-5 h-5 text-[var(--text-secondary)] mb-4" />
+                  <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-[var(--text-secondary)]">
+                    {feature.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           {/* CTA Section */}
           <div className="text-center">
             <h2 className="text-2xl md:text-3xl font-bold text-[var(--foreground)] mb-6">
               Ready to experience these features?
             </h2>
             <p className="text-[var(--text-secondary)] mb-8 max-w-xl mx-auto">
-              Start your free trial today and see how Flux can transform your team's workflow.
+              Start your free trial today and see how Flux can transform your team&apos;s workflow.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a
+              <Link
                 href="/signup"
                 className="px-8 py-4 bg-[var(--surface)] text-[var(--foreground)] rounded-xl font-bold hover:bg-[var(--surface-subtle)] transition-all"
               >
                 Start Free Trial
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/pricing"
                 className="px-8 py-4 bg-[var(--surface-subtle)] text-[var(--foreground)] rounded-xl font-bold hover:bg-[var(--surface)] transition-all"
               >
                 View Pricing
-              </a>
+              </Link>
             </div>
           </div>
         </div>

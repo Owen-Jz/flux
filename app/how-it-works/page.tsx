@@ -19,7 +19,7 @@ const steps = [
   {
     step: '02',
     title: 'Build Your Workflow',
-    description: 'Customize Kanban boards, create task lists, or use a hybrid approach. Define columns, priorities, and automation rules that match your process.',
+    description: 'Customize Kanban boards to match your process. Define columns, set priorities, assign tasks, and let AI generate a full plan from a single description.',
     icon: UsersIcon,
   },
   {
@@ -34,17 +34,17 @@ const benefits = [
   {
     icon: BoltIcon,
     title: 'Lightning Fast',
-    description: 'Every interaction happens in under 50ms. No waiting, no refreshing—just instant updates.',
+    description: 'Optimistic updates make every interaction feel instant. No waiting, no refreshing.',
   },
   {
     icon: ShieldCheckIcon,
-    title: 'Enterprise Secure',
-    description: 'Bank-grade encryption, SSO support, and granular permissions keep your data safe.',
+    title: 'Secure by Default',
+    description: 'Encryption in transit, Google sign-in, role-based access, and audit logging keep your data safe.',
   },
   {
     icon: ClockIcon,
-    title: 'Save 10+ Hours/Week',
-    description: 'Automate repetitive tasks, streamline approvals, and eliminate context switching.',
+    title: 'Save Hours Every Week',
+    description: 'Plan projects with AI, keep work in one place, and eliminate context switching.',
   },
   {
     icon: CheckCircleIcon,
