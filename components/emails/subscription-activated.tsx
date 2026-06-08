@@ -42,7 +42,6 @@ export function SubscriptionActivatedEmail({
   name,
   plan,
   amount,
-  currency,
 }: SubscriptionActivatedEmailProps) {
   const planLabel = PLAN_LABELS[plan] || plan;
   const features = PLAN_FEATURES[plan] || PLAN_FEATURES.starter;
@@ -65,7 +64,7 @@ export function SubscriptionActivatedEmail({
               <tr>
                 <td style={{ color: "#6b7280", fontSize: "13px" }}>Amount Paid</td>
                 <td style={{ textAlign: "right", fontWeight: "700", fontSize: "16px", color: "#1c1917" }}>
-                  {currency === "USD" ? "$" : "₦"}{amount}
+                  ${amount}
                 </td>
               </tr>
               <tr>

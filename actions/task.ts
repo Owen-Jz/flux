@@ -23,6 +23,7 @@ import { canAccessBoard, canGuestAccessBoard, boardVisibilityFilter } from '@/li
 import { TASK_ORDER_INCREMENT } from '@/lib/constants';
 import { triggerNotification } from '@/lib/pwa/trigger-notification';
 import { emitEvent } from '@/lib/webhook-emitter';
+import { renderMentionsToPlainText, extractUserChipIds } from '@/lib/mentions';
 
 interface CreateTaskData {
     title: string;
@@ -113,7 +114,8 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
     if (notifyIds.length > 0) {
         const users = await User.find({ _id: { $in: notifyIds } });
         await Promise.all(users.map(async (user) => {
-            if (user.email) {
+            // Respect each recipient's task-updates preference (defaults to on).
+            if (user.email && user.notificationPreferences?.taskUpdates !== false) {
                 const html = await render(
                     React.createElement(TaskCreatedEmail, {
                         taskTitle: data.title,
@@ -263,9 +265,6 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
 
 export async function getArchivedTasks(workspaceSlug: string) {
     const session = await auth();
-    if (!session?.user?.id) {
-        return [];
-    }
 
     await connectDB();
 
@@ -274,16 +273,18 @@ export async function getArchivedTasks(workspaceSlug: string) {
         return [];
     }
 
-    // Check if user is member
-    const member = isWorkspaceMember(workspace, session.user.id);
-    if (!member) {
+    // Members see their accessible boards' archive; guests get a read-only view
+    // of a publicly-accessible workspace's non-RESTRICTED boards. Otherwise nothing.
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : null;
+    const hasPublicAccess = workspace.settings?.publicAccess === true;
+    if (!member && !hasPublicAccess) {
         return [];
     }
 
-    // Limit archived tasks to boards this user may see.
+    // Limit archived tasks to boards this user (or guest) may see.
     const accessibleBoards = await Board.find({
         workspaceId: workspace._id,
-        ...boardVisibilityFilter(session.user.id, member),
+        ...boardVisibilityFilter(session?.user?.id, member),
     })
         .select('_id')
         .lean();
@@ -429,7 +430,8 @@ export async function updateTaskPosition(
         if (notifyIds.length > 0) {
             const users = await User.find({ _id: { $in: notifyIds } });
             await Promise.all(users.map(async (user) => {
-                if (user.email) {
+                // Respect each recipient's task-updates preference (defaults to on).
+                if (user.email && user.notificationPreferences?.taskUpdates !== false) {
                     const html = await render(
                         React.createElement(TaskMovedEmail, {
                             taskTitle: task.title,
@@ -486,7 +488,7 @@ export async function updateTask(
         priority?: TaskPriority;
         status?: TaskStatus;
         assignees?: string[];
-        subtasks?: { id?: string; title: string; completed: boolean; createdAt?: string; createdBy?: string | Types.ObjectId }[];
+        subtasks?: { id?: string; title: string; completed: boolean; createdAt?: string; createdBy?: string | Types.ObjectId | { id?: string; _id?: string } | null }[];
         categoryId?: string | null;
         dueDate?: string | null;
         links?: { id: string; url: string; title: string }[];
@@ -539,14 +541,28 @@ export async function updateTask(
         task.assignees = data.assignees as unknown as Types.ObjectId[];
     }
     if (data.subtasks !== undefined) {
+        // Normalize `createdBy` from whatever the client round-trips: a raw id
+        // string, an already-cast ObjectId, or a serialized member object
+        // ({ id } / populated { _id }). Falls back to the editing user only when
+        // no original author is present (e.g. a brand-new subtask), so editing
+        // an existing subtask never reassigns its authorship.
+        const coerceCreatedBy = (raw: unknown): Types.ObjectId => {
+            if (!raw) return new Types.ObjectId(session.user.id);
+            if (raw instanceof Types.ObjectId) return raw;
+            if (typeof raw === 'string') {
+                return Types.ObjectId.isValid(raw) ? new Types.ObjectId(raw) : new Types.ObjectId(session.user.id);
+            }
+            const candidate = (raw as { id?: string; _id?: string }).id ?? (raw as { id?: string; _id?: string })._id;
+            return candidate && Types.ObjectId.isValid(candidate.toString())
+                ? new Types.ObjectId(candidate.toString())
+                : new Types.ObjectId(session.user.id);
+        };
         task.subtasks = data.subtasks.map((s) => ({
             _id: (s.id && Types.ObjectId.isValid(s.id)) ? new Types.ObjectId(s.id) : new Types.ObjectId(),
             title: s.title,
             completed: s.completed,
             createdAt: s.createdAt ? new Date(s.createdAt) : new Date(),
-            createdBy: s.createdBy
-                ? (typeof s.createdBy === 'string' ? new Types.ObjectId(s.createdBy) : s.createdBy)
-                : new Types.ObjectId(session.user.id),
+            createdBy: coerceCreatedBy(s.createdBy),
         }));
     }
     if (data.categoryId !== undefined) {
@@ -721,7 +737,8 @@ export async function updateTask(
             if (notifyIds.length > 0) {
                 const users = await User.find({ _id: { $in: notifyIds } });
                 await Promise.all(users.map(async (user) => {
-                    if (user.email) {
+                    // Respect each recipient's task-updates preference (defaults to on).
+                    if (user.email && user.notificationPreferences?.taskUpdates !== false) {
                         const html = await render(
                             React.createElement(TaskMovedEmail, {
                                 taskTitle: task.title,
@@ -1011,6 +1028,26 @@ export async function addComment(taskId: string, content: string) {
         ).filter(canSeeBoard);
         const mentionedSet = new Set(mentionedIds);
 
+        // Resolve `@[user:<id>]` / `@[subtask:<id>]` chip tokens to readable text
+        // for every surface that shows the raw comment body (email + push). The
+        // rich modal renderer handles its own chips; everything else must not
+        // leak the literal `@[user:6a17...]` token.
+        const chipUserIds = extractUserChipIds(content);
+        const chipUsers = chipUserIds.length
+            ? await User.find({ _id: { $in: chipUserIds } }).select('name')
+            : [];
+        const mentionNameById = new Map<string, string>(
+            chipUsers.map((u) => [u._id.toString(), u.name as string]),
+        );
+        const subtaskTitleById = new Map<string, string>(
+            (task.subtasks || []).map((s: { _id: { toString(): string }; title: string }) => [s._id.toString(), s.title]),
+        );
+        const displayContent = renderMentionsToPlainText(
+            content,
+            mentionNameById,
+            subtaskTitleById,
+        );
+
         // EMAIL NOTIFICATION: New Comment — assignees ∪ admins ∪ mentioned, minus
         // the commenter. Admins are folded in so they see every comment.
         const emailTargetIds = taskNotifyTargets(
@@ -1029,7 +1066,7 @@ export async function addComment(taskId: string, content: string) {
                         React.createElement(NewCommentEmail, {
                             taskTitle: task.title,
                             commenterName: session.user.name || 'A teammate',
-                            commentContent: content,
+                            commentContent: displayContent,
                             taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/board/${board.slug}`,
                         })
                     );
@@ -1050,7 +1087,7 @@ export async function addComment(taskId: string, content: string) {
         ).filter(canSeeBoard);
 
         const commenterName = session.user.name || 'A teammate';
-        const snippet = content.substring(0, 60) + (content.length > 60 ? '…' : '');
+        const snippet = displayContent.substring(0, 60) + (displayContent.length > 60 ? '…' : '');
         const taskTitle = task.title;
         const workspaceSlug = workspace.slug;
         const boardSlug = board.slug;
@@ -1305,10 +1342,63 @@ export async function replyToComment(taskId: string, parentCommentId: string, co
         );
 
         const replierName = session.user.name || 'A teammate';
-        const snippet = content.substring(0, 60) + (content.length > 60 ? '…' : '');
+        const replyChipUserIds = extractUserChipIds(content);
+        const replyChipUsers = replyChipUserIds.length
+            ? await User.find({ _id: { $in: replyChipUserIds } }).select('name')
+            : [];
+        const replyMentionNameById = new Map<string, string>(
+            replyChipUsers.map((u) => [u._id.toString(), u.name as string]),
+        );
+        const replySubtaskTitleById = new Map<string, string>(
+            (task.subtasks || []).map((s: { _id: { toString(): string }; title: string }) => [s._id.toString(), s.title]),
+        );
+        const replyDisplayContent = renderMentionsToPlainText(
+            content,
+            replyMentionNameById,
+            replySubtaskTitleById,
+        );
+        const snippet = replyDisplayContent.substring(0, 60) + (replyDisplayContent.length > 60 ? '…' : '');
         const taskTitle = task.title;
         const workspaceSlug = workspace.slug;
         const boardSlug = board.slug;
+
+        // EMAIL NOTIFICATION: New Reply — parent author ∪ assignees ∪ admins ∪
+        // mentioned, minus the replier. Mirrors addComment so a reply (and any
+        // @mention inside it) reaches people by email, not just push. Targets are
+        // filtered to users who can actually access the board, and every send
+        // respects the recipient's `comments` email preference (defaults to on).
+        const roleByUserId = new Map<string, string | undefined>(
+            workspace.members.map((m) => [m.userId.toString(), m.role]),
+        );
+        const canSeeBoard = (uid: string) =>
+            canAccessBoard(board, uid, { role: roleByUserId.get(uid) });
+        const emailTargetIds = taskNotifyTargets(
+            assigneeIds,
+            workspace.members,
+            session.user.id,
+            [parentAuthorId, ...mentionedIds],
+        ).filter(canSeeBoard);
+
+        if (emailTargetIds.length > 0) {
+            const recipients = await User.find({ _id: { $in: emailTargetIds } });
+            await Promise.all(recipients.map(async (user) => {
+                if (user.email && user.notificationPreferences?.comments !== false) {
+                    const html = await render(
+                        React.createElement(NewCommentEmail, {
+                            taskTitle: task.title,
+                            commenterName: replierName,
+                            commentContent: replyDisplayContent,
+                            taskUrl: `${process.env.NEXTAUTH_URL}/${workspace.slug}/board/${board.slug}`,
+                        }),
+                    );
+                    await sendEmail({
+                        to: user.email,
+                        subject: `New Reply on: ${task.title}`,
+                        html,
+                    });
+                }
+            }));
+        }
 
         if (mentionedIds.length > 0) {
             after(() => triggerNotification({
@@ -1574,20 +1664,23 @@ export interface CalendarTask {
 
 export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarTask[]> {
     const session = await auth();
-    if (!session?.user?.id) return [];
 
     await connectDB();
 
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) return [];
 
-    const member = isWorkspaceMember(workspace, session.user.id);
-    if (!member) return [];
+    // Members get their accessible boards; guests get a read-only view of a
+    // publicly-accessible workspace's non-RESTRICTED boards. Non-public, non-member → nothing.
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : null;
+    const hasPublicAccess = workspace.settings?.publicAccess === true;
+    if (!member && !hasPublicAccess) return [];
 
-    // Get all boards this member can access
+    // Get all boards this member (or guest) can access — boardVisibilityFilter
+    // excludes RESTRICTED boards when there is no membership.
     const boards = await Board.find({
         workspaceId: workspace._id,
-        ...boardVisibilityFilter(session.user.id, member),
+        ...boardVisibilityFilter(session?.user?.id, member),
     }).select('_id slug').lean();
 
     const boardIds = boards.map((b) => b._id);

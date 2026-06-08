@@ -38,6 +38,7 @@ export default async function SettingsPage({
                 notificationPreferences: {
                     taskAssigned: user.notificationPreferences?.taskAssigned ?? true,
                     comments: user.notificationPreferences?.comments ?? true,
+                    taskUpdates: user.notificationPreferences?.taskUpdates ?? true,
                 },
             }}
             billingParam={params.billing}

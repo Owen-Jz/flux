@@ -100,14 +100,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             authorizationUrl: transaction.data.authorization_url,
             reference: transaction.data.reference,
-            currency: currency,
+            // Display currency is always USD. The underlying Paystack charge is
+            // processed in NGN via the dashboard-configured plan code (amountKobo).
+            currency: 'USD',
             pricing: {
                 USD: usdPrice,
                 NGN: nairaPrice,
                 exchangeRate: exchangeRate,
-                display: currency === 'USD'
-                    ? `$${usdPrice}/month`
-                    : `₦${nairaPrice.toLocaleString()}/month (≈$${usdPrice})`
+                display: `$${usdPrice}/month`,
             }
         });
     } catch (error) {

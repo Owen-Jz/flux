@@ -8,11 +8,13 @@ import { User } from '@/models/User';
 export interface NotificationPreferences {
     taskAssigned: boolean;
     comments: boolean;
+    taskUpdates: boolean;
 }
 
 const DEFAULT_PREFERENCES: NotificationPreferences = {
     taskAssigned: true,
     comments: true,
+    taskUpdates: true,
 };
 
 /**
@@ -34,6 +36,7 @@ export async function getNotificationPreferences(): Promise<NotificationPreferen
     return {
         taskAssigned: user?.notificationPreferences?.taskAssigned ?? DEFAULT_PREFERENCES.taskAssigned,
         comments: user?.notificationPreferences?.comments ?? DEFAULT_PREFERENCES.comments,
+        taskUpdates: user?.notificationPreferences?.taskUpdates ?? DEFAULT_PREFERENCES.taskUpdates,
     };
 }
 
@@ -58,6 +61,9 @@ export async function updateNotificationPreferences(
     if (typeof prefs.comments === 'boolean') {
         update['notificationPreferences.comments'] = prefs.comments;
     }
+    if (typeof prefs.taskUpdates === 'boolean') {
+        update['notificationPreferences.taskUpdates'] = prefs.taskUpdates;
+    }
 
     if (Object.keys(update).length === 0) {
         return getNotificationPreferences();
@@ -76,5 +82,6 @@ export async function updateNotificationPreferences(
     return {
         taskAssigned: user?.notificationPreferences?.taskAssigned ?? DEFAULT_PREFERENCES.taskAssigned,
         comments: user?.notificationPreferences?.comments ?? DEFAULT_PREFERENCES.comments,
+        taskUpdates: user?.notificationPreferences?.taskUpdates ?? DEFAULT_PREFERENCES.taskUpdates,
     };
 }

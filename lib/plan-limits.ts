@@ -1,4 +1,4 @@
-import { PLAN_LIMITS, PLAN_PRICES_KOBO } from './paystack';
+import { PLAN_LIMITS, PLAN_PRICES_USD } from './paystack';
 import type { PlanMeta, PlanType } from './types/billing';
 
 export interface PlanLimits {
@@ -63,21 +63,21 @@ export const PLAN_META: Record<PlanType, PlanMeta> = {
     },
     starter: {
         label: 'Individual',
-        price: PLAN_PRICES_KOBO.starter,
-        priceDisplay: '₦10,000/mo',
+        price: PLAN_PRICES_USD.starter,
+        priceDisplay: '$10/mo',
         projects: 5,
         members: 10,
     },
     pro: {
         label: 'Entrepreneur',
-        price: PLAN_PRICES_KOBO.pro,
-        priceDisplay: '₦25,000/mo',
+        price: PLAN_PRICES_USD.pro,
+        priceDisplay: '$25/mo',
         projects: 'unlimited',
         members: 25,
     },
     enterprise: {
         label: 'Business',
-        price: PLAN_PRICES_KOBO.enterprise,
+        price: PLAN_PRICES_USD.enterprise,
         priceDisplay: 'Custom',
         projects: 'unlimited',
         members: 'unlimited',

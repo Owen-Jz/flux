@@ -1,5 +1,7 @@
 import { auth } from '@/lib/auth';
 import { getArchivedTasks } from '@/actions/task';
+import { getWorkspaceBySlug } from '@/actions/workspace';
+import { getUserRole } from '@/actions/access-control';
 import { redirect } from 'next/navigation';
 import { ArchiveList } from './archive-list';
 import { ArchiveBoxIcon } from '@heroicons/react/24/outline';
@@ -10,11 +12,23 @@ export default async function ArchivePage({
     params: Promise<{ slug: string }>;
 }) {
     const session = await auth();
-    if (!session?.user) {
+    const { slug } = await params;
+
+    const workspace = await getWorkspaceBySlug(slug);
+    if (!workspace) {
+        redirect('/dashboard');
+    }
+
+    // Allow logged-out visitors only on public workspaces; otherwise → login.
+    if (!session?.user && !workspace.publicAccess) {
         redirect('/login');
     }
 
-    const { slug } = await params;
+    // Restore/Delete are edits — only ADMIN/EDITOR may act. Guests and VIEWERs get
+    // a read-only archive list with no Restore/Delete controls.
+    const userRole = await getUserRole(slug);
+    const isReadOnly = userRole !== 'ADMIN' && userRole !== 'EDITOR';
+
     const tasks = await getArchivedTasks(slug);
 
     return (
@@ -34,7 +48,7 @@ export default async function ArchivePage({
             </div>
 
             <div className="max-w-6xl">
-                <ArchiveList initialTasks={tasks as any} workspaceSlug={slug} />
+                <ArchiveList initialTasks={tasks as any} workspaceSlug={slug} isReadOnly={isReadOnly} />
             </div>
         </div>
     );

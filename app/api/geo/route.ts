@@ -13,24 +13,27 @@ export async function GET(request: NextRequest) {
         const geo = await getUserCountry(clientIp);
         const exchangeRate = await getExchangeRate();
 
+        // Pricing is always displayed in USD regardless of the visitor's location.
+        // We still surface the detected country for informational purposes, but the
+        // currency is fixed to USD so the UI never renders Naira.
         return NextResponse.json({
             country: geo.country,
             countryCode: geo.countryCode,
-            currency: geo.currency,
+            currency: 'USD',
             isNigeria: geo.isNigeria,
             exchangeRate: exchangeRate,
-            displayCurrency: geo.currency === 'NGN' ? '₦' : '$',
+            displayCurrency: '$',
         });
     } catch (error) {
         console.error('Geo API error:', error);
-        // Always return valid fallback data
+        // Always return valid fallback data — USD display in all cases.
         return NextResponse.json({
-            country: 'Nigeria',
-            countryCode: 'NG',
-            currency: 'NGN',
-            isNigeria: true,
+            country: 'Unknown',
+            countryCode: 'XX',
+            currency: 'USD',
+            isNigeria: false,
             exchangeRate: 1348,
-            displayCurrency: '₦',
+            displayCurrency: '$',
         });
     }
 }

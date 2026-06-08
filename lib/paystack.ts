@@ -380,12 +380,20 @@ export const PLAN_CODES = {
         : (process.env.PAYSTACK_ENTERPRISE_PLAN_CODE || 'PLN_enterprise_monthly'),
 };
 
-// Plan pricing in USD (display prices)
+// Plan pricing in USD (the canonical prices shown to users)
 export const PLAN_PRICES_USD = {
     starter: 10,   // $10/month
     pro: 25,       // $25/month
     enterprise: 100, // $100/month (custom)
 };
+
+// USD→NGN rate used to PRICE the NGN subscription plans, so the Naira amount
+// Paystack actually charges corresponds to the USD figure shown to users
+// (display is USD; Paystack settles in NGN). Override via env when FX moves
+// materially — and re-sync the Paystack dashboard plans afterwards by running
+// `scripts/setup-paystack-plans.ts`, which derives plan amounts from this same
+// source so code and Paystack never drift apart.
+export const USD_TO_NGN_PRICING_RATE = Number(process.env.PAYSTACK_USD_NGN_RATE) || 1700;
 
 // Cache for exchange rate (refreshes every hour)
 let cachedExchangeRate: number = 0;
@@ -436,18 +444,20 @@ export async function getNairaPrice(usdPrice: number): Promise<number> {
     return Math.round(usdPrice * exchangeRate);
 }
 
-// Legacy: Plan pricing in Naira (for reference)
+// Plan pricing in Naira, DERIVED from the USD price so the charged amount tracks
+// the displayed dollar price (e.g. $10 × 1700 = ₦17,000). Never hardcode these
+// independently — they must equal what the live Paystack plans charge.
 export const PLAN_PRICES = {
-    starter: 10000, // ₦10,000/month (~ $10)
-    pro: 25000,    // ₦25,000/month (~ $25)
-    enterprise: 50000, // ₦50,000/month (~ $50)
+    starter: PLAN_PRICES_USD.starter * USD_TO_NGN_PRICING_RATE,
+    pro: PLAN_PRICES_USD.pro * USD_TO_NGN_PRICING_RATE,
+    enterprise: PLAN_PRICES_USD.enterprise * USD_TO_NGN_PRICING_RATE,
 };
 
-// Plan pricing in kobo (Paystack's smallest currency unit)
+// Plan pricing in kobo (Paystack's smallest NGN unit = 1/100 Naira).
 export const PLAN_PRICES_KOBO = {
-    starter: 1000000, // ₦10,000 = 1,000,000 kobo
-    pro: 2500000,    // ₦25,000 = 2,500,000 kobo
-    enterprise: 5000000, // ₦50,000 = 5,000,000 kobo
+    starter: PLAN_PRICES.starter * 100,
+    pro: PLAN_PRICES.pro * 100,
+    enterprise: PLAN_PRICES.enterprise * 100,
 };
 
 // Map a Paystack plan code to the internal plan name

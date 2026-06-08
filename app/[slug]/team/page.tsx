@@ -2,7 +2,7 @@ import { auth } from '@/lib/auth';
 import { redirect, notFound } from 'next/navigation';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getAccessRequests, getUserRole, hasPendingRequest } from '@/actions/access-control';
-import { UsersIcon } from '@heroicons/react/24/outline';
+import { UsersIcon, ClockIcon } from '@heroicons/react/24/outline';
 import InviteButton from '@/components/InviteButton';
 import { TeamClient } from './team-client';
 import { RequestAccessButton } from '@/components/RequestAccessButton';
@@ -20,13 +20,17 @@ export default async function TeamPage({
     const session = await auth();
     const { slug } = await params;
 
-    if (!session?.user) {
-        redirect('/login');
-    }
-
     const workspace = await getWorkspaceBySlug(slug);
     if (!workspace) {
         notFound();
+    }
+
+    // Allow logged-out visitors only on public workspaces; otherwise → login.
+    // Guests and logged-in non-members get a read-only roster: getUserRole returns
+    // null (so isAdmin is false → no invite/manage controls), getAccessRequests and
+    // hasPendingRequest return empty/false, and RequestAccessButton is gated on session.
+    if (!session?.user && !workspace.publicAccess) {
+        redirect('/login');
     }
 
     const userRole = await getUserRole(slug);
@@ -57,54 +61,73 @@ export default async function TeamPage({
       };
     });
 
+    const memberCount = workspace.members.length;
+
     return (
-        <div className="p-4 md:p-8 max-w-4xl mx-auto overflow-x-hidden">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 md:mb-8 gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-[var(--foreground)]">Team</h1>
-                    <p className="text-[var(--text-secondary)] hidden sm:block">Manage your workspace collaborators</p>
+        <div className="mx-auto max-w-4xl overflow-x-hidden p-4 md:p-8">
+            {/* Page header */}
+            <header className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center md:mb-8">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]">
+                        <UsersIcon className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-bold text-[var(--foreground)]">Team</h1>
+                        <p className="text-sm text-[var(--text-secondary)]">Manage your workspace collaborators</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     {isViewer && !hasPending && session?.user && (
                         <RequestAccessButton slug={slug} />
                     )}
                     {isViewer && hasPending && (
-                        <div className="px-4 py-2 bg-amber-50 text-amber-700 rounded-lg text-sm font-medium border border-amber-200">
-                            Request Pending
+                        <div
+                            className="inline-flex items-center gap-2 rounded-lg border px-3.5 py-2 text-sm font-medium"
+                            style={{
+                                background: 'var(--flux-warning-bg)',
+                                color: 'var(--flux-warning-text-strong)',
+                                borderColor: 'var(--flux-warning-border)',
+                            }}
+                        >
+                            <ClockIcon className="h-4 w-4" />
+                            Request pending
                         </div>
                     )}
                     {isAdmin && <InviteButton slug={slug} />}
                 </div>
-            </div>
+            </header>
 
             {/* Pending Access Requests - Only visible to admin */}
             {isAdmin && accessRequests.length > 0 && (
-                <div className="mb-6 md:mb-8">
-                    <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <span className="inline-flex items-center justify-center w-6 h-6 bg-amber-500 text-white rounded-full text-xs font-bold">
+                <section className="mb-6 md:mb-8">
+                    <div className="mb-3 flex items-center gap-2.5 px-1">
+                        <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                            Access Requests
+                        </h2>
+                        <span
+                            className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-bold text-white"
+                            style={{ background: 'var(--flux-warning-primary)' }}
+                        >
                             {accessRequests.length}
                         </span>
-                        Pending Access Requests
-                    </h2>
-                    <TeamClient
-                        accessRequests={accessRequests}
-                        slug={slug}
-                    />
-                </div>
+                    </div>
+                    <TeamClient accessRequests={accessRequests} slug={slug} />
+                </section>
             )}
 
-            <div className="card overflow-x-auto">
-                <table className="w-full text-left min-w-[500px]">
-                    <thead>
-                        <tr className="bg-[var(--surface)] border-b border-[var(--border-subtle)]">
-                            <th className="px-4 md:px-6 py-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Member</th>
-                            <th className="px-4 md:px-6 py-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Role</th>
-                            {isAdmin && (
-                                <th className="px-4 md:px-6 py-4 text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</th>
-                            )}
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--border-subtle)]">
+            {/* Members + pending invites */}
+            <section>
+                <div className="mb-3 flex items-center gap-2.5 px-1">
+                    <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                        Members
+                    </h2>
+                    <span className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--background-subtle)] px-1.5 text-xs font-bold text-[var(--text-secondary)]">
+                        {memberCount}
+                    </span>
+                </div>
+
+                <div className="card overflow-hidden">
+                    <div className="divide-y divide-[var(--border-subtle)]">
                         {workspace.members.map((member) => (
                             <MemberRow
                                 key={member.userId}
@@ -113,25 +136,38 @@ export default async function TeamPage({
                                 isAdmin={isAdmin}
                             />
                         ))}
-                        {pendingInvites.map((invite) => (
-                            <PendingInviteRow
-                                key={invite.id}
-                                invite={invite}
-                                isAdmin={isAdmin}
-                            />
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                    </div>
 
-            <div className="mt-6 md:mt-8 p-4 md:p-6 rounded-2xl bg-[var(--brand-primary)]/5 border border-[var(--brand-primary)]/10">
+                    {pendingInvites.length > 0 && (
+                        <>
+                            <div className="border-t border-[var(--border-subtle)] bg-[var(--background-subtle)]/60 px-4 py-2 md:px-5">
+                                <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-tertiary)]">
+                                    Pending invitations · {pendingInvites.length}
+                                </span>
+                            </div>
+                            <div className="divide-y divide-[var(--border-subtle)]">
+                                {pendingInvites.map((invite) => (
+                                    <PendingInviteRow
+                                        key={invite.id}
+                                        invite={invite}
+                                        isAdmin={isAdmin}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+            </section>
+
+            {/* Footer CTA */}
+            <div className="mt-6 rounded-2xl border border-[var(--brand-primary)]/15 bg-[var(--brand-primary)]/5 p-4 md:mt-8 md:p-6">
                 <div className="flex items-start gap-4">
-                    <div className="p-2 rounded-lg bg-[var(--brand-primary)] text-white">
-                        <UsersIcon className="w-5 h-5" />
+                    <div className="rounded-lg bg-[var(--brand-primary)] p-2 text-white">
+                        <UsersIcon className="h-5 w-5" />
                     </div>
                     <div>
                         <h3 className="font-semibold text-[var(--brand-primary)]">Collaboration is key</h3>
-                        <p className="text-sm text-[var(--text-secondary)] mt-1">
+                        <p className="mt-1 text-sm text-[var(--text-secondary)]">
                             {isAdmin
                                 ? 'Invite your teammates to start assigning tasks and tracking progress together in real-time.'
                                 : 'Request edit access to collaborate on tasks and contribute to the project.'}
@@ -139,6 +175,6 @@ export default async function TeamPage({
                     </div>
                 </div>
             </div>
-        </div >
+        </div>
     );
 }

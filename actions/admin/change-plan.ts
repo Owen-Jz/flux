@@ -5,7 +5,7 @@ import { User } from '@/models/User';
 import { AuditLog } from '@/models/AuditLog';
 import { requireAdminPermission } from '@/lib/admin-auth';
 import { requireAdmin } from '@/lib/admin-auth';
-import { PLAN_PRICES_KOBO } from '@/lib/paystack';
+import { PLAN_PRICES_USD } from '@/lib/paystack';
 import mongoose from 'mongoose';
 import type { PlanChangeRequest, PlanType } from '@/lib/types/billing';
 
@@ -27,9 +27,10 @@ async function calculateProration(userId: string, newPlan: PlanType): Promise<Pr
     const oldPlan = (user.plan || 'free') as PlanType;
     if (oldPlan === newPlan) throw new Error('User is already on this plan');
 
-    const planPricesKobo = PLAN_PRICES_KOBO as Record<string, number>;
-    const oldPlanPrice = planPricesKobo[oldPlan] ?? 0;
-    const newPlanPrice = planPricesKobo[newPlan] ?? 0;
+    // Proration math (and the credit/charge it returns) is reported in USD.
+    const planPricesUsd = PLAN_PRICES_USD as Record<string, number>;
+    const oldPlanPrice = planPricesUsd[oldPlan] ?? 0;
+    const newPlanPrice = planPricesUsd[newPlan] ?? 0;
     const billingCycleDays = 30;
 
     const now = new Date();
@@ -44,9 +45,11 @@ async function calculateProration(userId: string, newPlan: PlanType): Promise<Pr
     const daysRemaining = billingCycleDays - daysIntoCycle;
     const isUpgrade = newPlanPrice > oldPlanPrice;
 
+    // Round USD amounts to cents (2 decimals).
+    const roundUsd = (value: number): number => Math.round(value * 100) / 100;
     const priceDiffPerDay = (newPlanPrice - oldPlanPrice) / billingCycleDays;
-    const chargeAmount = isUpgrade ? Math.round(priceDiffPerDay * daysRemaining) : 0;
-    const creditAmount = !isUpgrade ? Math.round(Math.abs(priceDiffPerDay) * daysRemaining) : 0;
+    const chargeAmount = isUpgrade ? roundUsd(priceDiffPerDay * daysRemaining) : 0;
+    const creditAmount = !isUpgrade ? roundUsd(Math.abs(priceDiffPerDay) * daysRemaining) : 0;
 
     return {
         daysRemaining,
@@ -54,7 +57,7 @@ async function calculateProration(userId: string, newPlan: PlanType): Promise<Pr
         newPlanPrice,
         creditAmount,
         chargeAmount,
-        currency: 'NGN',
+        currency: 'USD',
         billingCycleDays,
         isUpgrade,
     };

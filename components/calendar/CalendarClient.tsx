@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import type { CalendarTask } from '@/actions/task';
 import { updateTaskDueDate, createTask, updateTask } from '@/actions/task';
@@ -28,9 +28,10 @@ interface CalendarClientProps {
     workspaceSlug: string;
     userRole: 'ADMIN' | 'EDITOR' | 'VIEWER' | null;
     boards: Board[];
+    members?: Member[];
 }
 
-export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }: CalendarClientProps) {
+export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, members = [] }: CalendarClientProps) {
     const now = new Date();
     const [year, setYear] = useState(now.getFullYear());
     const [month, setMonth] = useState(now.getMonth());
@@ -39,9 +40,24 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
     const [selectedTask, setSelectedTask] = useState<CalendarTask | null>(null);
     const [createDate, setCreateDate] = useState<Date | null>(null);
     const [selectedBoardSlug, setSelectedBoardSlug] = useState<string>(boards[0]?.slug ?? '');
+    // View filter (independent of the create-task board selector above). 'all' shows every board.
+    const [viewBoardSlug, setViewBoardSlug] = useState<string>('all');
     const [createError, setCreateError] = useState<string | null>(null);
 
     const isReadOnly = userRole === 'VIEWER' || userRole === null;
+
+    const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+
+    const goToToday = () => {
+        const t = new Date();
+        setYear(t.getFullYear());
+        setMonth(t.getMonth());
+    };
+
+    // Derived view — the React Compiler memoizes this automatically, so no manual useMemo.
+    const visibleTasks = viewBoardSlug === 'all'
+        ? tasks
+        : tasks.filter(t => t.boardSlug === viewBoardSlug);
 
     const prevMonth = () => {
         if (month === 0) { setMonth(11); setYear(y => y - 1); }
@@ -52,7 +68,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
         else setMonth(m => m + 1);
     };
 
-    const handleDrop = useCallback(async (date: Date) => {
+    const handleDrop = async (date: Date) => {
         if (!draggingTaskId) return;
         const taskId = draggingTaskId;
         setDraggingTaskId(null);
@@ -76,14 +92,14 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
                 setTasks(prev => prev.map(t => (t.id === taskId ? restore : t)));
             }
         }
-    }, [draggingTaskId, workspaceSlug]);
+    };
 
-    const handleDayClick = useCallback((date: Date) => {
+    const handleDayClick = (date: Date) => {
         if (isReadOnly || boards.length === 0) return;
         setCreateDate(date);
-    }, [isReadOnly, boards.length]);
+    };
 
-    const handleCreateSubmit = useCallback(async (formData: {
+    const handleCreateSubmit = async (formData: {
         title: string;
         description?: string;
         priority: TaskPriority;
@@ -120,7 +136,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
             console.error('Failed to create task', err);
             setCreateError('Failed to create task. Please try again.');
         }
-    }, [createDate, selectedBoardSlug, workspaceSlug, boards]);
+    };
 
     // Convert CalendarTask to the TaskData shape expected by TaskDetailModal
     const selectedTaskData: TaskData | null = selectedTask
@@ -138,24 +154,48 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
     return (
         <div className="flex-1 flex flex-col min-h-0">
             {/* Header row */}
-            <div className="flex items-center justify-between mb-4 flex-shrink-0">
-                {/* Board selector (only when multiple boards and not read-only) */}
-                {!isReadOnly && boards.length > 1 && (
-                    <select
-                        value={selectedBoardSlug}
-                        onChange={e => setSelectedBoardSlug(e.target.value)}
-                        className="text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
-                        aria-label="Select board for new tasks"
-                    >
-                        {boards.map(b => (
-                            <option key={b.id} value={b.slug}>{b.name}</option>
-                        ))}
-                    </select>
-                )}
-                {(isReadOnly || boards.length <= 1) && <div />}
+            <div className="flex items-center justify-between gap-3 mb-4 flex-shrink-0 flex-wrap">
+                {/* Left cluster: board view filter + (for editors) create-target board selector */}
+                <div className="flex items-center gap-2">
+                    {boards.length > 1 && (
+                        <select
+                            value={viewBoardSlug}
+                            onChange={e => setViewBoardSlug(e.target.value)}
+                            className="text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 bg-[var(--surface)] text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                            aria-label="Filter calendar by board"
+                        >
+                            <option value="all">All boards</option>
+                            {boards.map(b => (
+                                <option key={b.id} value={b.slug}>{b.name}</option>
+                            ))}
+                        </select>
+                    )}
+                    {!isReadOnly && boards.length > 1 && (
+                        <select
+                            value={selectedBoardSlug}
+                            onChange={e => setSelectedBoardSlug(e.target.value)}
+                            className="text-sm border border-[var(--border-subtle)] rounded-lg px-3 py-1.5 bg-[var(--surface)] text-[var(--text-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
+                            aria-label="Select board for new tasks"
+                            title="New tasks are created on this board"
+                        >
+                            {boards.map(b => (
+                                <option key={b.id} value={b.slug}>New in: {b.name}</option>
+                            ))}
+                        </select>
+                    )}
+                    {boards.length <= 1 && <div />}
+                </div>
 
                 {/* Month navigation */}
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={goToToday}
+                        disabled={isCurrentMonth}
+                        aria-label="Jump to current month"
+                        className="text-sm font-medium px-3 py-1.5 rounded-lg border border-[var(--border-subtle)] text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors disabled:opacity-40 disabled:cursor-default"
+                    >
+                        Today
+                    </button>
                     <button
                         onClick={prevMonth}
                         aria-label="Previous month"
@@ -176,9 +216,11 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
                 </div>
             </div>
 
-            {tasks.length === 0 && (
+            {visibleTasks.length === 0 && (
                 <p className="text-sm text-[var(--text-secondary)] mb-4">
-                    No scheduled tasks. Set a due date on a task to see it here.
+                    {tasks.length === 0
+                        ? 'No scheduled tasks. Set a due date on a task to see it here.'
+                        : 'No scheduled tasks on this board.'}
                 </p>
             )}
 
@@ -192,7 +234,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
             <CalendarGrid
                 year={year}
                 month={month}
-                tasks={tasks}
+                tasks={visibleTasks}
                 onDragStart={setDraggingTaskId}
                 onDrop={handleDrop}
                 onDayClick={handleDayClick}
@@ -238,6 +280,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
                         });
                     }}
                     isReadOnly={isReadOnly}
+                    members={members}
                 />
             )}
 
@@ -247,7 +290,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards }
                     isOpen={!!createDate}
                     onClose={() => setCreateDate(null)}
                     onSubmit={handleCreateSubmit}
-                    members={[]}
+                    members={members}
                     columns={[
                         { id: 'BACKLOG', title: 'Backlog' },
                         { id: 'TODO', title: 'To Do' },

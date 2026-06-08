@@ -12,10 +12,6 @@ export default async function AnalyticsPage({
     const session = await auth();
     const { slug } = await params;
 
-    if (!session?.user) {
-        redirect('/login');
-    }
-
     const workspace = await getWorkspaceBySlug(slug);
     if (!workspace) {
         return (
@@ -23,6 +19,13 @@ export default async function AnalyticsPage({
                 <p className="text-[var(--text-secondary)]">Workspace not found</p>
             </div>
         );
+    }
+
+    // Allow logged-out visitors only on public workspaces; otherwise → login.
+    // Analytics is purely a read-only dashboard, so guests of a public workspace
+    // simply see the (board-visibility-scoped) numbers with no controls to hide.
+    if (!session?.user && !workspace.publicAccess) {
+        redirect('/login');
     }
 
     // Fetch analytics data

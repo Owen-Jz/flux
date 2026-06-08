@@ -202,6 +202,7 @@ export function TaskCard({ task, isReadOnly = false, isDragDisabled = false, onU
                         : 'cursor-pointer shadow-sm hover:shadow-lg focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--background)] transition-[box-shadow] duration-200 overflow-visible'
                 }
                 ${isDone ? 'opacity-60 grayscale hover:opacity-80 hover:grayscale-0' : ''}
+                ${hasUnreadComments && !isDragging && !isMenuOpen ? 'z-20' : ''}
                 p-3.5 flex flex-col gap-2 origin-center outline-none min-h-[56px] md:min-h-0
                 ${isDragging ? 'transition-transform duration-150' : ''}
             `}

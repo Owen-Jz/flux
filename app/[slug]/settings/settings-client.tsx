@@ -13,6 +13,7 @@ import { NotificationPermissionBanner } from '@/components/pwa/notification-perm
 import { subscribeToPush, unsubscribeFromPush, isPushSupported, requiresPWAInstallForPush } from '@/lib/pwa/push-manager';
 import { ApiKeysTable } from '@/components/settings/api-keys-table';
 import { WebhooksTable } from '@/components/settings/webhooks-table';
+import { hexToRgb, darkenHex } from '@/lib/color';
 
 interface SettingsClientProps {
     workspace: {
@@ -124,8 +125,27 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
         }
     };
 
+    /**
+     * Writes the brand-accent CSS variables onto the workspace shell element so
+     * the whole workspace recolors instantly. Returns the shell element (or null
+     * if it isn't mounted, e.g. during SSR) so callers can no-op safely.
+     */
+    const applyAccentToShell = (color: string): HTMLElement | null => {
+        if (typeof document === 'undefined') return null;
+        const shell = document.getElementById('workspace-shell');
+        if (!shell) return null;
+        shell.style.setProperty('--brand-primary', color);
+        shell.style.setProperty('--brand-primary-rgb', hexToRgb(color));
+        shell.style.setProperty('--brand-primary-hover', darkenHex(color));
+        return shell;
+    };
+
     const handleUpdateAccentColor = async (color: string) => {
+        const previousColor = accentColor;
+
+        // Optimistic: update local state AND recolor the live platform immediately.
         setAccentColor(color);
+        applyAccentToShell(color);
         setError(null);
 
         startTransition(async () => {
@@ -133,7 +153,9 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                 await updateWorkspaceSettings(workspace.slug, { accentColor: color });
                 router.refresh();
             } catch (err) {
-                setAccentColor(workspace.accentColor || '#6366f1');
+                // Revert both the picker state and the live CSS variables.
+                setAccentColor(previousColor);
+                applyAccentToShell(previousColor);
                 setError(err instanceof Error ? err.message : 'Failed to update accent color');
             }
         });

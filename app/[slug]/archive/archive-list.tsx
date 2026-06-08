@@ -26,9 +26,11 @@ interface ArchivedTask {
 interface ArchiveListProps {
     initialTasks: ArchivedTask[];
     workspaceSlug: string;
+    /** When true the viewer is a guest / VIEWER: hide Restore/Delete controls. */
+    isReadOnly?: boolean;
 }
 
-export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
+export function ArchiveList({ initialTasks, workspaceSlug, isReadOnly = false }: ArchiveListProps) {
     const router = useRouter();
     const [tasks, setTasks] = useState<ArchivedTask[]>(initialTasks);
     const [actioningIds, setActioningIds] = useState<Set<string>>(new Set());
@@ -112,24 +114,26 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
                             <div className="text-xs text-[var(--text-secondary)] mt-2">
                                 Archived {new Date(task.updatedAt).toLocaleDateString()}
                             </div>
-                            <div className="flex items-center gap-2 mt-3">
-                                <button
-                                    onClick={() => handleRestore(task)}
-                                    disabled={isPending}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2.5 md:px-3 md:py-1.5 text-xs font-medium text-[var(--info-primary)] bg-[var(--info-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--info-primary)] focus-visible:ring-offset-2"
-                                >
-                                    {isPending ? <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" /> : <ArrowPathIcon className="w-3.5 h-3.5" />}
-                                    Restore
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(task.id)}
-                                    disabled={isPending}
-                                    className="inline-flex items-center gap-1.5 px-4 py-2.5 md:px-3 md:py-1.5 text-xs font-medium text-[var(--error-primary)] bg-[var(--error-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)] focus-visible:ring-offset-2"
-                                >
-                                    <TrashIcon className="w-3.5 h-3.5" />
-                                    Delete
-                                </button>
-                            </div>
+                            {!isReadOnly && (
+                                <div className="flex items-center gap-2 mt-3">
+                                    <button
+                                        onClick={() => handleRestore(task)}
+                                        disabled={isPending}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2.5 md:px-3 md:py-1.5 text-xs font-medium text-[var(--info-primary)] bg-[var(--info-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--info-primary)] focus-visible:ring-offset-2"
+                                    >
+                                        {isPending ? <ArrowPathIcon className="w-3.5 h-3.5 animate-spin" /> : <ArrowPathIcon className="w-3.5 h-3.5" />}
+                                        Restore
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(task.id)}
+                                        disabled={isPending}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2.5 md:px-3 md:py-1.5 text-xs font-medium text-[var(--error-primary)] bg-[var(--error-bg)] rounded-md hover:opacity-80 transition-colors disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)] focus-visible:ring-offset-2"
+                                    >
+                                        <TrashIcon className="w-3.5 h-3.5" />
+                                        Delete
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     );
                 })}
@@ -141,7 +145,7 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
                     <tr>
                         <th className="px-6 py-3 font-medium">Task</th>
                         <th className="px-6 py-3 font-medium">Archived Date</th>
-                        <th className="px-6 py-3 font-medium text-right">Actions</th>
+                        {!isReadOnly && <th className="px-6 py-3 font-medium text-right">Actions</th>}
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--border-subtle)]">
@@ -158,6 +162,7 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
                                 <td className="px-6 py-4 text-[var(--text-secondary)]">
                                     {new Date(task.updatedAt).toLocaleDateString()}
                                 </td>
+                                {!isReadOnly && (
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex items-center justify-end gap-2">
                                         <button
@@ -178,6 +183,7 @@ export function ArchiveList({ initialTasks, workspaceSlug }: ArchiveListProps) {
                                         </button>
                                     </div>
                                 </td>
+                                )}
                             </tr>
                         );
                     })}

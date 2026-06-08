@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CreditCardIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon, XMarkIcon, TrophyIcon, BoltIcon, BuildingOffice2Icon, GlobeAltIcon, ShieldCheckIcon, HandRaisedIcon, DocumentChartBarIcon, ServerIcon, ArrowPathIcon as SubmitIcon, SparklesIcon, StarIcon, FireIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { CreditCardIcon, CheckIcon, ArrowPathIcon, ExclamationCircleIcon, XMarkIcon, TrophyIcon, BoltIcon, BuildingOffice2Icon, ShieldCheckIcon, HandRaisedIcon, DocumentChartBarIcon, ServerIcon, SparklesIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
 import { SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid';
 import { PLAN_META } from '@/lib/plan-limits';
+import { USD_TO_NGN_PRICING_RATE } from '@/lib/paystack';
 import { startTrial } from '@/actions/billing/start-trial';
 
 interface Subscription {
@@ -16,14 +17,6 @@ interface Subscription {
     hasUsedTrial: boolean;
 }
 
-interface GeoInfo {
-    country: string;
-    countryCode: string;
-    currency: 'NGN' | 'USD';
-    isNigeria: boolean;
-    exchangeRate: number;
-}
-
 interface BillingTransaction {
     reference: string;
     amount: number;
@@ -31,6 +24,18 @@ interface BillingTransaction {
     status: string;
     date: string;
     channel: string | null;
+}
+
+// Render a Paystack transaction amount as a USD string. `amount` arrives from
+// /api/billing/history already expressed in MAJOR units (the API divides the
+// raw kobo/cents amount by 100), e.g. 17000 for a ₦17,000 charge or 10 for a
+// $10 charge. USD transactions show their dollar value directly; historical
+// NGN charges are converted to an approximate USD figure using the same pricing
+// rate the plans are priced at. The platform always displays dollars — no Naira
+// is ever shown.
+function formatTransactionUsd(amount: number, currency: string): string {
+    const usd = currency.toUpperCase() === 'USD' ? amount : amount / USD_TO_NGN_PRICING_RATE;
+    return `$${usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 const PLAN_FEATURES = {
@@ -56,12 +61,8 @@ const PLAN_FEATURES = {
     },
 };
 
-const PLAN_PRICES = {
-    free: 0,
-    starter: 10000,
-    pro: 25000,
-};
-
+// Display prices in USD. The actual Paystack charge is configured separately
+// (in NGN via dashboard plan codes) and is unaffected by these display values.
 const PLAN_PRICES_USD: Record<string, number> = {
     free: 0,
     starter: 10,
@@ -269,8 +270,6 @@ export function BillingSection() {
     const [processing, setProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
-    const [geoInfo, setGeoInfo] = useState<GeoInfo | null>(null);
-    const [currencyOverride, setCurrencyOverride] = useState<'NGN' | 'USD' | null>(null);
     const [showEnterpriseModal, setShowEnterpriseModal] = useState(false);
     const [showTrialActivation, setShowTrialActivation] = useState(false);
     const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);
@@ -292,20 +291,6 @@ export function BillingSection() {
         return () => {
             cancelled = true;
         };
-    }, []);
-
-    // Fetch user's geo location for currency detection
-    useEffect(() => {
-        async function fetchGeoInfo() {
-            try {
-                const res = await fetch('/api/geo');
-                const data = await res.json();
-                setGeoInfo(data);
-            } catch (err) {
-                console.error('Failed to fetch geo info:', err);
-            }
-        }
-        fetchGeoInfo();
     }, []);
 
     // Check for payment callback — Paystack appends ?trxref=xxx&reference=xxx to the callback URL
@@ -381,7 +366,7 @@ export function BillingSection() {
             const res = await fetch('/api/billing/initialize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plan, currency: displayCurrency }),
+                body: JSON.stringify({ plan, currency: 'USD' }),
             });
             const data = await res.json();
             if (data.authorizationUrl) {
@@ -446,7 +431,7 @@ export function BillingSection() {
         {
             id: 'free',
             name: 'Free',
-            price: PLAN_PRICES.free,
+            price: PLAN_PRICES_USD.free,
             period: '/month',
             icon: BoltIcon,
             color: 'text-gray-500',
@@ -455,7 +440,7 @@ export function BillingSection() {
         {
             id: 'starter',
             name: 'Individual',
-            price: PLAN_PRICES.starter,
+            price: PLAN_PRICES_USD.starter,
             period: '/month',
             icon: TrophyIcon,
             color: 'text-amber-500',
@@ -464,7 +449,7 @@ export function BillingSection() {
         {
             id: 'pro',
             name: 'Entrepreneur',
-            price: PLAN_PRICES.pro,
+            price: PLAN_PRICES_USD.pro,
             period: '/month',
             icon: TrophyIcon,
             color: 'text-purple-500',
@@ -482,18 +467,11 @@ export function BillingSection() {
         },
     ];
 
-    // Determine which currency to display
-    const displayCurrency = currencyOverride || geoInfo?.currency || 'NGN';
-
-    // Format price based on currency
-    const formatPrice = (priceNGN: number | null, planId?: string) => {
-        if (priceNGN === null) return 'Custom';
-        if (priceNGN === 0) return displayCurrency === 'USD' ? '$0' : 'Free';
-        if (displayCurrency === 'USD' && planId) {
-            const usd = PLAN_PRICES_USD[planId] || 0;
-            return usd > 0 ? `$${usd}` : 'Free';
-        }
-        return `₦${priceNGN.toLocaleString()}`;
+    // Pricing is always displayed in USD.
+    const formatPrice = (priceUSD: number | null, planId?: string) => {
+        if (priceUSD === null) return 'Custom';
+        const usd = planId ? (PLAN_PRICES_USD[planId] ?? priceUSD) : priceUSD;
+        return usd > 0 ? `$${usd}` : 'Free';
     };
 
     if (loading) {
@@ -506,23 +484,64 @@ export function BillingSection() {
 
     const currentPlan = subscription?.plan || 'free';
     const isActive = subscription?.status === 'active';
+    const isPastDue = subscription?.status === 'past_due';
+    const isTrialing = Boolean(subscription?.trialEndsAt) && subscription?.status !== 'active';
     const daysLeft = subscription?.trialEndsAt
         ? Math.max(0, Math.ceil((new Date(subscription.trialEndsAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))
         : 0;
+    const isTrialActive = isTrialing && daysLeft > 0;
 
     return (
         <>
-            <div className="space-y-6">
+            <div className="space-y-5">
             {(error || success) && (
-                <div className={`p-4 rounded-lg flex items-center gap-3 ${error ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'}`}>
+                <div
+                    className="flex items-center gap-3 rounded-xl border p-4"
+                    style={
+                        error
+                            ? { background: 'var(--flux-error-bg)', borderColor: 'var(--flux-error-border)', color: 'var(--flux-error-text-strong)' }
+                            : { background: 'rgba(16, 185, 129, 0.08)', borderColor: 'rgba(16, 185, 129, 0.35)', color: 'rgb(5, 150, 105)' }
+                    }
+                >
                     {error ? (
-                        <ExclamationCircleIcon className="w-5 h-5 text-red-500 flex-shrink-0" />
+                        <ExclamationCircleIcon className="w-5 h-5 flex-shrink-0" />
                     ) : (
-                        <CheckIcon className="w-5 h-5 text-green-500 flex-shrink-0" />
+                        <CheckCircleIcon className="w-5 h-5 flex-shrink-0" />
                     )}
                     <p className="text-sm font-medium">{error || success}</p>
-                    <button onClick={() => { setError(null); setSuccess(null); }} className="ml-auto text-gray-400 hover:text-gray-600">
+                    <button
+                        onClick={() => { setError(null); setSuccess(null); }}
+                        className="ml-auto rounded-lg p-1 opacity-70 transition-opacity hover:opacity-100"
+                        aria-label="Dismiss"
+                    >
                         <XMarkIcon className="w-4 h-4" />
+                    </button>
+                </div>
+            )}
+
+            {/* Past-due / dunning banner */}
+            {isPastDue && (
+                <div
+                    className="flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center"
+                    style={{ background: 'var(--flux-error-bg)', borderColor: 'var(--flux-error-border)' }}
+                >
+                    <div className="flex flex-1 items-start gap-3">
+                        <ExclamationCircleIcon className="mt-0.5 w-5 h-5 flex-shrink-0" style={{ color: 'var(--flux-error-primary)' }} />
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold" style={{ color: 'var(--flux-error-text-strong)' }}>
+                                Payment past due
+                            </p>
+                            <p className="mt-0.5 text-xs" style={{ color: 'var(--flux-error-text)' }}>
+                                We couldn&apos;t process your latest payment. Update your billing to keep your premium features.
+                            </p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={() => handleSubscribe(currentPlan)}
+                        disabled={processing}
+                        className="btn btn-danger btn-sm flex-shrink-0 self-start sm:self-auto disabled:opacity-50"
+                    >
+                        {processing ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : 'Update Payment'}
                     </button>
                 </div>
             )}
@@ -534,100 +553,106 @@ export function BillingSection() {
                     <h2 className="font-semibold">Current Plan</h2>
                 </div>
 
-                {/* Trial active banner */}
-                {subscription?.trialEndsAt && subscription?.status !== 'active' && daysLeft > 0 && (
-                    <div className="mb-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-gradient-to-r from-violet-500/15 to-pink-500/15 border border-violet-500/30">
-                        <SparklesIconSolid className="w-5 h-5 text-violet-500 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-violet-600 dark:text-violet-400">
-                                Free Trial Active
-                            </p>
-                            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-                                {daysLeft} day{daysLeft === 1 ? '' : 's'} remaining &mdash; trial ends{' '}
-                                {new Date(subscription.trialEndsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => handleSubscribe(subscription.plan || 'starter')}
-                            className="flex-shrink-0 px-3 py-1.5 bg-violet-500 hover:bg-violet-600 text-white text-xs font-semibold rounded-lg transition-colors"
+                <div
+                    className={`relative overflow-hidden rounded-xl border p-5 transition-colors ${
+                        currentPlan !== 'free'
+                            ? 'border-[var(--brand-primary)]'
+                            : 'border-[var(--border-subtle)] bg-[var(--surface)]'
+                    }`}
+                    style={
+                        currentPlan !== 'free'
+                            ? { background: 'color-mix(in srgb, var(--brand-primary) 6%, var(--surface))' }
+                            : undefined
+                    }
+                >
+                    <div className="flex items-start gap-4">
+                        <div
+                            className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl"
+                            style={
+                                currentPlan === 'free'
+                                    ? { background: 'var(--background-subtle)' }
+                                    : { background: 'color-mix(in srgb, var(--brand-primary) 14%, transparent)' }
+                            }
                         >
-                            Upgrade
-                        </button>
-                    </div>
-                )}
-
-                <div className={`relative overflow-hidden rounded-xl border-2 ${
-                    subscription?.trialEndsAt && subscription?.status !== 'active' && daysLeft > 0
-                        ? 'border-violet-400 bg-gradient-to-br from-violet-500/5 via-transparent to-pink-500/5'
-                        : currentPlan === 'pro'
-                        ? 'border-purple-500 bg-gradient-to-br from-purple-500/5 via-transparent to-pink-500/5'
-                        : currentPlan === 'starter'
-                        ? 'border-amber-500 bg-gradient-to-br from-amber-500/5 via-transparent to-orange-500/5'
-                        : 'border-[var(--border-subtle)] bg-[var(--surface)]'
-                } p-5`}>
-                    {/* Trial pill */}
-                    {subscription?.trialEndsAt && subscription?.status !== 'active' && daysLeft > 0 && (
-                        <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full text-white text-xs font-bold shadow-lg shadow-violet-500/25 animate-pulse">
-                            <SparklesIconSolid className="w-3 h-3" />
-                            TRIAL
-                        </div>
-                    )}
-                    {!subscription?.trialEndsAt && currentPlan === 'pro' && (
-                        <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white text-xs font-bold shadow-lg shadow-purple-500/25">
-                            <SparklesIconSolid className="w-3 h-3" />
-                            PRO
-                        </div>
-                    )}
-                    {!subscription?.trialEndsAt && currentPlan === 'starter' && (
-                        <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-white text-xs font-bold shadow-lg shadow-amber-500/25">
-                            <StarIcon className="w-3 h-3" />
-                            INDIVIDUAL
-                        </div>
-                    )}
-
-                    <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl ${plans.find(p => p.id === currentPlan)?.bg} ${currentPlan === 'pro' ? 'shadow-lg shadow-purple-500/20' : ''}`}>
                             {(() => {
                                 const PlanIcon = plans.find(p => p.id === currentPlan)?.icon || BoltIcon;
-                                return <PlanIcon className={`w-6 h-6 ${plans.find(p => p.id === currentPlan)?.color}`} />;
+                                return (
+                                    <PlanIcon
+                                        className="w-6 h-6"
+                                        style={{ color: currentPlan === 'free' ? 'var(--text-tertiary)' : 'var(--brand-primary)' }}
+                                    />
+                                );
                             })()}
                         </div>
-                        <div className="flex-1">
-                            <div className="flex items-center gap-2">
+                        <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <p className="text-lg font-bold capitalize">{PLAN_META[currentPlan as keyof typeof PLAN_META]?.label || currentPlan}</p>
-                                {subscription?.trialEndsAt && subscription?.status !== 'active' && daysLeft > 0 ? (
-                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-violet-500/10 text-violet-600 dark:text-violet-400 text-xs font-semibold rounded-full">
+                                {isTrialActive ? (
+                                    <span
+                                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
+                                        style={{ background: 'color-mix(in srgb, var(--brand-primary) 12%, transparent)', color: 'var(--brand-primary)' }}
+                                    >
                                         <SparklesIconSolid className="w-3 h-3" />
                                         Trial — {daysLeft}d left
                                     </span>
+                                ) : isPastDue ? (
+                                    <span
+                                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
+                                        style={{ background: 'var(--flux-error-bg-subtle)', color: 'var(--flux-error-text-strong)' }}
+                                    >
+                                        <ExclamationCircleIcon className="w-3 h-3" />
+                                        Past due
+                                    </span>
                                 ) : isActive ? (
-                                    <span className="flex items-center gap-1 px-2 py-0.5 bg-green-500/10 text-green-600 text-xs font-medium rounded-full">
+                                    <span
+                                        className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium"
+                                        style={{ background: 'rgba(16, 185, 129, 0.12)', color: 'rgb(5, 150, 105)' }}
+                                    >
                                         <CheckCircleIcon className="w-3 h-3" />
                                         Active
                                     </span>
                                 ) : (
-                                    <span className="px-2 py-0.5 bg-gray-500/10 text-gray-500 text-xs font-medium rounded-full">
+                                    <span className="rounded-full bg-[var(--background-subtle)] px-2 py-0.5 text-xs font-medium text-[var(--text-tertiary)]">
                                         Free
                                     </span>
                                 )}
                             </div>
-                            <p className="text-sm text-[var(--text-secondary)] mt-0.5">
+                            <p className="mt-1 text-sm text-[var(--text-secondary)]">
                                 {PLAN_META[currentPlan as keyof typeof PLAN_META]?.projects === 'unlimited'
                                     ? 'Unlimited Projects'
-                                    : `${PLAN_META[currentPlan as keyof typeof PLAN_META]?.projects || 0} Projects`} • {' '}
+                                    : `${PLAN_META[currentPlan as keyof typeof PLAN_META]?.projects || 0} Projects`}
+                                {' • '}
                                 {PLAN_META[currentPlan as keyof typeof PLAN_META]?.members === 'unlimited'
                                     ? 'Unlimited Members'
                                     : `${PLAN_META[currentPlan as keyof typeof PLAN_META]?.members || 0} Team Members`}
                             </p>
+
+                            {isTrialActive && subscription?.trialEndsAt && (
+                                <p className="mt-1 text-xs text-[var(--text-tertiary)]">
+                                    {daysLeft} day{daysLeft === 1 ? '' : 's'} remaining — trial ends{' '}
+                                    {new Date(subscription.trialEndsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </p>
+                            )}
                         </div>
+
+                        {isTrialActive && (
+                            <button
+                                onClick={() => handleSubscribe(subscription?.plan || 'starter')}
+                                disabled={processing}
+                                className="btn btn-primary btn-sm flex-shrink-0 disabled:opacity-50"
+                            >
+                                Upgrade
+                            </button>
+                        )}
                     </div>
 
-                    {currentPlan !== 'free' && isActive && (
-                        <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
+                    {currentPlan !== 'free' && (isActive || isPastDue) && (
+                        <div className="mt-4 border-t border-[var(--border-subtle)] pt-4">
                             <button
                                 onClick={handleCancelSubscription}
                                 disabled={processing}
-                                className="text-sm text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                                className="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50"
+                                style={{ color: 'var(--flux-error-primary)' }}
                             >
                                 Cancel Subscription
                             </button>
@@ -640,76 +665,78 @@ export function BillingSection() {
             <div className="card p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="font-semibold">Available Plans</h2>
-                    <div className="flex items-center gap-2">
-                        <GlobeAltIcon className="w-4 h-4 text-[var(--text-secondary)]" />
-                        <select
-                            aria-label="Select display currency"
-                            value={displayCurrency}
-                            onChange={(e) => setCurrencyOverride(e.target.value as 'NGN' | 'USD')}
-                            className="text-xs border border-[var(--border-subtle)] rounded-lg px-2 py-1 bg-[var(--background)]"
-                        >
-                            <option value="NGN">₦ NGN</option>
-                            <option value="USD">$ USD</option>
-                        </select>
-                    </div>
+                    <span className="text-xs text-[var(--text-secondary)]">Prices in USD</span>
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                     {plans.filter(p => p.id !== 'enterprise').map((plan) => {
                         const planOrder = { free: 0, starter: 1, pro: 2, enterprise: 3 };
                         const isCurrentPlan = currentPlan === plan.id;
-                        const isBlurred = plan.id === 'free' && currentPlan !== 'free';
                         const isDowngrade = planOrder[plan.id as keyof typeof planOrder] < planOrder[currentPlan as keyof typeof planOrder];
+                        const isPopular = plan.id === 'pro' && !isCurrentPlan;
 
                         return (
                             <div
                                 key={plan.id}
-                                className={`relative p-4 rounded-lg border-2 transition-all ${
+                                className={`relative flex flex-col rounded-xl border p-5 transition-all ${
                                     isCurrentPlan
-                                        ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)]/5'
-                                        : isBlurred
-                                            ? 'border-[var(--border-subtle)] opacity-50 grayscale'
-                                            : 'border-[var(--border-subtle)] hover:border-[var(--brand-primary)]/50'
+                                        ? 'border-[var(--brand-primary)] shadow-sm'
+                                        : 'border-[var(--border-subtle)] hover:border-[var(--border-default)] hover:shadow-sm'
                                 }`}
+                                style={
+                                    isCurrentPlan
+                                        ? { background: 'color-mix(in srgb, var(--brand-primary) 5%, var(--surface))' }
+                                        : { background: 'var(--surface)' }
+                                }
                             >
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className={`p-1.5 rounded ${plan.bg}`}>
-                                        <plan.icon className={`w-4 h-4 ${plan.color}`} />
+                                {isPopular && (
+                                    <span
+                                        className="absolute -top-2.5 right-4 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm"
+                                        style={{ background: 'var(--brand-primary)' }}
+                                    >
+                                        <SparklesIconSolid className="w-3 h-3" />
+                                        Popular
+                                    </span>
+                                )}
+
+                                <div className="mb-3 flex items-center gap-2.5">
+                                    <div
+                                        className="flex h-8 w-8 items-center justify-center rounded-lg"
+                                        style={{ background: 'var(--background-subtle)' }}
+                                    >
+                                        <plan.icon className="w-4 h-4 text-[var(--text-secondary)]" />
                                     </div>
                                     <span className="font-semibold">{plan.name}</span>
-                                    {plan.id === 'pro' && !isCurrentPlan && (
-                                        <span className="ml-auto text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full font-medium">PRO</span>
-                                    )}
                                 </div>
 
-                                <p className="text-2xl font-bold mb-3">
-                                    {formatPrice(plan.price, plan.id)}
+                                <p className="mb-4 flex items-baseline gap-1">
+                                    <span className="text-3xl font-bold tracking-tight">{formatPrice(plan.price, plan.id)}</span>
                                     {plan.price !== null && plan.price > 0 && (
-                                        <span className="text-sm font-normal text-[var(--text-secondary)]">{plan.period}</span>
+                                        <span className="text-sm font-normal text-[var(--text-tertiary)]">{plan.period}</span>
                                     )}
                                 </p>
 
-                                <ul className="space-y-1 mb-4">
+                                <ul className="mb-5 flex-1 space-y-2">
                                     {PLAN_FEATURES[plan.id as keyof typeof PLAN_FEATURES]?.features?.map((feature: string) => (
                                         <li key={feature} className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-                                            <CheckIcon className="w-3 h-3 text-green-500" />
+                                            <CheckIcon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: 'rgb(16, 185, 129)' }} />
                                             {feature}
                                         </li>
                                     ))}
                                 </ul>
 
                                 {isCurrentPlan ? (
-                                    <button disabled className="w-full btn btn-secondary text-sm" style={{ backgroundColor: 'var(--brand-primary)', color: 'white' }}>
+                                    <button
+                                        disabled
+                                        className="w-full rounded-lg border border-[var(--brand-primary)] py-2 text-sm font-semibold"
+                                        style={{ color: 'var(--brand-primary)', background: 'color-mix(in srgb, var(--brand-primary) 8%, transparent)' }}
+                                    >
                                         Current Plan
-                                    </button>
-                                ) : isBlurred ? (
-                                    <button disabled className="w-full btn btn-secondary text-sm bg-gray-100 text-gray-400 cursor-not-allowed">
-                                        Current
                                     </button>
                                 ) : (
                                     <button
                                         onClick={() => handleSubscribe(plan.id)}
                                         disabled={processing}
-                                        className="w-full btn btn-primary text-sm"
+                                        className={`w-full text-sm ${isDowngrade ? 'btn btn-secondary' : 'btn btn-primary'} disabled:opacity-50`}
                                     >
                                         {processing ? (
                                             <ArrowPathIcon className="w-4 h-4 animate-spin mx-auto" />
@@ -725,47 +752,64 @@ export function BillingSection() {
             </div>
 
             {/* Billing History */}
-            {transactions.length > 0 && (
-                <div className="card p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                        <DocumentChartBarIcon className="w-4 h-4 text-[var(--brand-primary)]" />
-                        <h2 className="font-semibold">Billing History</h2>
+            <div className="card p-6">
+                <div className="flex items-center gap-2 mb-4">
+                    <DocumentChartBarIcon className="w-4 h-4 text-[var(--brand-primary)]" />
+                    <h2 className="font-semibold">Billing History</h2>
+                </div>
+
+                {transactions.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[var(--border-subtle)] px-6 py-10 text-center">
+                        <div
+                            className="mb-3 flex h-11 w-11 items-center justify-center rounded-full"
+                            style={{ background: 'var(--background-subtle)' }}
+                        >
+                            <DocumentChartBarIcon className="w-5 h-5 text-[var(--text-tertiary)]" />
+                        </div>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">No billing history yet</p>
+                        <p className="mt-1 max-w-xs text-xs text-[var(--text-tertiary)]">
+                            Your payment receipts will appear here once you subscribe to a paid plan.
+                        </p>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                ) : (
+                    <div className="-mx-2 overflow-x-auto">
+                        <table className="w-full min-w-[480px] text-sm">
                             <thead>
-                                <tr className="text-left text-xs text-[var(--text-secondary)] border-b border-[var(--border-subtle)]">
-                                    <th className="py-2 pr-4 font-medium">Date</th>
-                                    <th className="py-2 pr-4 font-medium">Amount</th>
-                                    <th className="py-2 pr-4 font-medium">Status</th>
-                                    <th className="py-2 font-medium text-right">Receipt</th>
+                                <tr className="border-b border-[var(--border-subtle)] text-left text-xs uppercase tracking-wide text-[var(--text-tertiary)]">
+                                    <th className="px-2 py-2.5 font-medium">Date</th>
+                                    <th className="px-2 py-2.5 font-medium">Amount</th>
+                                    <th className="px-2 py-2.5 font-medium">Status</th>
+                                    <th className="px-2 py-2.5 text-right font-medium">Receipt</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {transactions.map((t) => (
-                                    <tr key={t.reference} className="border-b border-[var(--border-subtle)] last:border-0">
-                                        <td className="py-3 pr-4 whitespace-nowrap">
+                                    <tr key={t.reference} className="border-b border-[var(--border-subtle)] transition-colors last:border-0 hover:bg-[var(--background-subtle)]">
+                                        <td className="whitespace-nowrap px-2 py-3 text-[var(--text-secondary)]">
                                             {new Date(t.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                                         </td>
-                                        <td className="py-3 pr-4 whitespace-nowrap font-medium">
-                                            {t.currency} {t.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        <td className="whitespace-nowrap px-2 py-3 font-semibold tabular-nums text-[var(--text-primary)]">
+                                            {formatTransactionUsd(t.amount, t.currency)}
                                         </td>
-                                        <td className="py-3 pr-4">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                                                t.status === 'success'
-                                                    ? 'bg-green-500/10 text-green-600'
-                                                    : 'bg-red-500/10 text-red-600'
-                                            }`}>
+                                        <td className="px-2 py-3">
+                                            <span
+                                                className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize"
+                                                style={
+                                                    t.status === 'success'
+                                                        ? { background: 'rgba(16, 185, 129, 0.12)', color: 'rgb(5, 150, 105)' }
+                                                        : { background: 'var(--flux-error-bg-subtle)', color: 'var(--flux-error-text-strong)' }
+                                                }
+                                            >
                                                 {t.status === 'success' ? 'Paid' : t.status}
                                             </span>
                                         </td>
-                                        <td className="py-3 text-right">
+                                        <td className="px-2 py-3 text-right">
                                             {t.status === 'success' ? (
                                                 <a
                                                     href={`/api/billing/receipt/${encodeURIComponent(t.reference)}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="text-[var(--brand-primary)] hover:underline font-medium"
+                                                    className="font-medium text-[var(--brand-primary)] hover:underline"
                                                 >
                                                     View
                                                 </a>
@@ -778,8 +822,8 @@ export function BillingSection() {
                             </tbody>
                         </table>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
             {/* Trial Activation Modal */}
             <AnimatePresence>
@@ -853,15 +897,22 @@ export function BillingSection() {
             </AnimatePresence>
 
             {/* Enterprise Contact */}
-            <div className="card p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
-                <div className="flex items-center gap-2 mb-2">
-                    <BuildingOffice2Icon className="w-5 h-5 text-blue-600" />
-                    <h2 className="font-semibold">Enterprise</h2>
+            <div className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                    <div
+                        className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
+                        style={{ background: 'var(--background-subtle)' }}
+                    >
+                        <BuildingOffice2Icon className="w-5 h-5 text-[var(--text-secondary)]" />
+                    </div>
+                    <div className="min-w-0">
+                        <h2 className="font-semibold">Business</h2>
+                        <p className="mt-1 max-w-md text-sm text-[var(--text-secondary)]">
+                            Need custom pricing, SSO, SLA guarantees, or on-premise deployment? Contact us for a custom solution.
+                        </p>
+                    </div>
                 </div>
-                <p className="text-sm text-[var(--text-secondary)] mb-4">
-                    Need custom pricing, SSO, SLA guarantees, or on-premise deployment? Contact us for a custom solution.
-                </p>
-                <button onClick={() => setShowEnterpriseModal(true)} className="btn btn-secondary text-sm">
+                <button onClick={() => setShowEnterpriseModal(true)} className="btn btn-secondary flex-shrink-0 text-sm">
                     Contact Sales
                 </button>
             </div>

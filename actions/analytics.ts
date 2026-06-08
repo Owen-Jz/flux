@@ -63,39 +63,50 @@ function getTimeAgo(date: Date): string {
     return `${Math.floor(seconds / 86400)}d ago`;
 }
 
+function emptyAnalytics(): WorkspaceAnalytics {
+    return {
+        totalTasks: 0,
+        completedTasks: 0,
+        inProgressTasks: 0,
+        todoTasks: 0,
+        totalBoards: 0,
+        taskTrend: [],
+        velocity: [],
+        distribution: [],
+        recentActivity: [],
+    };
+}
+
 export async function getWorkspaceAnalytics(workspaceId: string): Promise<WorkspaceAnalytics> {
     const session = await auth();
-    if (!session?.user?.id) throw new Error('Unauthorized');
 
     await connectDB();
 
-    const workspace = await Workspace.findById(workspaceId);
-    if (!workspace) throw new Error('Workspace not found');
+    if (!mongoose.Types.ObjectId.isValid(workspaceId)) return emptyAnalytics();
 
-    const member = isWorkspaceMember(workspace, session.user.id);
-    if (!member) throw new Error('Access denied');
+    const workspace = await Workspace.findById(workspaceId);
+    if (!workspace) return emptyAnalytics();
+
+    // Members see analytics for their accessible boards; guests get a read-only
+    // view of a publicly-accessible workspace's non-RESTRICTED boards. Non-public,
+    // non-member callers get empty analytics rather than an error so the public
+    // page can render gracefully.
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : null;
+    const hasPublicAccess = workspace.settings?.publicAccess === true;
+    if (!member && !hasPublicAccess) return emptyAnalytics();
 
     const objectId = new mongoose.Types.ObjectId(workspaceId);
 
-    // Analytics only reflect boards this user is allowed to see.
+    // Analytics only reflect boards this user (or guest) is allowed to see —
+    // boardVisibilityFilter excludes RESTRICTED boards when there is no membership.
     const boards = await Board.find({
         workspaceId: objectId,
-        ...boardVisibilityFilter(session.user.id, member),
+        ...boardVisibilityFilter(session?.user?.id, member),
     }).select("_id").lean();
     const boardIds = boards.map(b => b._id);
 
     if (boardIds.length === 0) {
-        return {
-            totalTasks: 0,
-            completedTasks: 0,
-            inProgressTasks: 0,
-            todoTasks: 0,
-            totalBoards: 0,
-            taskTrend: [],
-            velocity: [],
-            distribution: [],
-            recentActivity: []
-        };
+        return emptyAnalytics();
     }
 
     // Task counts by status

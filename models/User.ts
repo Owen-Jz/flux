@@ -39,6 +39,7 @@ export interface IUser extends Document {
     notificationPreferences?: {
         taskAssigned: boolean;
         comments: boolean;
+        taskUpdates: boolean;
     };
     // Billing fields
     plan: PlanType;
@@ -94,6 +95,7 @@ const UserSchema = new Schema<IUser>(
         notificationPreferences: {
             taskAssigned: { type: Boolean, default: true },
             comments: { type: Boolean, default: true },
+            taskUpdates: { type: Boolean, default: true },
         },
         // Billing fields
         plan: { type: String, enum: ['free', 'starter', 'pro', 'enterprise'], default: 'free' },

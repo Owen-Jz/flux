@@ -146,12 +146,13 @@ export async function POST(request: NextRequest) {
 
         await mongoSession.commitTransaction();
 
-        // Send upgrade confirmation email after commit
-        const paidAmount = transactionCurrency === 'USD'
-            ? PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD]
-            : (transactionAmount ? transactionAmount / 100 : undefined);
+        // Send upgrade confirmation email after commit.
+        // Display the canonical USD price regardless of the underlying charge
+        // currency (the Paystack charge is processed in NGN via the plan code,
+        // but all user-facing pricing is shown in USD).
+        const paidAmount = PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD];
         after(() =>
-            sendSubscriptionActivatedEmail(user, user.plan, paidAmount, transactionCurrency || 'NGN').catch((error) => {
+            sendSubscriptionActivatedEmail(user, user.plan, paidAmount, 'USD').catch((error) => {
                 console.error('Failed to send subscription activated email:', error);
             })
         );
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
             plan: user.plan,
             status: user.subscriptionStatus,
             amount: PLAN_PRICES_USD[plan as keyof typeof PLAN_PRICES_USD],
-            currency: transactionCurrency || 'NGN',
+            currency: 'USD',
         });
     } catch (error) {
         await mongoSession.abortTransaction();

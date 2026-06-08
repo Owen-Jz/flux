@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { EnvelopeIcon } from '@heroicons/react/24/outline';
+import { AnimatePresence } from 'framer-motion';
+import { UserPlusIcon } from '@heroicons/react/24/outline';
 import InviteMemberModal from './InviteMemberModal';
 
 export default function InviteButton({ slug }: { slug: string }) {
@@ -11,13 +12,15 @@ export default function InviteButton({ slug }: { slug: string }) {
         <>
             <button
                 onClick={() => setIsOpen(true)}
-                className="btn btn-primary text-sm flex items-center gap-2"
+                className="btn btn-primary text-sm"
             >
-                <EnvelopeIcon className="w-4 h-4" />
-                Invite Member
+                <UserPlusIcon className="h-4 w-4" />
+                Invite member
             </button>
 
-            {isOpen && <InviteMemberModal slug={slug} onClose={() => setIsOpen(false)} />}
+            <AnimatePresence>
+                {isOpen && <InviteMemberModal slug={slug} onClose={() => setIsOpen(false)} />}
+            </AnimatePresence>
         </>
     );
 }

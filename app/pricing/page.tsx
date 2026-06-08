@@ -98,7 +98,7 @@ export default function PricingPage() {
               Choose the plan that&apos;s right for your team. All plans include a 14-day free trial.
             </p>
             <p className="text-sm text-[var(--text-tertiary)] mt-2">
-              Approximate pricing: Individual ≈ ₦10,000/mo, Entrepreneur ≈ ₦25,000/mo (USD based)
+              All prices in USD.
             </p>
           </div>
 
@@ -134,12 +134,7 @@ export default function PricingPage() {
                       plan.popular ? 'text-slate-400' : 'text-[var(--text-secondary)]'
                     }`}>{plan.period}</span>
                   </div>
-                  {plan.price !== 'Custom' && plan.price !== '$0' && (
-                    <p className="text-xs text-[var(--text-tertiary)] mt-1 mb-4">
-                      ≈ ₦{plan.name === 'Individual' ? '10,000' : plan.name === 'Entrepreneur' ? '25,000' : ''}/mo
-                    </p>
-                  )}
-                  {(plan.price === 'Custom' || plan.price === '$0') && <div className="mb-5" />}
+                  <div className="mb-5" />
                   <p className={`text-sm leading-relaxed ${
                     plan.popular ? 'text-slate-400' : 'text-[var(--text-secondary)]'
                   }`}>

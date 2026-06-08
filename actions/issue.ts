@@ -2,13 +2,14 @@
 
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
-import { Issue, IssueStatus, IssuePriority, IssueType } from '@/models/Issue';
+import { Issue, IssueStatus, IssuePriority, IssueType, IIssueComment } from '@/models/Issue';
 import { Workspace } from '@/models/Workspace';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { User } from '@/models/User';
 import { Task } from '@/models/Task';
 import { Board } from '@/models/Board';
 import { revalidatePath } from 'next/cache';
+import { Types } from 'mongoose';
 import { logActivity } from './activity';
 import { sendEmail } from '@/lib/email/resend';
 import { IssueCreatedEmail } from '@/components/emails/issue-created';
@@ -109,30 +110,101 @@ export async function createIssue(workspaceSlug: string, data: CreateIssueData) 
     return { id: issue._id.toString() };
 }
 
+/** Author embedded in a serialized comment (JSON-safe). */
+export interface SerializedCommentAuthor {
+    id: string;
+    name: string;
+    email: string;
+    image: string | null;
+}
+
+/** A serialized issue comment as sent to the client. */
+export interface SerializedIssueComment {
+    id: string;
+    content: string;
+    userId: string;
+    user: SerializedCommentAuthor;
+    createdAt: string;
+}
+
+/** Minimal shape of a populated author document (lean). */
+interface PopulatedAuthor {
+    _id: Types.ObjectId | string;
+    name?: string;
+    email?: string;
+    image?: string | null;
+}
+
+function isPopulatedAuthor(value: unknown): value is PopulatedAuthor {
+    return typeof value === 'object' && value !== null && '_id' in value;
+}
+
+/** Serialize a populated comment author into the JSON-safe author shape. */
+function serializeCommentAuthor(user: unknown): SerializedCommentAuthor {
+    if (isPopulatedAuthor(user)) {
+        return {
+            id: user._id.toString(),
+            name: user.name ?? 'Unknown User',
+            email: user.email ?? '',
+            image: user.image ?? null,
+        };
+    }
+    return { id: '', name: 'Unknown User', email: '', image: null };
+}
+
+/** Lean shape of a comment subdocument after populating its author. */
+interface LeanIssueComment {
+    _id: Types.ObjectId | string;
+    content: string;
+    userId: PopulatedAuthor | Types.ObjectId | string;
+    createdAt: Date;
+}
+
+/** Serialize a single (populated) comment subdocument. */
+function serializeIssueComment(comment: LeanIssueComment): SerializedIssueComment {
+    const author = serializeCommentAuthor(comment.userId);
+    return {
+        id: comment._id.toString(),
+        content: comment.content,
+        userId: author.id || comment.userId.toString(),
+        user: author,
+        createdAt: new Date(comment.createdAt).toISOString(),
+    };
+}
+
 export async function getIssues(workspaceSlug: string) {
     const session = await auth();
-    if (!session?.user?.id) return [];
 
     await connectDB();
     const workspace = await Workspace.findOne({ slug: workspaceSlug });
     if (!workspace) return [];
 
-    // Verify user is a member
-    const member = isWorkspaceMember(workspace, session.user.id);
-    if (!member) return [];
+    // Members see issues; guests get a read-only view when the workspace is
+    // publicly accessible. Issues are workspace-scoped (not board-scoped), so a
+    // public workspace exposes its feedback list to guests in read-only form.
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : null;
+    const hasPublicAccess = workspace.settings?.publicAccess === true;
+    if (!member && !hasPublicAccess) return [];
 
     const issues = await Issue.find({ workspaceId: workspace._id })
         .populate('reporterId', 'name image')
         .populate('assigneeId', 'name image')
+        .populate('comments.userId', 'name email image')
         .sort({ createdAt: -1 })
         .lean();
 
-    const serializeUser = (user: any) => {
-        if (!user || typeof user !== 'object' || !('_id' in user)) return null;
+    const serializeUser = (user: unknown) => {
+        if (!isPopulatedAuthor(user)) return null;
         return {
-            name: user.name as string,
-            image: (user.image as string | undefined) ?? null,
+            name: user.name ?? '',
+            image: user.image ?? null,
         };
+    };
+
+    const refId = (value: unknown): string | null => {
+        if (isPopulatedAuthor(value)) return value._id.toString();
+        if (value === null || value === undefined) return null;
+        return value.toString();
     };
 
     return issues.map(issue => ({
@@ -143,13 +215,78 @@ export async function getIssues(workspaceSlug: string) {
         status: issue.status,
         priority: issue.priority,
         type: issue.type,
-        reporterId: (issue.reporterId as any)?._id?.toString() ?? (issue.reporterId as any)?.toString() ?? null,
+        reporterId: refId(issue.reporterId),
         reporter: serializeUser(issue.reporterId),
-        assigneeId: (issue.assigneeId as any)?._id?.toString() ?? (issue.assigneeId as any)?.toString() ?? null,
+        assigneeId: refId(issue.assigneeId),
         assignee: serializeUser(issue.assigneeId),
+        comments: ((issue.comments ?? []) as LeanIssueComment[]).map(serializeIssueComment),
         createdAt: issue.createdAt.toISOString(),
         updatedAt: issue.updatedAt.toISOString(),
     }));
+}
+
+export async function addIssueComment(workspaceSlug: string, issueId: string, content: string): Promise<SerializedIssueComment> {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error('Unauthorized');
+
+    const trimmed = content.trim();
+    if (!trimmed) throw new Error('Comment cannot be empty');
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) throw new Error('Workspace not found');
+
+    // Verify user is a member of the workspace
+    const member = isWorkspaceMember(workspace, session.user.id);
+    if (!member) throw new Error('Unauthorized');
+
+    // Only ADMIN and EDITOR may comment; VIEWERs are read-only
+    if (!hasRole(member, 'ADMIN', 'EDITOR')) {
+        throw new Error('You do not have permission to comment');
+    }
+
+    const issue = await Issue.findOne({ _id: issueId, workspaceId: workspace._id });
+    if (!issue) throw new Error('Issue not found');
+
+    issue.comments.push({
+        content: trimmed,
+        userId: new Types.ObjectId(session.user.id),
+    } as unknown as IIssueComment);
+
+    await issue.save();
+
+    // The just-pushed subdocument's _id is the source of truth.
+    const created = issue.comments[issue.comments.length - 1];
+    const createdId = created._id.toString();
+
+    // Re-fetch with the author populated, then locate the exact subdoc by id.
+    const populated = await Issue.findById(issueId)
+        .populate('comments.userId', 'name email image')
+        .lean();
+
+    const populatedComment = ((populated?.comments ?? []) as unknown as LeanIssueComment[])
+        .find((c) => c._id.toString() === createdId);
+
+    revalidatePath(`/${workspaceSlug}/issues`);
+
+    if (!populatedComment) {
+        // Fallback: serialize from the session if the re-fetch missed it.
+        return {
+            id: createdId,
+            content: trimmed,
+            userId: session.user.id,
+            user: {
+                id: session.user.id,
+                name: session.user.name ?? 'Unknown User',
+                email: session.user.email ?? '',
+                image: session.user.image ?? null,
+            },
+            createdAt: new Date(created.createdAt).toISOString(),
+        };
+    }
+
+    return serializeIssueComment(populatedComment);
 }
 
 export async function updateIssueStatus(workspaceSlug: string, issueId: string, status: IssueStatus) {

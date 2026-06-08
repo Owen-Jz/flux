@@ -20,10 +20,6 @@ export default async function BoardPage({
     const session = await auth();
     const { slug, boardSlug } = await params;
 
-    if (!session?.user) {
-        redirect('/login');
-    }
-
     const workspace = await getWorkspaceBySlug(slug);
     if (!workspace) {
         return (
@@ -31,6 +27,15 @@ export default async function BoardPage({
                 <p className="text-[var(--text-secondary)]">Workspace not found</p>
             </div>
         );
+    }
+
+    // Logged-out visitors are allowed only when the workspace is public; otherwise
+    // send them to login. Logged-in non-members of a public workspace are NOT
+    // bounced — they fall through to the read-only guest view (userRole is null →
+    // canEdit false). Logged-in non-members of a private workspace are blocked by
+    // the workspace layout before reaching here.
+    if (!session?.user && !workspace.publicAccess) {
+        redirect('/login');
     }
 
     const board = await getBoardBySlug(slug, boardSlug);

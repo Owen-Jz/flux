@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect, useMemo, KeyboardEvent } from 'react';
+import { useState, useRef, useEffect, useMemo, useLayoutEffect, KeyboardEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -84,8 +85,39 @@ export function DatePicker({
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+  // Fixed-position coordinates for the portaled panel, anchored to the trigger.
+  const [panelPos, setPanelPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const selectedParts = useMemo(() => parseLocalParts(value), [value]);
+
+  const PANEL_WIDTH = 288; // w-72
+  const PANEL_EST_HEIGHT = 360; // approx full panel height for flip decisions
+
+  // Compute fixed coords from the trigger's viewport rect. Flips above the
+  // trigger when there isn't room below, and clamps within the viewport so the
+  // panel is never partially off-screen.
+  const recomputePosition = () => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const openUp = spaceBelow < PANEL_EST_HEIGHT && rect.top > spaceBelow;
+    const top = openUp
+      ? Math.max(8, rect.top - PANEL_EST_HEIGHT - 4)
+      : rect.bottom + 4;
+    const left = Math.min(
+      Math.max(8, rect.left),
+      Math.max(8, window.innerWidth - PANEL_WIDTH - 8),
+    );
+    setPanelPos({ top, left });
+  };
 
   // The month/year currently shown in the panel header.
   const [viewYear, setViewYear] = useState<number>(() => {
@@ -105,19 +137,38 @@ export function DatePicker({
     };
     setViewYear(target.year);
     setViewMonth(target.month);
+    recomputePosition();
     setIsOpen(true);
   };
 
-  // Close on outside click.
+  // Close on outside click. The panel is portaled to <body>, so it is NOT a DOM
+  // descendant of containerRef — check the panel element explicitly too.
   useEffect(() => {
     if (!isOpen) return;
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target)) return;
+      if (panelRef.current?.contains(target)) return;
+      setIsOpen(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  // Keep the panel anchored to the trigger while open (scroll/resize). Capture
+  // phase so we also react to scrolling inside the modal's scroll container.
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    recomputePosition();
+    const onScroll = () => recomputePosition();
+    const onResize = () => recomputePosition();
+    window.addEventListener('scroll', onScroll, true);
+    window.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('scroll', onScroll, true);
+      window.removeEventListener('resize', onResize);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Close on Escape.
@@ -187,6 +238,7 @@ export function DatePicker({
   return (
     <div ref={containerRef} className="relative w-full">
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => {
           if (disabled) return;
@@ -208,17 +260,19 @@ export function DatePicker({
         </span>
       </button>
 
-      <AnimatePresence>
+      {mounted && createPortal(
+        <AnimatePresence>
         {isOpen && (
           <motion.div
+            ref={panelRef}
             role="dialog"
             aria-label="Choose date"
             initial={{ opacity: 0, scale: 0.96, y: -4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -4 }}
             transition={{ duration: 0.12, ease: 'easeOut' }}
-            style={{ transformOrigin: 'top left' }}
-            className="absolute z-50 mt-1 w-72 max-w-[calc(100vw-2rem)] p-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] shadow-lg shadow-black/20"
+            style={{ transformOrigin: 'top left', position: 'fixed', top: panelPos.top, left: panelPos.left }}
+            className="z-[200] w-72 max-w-[calc(100vw-2rem)] p-3 rounded-xl border border-[var(--border-subtle)] bg-[var(--surface)] shadow-lg shadow-black/20"
           >
             {/* Month header */}
             <div className="flex items-center justify-between mb-2">
@@ -309,7 +363,9 @@ export function DatePicker({
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body,
+      )}
     </div>
   );
 }

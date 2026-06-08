@@ -3,7 +3,9 @@
 import { useState, useTransition } from 'react';
 import Image from 'next/image';
 import { updateMemberRole, removeMember } from '@/actions/workspace';
-import { CheckIcon, XMarkIcon, ArrowPathIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, XMarkIcon, ArrowPathIcon, TrashIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
+import CustomSelect from '@/components/ui/custom-select';
+import { RoleBadge } from './RoleBadge';
 
 interface Member {
     userId: string;
@@ -59,93 +61,103 @@ export function MemberRow({ member, slug, isAdmin, onError }: MemberRowProps) {
     };
 
     const isMemberAdmin = member.role === 'ADMIN';
+    const displayName = member.user?.name || member.user?.email || 'Unknown user';
+    const initial = (member.user?.name || member.user?.email || 'U').charAt(0).toUpperCase();
 
     return (
-        <tr className="hover:bg-[var(--surface)] transition-colors">
-            <td className="px-6 py-4">
-                <div className="flex items-center gap-3">
-                    {member.user?.image ? (
-                        <Image src={member.user.image} alt="" width={32} height={32} className="w-8 h-8 rounded-full" />
-                    ) : (
-                        <div className="w-8 h-8 rounded-full bg-[var(--border-subtle)] flex items-center justify-center text-xs font-medium">
-                            {member.user?.name?.charAt(0) || 'U'}
-                        </div>
-                    )}
-                    <div>
-                        <p className="text-sm font-medium">{member.user?.name}</p>
-                        <p className="text-xs text-[var(--text-secondary)]">{member.user?.email}</p>
-                    </div>
-                </div>
-            </td>
-            <td className="px-6 py-4">
-                {isEditing ? (
-                    <select
-                        value={selectedRole}
-                        onChange={(e) => setSelectedRole(e.target.value as 'EDITOR' | 'VIEWER')}
-                        disabled={isPending}
-                        className="text-xs border rounded px-2 py-1 bg-[var(--surface)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]"
-                    >
-                        <option value="EDITOR">EDITOR</option>
-                        <option value="VIEWER">VIEWER</option>
-                    </select>
+        <div className="group flex items-center gap-3 px-4 md:px-5 py-3.5 transition-colors hover:bg-[var(--background-subtle)]">
+            {/* Identity */}
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+                {member.user?.image ? (
+                    <Image
+                        src={member.user.image}
+                        alt=""
+                        width={40}
+                        height={40}
+                        className="h-10 w-10 flex-shrink-0 rounded-full object-cover ring-1 ring-[var(--border-subtle)]"
+                    />
                 ) : (
-                    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${member.role === 'ADMIN'
-                        ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
-                        : member.role === 'EDITOR'
-                            ? 'bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]'
-                            : 'bg-[var(--background-subtle)] text-[var(--text-secondary)]'
-                        }`}>
-                        {member.role}
-                    </span>
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--brand-primary)]/10 text-sm font-semibold text-[var(--brand-primary)] ring-1 ring-[var(--border-subtle)]">
+                        {initial}
+                    </div>
                 )}
-            </td>
-            {isAdmin && (
-                <td className="px-6 py-4 text-right">
-                    {!isMemberAdmin ? (
-                        isEditing ? (
-                            <div className="flex items-center justify-end gap-2">
-                                <button
-                                    onClick={handleSave}
-                                    disabled={isPending}
-                                    aria-label="Save role change"
-                                    className="p-2.5 text-[var(--success-primary)] hover:bg-[var(--success-bg)] rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--success-primary)]"
-                                    title="Save"
-                                >
-                                    {isPending ? <ArrowPathIcon className="w-4 h-4 animate-spin" /> : <CheckIcon className="w-4 h-4" />}
-                                </button>
-                                <button
-                                    onClick={() => setIsEditing(false)}
-                                    disabled={isPending}
-                                    aria-label="Cancel edit"
-                                    className="p-2.5 text-[var(--text-tertiary)] hover:bg-[var(--background-subtle)] rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
-                                    title="Cancel"
-                                >
-                                    <XMarkIcon className="w-4 h-4" />
-                                </button>
-                                <div className="w-px h-4 bg-[var(--border-subtle)] mx-1" />
-                                <button
-                                    onClick={handleRemove}
-                                    disabled={isPending}
-                                    aria-label="Remove member"
-                                    className="p-2.5 text-[var(--error-primary)] hover:bg-[var(--error-bg)] rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--error-primary)]"
-                                    title="Remove Member"
-                                >
-                                    <TrashIcon className="w-4 h-4" />
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                onClick={() => setIsEditing(true)}
-                                className="text-[var(--text-secondary)] hover:text-[var(--foreground)] text-sm font-medium"
-                            >
-                                Edit
-                            </button>
-                        )
-                    ) : (
-                        <span className="text-xs text-[var(--text-tertiary)] italic">Admin</span>
+                <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-[var(--foreground)]">{displayName}</p>
+                    {member.user?.email && (
+                        <p className="truncate text-xs text-[var(--text-secondary)]">{member.user.email}</p>
                     )}
-                </td>
-            )}
-        </tr>
+                </div>
+            </div>
+
+            {/* Role */}
+            <div className="flex flex-shrink-0 items-center justify-end gap-2 sm:gap-3">
+                {isEditing ? (
+                    <CustomSelect
+                        value={selectedRole}
+                        onChange={(v) => setSelectedRole(v as 'EDITOR' | 'VIEWER')}
+                        options={[
+                            { value: 'EDITOR', label: 'Editor' },
+                            { value: 'VIEWER', label: 'Viewer' },
+                        ]}
+                        minWidth="110px"
+                    />
+                ) : (
+                    <RoleBadge role={member.role} />
+                )}
+
+                {/* Actions */}
+                {isAdmin && (
+                    <div className="flex min-w-[68px] items-center justify-end">
+                        {!isMemberAdmin ? (
+                            isEditing ? (
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={isPending}
+                                        aria-label="Save role change"
+                                        className="rounded-lg p-2 transition-colors hover:bg-[var(--background-subtle)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
+                                        style={{ color: 'var(--flux-success-primary)' }}
+                                        title="Save"
+                                    >
+                                        {isPending ? <ArrowPathIcon className="h-4 w-4 animate-spin" /> : <CheckIcon className="h-4 w-4" />}
+                                    </button>
+                                    <button
+                                        onClick={() => setIsEditing(false)}
+                                        disabled={isPending}
+                                        aria-label="Cancel edit"
+                                        className="rounded-lg p-2 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--background-subtle)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
+                                        title="Cancel"
+                                    >
+                                        <XMarkIcon className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-1 opacity-100 transition-opacity duration-150 focus-within:opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        aria-label={`Edit role for ${displayName}`}
+                                        className="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)] focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
+                                        title="Edit role"
+                                    >
+                                        <PencilSquareIcon className="h-4 w-4" />
+                                    </button>
+                                    <button
+                                        onClick={handleRemove}
+                                        disabled={isPending}
+                                        aria-label={`Remove ${displayName}`}
+                                        className="rounded-lg p-2 text-[var(--text-secondary)] transition-colors hover:bg-[var(--background-subtle)] disabled:opacity-50 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)] hover:[color:var(--flux-error-primary)]"
+                                        title="Remove member"
+                                    >
+                                        <TrashIcon className="h-4 w-4" />
+                                    </button>
+                                </div>
+                            )
+                        ) : (
+                            <span className="text-xs font-medium text-[var(--text-tertiary)]">Owner</span>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
     );
 }

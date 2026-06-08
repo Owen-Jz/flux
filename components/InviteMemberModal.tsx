@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { XMarkIcon, EnvelopeIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { motion } from 'framer-motion';
+import { XMarkIcon, EnvelopeIcon, ArrowPathIcon, UserPlusIcon } from '@heroicons/react/24/outline';
 import { toast } from 'sonner';
 import { inviteMemberToWorkspace } from '@/actions/workspace-invite';
 import { updateOnboardingProgress } from '@/actions/onboarding';
+import CustomSelect from './ui/custom-select';
 
 interface InviteMemberModalProps {
     slug: string;
@@ -30,85 +32,116 @@ export default function InviteMemberModal({ slug, onClose }: InviteMemberModalPr
             await updateOnboardingProgress('addedFirstTeamMember');
             toast.success(res?.message || 'Invitation sent successfully!');
             setTimeout(onClose, 1500);
-        } catch (err: any) {
-            toast.error(err.message || 'Something went wrong');
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : 'Something went wrong');
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-            <div className="bg-[var(--surface)] border border-[var(--border-subtle)] rounded-xl w-full max-w-[calc(100vw-2rem)] md:max-w-md p-4 md:p-6 relative shadow-2xl animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => !isLoading && onClose()}
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            />
+            <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 8 }}
+                transition={{ duration: 0.18 }}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="invite-modal-title"
+                className="relative max-h-[90vh] w-full max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] p-5 shadow-2xl md:max-w-md md:p-6"
+            >
                 <button
                     onClick={onClose}
                     aria-label="Close"
-                    className="absolute top-3 right-3 p-2.5 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--background-subtle)] transition-colors"
+                    className="absolute right-3 top-3 rounded-lg p-2 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--background-subtle)] hover:text-[var(--foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-primary)]"
                 >
-                    <XMarkIcon className="w-5 h-5" />
+                    <XMarkIcon className="h-5 w-5" />
                 </button>
 
-                <div className="mb-6">
-                    <h2 className="text-xl font-bold mb-2 text-[var(--foreground)]">Invite Team Member</h2>
-                    <p className="text-sm text-[var(--text-secondary)]">
-                        Enter the email address of the person you'd like to invite. If they don't have an account, they'll receive an email to sign up and join this workspace.
-                    </p>
+                <div className="mb-6 flex items-start gap-3 pr-8">
+                    <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--brand-primary)]/10 text-[var(--brand-primary)]">
+                        <UserPlusIcon className="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h2 id="invite-modal-title" className="text-lg font-bold text-[var(--foreground)]">
+                            Invite a team member
+                        </h2>
+                        <p className="mt-0.5 text-sm text-[var(--text-secondary)]">
+                            They&apos;ll get an email to join this workspace. New users can sign up first.
+                        </p>
+                    </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5 text-[var(--foreground)]">Email Address</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="colleague@example.com"
-                                className="w-full px-3 py-2.5 md:py-2 bg-[var(--background)] border border-[var(--border-subtle)] text-[var(--foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/50 transition-all placeholder:text-[var(--text-tertiary)] text-base md:text-sm"
-                                required
-                            />
-                        </div>
+                    <div>
+                        <label htmlFor="invite-email" className="mb-1.5 block text-sm font-medium text-[var(--foreground)]">
+                            Email address
+                        </label>
+                        <input
+                            id="invite-email"
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            placeholder="colleague@example.com"
+                            className="input text-base md:text-sm"
+                            autoFocus
+                            required
+                        />
+                    </div>
 
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5 text-[var(--foreground)]">Role</label>
-                            <select
-                                value={role}
-                                onChange={(e) => setRole(e.target.value as 'VIEWER' | 'EDITOR' | 'ADMIN')}
-                                className="w-full px-3 py-2.5 md:py-2 bg-[var(--background)] border border-[var(--border-subtle)] text-[var(--foreground)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]/50 transition-all text-base md:text-sm"
-                            >
-                                <option value="VIEWER">Viewer - Can view boards and tasks</option>
-                                <option value="EDITOR">Editor - Can create and edit tasks</option>
-                                <option value="ADMIN">Admin - Full access including settings</option>
-                            </select>
-                        </div>
+                    <div>
+                        <label id="invite-role-label" className="mb-1.5 block text-sm font-medium text-[var(--foreground)]">
+                            Role
+                        </label>
+                        <CustomSelect
+                            value={role}
+                            onChange={(v) => setRole(v as 'VIEWER' | 'EDITOR' | 'ADMIN')}
+                            options={[
+                                { value: 'VIEWER', label: 'Viewer — Can view boards and tasks' },
+                                { value: 'EDITOR', label: 'Editor — Can create and edit tasks' },
+                                { value: 'ADMIN', label: 'Admin — Full access including settings' },
+                            ]}
+                            className="w-full"
+                            minWidth="100%"
+                        />
+                    </div>
 
-                        <div className="flex flex-col-reverse md:flex-row md:justify-end gap-3 pt-2">
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="w-full md:w-auto px-4 py-2.5 md:py-2 text-base md:text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={isLoading}
-                                className="w-full md:w-auto px-4 py-2.5 md:py-2 text-base md:text-sm font-medium bg-[var(--brand-primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50 flex items-center justify-center gap-2 transition-all shadow-lg shadow-[var(--brand-primary)]/20"
-                            >
-                                {isLoading ? (
-                                    <>
-                                        <ArrowPathIcon className="w-4 h-4 animate-spin" />
-                                        Sending...
-                                    </>
-                                ) : (
-                                    <>
-                                        <EnvelopeIcon className="w-4 h-4" />
-                                        Send Invite
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                    </form>
-            </div>
+                    <div className="flex flex-col-reverse gap-3 pt-2 md:flex-row md:justify-end">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="btn btn-secondary w-full md:w-auto"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="btn btn-primary w-full md:w-auto"
+                        >
+                            {isLoading ? (
+                                <>
+                                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                                    Sending...
+                                </>
+                            ) : (
+                                <>
+                                    <EnvelopeIcon className="h-4 w-4" />
+                                    Send invite
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </motion.div>
         </div>
     );
 }

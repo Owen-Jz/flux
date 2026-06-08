@@ -12,14 +12,17 @@ export default async function CalendarPage({
     params: Promise<{ slug: string }>;
 }) {
     const session = await auth();
-    if (!session?.user) {
-        redirect('/login');
-    }
-
     const { slug } = await params;
     const workspace = await getWorkspaceBySlug(slug);
     if (!workspace) {
         redirect('/dashboard');
+    }
+
+    // Allow logged-out visitors only on public workspaces; otherwise → login.
+    // Logged-in non-members of a public workspace fall through to the read-only
+    // guest view (getUserRole returns null → CalendarClient renders read-only).
+    if (!session?.user && !workspace.publicAccess) {
+        redirect('/login');
     }
 
     const [tasks, userRole, boards] = await Promise.all([
@@ -39,6 +42,12 @@ export default async function CalendarPage({
                 workspaceSlug={slug}
                 userRole={userRole}
                 boards={boards}
+                members={workspace.members.map((m) => ({
+                    id: m.userId,
+                    name: m.user?.name || 'Unknown User',
+                    email: m.user?.email || '',
+                    image: m.user?.image,
+                }))}
             />
         </div>
     );

@@ -4,7 +4,7 @@ import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { AuditLog } from '@/models/AuditLog';
 import { requireAdminPermission } from '@/lib/admin-auth';
-import { PLAN_PRICES_KOBO } from '@/lib/paystack';
+import { PLAN_PRICES_USD } from '@/lib/paystack';
 import type { BillingMetrics, SubscriptionRow, PlanType } from '@/lib/types/billing';
 
 const PLAN_ORDER = ['free', 'starter', 'pro', 'enterprise'] as const;
@@ -24,8 +24,9 @@ export async function getBillingMetrics(): Promise<BillingMetrics> {
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const startOfLastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-    const starterPriceNgn = PLAN_PRICES_KOBO.starter / 100;
-    const proPriceNgn = PLAN_PRICES_KOBO.pro / 100;
+    // Prices in USD — MRR/ARR and all derived figures are reported in USD.
+    const starterPriceUsd = PLAN_PRICES_USD.starter;
+    const proPriceUsd = PLAN_PRICES_USD.pro;
 
     // MRR: sum of active paid plans
     const activeUsers = await User.find({ subscriptionStatus: 'active' }).lean();
@@ -37,8 +38,8 @@ export async function getBillingMetrics(): Promise<BillingMetrics> {
     for (const user of activeUsers) {
         const plan = (user.plan || 'free') as PlanType;
         planDistribution[plan] = (planDistribution[plan] || 0) + 1;
-        if (plan === 'starter') mrr += starterPriceNgn;
-        else if (plan === 'pro') mrr += proPriceNgn;
+        if (plan === 'starter') mrr += starterPriceUsd;
+        else if (plan === 'pro') mrr += proPriceUsd;
     }
 
     // Last month MRR
@@ -49,8 +50,8 @@ export async function getBillingMetrics(): Promise<BillingMetrics> {
     let lastMonthMrr = 0;
     for (const user of lastMonthActiveUsers) {
         const plan = (user.plan || 'free') as PlanType;
-        if (plan === 'starter') lastMonthMrr += starterPriceNgn;
-        else if (plan === 'pro') lastMonthMrr += proPriceNgn;
+        if (plan === 'starter') lastMonthMrr += starterPriceUsd;
+        else if (plan === 'pro') lastMonthMrr += proPriceUsd;
     }
 
     // Churn: cancelled in last 30 days
@@ -75,7 +76,7 @@ export async function getBillingMetrics(): Promise<BillingMetrics> {
     const trialToPaidRate = trialUsers > 0 ? (convertedTrials / trialUsers) * 100 : 0;
 
     // Net MRR
-    const churnedMrr = churnedCount * starterPriceNgn;
+    const churnedMrr = churnedCount * starterPriceUsd;
     const netMrr = mrr - churnedMrr;
 
     const mrrChange = lastMonthMrr > 0 ? ((mrr - lastMonthMrr) / lastMonthMrr) * 100 : 100;
@@ -188,8 +189,8 @@ export async function getMrrHistory() {
     await connectDB();
 
     const now = new Date();
-    const starterPriceNgn = PLAN_PRICES_KOBO.starter / 100;
-    const proPriceNgn = PLAN_PRICES_KOBO.pro / 100;
+    const starterPriceUsd = PLAN_PRICES_USD.starter;
+    const proPriceUsd = PLAN_PRICES_USD.pro;
 
     // Single aggregation to get counts per plan per month
     const raw = await User.aggregate([
@@ -216,8 +217,8 @@ export async function getMrrHistory() {
                     $sum: {
                         $cond: [
                             { $eq: ['$_id.plan', 'starter'] },
-                            { $multiply: ['$count', starterPriceNgn] },
-                            { $multiply: ['$count', proPriceNgn] },
+                            { $multiply: ['$count', starterPriceUsd] },
+                            { $multiply: ['$count', proPriceUsd] },
                         ],
                     },
                 },

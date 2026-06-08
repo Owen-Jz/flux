@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "setup:paystack": "tsx scripts/setup-paystack-plans.ts",
+    "setup:paystack:test": "tsx scripts/setup-paystack-plans.ts --mode=test"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

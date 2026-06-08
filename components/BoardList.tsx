@@ -131,8 +131,8 @@ export default function BoardList({ workspaceSlug, boards, currentBoardSlug, use
                                 <Link
                                     href={`/${workspaceSlug}/board/${board.slug}`}
                                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors pr-8 ${currentBoardSlug === board.slug
-                                        ? 'bg-[var(--surface)] text-[var(--foreground)] font-medium'
-                                        : 'text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]'
+                                        ? 'border-l-2 border-[var(--brand-primary)] bg-[rgba(var(--brand-primary-rgb),0.1)] pl-[10px] font-medium text-[var(--foreground)]'
+                                        : 'border-l-2 border-transparent text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]'
                                         }`}
                                 >
                                     <div

@@ -78,20 +78,32 @@ async function paystackFetch<T>(endpoint: string, method: 'GET' | 'POST' | 'PUT'
     });
 }
 
-async function createOrGetPlan(data: PaystackPlan): Promise<{ planCode: string; isExisting: boolean }> {
+async function createOrGetPlan(data: PaystackPlan): Promise<{ planCode: string; isExisting: boolean; amount: number }> {
     try {
         const result = await paystackFetch<CreatePlanResponse>('/plan', 'POST', data);
         if (!result.status) {
             throw new Error(result.message);
         }
-        return { planCode: result.data.plan_code, isExisting: false };
+        return { planCode: result.data.plan_code, isExisting: false, amount: result.data.amount };
     } catch (error) {
         if (error instanceof Error && error.message.includes('409')) {
             console.log(`  Plan "${data.name}" already exists, fetching...`);
             const plans = await paystackFetch<{ status: boolean; data: CreatePlanResponse['data'][] }>('/plan', 'GET');
             const existingPlan = plans.data.find(p => p.name.toLowerCase() === data.name.toLowerCase());
             if (existingPlan) {
-                return { planCode: existingPlan.plan_code, isExisting: true };
+                // Re-sync the amount/description if they've drifted from the desired
+                // values (e.g. after an FX repricing). Paystack updates apply to
+                // future billing cycles of existing subscribers.
+                if (existingPlan.amount !== data.amount) {
+                    console.log(`  Updating "${data.name}" amount: ${existingPlan.amount} → ${data.amount} kobo`);
+                    await paystackFetch(`/plan/${existingPlan.plan_code}`, 'PUT', {
+                        name: data.name,
+                        description: data.description,
+                        amount: data.amount,
+                        interval: data.interval,
+                    });
+                }
+                return { planCode: existingPlan.plan_code, isExisting: true, amount: data.amount };
             }
         }
         throw error;
@@ -105,30 +117,38 @@ interface PlanDefinition {
     interval: 'monthly';
 }
 
+// Keep these in lockstep with lib/paystack.ts (PLAN_PRICES_USD + USD_TO_NGN_PRICING_RATE).
+// Plans are priced in kobo = USD × rate × 100 so the NGN amount Paystack charges
+// matches the USD price shown in the app.
+const USD_TO_NGN_PRICING_RATE = Number(process.env.PAYSTACK_USD_NGN_RATE) || 1700;
+const PLAN_PRICES_USD = { starter: 10, pro: 25, enterprise: 100 };
+const usdToKobo = (usd: number): number => Math.round(usd * USD_TO_NGN_PRICING_RATE) * 100;
+
 const plans: PlanDefinition[] = [
     {
         name: 'Starter',
         description: 'Starter plan - up to 5 projects, 10 members',
-        amount: 1000000,
+        amount: usdToKobo(PLAN_PRICES_USD.starter),
         interval: 'monthly',
     },
     {
         name: 'Pro',
         description: 'Pro plan - unlimited projects, 25 members',
-        amount: 2500000,
+        amount: usdToKobo(PLAN_PRICES_USD.pro),
         interval: 'monthly',
     },
     {
         name: 'Enterprise',
         description: 'Enterprise plan - unlimited everything',
-        amount: 5000000,
+        amount: usdToKobo(PLAN_PRICES_USD.enterprise),
         interval: 'monthly',
     },
 ];
 
 async function main() {
     const prefix = mode === 'test' ? 'TEST_' : '';
-    console.log(`Setting up Paystack subscription plans (${mode} mode)...\n`);
+    console.log(`Setting up Paystack subscription plans (${mode} mode)...`);
+    console.log(`Pricing at USD→NGN rate ${USD_TO_NGN_PRICING_RATE}: Starter ₦${(usdToKobo(PLAN_PRICES_USD.starter) / 100).toLocaleString()}, Pro ₦${(usdToKobo(PLAN_PRICES_USD.pro) / 100).toLocaleString()}, Enterprise ₦${(usdToKobo(PLAN_PRICES_USD.enterprise) / 100).toLocaleString()}\n`);
 
     const results: { name: string; planCode: string; isExisting: boolean }[] = [];
 

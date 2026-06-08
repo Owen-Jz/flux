@@ -8,6 +8,7 @@ import { MobileNav } from '@/components/mobile-nav';
 import { TutorialProvider } from '@/components/tutorial/tutorial-provider';
 import { WorkspaceHeader } from '@/components/workspace-header';
 import type { MemberRole } from '@/models/Workspace';
+import { hexToRgb, darkenHex } from '@/lib/color';
 import Link from 'next/link';
 
 export default async function WorkspaceLayout({
@@ -65,11 +66,13 @@ export default async function WorkspaceLayout({
         ? ({
               '--brand-primary': workspace.accentColor,
               '--brand-primary-rgb': hexToRgb(workspace.accentColor),
+              '--brand-primary-hover': darkenHex(workspace.accentColor),
           } as React.CSSProperties)
         : undefined;
 
     return (
         <div
+            id="workspace-shell"
             className="flex flex-col md:flex-row h-screen bg-[var(--background)]"
             style={accentStyle}
         >
@@ -130,11 +133,4 @@ export default async function WorkspaceLayout({
             </main>
         </div>
     );
-}
-
-function hexToRgb(hex: string) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ?
-        `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` :
-        '99, 102, 241';
 }

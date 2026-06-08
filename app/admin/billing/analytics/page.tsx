@@ -102,10 +102,10 @@ export default function BillingAnalyticsPage() {
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#27272a" vertical={false} />
                                 <XAxis dataKey="month" tick={axisStyle} tickFormatter={(v: string) => v.slice(5)} />
-                                <YAxis tick={axisStyle} tickFormatter={(v: number) => `₦${(v/1000).toFixed(0)}k`} />
+                                <YAxis tick={axisStyle} tickFormatter={(v: number) => `$${(v/1000).toFixed(0)}k`} />
                                 <Tooltip
                                     contentStyle={tooltipStyle}
-                                    formatter={((v: number) => [`₦${v.toLocaleString()}`, 'MRR']) as any}
+                                    formatter={((v: number) => [`$${v.toLocaleString()}`, 'MRR']) as any}
                                     labelFormatter={(label) => ` ${label}`}
                                 />
                                 <Area type="monotone" dataKey="mrr" stroke="#8b5cf6" fill="url(#mrrGradient)" strokeWidth={2} />

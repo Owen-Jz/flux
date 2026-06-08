@@ -4,6 +4,14 @@ export type IssueStatus = 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED';
 export type IssuePriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 export type IssueType = 'BUG' | 'FEATURE' | 'IMPROVEMENT';
 
+export interface IIssueComment {
+    _id: Types.ObjectId;
+    content: string;
+    userId: Types.ObjectId;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
 export interface IIssue extends Document {
     _id: Types.ObjectId;
     workspaceId: Types.ObjectId;
@@ -14,9 +22,18 @@ export interface IIssue extends Document {
     type: IssueType;
     reporterId: Types.ObjectId;
     assigneeId?: Types.ObjectId;
+    comments: Types.DocumentArray<IIssueComment>;
     createdAt: Date;
     updatedAt: Date;
 }
+
+const IssueCommentSchema = new Schema<IIssueComment>(
+    {
+        content: { type: String, required: true },
+        userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    },
+    { timestamps: true }
+);
 
 const IssueSchema = new Schema<IIssue>(
     {
@@ -28,6 +45,7 @@ const IssueSchema = new Schema<IIssue>(
         type: { type: String, enum: ['BUG', 'FEATURE', 'IMPROVEMENT'], default: 'BUG' },
         reporterId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         assigneeId: { type: Schema.Types.ObjectId, ref: 'User' },
+        comments: { type: [IssueCommentSchema], default: [] },
     },
     { timestamps: true }
 );

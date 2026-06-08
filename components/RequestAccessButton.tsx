@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PencilSquareIcon, XMarkIcon, ArrowPathIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { PencilSquareIcon, XMarkIcon, ArrowPathIcon, ChatBubbleLeftRightIcon, CheckIcon } from '@heroicons/react/24/outline';
 import { requestEditAccess } from '@/actions/access-control';
 
 interface RequestAccessButtonProps {
@@ -25,9 +25,9 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
                     setMessage('');
                     setSuccess(false);
                 }, 1500);
-            } catch (error: any) {
+            } catch (error) {
                 console.error('Failed to request access:', error);
-                alert(error.message || 'Failed to request access');
+                alert(error instanceof Error ? error.message : 'Failed to request access');
             }
         });
     };
@@ -36,10 +36,10 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
         <>
             <button
                 onClick={() => setIsOpen(true)}
-                className="btn btn-primary flex items-center gap-2"
+                className="btn btn-primary"
             >
                 <PencilSquareIcon className="w-4 h-4" />
-                Request Edit Access
+                Request edit access
             </button>
 
             <AnimatePresence>
@@ -61,15 +61,15 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="fixed inset-0 z-50 flex items-center justify-center p-4"
                         >
-                            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+                            <div className="w-full max-w-md overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--surface)] shadow-2xl">
                                 <div className="p-6">
-                                    <div className="flex items-center justify-between mb-6">
+                                    <div className="mb-6 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded-lg bg-[var(--brand-primary)]/10">
-                                                <PencilSquareIcon className="w-5 h-5 text-[var(--brand-primary)]" />
+                                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--brand-primary)]/10">
+                                                <PencilSquareIcon className="h-6 w-6 text-[var(--brand-primary)]" />
                                             </div>
                                             <div>
-                                                <h2 className="text-lg font-semibold">Request Edit Access</h2>
+                                                <h2 className="text-lg font-semibold text-[var(--foreground)]">Request edit access</h2>
                                                 <p className="text-sm text-[var(--text-secondary)]">
                                                     Ask to become an editor
                                                 </p>
@@ -77,9 +77,10 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
                                         </div>
                                         <button
                                             onClick={() => !isPending && setIsOpen(false)}
-                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                            aria-label="Close"
+                                            className="rounded-lg p-2 text-[var(--text-tertiary)] transition-colors hover:bg-[var(--background-subtle)] hover:text-[var(--foreground)]"
                                         >
-                                            <XMarkIcon className="w-5 h-5" />
+                                            <XMarkIcon className="h-5 w-5" />
                                         </button>
                                     </div>
 
@@ -89,11 +90,14 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
                                             animate={{ opacity: 1, y: 0 }}
                                             className="text-center py-8"
                                         >
-                                            <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
-                                                <PencilSquareIcon className="w-6 h-6 text-green-600" />
+                                            <div
+                                                className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full"
+                                                style={{ background: 'var(--flux-success-bg)' }}
+                                            >
+                                                <CheckIcon className="h-6 w-6" style={{ color: 'var(--flux-success-primary)' }} />
                                             </div>
-                                            <h3 className="font-semibold text-green-600">Request Sent!</h3>
-                                            <p className="text-sm text-[var(--text-secondary)] mt-1">
+                                            <h3 className="font-semibold" style={{ color: 'var(--flux-success-text-strong)' }}>Request sent!</h3>
+                                            <p className="mt-1 text-sm text-[var(--text-secondary)]">
                                                 The workspace owner will review your request.
                                             </p>
                                         </motion.div>
@@ -107,11 +111,12 @@ export function RequestAccessButton({ slug }: RequestAccessButtonProps) {
                                                 </p>
 
                                                 <div>
-                                                    <label className="block text-sm font-medium mb-2 flex items-center gap-2">
-                                                        <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                                                    <label htmlFor="access-request-message" className="mb-2 flex items-center gap-2 text-sm font-medium text-[var(--foreground)]">
+                                                        <ChatBubbleLeftRightIcon className="h-4 w-4" />
                                                         Add a message (optional)
                                                     </label>
                                                     <textarea
+                                                        id="access-request-message"
                                                         value={message}
                                                         onChange={(e) => setMessage(e.target.value)}
                                                         placeholder="Tell the owner why you'd like edit access..."

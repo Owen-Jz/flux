@@ -48,7 +48,7 @@ export default function BillingDashboardPage() {
         {
             label: 'Monthly Recurring Revenue',
             value: metrics.mrr,
-            prefix: '₦',
+            prefix: '$',
             change: metrics.mrrChange >= 0 ? `+${metrics.mrrChange}%` : `${metrics.mrrChange}%`,
             changePositive: metrics.mrrChange >= 0,
             icon: CurrencyDollarIcon,
@@ -73,7 +73,7 @@ export default function BillingDashboardPage() {
         {
             label: 'Net MRR',
             value: metrics.netMrr,
-            prefix: '₦',
+            prefix: '$',
             icon: ArrowTrendingUpIcon,
             color: 'amber',
         },

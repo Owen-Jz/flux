@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -22,6 +22,24 @@ import { signOut } from 'next-auth/react';
 import { PLAN_META } from '@/lib/plan-limits';
 import { deleteAccount } from '@/actions/account';
 import { updateNotificationPreferences, type NotificationPreferences } from '@/actions/notification-preferences';
+import {
+    subscribeToPush,
+    unsubscribeFromPush,
+    isPushSupported,
+    requiresPWAInstallForPush,
+} from '@/lib/pwa/push-manager';
+
+/**
+ * UI state machine for the browser-push control. Resolved on mount from the
+ * real Service Worker subscription so the toggle survives reloads.
+ */
+type PushState =
+    | 'loading'        // still resolving subscription state on mount
+    | 'unsupported'    // no Service Worker / PushManager in this browser
+    | 'ios-install'    // iOS Safari tab — push needs the installed PWA
+    | 'denied'         // user blocked notifications at the browser level
+    | 'enabled'        // subscribed and active
+    | 'disabled';      // supported + permitted, but not currently subscribed
 
 interface UserSettingsClientProps {
     user: {
@@ -53,6 +71,81 @@ export function UserSettingsClient({ user, billingParam, actionParam }: UserSett
     const [deleteConfirmText, setDeleteConfirmText] = useState('');
     const [notifPrefs, setNotifPrefs] = useState<NotificationPreferences>(user.notificationPreferences);
     const [savingPref, setSavingPref] = useState<keyof NotificationPreferences | null>(null);
+    const [pushState, setPushState] = useState<PushState>('loading');
+    const [pushBusy, setPushBusy] = useState(false);
+    const [pushError, setPushError] = useState<string | null>(null);
+
+    // Resolve the real browser-push state on mount so the toggle reflects the
+    // actual Service Worker subscription (survives reloads). Re-runs nothing
+    // server-side — purely a client capability/subscription probe.
+    useEffect(() => {
+        let cancelled = false;
+        const resolvePushState = async (): Promise<void> => {
+            const hasApis =
+                typeof window !== 'undefined' &&
+                'serviceWorker' in navigator &&
+                'PushManager' in window &&
+                'Notification' in window;
+            if (!hasApis) {
+                if (!cancelled) setPushState('unsupported');
+                return;
+            }
+            if (requiresPWAInstallForPush()) {
+                if (!cancelled) setPushState('ios-install');
+                return;
+            }
+            if (Notification.permission === 'denied') {
+                if (!cancelled) setPushState('denied');
+                return;
+            }
+            const subscribed = await isPushSupported();
+            if (!cancelled) setPushState(subscribed ? 'enabled' : 'disabled');
+        };
+        void resolvePushState();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    const handleTogglePush = async (): Promise<void> => {
+        if (pushBusy) return;
+        setPushError(null);
+
+        if (pushState === 'enabled') {
+            // Disable: tear down the subscription (device + server row).
+            setPushBusy(true);
+            try {
+                await unsubscribeFromPush();
+                setPushState('disabled');
+            } catch {
+                setPushError('Could not turn off push notifications. Please try again.');
+            } finally {
+                setPushBusy(false);
+            }
+            return;
+        }
+
+        // Enable: request permission + subscribe via the existing PWA manager.
+        setPushBusy(true);
+        try {
+            const result = await subscribeToPush();
+            if (result.ok) {
+                setPushState('enabled');
+            } else if (result.reason === 'permission-denied') {
+                setPushState('denied');
+            } else if (result.reason === 'ios-not-installed') {
+                setPushState('ios-install');
+            } else if (result.reason === 'unsupported') {
+                setPushState('unsupported');
+            } else {
+                setPushError('Could not enable push notifications. Please try again.');
+            }
+        } catch {
+            setPushError('Could not enable push notifications. Please try again.');
+        } finally {
+            setPushBusy(false);
+        }
+    };
 
     const handleToggleNotifPref = (key: keyof NotificationPreferences) => {
         const next = !notifPrefs[key];
@@ -306,10 +399,74 @@ export function UserSettingsClient({ user, billingParam, actionParam }: UserSett
                                     <div className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${notifPrefs.comments ? 'right-1' : 'left-1'}`} />
                                 </button>
                             </div>
+                            <div className="flex items-center justify-between py-3">
+                                <div>
+                                    <p className="text-sm font-medium">Task updates</p>
+                                    <p className="text-xs text-[var(--text-secondary)]">Get an email when a task you follow is created or moved between columns</p>
+                                </div>
+                                <button
+                                    onClick={() => handleToggleNotifPref('taskUpdates')}
+                                    disabled={savingPref === 'taskUpdates'}
+                                    role="switch"
+                                    aria-checked={notifPrefs.taskUpdates}
+                                    aria-label="Task update emails"
+                                    className={`w-12 h-6 rounded-full relative transition-colors cursor-pointer ${notifPrefs.taskUpdates ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-subtle)]'} ${savingPref === 'taskUpdates' ? 'opacity-50' : ''}`}
+                                >
+                                    <div className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${notifPrefs.taskUpdates ? 'right-1' : 'left-1'}`} />
+                                </button>
+                            </div>
                         </div>
                         <p className="text-xs text-[var(--text-tertiary)] mt-4">
                             Essential account and billing emails are always sent.
                         </p>
+                    </div>
+
+                    {/* Push (browser/device) notifications */}
+                    <div className="card p-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            <BellIcon className="w-4 h-4 text-[var(--brand-primary)]" />
+                            <h2 className="font-semibold">Push Notifications</h2>
+                        </div>
+                        <div className="flex items-center justify-between py-3">
+                            <div className="pr-4">
+                                <p className="text-sm font-medium">Browser &amp; device push</p>
+                                <p className="text-xs text-[var(--text-secondary)]">
+                                    {pushState === 'loading' && 'Checking your device…'}
+                                    {pushState === 'unsupported' && 'Your browser does not support push notifications.'}
+                                    {pushState === 'ios-install' && 'On iPhone and iPad, add Flux to your Home Screen first, then enable push from the installed app.'}
+                                    {pushState === 'denied' && 'Notifications are blocked. Allow them for this site in your browser settings, then reload.'}
+                                    {pushState === 'enabled' && 'You will receive task and comment updates even when Flux is closed.'}
+                                    {pushState === 'disabled' && 'Get task and comment updates on this device, even when Flux is closed.'}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => void handleTogglePush()}
+                                disabled={
+                                    pushBusy ||
+                                    pushState === 'loading' ||
+                                    pushState === 'unsupported' ||
+                                    pushState === 'ios-install' ||
+                                    pushState === 'denied'
+                                }
+                                role="switch"
+                                aria-checked={pushState === 'enabled'}
+                                aria-label="Push notifications"
+                                className={`w-12 h-6 rounded-full relative transition-colors flex-shrink-0 ${pushState === 'enabled' ? 'bg-[var(--brand-primary)]' : 'bg-[var(--border-subtle)]'} ${
+                                    pushBusy ||
+                                    pushState === 'loading' ||
+                                    pushState === 'unsupported' ||
+                                    pushState === 'ios-install' ||
+                                    pushState === 'denied'
+                                        ? 'opacity-50 cursor-not-allowed'
+                                        : 'cursor-pointer'
+                                }`}
+                            >
+                                <div className={`absolute top-1 bottom-1 w-4 rounded-full bg-white transition-all ${pushState === 'enabled' ? 'right-1' : 'left-1'}`} />
+                            </button>
+                        </div>
+                        {pushError && (
+                            <p className="text-xs text-red-600 mt-2">{pushError}</p>
+                        )}
                     </div>
                 </div>
             ) : (

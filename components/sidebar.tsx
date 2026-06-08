@@ -164,7 +164,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                                         key={workspace.id}
                                         href={`/${workspace.slug}`}
                                         className={`flex items-center gap-3 p-2 rounded-lg text-sm transition-colors ${workspace.slug === currentWorkspace?.slug
-                                            ? 'bg-[var(--background)] text-[var(--foreground)]'
+                                            ? 'bg-[rgba(var(--brand-primary-rgb),0.1)] font-medium text-[var(--foreground)]'
                                             : 'text-[var(--text-secondary)] hover:bg-[var(--background)]'
                                             }`}
                                         onClick={() => setIsWorkspaceSwitcherOpen(false)}

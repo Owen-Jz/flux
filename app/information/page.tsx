@@ -138,7 +138,7 @@ export default function InformationPage() {
   const plans: PlanDetail[] = [
     {
       name: "Free",
-      price: "₦0/mo",
+      price: "$0/mo",
       features: [
         "Up to 3 Projects",
         "Up to 3 Team Members",
@@ -149,7 +149,7 @@ export default function InformationPage() {
     },
     {
       name: "Starter",
-      price: "₦10,000/mo",
+      price: "$10/mo",
       features: [
         "Up to 5 Projects",
         "Up to 10 Active Members",
@@ -161,7 +161,7 @@ export default function InformationPage() {
     },
     {
       name: "Pro",
-      price: "₦25,000/mo",
+      price: "$25/mo",
       features: [
         "Unlimited Projects",
         "Up to 25 Active Members",

@@ -3,26 +3,11 @@
 import { CheckIcon } from "@heroicons/react/24/outline";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
-import { GlobeAltIcon } from "@heroicons/react/24/outline";
-
-interface GeoInfo {
-    currency: 'NGN' | 'USD';
-    isNigeria: boolean;
-    exchangeRate: number;
-    country?: string;
-}
 
 const PLAN_PRICES_USD: Record<string, number> = {
     free: 0,
     starter: 10,
     pro: 25,
-};
-
-const PLAN_PRICES_NGN: Record<string, number> = {
-    free: 0,
-    starter: 10000,
-    pro: 25000,
 };
 
 const plansData = [
@@ -102,31 +87,9 @@ const plansData = [
 ];
 
 export const PricingSection = () => {
-    const [geoInfo, setGeoInfo] = useState<GeoInfo | null>(null);
-    const [currencyOverride, setCurrencyOverride] = useState<'NGN' | 'USD' | null>(null);
-
-    useEffect(() => {
-        async function fetchGeoInfo() {
-            try {
-                const res = await fetch('/api/geo');
-                const data = await res.json();
-                setGeoInfo(data);
-            } catch (err) {
-                console.error('Failed to fetch geo info:', err);
-            }
-        }
-        fetchGeoInfo();
-    }, []);
-
-    const displayCurrency = currencyOverride || geoInfo?.currency || 'NGN';
-
     const formatPrice = (planKey: string) => {
-        if (displayCurrency === 'USD') {
-            const usd = PLAN_PRICES_USD[planKey] || 0;
-            return usd === 0 ? 'Free' : `$${usd}`;
-        }
-        const ngn = PLAN_PRICES_NGN[planKey] || 0;
-        return ngn === 0 ? 'Free' : `₦${ngn.toLocaleString()}`;
+        const usd = PLAN_PRICES_USD[planKey] || 0;
+        return usd === 0 ? 'Free' : `$${usd}`;
     };
 
     const plans = plansData.map(plan => ({
@@ -152,28 +115,9 @@ export const PricingSection = () => {
                     <p className="text-lg text-[var(--text-secondary)]">
                         All plans include a 14-day free trial. No credit card required to start.
                     </p>
-
-                    {/* Currency Selector */}
-                    <div className="flex items-center justify-center gap-2 mt-6">
-                        <GlobeAltIcon className="w-4 h-4 text-[var(--text-tertiary)]" />
-                        <span className="text-sm text-[var(--text-secondary)]">
-                            {geoInfo?.isNigeria === false && !currencyOverride ? 'Detected: ' : 'Showing prices in: '}
-                        </span>
-                        <select
-                            aria-label="Select display currency"
-                            value={displayCurrency}
-                            onChange={(e) => setCurrencyOverride(e.target.value as 'NGN' | 'USD')}
-                            className="text-sm border border-[var(--border-subtle)] rounded-md px-2 py-1 bg-[var(--surface)] text-[var(--foreground)]"
-                        >
-                            <option value="NGN">₦ NGN (Naira)</option>
-                            <option value="USD">$ USD (Dollar)</option>
-                        </select>
-                        {geoInfo && !geoInfo.isNigeria && !currencyOverride && (
-                            <span className="text-xs text-[var(--text-tertiary)]">
-                                ({geoInfo.currency === 'USD' ? 'US' : geoInfo.country})
-                            </span>
-                        )}
-                    </div>
+                    <p className="text-sm text-[var(--text-tertiary)] mt-3">
+                        All prices in USD.
+                    </p>
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 items-start">
