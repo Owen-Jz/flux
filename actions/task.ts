@@ -317,8 +317,10 @@ export async function getArchivedTasks(workspaceSlug: string) {
             email: a.email || '',
             image: a.image,
         })),
-        createdAt: task.createdAt.toISOString(),
-        updatedAt: task.updatedAt.toISOString(),
+        // Loose-schema seed inserts may omit timestamps; fall back to the
+        // ObjectId-embedded creation time rather than crashing the render.
+        createdAt: (task.createdAt ?? task._id.getTimestamp()).toISOString(),
+        updatedAt: (task.updatedAt ?? task._id.getTimestamp()).toISOString(),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         comments: (task.comments || []).map((c: any) => {
             const populatedUser = c.userId && typeof c.userId === 'object' && '_id' in c.userId ? c.userId : null;
@@ -1716,7 +1718,10 @@ export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarT
             priority: t.priority,
             boardId: t.boardId.toString(),
             boardSlug: boardSlugMap.get(t.boardId.toString())!,
-            createdAt: (t.createdAt as Date).toISOString(),
+            // Same defensive fallback as getTasks/getBoardCalendarTasks: docs
+            // inserted by a loose-schema seed may omit `createdAt`, so derive it
+            // from the ObjectId rather than crashing the calendar render.
+            createdAt: (t.createdAt ?? t._id.getTimestamp()).toISOString(),
         }));
 }
 
