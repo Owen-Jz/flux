@@ -138,6 +138,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, 
             const newTask: CalendarTask = {
                 id: result.id,
                 title: formData.title,
+                description: formData.description,
                 status: formData.status,
                 priority: formData.priority,
                 boardId: board?.id ?? '',
@@ -157,6 +158,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, 
         ? {
             id: selectedTask.id,
             title: selectedTask.title,
+            description: selectedTask.description,
             status: selectedTask.status,
             priority: selectedTask.priority,
             order: 0,
@@ -276,6 +278,9 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, 
                                 return {
                                     ...t,
                                     title: (data.title as string | undefined) ?? t.title,
+                                    description: data.description !== undefined
+                                        ? (data.description as string | undefined) ?? t.description
+                                        : t.description,
                                     status: (data.status as CalendarTask['status'] | undefined) ?? t.status,
                                     priority: (data.priority as CalendarTask['priority'] | undefined) ?? t.priority,
                                     dueDate: data.dueDate !== undefined
@@ -286,6 +291,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, 
                         );
                         updateTask(taskId, {
                             ...(data.title !== undefined && { title: data.title as string }),
+                            ...(data.description !== undefined && { description: (data.description as string | undefined) ?? '' }),
                             ...(data.status !== undefined && { status: data.status as CalendarTask['status'] }),
                             ...(data.priority !== undefined && { priority: data.priority as CalendarTask['priority'] }),
                             ...(data.dueDate !== undefined && { dueDate: (data.dueDate as string | undefined) ?? null }),

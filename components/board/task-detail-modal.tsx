@@ -60,6 +60,11 @@ export function TaskDetailModal({
     const { data: session } = useSession();
     const [title, setTitle] = useState(task.title);
     const [description, setDescription] = useState(task.description || '');
+    // Description renders as static reading text by default and flips to an editable
+    // textarea on click (read-only viewers never flip). Lets long descriptions show
+    // in full + scroll, instead of being trapped in a short fixed textarea.
+    const [isEditingDescription, setIsEditingDescription] = useState(false);
+    const descriptionRef = useRef<HTMLTextAreaElement>(null);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
     const [newComment, setNewComment] = useState('');
     const [isSubmittingComment, setIsSubmittingComment] = useState(false);
@@ -82,7 +87,18 @@ export function TaskDetailModal({
     useEffect(() => {
         setTitle(task.title);
         setDescription(task.description || '');
+        setIsEditingDescription(false);
     }, [task]);
+
+    // When entering edit mode, focus the textarea and drop the caret at the end so
+    // the user can keep typing immediately.
+    useEffect(() => {
+        if (isEditingDescription && descriptionRef.current) {
+            const el = descriptionRef.current;
+            el.focus();
+            el.setSelectionRange(el.value.length, el.value.length);
+        }
+    }, [isEditingDescription]);
 
     // Load workspace members for @mentions
     useEffect(() => {
@@ -115,7 +131,8 @@ export function TaskDetailModal({
     };
 
     const handleSaveDescription = () => {
-        if (description.trim() !== (task.description || '')) {
+        setIsEditingDescription(false);
+        if (description.trim() !== (task.description || '').trim()) {
             onUpdate(task.id, { description });
         }
     };
@@ -635,14 +652,47 @@ export function TaskDetailModal({
                                                 <Bars3BottomLeftIcon className="w-4 h-4 text-[var(--text-tertiary)]" />
                                                 Description
                                             </div>
-                                            <textarea
-                                                value={description}
-                                                readOnly={isReadOnly}
-                                                onChange={(e) => setDescription(e.target.value)}
-                                                onBlur={handleSaveDescription}
-                                                placeholder={isReadOnly ? "No description provided." : "Add a more detailed description..."}
-                                                className="w-full min-h-[100px] md:min-h-[160px] text-base md:text-[15px] text-[var(--text-primary)] leading-relaxed bg-[var(--surface)] border border-[var(--border-default)] rounded-xl p-4 focus:ring-4 focus:ring-[var(--brand-primary)]/5 focus:border-[var(--brand-primary)] transition-all resize-none shadow-sm"
-                                            />
+                                            {isEditingDescription && !isReadOnly ? (
+                                                <textarea
+                                                    ref={descriptionRef}
+                                                    value={description}
+                                                    onChange={(e) => setDescription(e.target.value)}
+                                                    onBlur={handleSaveDescription}
+                                                    onKeyDown={(e) => {
+                                                        // Esc cancels (revert to the saved value); Cmd/Ctrl+Enter saves.
+                                                        if (e.key === 'Escape') {
+                                                            setDescription(task.description || '');
+                                                            setIsEditingDescription(false);
+                                                        } else if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                                                            handleSaveDescription();
+                                                        }
+                                                    }}
+                                                    placeholder="Add a more detailed description..."
+                                                    className="w-full min-h-[200px] max-h-[60vh] overflow-y-auto text-base md:text-[15px] text-[var(--text-primary)] leading-relaxed bg-[var(--surface)] border border-[var(--brand-primary)] rounded-xl p-4 focus:ring-4 focus:ring-[var(--brand-primary)]/5 transition-all resize-y shadow-sm"
+                                                />
+                                            ) : (
+                                                <div
+                                                    role={isReadOnly ? undefined : 'button'}
+                                                    tabIndex={isReadOnly ? undefined : 0}
+                                                    onClick={() => { if (!isReadOnly) setIsEditingDescription(true); }}
+                                                    onKeyDown={(e) => {
+                                                        if (!isReadOnly && (e.key === 'Enter' || e.key === ' ')) {
+                                                            e.preventDefault();
+                                                            setIsEditingDescription(true);
+                                                        }
+                                                    }}
+                                                    className={`w-full min-h-[120px] max-h-[420px] overflow-y-auto text-base md:text-[15px] leading-relaxed bg-[var(--surface)] border border-[var(--border-default)] rounded-xl p-4 shadow-sm whitespace-pre-wrap break-words ${
+                                                        description.trim()
+                                                            ? 'text-[var(--text-primary)]'
+                                                            : 'text-[var(--text-tertiary)]'
+                                                    } ${isReadOnly ? '' : 'cursor-text hover:border-[var(--brand-primary)]/40 transition-colors'}`}
+                                                    title={isReadOnly ? undefined : 'Click to edit'}
+                                                >
+                                                    {description.trim()
+                                                        ? description
+                                                        : (isReadOnly ? 'No description provided.' : 'Add a more detailed description...')}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* Subtasks */}

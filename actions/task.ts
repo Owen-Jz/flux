@@ -1663,6 +1663,9 @@ export async function getWorkspaceMembers(workspaceSlug: string) {
 export interface CalendarTask {
     id: string;
     title: string;
+    /** Full task description (markdown-ish plain text). Surfaced so the calendar's
+     *  edit modal can show/edit it without a second fetch. */
+    description?: string;
     /** Workspace calendar positions by this. Optional because the board calendar
      *  positions by `scheduledDate` instead. */
     dueDate?: string;          // ISO string
@@ -1705,7 +1708,7 @@ export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarT
         dueDate: { $exists: true, $ne: null },
         status: { $ne: 'ARCHIVED' },
     })
-        .select('_id title dueDate status priority boardId createdAt')
+        .select('_id title description dueDate status priority boardId createdAt')
         .lean();
 
     return tasks
@@ -1713,6 +1716,7 @@ export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarT
         .map((t) => ({
             id: t._id.toString(),
             title: t.title,
+            description: t.description,
             dueDate: t.dueDate!.toISOString(),
             status: t.status,
             priority: t.priority,
@@ -1763,12 +1767,13 @@ export async function getBoardCalendarTasks(workspaceSlug: string, boardSlug: st
         scheduledDate: { $exists: true, $ne: null },
         status: { $ne: 'ARCHIVED' },
     })
-        .select('_id title scheduledDate status priority boardId createdAt')
+        .select('_id title description scheduledDate status priority boardId createdAt')
         .lean();
 
     return tasks.map((t) => ({
         id: t._id.toString(),
         title: t.title,
+        description: t.description,
         scheduledDate: t.scheduledDate!.toISOString(),
         status: t.status,
         priority: t.priority,
