@@ -124,6 +124,10 @@
   --border-default: var(--flux-light-border-default);
   --border-strong: var(--flux-light-border-strong);
   --brand-primary: var(--flux-light-brand-primary);
+  /* RGB channels of the default brand colour (#7c3aed). Workspaces with a custom
+     accent override this inline in the workspace layout. Needed for rgba() tints
+     like the active-board highlight, which would otherwise render transparent. */
+  --brand-primary-rgb: 124, 58, 237;
   --brand-primary-hover: var(--flux-light-brand-primary-hover);
   --brand-primary-active: var(--flux-light-brand-primary-active);
   --brand-secondary: var(--flux-light-brand-secondary);
@@ -244,6 +248,8 @@
   --border-default: var(--flux-dark-border-default);
   --border-strong: var(--flux-dark-border-strong);
   --brand-primary: var(--flux-dark-brand-primary);
+  /* RGB channels of the default dark-mode brand colour (#a78bfa). See light-mode note. */
+  --brand-primary-rgb: 167, 139, 250;
   --brand-primary-hover: var(--flux-dark-brand-primary-hover);
   --brand-primary-active: var(--flux-dark-brand-primary-active);
   --brand-secondary: var(--flux-dark-brand-secondary);
