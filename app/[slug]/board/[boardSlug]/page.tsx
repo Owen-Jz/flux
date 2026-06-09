@@ -1,7 +1,7 @@
 import { auth } from '@/lib/auth';
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoardBySlug } from '@/actions/board';
 import { getTasks, getBoardCalendarTasks } from '@/actions/task';
@@ -63,7 +63,28 @@ export default async function BoardPage({
     const tabIdle = 'text-[var(--text-secondary)] hover:text-[var(--foreground)]';
 
     const viewToggle = (
-        <div className="flex items-center gap-1 px-4 md:px-6 pt-3 pb-1 flex-shrink-0">
+        <div className="flex items-center justify-between gap-3 px-4 md:px-6 pt-3 pb-1 flex-shrink-0 flex-wrap">
+            {/* Top-bar breadcrumb: makes the board you're currently on explicit, with
+                the board's own colour and a brand-accent highlight. */}
+            <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 min-w-0">
+                <Link
+                    href={`/${slug}`}
+                    className="text-sm text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors truncate max-w-[30vw] md:max-w-none"
+                >
+                    {workspace.name}
+                </Link>
+                <ChevronRightIcon className="w-4 h-4 text-[var(--text-tertiary)] flex-shrink-0" aria-hidden="true" />
+                <span
+                    aria-current="page"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[rgba(var(--brand-primary-rgb),0.1)] border border-[rgba(var(--brand-primary-rgb),0.25)] min-w-0"
+                >
+                    <span
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0 ring-2 ring-[var(--background)]"
+                        style={{ backgroundColor: board.color }}
+                    />
+                    <span className="text-sm font-semibold text-[var(--foreground)] truncate">{board.name}</span>
+                </span>
+            </nav>
             <div className="inline-flex items-center gap-1 p-0.5 rounded-xl bg-[var(--background-subtle)] border border-[var(--border-subtle)]">
                 <Link
                     href={`/${slug}/board/${boardSlug}`}

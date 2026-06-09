@@ -61,6 +61,13 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
 
     const isAdmin = userRole === 'ADMIN';
 
+    // Derive the active board from the URL so the board list highlights the board
+    // you're currently on. The server layout does not thread `currentBoardSlug`
+    // down, so without this the highlight never activates. Pattern matches
+    // `/{workspace}/board/{boardSlug}` and ignores any query/hash suffix.
+    const boardSlugFromPath = pathname?.match(/^\/[^/]+\/board\/([^/?#]+)/)?.[1];
+    const activeBoardSlug = currentBoardSlug ?? boardSlugFromPath;
+
     const navItems = [
         {
             href: currentWorkspace ? `/${currentWorkspace.slug}/analytics` : '/dashboard',
@@ -218,7 +225,7 @@ export function Sidebar({ workspaces, currentWorkspace, boards, currentBoardSlug
                     <BoardList
                         workspaceSlug={currentWorkspace.slug}
                         boards={boards}
-                        currentBoardSlug={currentBoardSlug}
+                        currentBoardSlug={activeBoardSlug}
                         userRole={userRole}
                     />
                 </div>
