@@ -12,6 +12,7 @@ import {
     ArrowRightOnRectangleIcon,
     ShieldCheckIcon,
     CreditCardIcon,
+    FunnelIcon,
 } from '@heroicons/react/24/outline';
 import { signOut } from 'next-auth/react';
 
@@ -42,6 +43,7 @@ const navItems: NavItem[] = [
     { href: '/admin/users', label: 'Users', icon: UsersIcon },
     { href: '/admin/workspaces', label: 'Workspaces', icon: BuildingOffice2Icon },
     { href: '/admin/analytics', label: 'Analytics', icon: ChartBarIcon },
+    { href: '/admin/funnel', label: 'Funnel', icon: FunnelIcon },
 ];
 
 export default function AdminLayout({

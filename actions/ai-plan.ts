@@ -1,5 +1,6 @@
 'use server';
 
+import { after } from 'next/server';
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Task } from '@/models/Task';
@@ -10,9 +11,10 @@ import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { createBoard } from '@/actions/board';
 import type { ConfirmedPlan, TaskPlanItem } from '@/types/ai-plan';
-import { User } from '@/models/User';
-import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
+import { canCreateProject, getUpgradeMessage, getTaskLimit } from '@/lib/plan-limits';
+import { resolveWorkspacePlan } from '@/lib/workspace-plan';
 import { normalizeEstimatedHours } from '@/lib/llm/board-stream-planner';
+import { trackEvent } from '@/lib/track';
 
 // This server action is a public entry point: the browser calls it directly
 // with a `plan` payload, so the LLM-output validation done in the API route is
@@ -94,6 +96,18 @@ export async function createFromAIPlan(
     let tasksCreated = 0;
 
     try {
+        // Per-workspace active-task BUDGET, governed by the OWNER's plan. Applies to
+        // both board-mode and project-mode so a bulk insert can never push the
+        // workspace past its active-task ceiling. `Infinity` means unlimited.
+        const ownerPlan = await resolveWorkspacePlan(workspace.ownerId);
+        const taskLimit = getTaskLimit(ownerPlan); // number | 'unlimited'
+        let taskBudget: number = taskLimit === 'unlimited'
+            ? Infinity
+            : Math.max(0, taskLimit - await Task.countDocuments({ workspaceId: workspace._id, status: { $ne: 'ARCHIVED' } }));
+        if (taskBudget <= 0) {
+            return { success: false, boardsCreated: 0, tasksCreated: 0, error: getUpgradeMessage(ownerPlan, 'tasks') };
+        }
+
         if (plan.type === 'board') {
             if (!Types.ObjectId.isValid(boardId)) {
                 return { success: false, boardsCreated: 0, tasksCreated: 0, error: 'Invalid board ID' };
@@ -109,13 +123,16 @@ export async function createFromAIPlan(
             if (tasks.length === 0) {
                 return { success: false, boardsCreated: 0, tasksCreated: 0, error: 'Plan contained no valid tasks' };
             }
+            // Cap to the workspace's remaining active-task budget. slice(0, Infinity)
+            // returns the whole array, so unlimited plans insert everything.
+            const capped = tasks.slice(0, taskBudget);
             await insertTasksForBoard(
                 workspace._id as Types.ObjectId,
                 boardDoc._id as Types.ObjectId,
                 new Types.ObjectId(session.user.id),
-                tasks
+                capped
             );
-            tasksCreated = tasks.length;
+            tasksCreated = capped.length;
             revalidatePath(`/${workspaceSlug}/board/${boardSlug}`);
         } else {
             // Project mode: create each board, then insert its tasks
@@ -123,15 +140,15 @@ export async function createFromAIPlan(
             if (boards.length === 0) {
                 return { success: false, boardsCreated: 0, tasksCreated: 0, error: 'Plan contained no valid boards' };
             }
-            const userDoc = await User.findById(session.user.id).select('plan');
-            const userPlan = (userDoc?.plan || 'free') as 'free' | 'starter' | 'pro' | 'enterprise';
+            // Board limit is governed by the workspace owner's plan (same source as
+            // createBoard), so this pre-check never disagrees with the real enforcement.
             const currentBoardCount = await Board.countDocuments({ workspaceId: workspace._id });
-            if (!canCreateProject(userPlan, currentBoardCount + boards.length)) {
+            if (!canCreateProject(ownerPlan, currentBoardCount + boards.length)) {
                 return {
                     success: false,
                     boardsCreated: 0,
                     tasksCreated: 0,
-                    error: getUpgradeMessage(userPlan, 'projects'),
+                    error: getUpgradeMessage(ownerPlan, 'projects'),
                 };
             }
             for (const boardPlan of boards) {
@@ -145,19 +162,33 @@ export async function createFromAIPlan(
                 boardsCreated++;
 
                 const boardTasks = sanitizeTaskPlanItems(boardPlan.tasks);
-                if (boardTasks.length > 0) {
+                // Take only what the remaining active-task budget allows. Boards are
+                // still created up to the board limit even once the budget is spent.
+                const capped = boardTasks.slice(0, taskBudget);
+                if (capped.length > 0) {
                     const newBoardObjectId = new Types.ObjectId(newBoard.id);
                     await insertTasksForBoard(
                         workspace._id as Types.ObjectId,
                         newBoardObjectId,
                         new Types.ObjectId(session.user.id),
-                        boardTasks
+                        capped
                     );
-                    tasksCreated += boardTasks.length;
+                    taskBudget -= capped.length;
+                    tasksCreated += capped.length;
                 }
             }
             revalidatePath(`/${workspaceSlug}`);
         }
+
+        // First-party funnel: AI plan committed (the "used AI" signal).
+        after(() =>
+            trackEvent({
+                event: 'ai_plan_used',
+                userId: session.user.id,
+                workspaceId: workspace._id.toString(),
+                metadata: { type: plan.type, boardsCreated, tasksCreated },
+            })
+        );
 
         return { success: true, boardsCreated, tasksCreated };
     } catch (error) {

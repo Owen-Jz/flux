@@ -8,6 +8,7 @@ import { addUserToWorkspaceFromInvite } from '@/lib/process-workspace-invite';
 import { signupSchema } from '@/lib/validations/auth';
 import { sendTrialStartedEmail } from '@/lib/email/subscription-notifications';
 import { sendOtpEmail } from '@/lib/email/auth-emails';
+import { trackEvent } from '@/lib/track';
 
 export async function POST(request: NextRequest) {
     if (!isSameOrigin(request)) {
@@ -122,6 +123,15 @@ export async function POST(request: NextRequest) {
         // serverless (a plain fire-and-forget Promise gets terminated when the
         // function instance recycles).
         after(() => sendOtpEmail(email, trimmedName, rawOtp).catch(console.error));
+
+        // First-party funnel: signup (credentials).
+        after(() =>
+            trackEvent({
+                event: 'signup',
+                userId: user._id.toString(),
+                metadata: { method: 'credentials', plan: initialPlan },
+            })
+        );
 
         return NextResponse.json(
             {

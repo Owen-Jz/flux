@@ -11,3 +11,4 @@ export * from './FailedWebhook';
 export * from './ApiKey';
 export * from './WebhookEndpoint';
 export * from './PushSubscription';
+export * from './ProductEvent';

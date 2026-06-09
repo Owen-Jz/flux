@@ -1,18 +1,20 @@
 'use server';
 
+import { after } from 'next/server';
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Board } from '@/models/Board';
 import { Task, TaskStatus } from '@/models/Task';
 import { Workspace } from '@/models/Workspace';
-import { User } from '@/models/User';
 import { revalidatePath } from 'next/cache';
 import { canCreateProject, getUpgradeMessage } from '@/lib/plan-limits';
+import { resolveWorkspacePlan } from '@/lib/workspace-plan';
 import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { canAccessBoard, canGuestAccessBoard, boardVisibilityFilter } from '@/lib/board-access';
 import type { BoardVisibility } from '@/models/Board';
 import { emitEvent } from '@/lib/webhook-emitter';
+import { trackEvent } from '@/lib/track';
 
 interface CreateBoardData {
     name: string;
@@ -40,9 +42,8 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
         throw new Error('You do not have permission to create boards');
     }
 
-    // Check plan limits
-    const user = await User.findById(session.user.id).select('plan');
-    const plan = (user?.plan || 'free') as 'free' | 'starter' | 'pro' | 'enterprise';
+    // Check plan limits — governed by the workspace OWNER's plan, not the actor's.
+    const plan = await resolveWorkspacePlan(workspace.ownerId);
     const currentProjectCount = await Board.countDocuments({ workspaceId: workspace._id });
 
     if (!canCreateProject(plan, currentProjectCount)) {
@@ -75,6 +76,14 @@ export async function createBoard(workspaceSlug: string, data: CreateBoardData) 
         workspace._id.toString(),
         { boardId: board._id.toString(), workspaceId: workspace._id.toString(), name: board.name, slug: board.slug, color: board.color }
     ).catch(console.error);
+    // First-party funnel: board created.
+    after(() =>
+        trackEvent({
+            event: 'board_created',
+            userId: session.user.id,
+            workspaceId: workspace._id.toString(),
+        })
+    );
     return {
         id: board._id.toString(),
         name: board.name,

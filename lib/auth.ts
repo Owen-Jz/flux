@@ -7,6 +7,7 @@ import { authConfig } from '@/lib/auth.config';
 import bcrypt from 'bcryptjs';
 import { addUserToWorkspaceFromInvite } from '@/lib/process-workspace-invite';
 import { sendWelcomeEmail } from '@/lib/email/auth-emails';
+import { trackEvent } from '@/lib/track';
 
 class AccountLockedError extends CredentialsSignin {
     code = 'account_locked';
@@ -149,6 +150,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                             } catch (err) {
                                 console.error('[Auth] Welcome email failed (non-fatal):', err);
                             }
+                            // First-party funnel: signup (Google). `after()` is not
+                            // available in NextAuth callbacks, so await directly —
+                            // trackEvent never throws.
+                            await trackEvent({
+                                event: 'signup',
+                                userId,
+                                metadata: { method: 'google' },
+                            });
                         } catch (creationError) {
                             console.error('[Auth] Error creating user from Google:', creationError);
                             return '/login?error=OAuthCreateAccount';

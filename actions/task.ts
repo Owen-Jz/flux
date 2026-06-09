@@ -24,6 +24,9 @@ import { TASK_ORDER_INCREMENT } from '@/lib/constants';
 import { triggerNotification } from '@/lib/pwa/trigger-notification';
 import { emitEvent } from '@/lib/webhook-emitter';
 import { renderMentionsToPlainText, extractUserChipIds } from '@/lib/mentions';
+import { resolveWorkspacePlan } from '@/lib/workspace-plan';
+import { canCreateTask, getUpgradeMessage } from '@/lib/plan-limits';
+import { trackEvent } from '@/lib/track';
 
 interface CreateTaskData {
     title: string;
@@ -65,6 +68,13 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
         throw new Error('Board not found');
     }
 
+    // Enforce the workspace's active-task cap (governed by the OWNER's plan).
+    const plan = await resolveWorkspacePlan(workspace.ownerId);
+    const activeTaskCount = await Task.countDocuments({ workspaceId: workspace._id, status: { $ne: 'ARCHIVED' } });
+    if (!canCreateTask(plan, activeTaskCount)) {
+        throw new Error(getUpgradeMessage(plan, 'tasks'));
+    }
+
     // Get the highest order in this status column for this board
     const highestOrder = await Task.findOne({
         boardId: board._id,
@@ -92,6 +102,17 @@ export async function createTask(workspaceSlug: string, boardSlug: string, data:
             createdBy: new Types.ObjectId(session.user.id),
         })),
     });
+
+    // First-party funnel: manual task creation (AI-inserted tasks bypass this
+    // path, so this isolates genuine hands-on engagement from bulk AI output).
+    after(() =>
+        trackEvent({
+            event: 'task_created',
+            userId: session.user.id,
+            workspaceId: workspace._id.toString(),
+            metadata: { priority: task.priority },
+        })
+    );
 
     // Log activity
     await logActivity({

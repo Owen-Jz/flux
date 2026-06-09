@@ -1,5 +1,7 @@
 import { redirect, notFound } from 'next/navigation';
+import { after } from 'next/server';
 import { auth } from '@/lib/auth';
+import { trackEvent } from '@/lib/track';
 import { getWorkspaces, getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoards } from '@/actions/board';
 import { getUserRole } from '@/actions/access-control';
@@ -49,6 +51,14 @@ export default async function WorkspaceLayout({
     }
 
 
+
+    // First-party funnel: app opened by a real member. Collapsed to one row per
+    // user per day inside trackEvent, so firing on every layout render is cheap;
+    // `after()` keeps it off the response path. Public viewers are excluded.
+    const trackedUserId = session?.user?.id;
+    if (trackedUserId && isMember) {
+        after(() => trackEvent({ event: 'app_opened', userId: trackedUserId, workspaceId: workspace.id }));
+    }
 
     // Get user's role in the workspace
     const userRole = session?.user ? await getUserRole(slug) : null;

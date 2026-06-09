@@ -1,5 +1,6 @@
 'use server';
 
+import { after } from 'next/server';
 import { auth } from '@/lib/auth';
 import { connectDB } from '@/lib/db';
 import { Workspace, IMember } from '@/models/Workspace';
@@ -7,10 +8,12 @@ import { User } from '@/models/User';
 import { WorkspaceInvite } from '@/models/WorkspaceInvite';
 import { revalidatePath } from 'next/cache';
 import { canAddMember, getUpgradeMessage } from '@/lib/plan-limits';
+import { resolveWorkspacePlan } from '@/lib/workspace-plan';
 import { sendWorkspaceInviteEmail, sendExistingUserJoinEmail } from '@/lib/email/workspace-invite';
 import crypto from 'crypto';
 import { Types } from 'mongoose';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
+import { trackEvent } from '@/lib/track';
 
 function generateInviteToken(): string {
   return crypto.randomBytes(32).toString('hex');
@@ -36,8 +39,10 @@ export async function inviteMemberToWorkspace(slug: string, email: string, role:
             return { error: 'Only the workspace admin can invite members' };
         }
 
-        const inviterUser = await User.findById(session.user.id).select('plan name');
-        const plan = (inviterUser?.plan || 'free') as 'free' | 'starter' | 'pro' | 'enterprise';
+        // The inviter's name is still used for the invite emails below; the
+        // member cap, however, is governed by the workspace OWNER's plan.
+        const inviterUser = await User.findById(session.user.id).select('name');
+        const plan = await resolveWorkspacePlan(workspace.ownerId);
         const currentMemberCount = workspace.members.length;
 
         if (!canAddMember(plan, currentMemberCount)) {
@@ -93,6 +98,15 @@ export async function inviteMemberToWorkspace(slug: string, email: string, role:
             });
 
             revalidatePath(`/${slug}/team`);
+            // First-party funnel: teammate invited (existing Flux user).
+            after(() =>
+                trackEvent({
+                    event: 'member_invited',
+                    userId: session.user.id,
+                    workspaceId: workspace._id.toString(),
+                    metadata: { role, targetExists: true },
+                })
+            );
             return { success: true, message: 'Invitation sent! They will receive an email to join the workspace.' };
         }
 
@@ -133,6 +147,15 @@ export async function inviteMemberToWorkspace(slug: string, email: string, role:
             inviteToken,
         });
 
+        // First-party funnel: teammate invited (not yet a Flux user).
+        after(() =>
+            trackEvent({
+                event: 'member_invited',
+                userId: session.user.id,
+                workspaceId: workspace._id.toString(),
+                metadata: { role, targetExists: false },
+            })
+        );
         return { success: true, message: 'Invitation sent! The user will be added to the workspace after they sign up.' };
     } catch (err: unknown) {
         console.error('Error in inviteMemberToWorkspace:', err);
