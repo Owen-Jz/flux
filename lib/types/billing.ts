@@ -48,4 +48,6 @@ export interface PlanMeta {
     priceDisplay: string;
     projects: number | 'unlimited';
     members: number | 'unlimited';
+    tasks: number | 'unlimited';
+    aiCredits: number | 'unlimited';
 }

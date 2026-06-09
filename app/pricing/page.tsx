@@ -18,7 +18,8 @@ const plans = [
     features: [
       'Up to 3 Projects',
       'Up to 3 Team Members',
-      'Unlimited Tasks',
+      'Up to 20 Tasks',
+      '3 AI Plans / month',
       'Basic Analytics',
       'Community Support',
     ],
@@ -34,6 +35,7 @@ const plans = [
     features: [
       'Up to 5 Projects',
       'Up to 10 Team Members',
+      '50 AI Plans / month',
       'Basic Analytics',
       'Email Support',
       'Custom Workflows',
@@ -51,6 +53,7 @@ const plans = [
     features: [
       'Unlimited Projects',
       'Up to 25 Team Members',
+      '200 AI Plans / month',
       'Advanced Analytics',
       'Priority Support',
       'Custom Workflows',
@@ -68,6 +71,7 @@ const plans = [
     description: 'Advanced features and support for large organizations.',
     features: [
       'Unlimited Everything',
+      'Unlimited AI Planning',
       'SSO & SAML',
       'Dedicated Success Manager',
       'Advanced Security',

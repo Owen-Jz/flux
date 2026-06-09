@@ -8,6 +8,7 @@ import { SparklesIcon as SparklesIconSolid } from '@heroicons/react/24/solid';
 import { PLAN_META } from '@/lib/plan-limits';
 import { USD_TO_NGN_PRICING_RATE } from '@/lib/paystack';
 import { startTrial } from '@/actions/billing/start-trial';
+import { getAiUsage, type AiUsage } from '@/actions/usage';
 
 interface Subscription {
     plan: string;
@@ -42,22 +43,22 @@ const PLAN_FEATURES = {
     free: {
         projects: '3 Projects',
         members: '3 Team Members',
-        features: ['Basic Analytics', 'Community Support'],
+        features: ['20 Active Tasks', '3 AI Plans / month', 'Basic Analytics', 'Community Support'],
     },
     starter: {
         projects: '5 Projects',
         members: '10 Team Members',
-        features: ['Email Support', 'Custom Workflows', 'API Access'],
+        features: ['Unlimited Tasks', '50 AI Plans / month', 'Email Support', 'Custom Workflows', 'API Access'],
     },
     pro: {
         projects: 'Unlimited Projects',
         members: '25 Team Members',
-        features: ['Priority Support', 'Advanced Analytics', 'Admin Controls', 'SSO'],
+        features: ['Unlimited Tasks', '200 AI Plans / month', 'Priority Support', 'Advanced Analytics', 'Admin Controls', 'SSO'],
     },
     enterprise: {
         projects: 'Unlimited Everything',
         members: 'Unlimited Members',
-        features: ['Dedicated Support', 'SLA Guarantee', 'On-premise', 'Custom Contracts'],
+        features: ['Unlimited AI Planning', 'Dedicated Support', 'SLA Guarantee', 'On-premise', 'Custom Contracts'],
     },
 };
 
@@ -275,7 +276,23 @@ export function BillingSection() {
     const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);
     const [upgradedPlan, setUpgradedPlan] = useState<string | null>(null);
     const [transactions, setTransactions] = useState<BillingTransaction[]>([]);
+    const [aiUsage, setAiUsage] = useState<AiUsage | null>(null);
     const trialActivating = useRef(false);
+
+    // Load the caller's "Plan with AI" allowance for the current rolling window.
+    useEffect(() => {
+        let cancelled = false;
+        getAiUsage()
+            .then((usage) => {
+                if (!cancelled) setAiUsage(usage);
+            })
+            .catch(() => {
+                // Quietly leave usage null — the card simply won't render.
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     // Load billing history (payment receipts).
     useEffect(() => {
@@ -660,6 +677,73 @@ export function BillingSection() {
                     )}
                 </div>
             </div>
+
+            {/* Usage this month */}
+            {aiUsage && (
+                <div className="card p-6">
+                    <div className="flex items-center gap-2 mb-4">
+                        <SparklesIcon className="w-4 h-4 text-[var(--brand-primary)]" />
+                        <h2 className="font-semibold">Usage this month</h2>
+                    </div>
+
+                    {(() => {
+                        const limit = aiUsage.limit;
+                        const isUnlimited = limit === 'unlimited';
+                        const used = aiUsage.used;
+                        const numericLimit = isUnlimited ? 0 : limit;
+                        const pct = isUnlimited || numericLimit <= 0
+                            ? 0
+                            : Math.min(100, Math.max(0, (used / numericLimit) * 100));
+                        const remaining = aiUsage.remaining;
+                        const isOut = !isUnlimited && remaining === 0;
+
+                        return (
+                            <div className="rounded-xl border border-[var(--border-subtle)] p-5" style={{ background: 'var(--surface)' }}>
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-semibold text-[var(--text-primary)]">AI Planning</p>
+                                        {isUnlimited ? (
+                                            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                                                Unlimited AI planning on your plan.
+                                            </p>
+                                        ) : (
+                                            <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                                                {used} / {numericLimit} plan{numericLimit === 1 ? '' : 's'} used this month
+                                            </p>
+                                        )}
+                                    </div>
+                                    {!isUnlimited && (
+                                        <span className="flex-shrink-0 text-sm font-semibold tabular-nums text-[var(--text-primary)]">
+                                            {remaining === 'unlimited' ? '∞' : remaining} left
+                                        </span>
+                                    )}
+                                </div>
+
+                                {!isUnlimited && (
+                                    <div className="mt-3 h-2 w-full overflow-hidden rounded-full" style={{ background: 'var(--background-subtle)' }}>
+                                        <div
+                                            className="h-full rounded-full transition-[width]"
+                                            style={{ width: `${pct}%`, background: 'var(--brand-primary)' }}
+                                        />
+                                    </div>
+                                )}
+
+                                {!isUnlimited && aiUsage.resetAt && (
+                                    <p className="mt-2 text-xs text-[var(--text-tertiary)]">
+                                        Resets {new Date(aiUsage.resetAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                    </p>
+                                )}
+
+                                {isOut && (
+                                    <p className="mt-3 text-xs font-medium" style={{ color: 'var(--flux-error-primary)' }}>
+                                        You&apos;re out of AI plans — upgrade for more.
+                                    </p>
+                                )}
+                            </div>
+                        );
+                    })()}
+                </div>
+            )}
 
             {/* Available Plans */}
             <div className="card p-6">

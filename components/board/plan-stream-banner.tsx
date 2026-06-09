@@ -2,6 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   SparklesIcon,
@@ -47,7 +48,7 @@ function SectionStatusIcon({ status }: { status: SectionStatus }) {
 }
 
 export function PlanStreamBanner({ state, onCancel, onDismiss, loadingMessages }: PlanStreamBannerProps) {
-  const { phase, title, sections, errorMessage, tasksCreated } = state;
+  const { phase, title, sections, errorMessage, tasksCreated, upgradeRequired } = state;
   const isActive = phase === 'streaming';
   const analyzing = isActive && sections.length === 0;
   const completed = sections.filter((s) => s.status !== 'pending').length;
@@ -116,6 +117,15 @@ export function PlanStreamBanner({ state, onCancel, onDismiss, loadingMessages }
                   </p>
                   {phase === 'error' && (
                     <p className="text-xs text-red-600 dark:text-red-400">{errorMessage}</p>
+                  )}
+                  {phase === 'error' && upgradeRequired && (
+                    <Link
+                      href="/pricing"
+                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[var(--brand-primary)] to-purple-600 text-white text-xs font-semibold hover:shadow-lg hover:shadow-[var(--brand-primary)]/25 transition-all"
+                    >
+                      <SparklesIcon className="w-3.5 h-3.5" />
+                      Upgrade plan
+                    </Link>
                   )}
                   {isActive && !analyzing && (
                     <p className="text-xs text-[var(--text-secondary)] truncate">

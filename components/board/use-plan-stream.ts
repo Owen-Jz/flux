@@ -24,6 +24,7 @@ export interface PlanStreamState {
   columnTotals: Record<string, number>;
   createdTaskIds: string[];
   errorMessage: string;
+  upgradeRequired: boolean;
 }
 
 const INITIAL_STATE: PlanStreamState = {
@@ -35,6 +36,7 @@ const INITIAL_STATE: PlanStreamState = {
   columnTotals: {},
   createdTaskIds: [],
   errorMessage: '',
+  upgradeRequired: false,
 };
 
 interface UsePlanStreamCallbacks {
@@ -149,13 +151,15 @@ export function usePlanStream({ onTasks }: UsePlanStreamCallbacks) {
 
         if (!res.ok || !res.body) {
           let message = 'Planning failed — please try again';
+          let upgradeRequired = res.status === 402;
           try {
             const data = await res.json();
             if (data?.error) message = data.error;
+            if (data?.upgradeRequired === true) upgradeRequired = true;
           } catch {
             /* non-JSON error body; keep default */
           }
-          setState(prev => ({ ...prev, phase: 'error', errorMessage: message }));
+          setState(prev => ({ ...prev, phase: 'error', errorMessage: message, upgradeRequired }));
           return;
         }
 

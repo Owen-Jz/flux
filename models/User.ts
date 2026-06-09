@@ -58,6 +58,11 @@ export interface IUser extends Document {
     // past-due reminder email has been sent for the current dunning cycle.
     pastDueSince?: Date;
     pastDueReminderSent?: boolean;
+    // "Plan with AI" monthly allowance. `aiCreditsUsed` counts generations consumed in the
+    // current window; `aiCreditsResetAt` is when the window rolls over (used is zeroed on
+    // the next consume/read past this instant). See lib/ai-credits.ts.
+    aiCreditsUsed: number;
+    aiCreditsResetAt?: Date;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -112,6 +117,8 @@ const UserSchema = new Schema<IUser>(
         lastUpgradeAt: { type: Date },
         pastDueSince: { type: Date },
         pastDueReminderSent: { type: Boolean, default: false },
+        aiCreditsUsed: { type: Number, default: 0 },
+        aiCreditsResetAt: { type: Date },
     },
     { timestamps: true }
 );

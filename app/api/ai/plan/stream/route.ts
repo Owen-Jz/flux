@@ -9,6 +9,9 @@ import { Task } from '@/models/Task';
 import { isWorkspaceMember, hasRole } from '@/lib/workspace-utils';
 import { createMinimaxClient } from '@/lib/llm/client';
 import { checkUserRateLimit } from '@/lib/rate-limit-enhanced';
+import { consumeAiCredit, refundAiCredit } from '@/lib/ai-credits';
+import { resolveWorkspacePlan } from '@/lib/workspace-plan';
+import { getUpgradeMessage, getTaskLimit } from '@/lib/plan-limits';
 import { revalidatePath } from 'next/cache';
 import { normalizeSectionTask } from '@/lib/llm/board-stream-planner';
 import { sanitizeContextLinks } from '@/lib/llm/sanitize';
@@ -92,10 +95,27 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  const ownerPlan = await resolveWorkspacePlan(workspace.ownerId);
+  const taskLimit = getTaskLimit(ownerPlan);
+  const activeTaskCount = await Task.countDocuments({ workspaceId: workspace._id, status: { $ne: 'ARCHIVED' } });
+  let taskBudget: number = taskLimit === 'unlimited' ? Infinity : Math.max(0, taskLimit - activeTaskCount);
+  if (taskBudget <= 0) {
+    return new Response(JSON.stringify({ error: getUpgradeMessage(ownerPlan, 'tasks'), upgradeRequired: true, limitType: 'tasks' }), {
+      status: 402, headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const credit = await consumeAiCredit(session.user.id);
+  if (!credit.allowed) {
+    return new Response(JSON.stringify({ error: getUpgradeMessage(credit.plan, 'ai'), upgradeRequired: true, limitType: 'ai' }), {
+      status: 402, headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const workspaceId = workspace._id as Types.ObjectId;
   const boardObjectId = board._id as Types.ObjectId;
   const creatorObjectId = new Types.ObjectId(session.user.id);
-  const cap = typeof maxTasks === 'number' && maxTasks > 0 ? Math.min(maxTasks, 30) : DEFAULT_MAX_TASKS;
+  const cap = Math.min(typeof maxTasks === 'number' && maxTasks > 0 ? Math.min(maxTasks, 30) : DEFAULT_MAX_TASKS, taskBudget);
   const safeLinks = sanitizeContextLinks(contextLinks);
   // Only forward a deadline that is a short string — it flows into the LLM prompt.
   const safeDeadline =
@@ -168,11 +188,20 @@ export async function POST(request: NextRequest) {
             if (aborted()) return;
 
             const normalized = result.tasks.map(normalizeSectionTask);
+
+            // Reserve workspace task budget the same synchronous way as the order
+            // range (no await between read and advance) so concurrent workers under
+            // SECTION_CONCURRENCY can't collectively overshoot the cap.
+            const take = taskBudget === Infinity ? normalized.length : Math.min(normalized.length, taskBudget);
+            if (take <= 0) return; // workspace task budget exhausted — skip this section
+            taskBudget -= take;
+            const limited = normalized.slice(0, take);
+
             // Reserve this section's order range atomically (synchronous — no
             // await between read and advance, so concurrent workers can't overlap).
             const startOrder = orderCounter;
-            orderCounter += normalized.length;
-            const docs = normalized.map((t, i) => ({
+            orderCounter += limited.length;
+            const docs = limited.map((t, i) => ({
               workspaceId,
               boardId: boardObjectId,
               title: t.title,
@@ -189,14 +218,14 @@ export async function POST(request: NextRequest) {
             const streamed: StreamedTask[] = inserted.map((doc, i) => {
               const id = (doc._id as Types.ObjectId).toString();
               createdTaskIds.push(id);
-              columnTotals[normalized[i].status] = (columnTotals[normalized[i].status] ?? 0) + 1;
+              columnTotals[limited[i].status] = (columnTotals[limited[i].status] ?? 0) + 1;
               return {
                 id,
-                title: normalized[i].title,
-                description: normalized[i].description,
-                status: normalized[i].status,
-                priority: normalized[i].priority,
-                estimatedHours: normalized[i].estimatedHours,
+                title: limited[i].title,
+                description: limited[i].description,
+                status: limited[i].status,
+                priority: limited[i].priority,
+                estimatedHours: limited[i].estimatedHours,
                 order: docs[i].order,
                 sectionIndex: index,
               };
@@ -234,6 +263,11 @@ export async function POST(request: NextRequest) {
           tasksCreated: createdTaskIds.length,
         });
       } catch (err) {
+        // Our-side failure with nothing inserted: don't charge the user a credit.
+        // A partial success (some tasks created) still counts as a use.
+        if (createdTaskIds.length === 0) {
+          await refundAiCredit(session.user.id);
+        }
         const message = err instanceof Error ? err.message : 'Planning failed';
         console.error('[ai/plan/stream] error:', message);
         const friendly = message.includes('timed out')

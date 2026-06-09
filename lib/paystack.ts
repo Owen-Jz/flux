@@ -490,30 +490,39 @@ export function planFromAmount(amount: number, currency: string): 'starter' | 'p
     return null;
 }
 
-// Plan limits
+// Plan limits — the runtime source of truth for quota enforcement.
+//
+// `tasks` is the cap on ACTIVE (non-ARCHIVED) tasks per workspace; `aiCredits` is the
+// number of "Plan with AI" generations allowed per rolling 30-day window. A value of
+// `'unlimited'` means uncapped. These are intentionally single-constant edits: change a
+// number here and every enforcement point + the pricing/usage UI follows.
 export const PLAN_LIMITS = {
     free: {
         projects: 3,
         members: 3,
-        tasks: 'unlimited',
+        tasks: 20,
+        aiCredits: 3,
         features: ['basic_analytics', 'community_support'],
     },
     starter: {
         projects: 5,
         members: 10,
         tasks: 'unlimited',
+        aiCredits: 50,
         features: ['basic_analytics', 'email_support', 'custom_workflows'],
     },
     pro: {
         projects: 'unlimited',
         members: 25,
         tasks: 'unlimited',
+        aiCredits: 200,
         features: ['advanced_analytics', 'priority_support', 'custom_workflows', 'admin_controls', 'api_access'],
     },
     enterprise: {
         projects: 'unlimited',
         members: 'unlimited',
         tasks: 'unlimited',
+        aiCredits: 'unlimited',
         features: ['advanced_analytics', 'dedicated_support', 'custom_workflows', 'admin_controls', 'api_access', 'sso', 'sla', 'on_premise'],
     },
 };

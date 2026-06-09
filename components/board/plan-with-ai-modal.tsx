@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
     XMarkIcon,
     SparklesIcon,
@@ -92,6 +93,7 @@ export function PlanWithAIModal({
     const [uiPlan, setUiPlan] = useState<UIAIPlan | null>(null);
     const [cyclingIndex, setCyclingIndex] = useState(0);
     const [error, setError] = useState('');
+    const [upgradeError, setUpgradeError] = useState(false);
     const [creationResult, setCreationResult] = useState<{ boardsCreated: number; tasksCreated: number } | null>(null);
 
     // Domain-aware loading phrases — set from the description when planning starts.
@@ -110,6 +112,7 @@ export function PlanWithAIModal({
         setMaxTasksPerBoard('');
         setUiPlan(null);
         setError('');
+        setUpgradeError(false);
         setCreationResult(null);
         setCyclingIndex(0);
     };
@@ -149,6 +152,7 @@ export function PlanWithAIModal({
         setCyclingIndex(0);
         setStep('planning');
         setError('');
+        setUpgradeError(false);
         cyclingIntervalRef.current = setInterval(() => setCyclingIndex(i => i + 1), 1500);
         try {
             const links = contextLinks.split('\n').map(l => l.trim()).filter(l => l.length > 0).slice(0, 5);
@@ -162,7 +166,11 @@ export function PlanWithAIModal({
                 maxTasksPerBoard: maxTasksPerBoard ? parseInt(maxTasksPerBoard, 10) : 10,
             };
             const res = await fetch('/api/ai/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-            if (!res.ok) { const data = await res.json(); throw new Error(data.error || 'Planning failed'); }
+            if (!res.ok) {
+                const data = await res.json();
+                if (res.status === 402 || data.upgradeRequired) setUpgradeError(true);
+                throw new Error(data.error || 'Planning failed');
+            }
             const plan = await res.json() as AIPlan;
             setUiPlan(toUIPlan(plan));
             setStep('review');
@@ -208,6 +216,8 @@ export function PlanWithAIModal({
     const handleConfirm = async () => {
         if (!uiPlan) return;
         setStep('creating');
+        setError('');
+        setUpgradeError(false);
         try {
             let result;
             if (uiPlan.type === 'board') {
@@ -217,7 +227,13 @@ export function PlanWithAIModal({
                 const confirmedBoards = (uiPlan.boards ?? []).filter(b => b.selected).map(b => ({ name: b.name, description: b.description, tasks: b.tasks.filter(t => t.selected).map(({ selected: _s, ...rest }: UITaskPlanItem) => rest) }));
                 result = await createFromAIPlan(workspaceSlug, boardSlug, boardId, { type: 'project', boards: confirmedBoards });
             }
-            if (!result.success) { setError(result.error ?? 'Creation failed'); setStep('review'); return; }
+            if (!result.success) {
+                const message = result.error ?? 'Creation failed';
+                setError(message);
+                if (/upgrade|limit/i.test(message)) setUpgradeError(true);
+                setStep('review');
+                return;
+            }
             setCreationResult({ boardsCreated: result.boardsCreated, tasksCreated: result.tasksCreated });
             setStep('done');
             router.refresh();
@@ -341,6 +357,12 @@ export function PlanWithAIModal({
                                     {error && (
                                         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                                             <p className="text-sm font-medium text-red-600 dark:text-red-400">{error}</p>
+                                            {upgradeError && (
+                                                <Link href="/pricing" className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[var(--brand-primary)] to-purple-600 text-white text-sm font-semibold hover:shadow-lg hover:shadow-[var(--brand-primary)]/25 transition-all">
+                                                    <SparklesIcon className="w-4 h-4" />
+                                                    Upgrade plan
+                                                </Link>
+                                            )}
                                         </motion.div>
                                     )}
                                     <div className="flex gap-3">
@@ -390,6 +412,12 @@ export function PlanWithAIModal({
                                     {error && (
                                         <div className="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                                             <p className="text-sm font-medium text-red-600 dark:text-red-400">{error}</p>
+                                            {upgradeError && (
+                                                <Link href="/pricing" className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-[var(--brand-primary)] to-purple-600 text-white text-sm font-semibold hover:shadow-lg hover:shadow-[var(--brand-primary)]/25 transition-all">
+                                                    <SparklesIcon className="w-4 h-4" />
+                                                    Upgrade plan
+                                                </Link>
+                                            )}
                                         </div>
                                     )}
                                     {uiPlan.type === 'board' && uiPlan.tasks && (

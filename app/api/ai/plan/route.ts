@@ -8,6 +8,8 @@ import { Workspace } from '@/models/Workspace';
 import { isWorkspaceMember } from '@/lib/workspace-utils';
 import { createMinimaxClient } from '@/lib/llm/client';
 import { checkUserRateLimit } from '@/lib/rate-limit-enhanced';
+import { consumeAiCredit, refundAiCredit } from '@/lib/ai-credits';
+import { getUpgradeMessage } from '@/lib/plan-limits';
 import type { AIPlanRequest, AIPlan } from '@/types/ai-plan';
 
 export async function POST(request: NextRequest) {
@@ -85,6 +87,14 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    const credit = await consumeAiCredit(session.user.id);
+    if (!credit.allowed) {
+        return NextResponse.json(
+            { error: getUpgradeMessage(credit.plan, 'ai'), upgradeRequired: true, limitType: 'ai' },
+            { status: 402 }
+        );
+    }
+
     // For board scale, verify the board exists in this workspace
     if (scale === 'board' && boardId) {
         const board = await Board.findOne({ _id: boardId, workspaceId: workspace._id });
@@ -139,8 +149,9 @@ export async function POST(request: NextRequest) {
             }));
         }
 
-        return NextResponse.json(plan);
+        return NextResponse.json(plan, { headers: { 'X-AI-Credits-Remaining': String(credit.remaining) } });
     } catch (error) {
+        await refundAiCredit(session.user.id);
         const msg = error instanceof Error ? error.message : 'Planning failed';
         console.error('[ai/plan] LLM error:', msg);
         if (msg.includes('timed out')) {
