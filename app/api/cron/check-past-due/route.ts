@@ -5,6 +5,7 @@ import {
     sendSubscriptionPastDueEmail,
     sendSubscriptionDisabledEmail,
 } from '@/lib/email/subscription-notifications';
+import { isAuthorizedCron } from '@/lib/cron-auth';
 
 // Dunning windows (env-tunable). Paystack retries the card itself; this cron
 // adds an app-side grace period so a past_due subscription can't linger forever.
@@ -19,8 +20,7 @@ const GRACE_DAYS = Number(process.env.PAST_DUE_GRACE_DAYS) || 7;
  * 2. Downgrades users past_due for >= GRACE_DAYS to the free plan.
  */
 export async function GET(request: NextRequest) {
-    const secret = request.headers.get('x-cron-secret');
-    if (secret !== process.env.CRON_SECRET) {
+    if (!isAuthorizedCron(request)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import { User } from '@/models/User';
 import { sendTrialExpiredEmail, sendTrialExpiringEmail } from '@/lib/email/subscription-notifications';
+import { isAuthorizedCron } from '@/lib/cron-auth';
 
 export async function GET(request: NextRequest) {
-  const secret = request.headers.get('x-cron-secret');
-  if (secret !== process.env.CRON_SECRET) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

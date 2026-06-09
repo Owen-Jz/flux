@@ -4,12 +4,12 @@ import { Workspace } from '@/models/Workspace';
 import { Board } from '@/models/Board';
 import { Task } from '@/models/Task';
 import { ActivityLog } from '@/models/ActivityLog';
+import { isAuthorizedCron } from '@/lib/cron-auth';
 
 // Permanently purge workspaces that were soft-deleted more than 30 days ago.
 // Schedule via cron (e.g., daily at midnight).
 export async function GET(request: NextRequest) {
-    const secret = request.headers.get('x-cron-secret');
-    if (secret !== process.env.CRON_SECRET) {
+    if (!isAuthorizedCron(request)) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
