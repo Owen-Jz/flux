@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth';
 import { redirect, notFound } from 'next/navigation';
 import Link from 'next/link';
+import { InformationCircleIcon } from '@heroicons/react/24/outline';
 import { getWorkspaceBySlug } from '@/actions/workspace';
 import { getBoardBySlug } from '@/actions/board';
 import { getTasks, getBoardCalendarTasks } from '@/actions/task';
@@ -74,6 +75,7 @@ export default async function BoardPage({
                 <Link
                     href={`/${slug}/board/${boardSlug}?view=calendar`}
                     aria-current={view === 'calendar' ? 'page' : undefined}
+                    title={`${board.name}'s own calendar — separate from every other board`}
                     className={`${tabBase} ${view === 'calendar' ? tabActive : tabIdle}`}
                 >
                     Calendar
@@ -91,7 +93,14 @@ export default async function BoardPage({
                 <div className="flex-1 overflow-auto px-4 md:px-6 pb-6 flex flex-col">
                     <div className="mb-4 flex-shrink-0">
                         <h1 className="text-xl md:text-2xl font-bold text-[var(--foreground)]">{board.name} calendar</h1>
-                        <p className="text-sm text-[var(--text-secondary)]">Items scheduled on this board only</p>
+                        <div className="mt-2 flex items-start gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] px-3 py-2 text-sm text-[var(--text-secondary)]">
+                            <InformationCircleIcon className="w-4 h-4 mt-0.5 flex-shrink-0 text-[var(--brand-primary)]" />
+                            <span>
+                                Each board has its own calendar. Anything you schedule here belongs to{' '}
+                                <span className="font-medium text-[var(--foreground)]">{board.name}</span> only — it
+                                won&apos;t appear on other boards&apos; calendars or the workspace calendar.
+                            </span>
+                        </div>
                     </div>
                     <CalendarClient
                         initialTasks={calendarTasks}

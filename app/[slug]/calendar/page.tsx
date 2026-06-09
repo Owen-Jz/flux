@@ -35,7 +35,10 @@ export default async function CalendarPage({
         <div className="p-4 md:p-8 h-full flex flex-col">
             <div className="mb-6">
                 <h1 className="text-2xl md:text-3xl font-bold text-[var(--foreground)]">Calendar</h1>
-                <p className="text-[var(--text-secondary)]">Tasks scheduled by due date</p>
+                <p className="text-[var(--text-secondary)]">
+                    Tasks across all boards, scheduled by due date. Each board also has its own separate
+                    calendar — open a board and switch to its Calendar tab.
+                </p>
             </div>
             <CalendarClient
                 initialTasks={tasks}
