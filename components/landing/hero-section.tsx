@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRightIcon,
@@ -11,6 +13,12 @@ import {
   PlayCircleIcon,
 } from "@heroicons/react/24/outline";
 import { HeroPlanningDemo } from "@/components/landing/hero-planning-demo";
+
+// Lazy-loaded so the Remotion player + composition stay out of the initial bundle
+// and never run during SSR. The chunk is fetched the first time the modal opens.
+const HeroVideoModal = dynamic(() => import("@/components/landing/hero-video-modal"), {
+  ssr: false,
+});
 
 const fadeInUp = {
   initial: { opacity: 0, y: 24 },
@@ -87,6 +95,7 @@ function GridPattern() {
 
 export function HeroSection() {
   const router = useRouter();
+  const [videoOpen, setVideoOpen] = useState(false);
 
   // When the visitor chooses to save their generated plan, stash the prompt (in
   // sessionStorage, so their project text never lands in the URL/history) and
@@ -188,13 +197,15 @@ export function HeroSection() {
                 Get started free
                 <ArrowRightIcon className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </Link>
-              <a
-                href="#how-it-works"
+              <button
+                type="button"
+                onClick={() => setVideoOpen(true)}
+                aria-haspopup="dialog"
                 className="group w-full sm:w-auto px-6 py-4 rounded-2xl text-base font-bold text-[var(--text-primary)] border border-[var(--border-default)] bg-[var(--surface)]/60 backdrop-blur-sm hover:bg-[var(--surface)] hover:border-[var(--brand-primary)]/40 transition-all flex items-center justify-center gap-2"
               >
-                <PlayCircleIcon className="w-5 h-5 text-[var(--brand-primary)]" />
+                <PlayCircleIcon className="w-5 h-5 text-[var(--brand-primary)] transition-transform group-hover:scale-110" />
                 See how it works
-              </a>
+              </button>
             </motion.div>
 
             {/* Social proof */}
@@ -264,6 +275,9 @@ export function HeroSection() {
           <span className="hero-scroll-dot h-1.5 w-1.5 rounded-full bg-[var(--brand-primary)]" />
         </span>
       </a>
+
+      {/* Interactive Remotion ad — opens from the "See how it works" button */}
+      {videoOpen ? <HeroVideoModal open={videoOpen} onClose={() => setVideoOpen(false)} /> : null}
     </section>
   );
 }

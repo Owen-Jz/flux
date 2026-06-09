@@ -12,6 +12,12 @@
 
 # testing
 /coverage
+# QA/smoke test screenshot artifacts — generated, not source
+__tests__/smoke/screenshots/
+
+# local scratch / generated docs (not source)
+payment-setup-guide.html
+cresio-hero-tmp.png
 
 # next.js
 /.next/
