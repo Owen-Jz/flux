@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import type { CalendarTask } from '@/actions/task';
-import { updateTaskDueDate, createTask, updateTask } from '@/actions/task';
+import { updateTaskDueDate, updateTaskScheduledDate, createTask, updateTask } from '@/actions/task';
 import { CalendarGrid } from './CalendarGrid';
 import { TaskDetailModal } from '@/components/board/task-detail-modal';
 import { CreateTaskModal } from '@/components/board/create-task-modal';
@@ -29,9 +29,13 @@ interface CalendarClientProps {
     userRole: 'ADMIN' | 'EDITOR' | 'VIEWER' | null;
     boards: Board[];
     members?: Member[];
+    /** Which date field this calendar reads and writes. `dueDate` (default) is the
+     *  workspace calendar; `scheduledDate` is a per-board calendar, isolated from the
+     *  workspace view. */
+    dateField?: 'dueDate' | 'scheduledDate';
 }
 
-export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, members = [] }: CalendarClientProps) {
+export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, members = [], dateField = 'dueDate' }: CalendarClientProps) {
     const now = new Date();
     const [year, setYear] = useState(now.getFullYear());
     const [month, setMonth] = useState(now.getMonth());
@@ -45,6 +49,13 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, 
     const [createError, setCreateError] = useState<string | null>(null);
 
     const isReadOnly = userRole === 'VIEWER' || userRole === null;
+
+    // Persist a date change to the field this calendar owns. Workspace calendar
+    // writes `dueDate`; a per-board calendar writes `scheduledDate`.
+    const persistDate = (taskId: string, date: Date) =>
+        dateField === 'scheduledDate'
+            ? updateTaskScheduledDate(taskId, date)
+            : updateTaskDueDate(taskId, date, workspaceSlug);
 
     const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
 
@@ -81,11 +92,13 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, 
         setTasks(prev => prev.map(t => {
             if (t.id !== taskId) return t;
             if (!previousTask) previousTask = t;
-            return { ...t, dueDate: date.toISOString() };
+            const updated: CalendarTask = { ...t };
+            updated[dateField] = date.toISOString();
+            return updated;
         }));
 
         try {
-            await updateTaskDueDate(taskId, date, workspaceSlug);
+            await persistDate(taskId, date);
         } catch {
             const restore = previousTask;
             if (restore) {
@@ -117,21 +130,22 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, 
                 status: formData.status,
             });
 
-            // Set due date immediately after creation
-            await updateTaskDueDate(result.id, createDate, workspaceSlug);
+            // Set the calendar's date field immediately after creation
+            await persistDate(result.id, createDate);
 
             // Add to local state
             const board = boards.find(b => b.slug === selectedBoardSlug);
-            setTasks(prev => [...prev, {
+            const newTask: CalendarTask = {
                 id: result.id,
                 title: formData.title,
-                dueDate: createDate.toISOString(),
                 status: formData.status,
                 priority: formData.priority,
                 boardId: board?.id ?? '',
                 boardSlug: selectedBoardSlug,
                 createdAt: new Date().toISOString(),
-            }]);
+            };
+            newTask[dateField] = createDate.toISOString();
+            setTasks(prev => [...prev, newTask]);
         } catch (err) {
             console.error('Failed to create task', err);
             setCreateError('Failed to create task. Please try again.');
@@ -219,7 +233,9 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, 
             {visibleTasks.length === 0 && (
                 <p className="text-sm text-[var(--text-secondary)] mb-4">
                     {tasks.length === 0
-                        ? 'No scheduled tasks. Set a due date on a task to see it here.'
+                        ? dateField === 'scheduledDate'
+                            ? 'Nothing scheduled yet. Click a day to add a scheduled item to this board.'
+                            : 'No scheduled tasks. Set a due date on a task to see it here.'
                         : 'No scheduled tasks on this board.'}
                 </p>
             )}
@@ -240,6 +256,7 @@ export function CalendarClient({ initialTasks, workspaceSlug, userRole, boards, 
                 onDayClick={handleDayClick}
                 onTaskClick={setSelectedTask}
                 isReadOnly={isReadOnly}
+                dateField={dateField}
             />
 
             {/* Task detail modal */}

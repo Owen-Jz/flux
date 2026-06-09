@@ -57,9 +57,12 @@ interface CalendarGridProps {
     onDayClick: (date: Date) => void;
     onTaskClick: (task: CalendarTask) => void;
     isReadOnly: boolean;
+    /** Which date field positions a task on the grid. Defaults to `dueDate`
+     *  (workspace calendar); the per-board calendar passes `scheduledDate`. */
+    dateField?: 'dueDate' | 'scheduledDate';
 }
 
-export function CalendarGrid({ year, month, tasks, onDragStart, onDrop, onDayClick, onTaskClick, isReadOnly }: CalendarGridProps) {
+export function CalendarGrid({ year, month, tasks, onDragStart, onDrop, onDayClick, onTaskClick, isReadOnly, dateField = 'dueDate' }: CalendarGridProps) {
     const days = getDaysInMonth(year, month);
     const today = toDateKey(new Date());
     const todayMs = startOfToday();
@@ -91,10 +94,14 @@ export function CalendarGrid({ year, month, tasks, onDragStart, onDrop, onDayCli
         };
     }, [expanded]);
 
-    // Group tasks by date key
+    // Group tasks by date key, positioned by the active date field. Tasks missing
+    // that field are skipped (shouldn't happen — the feed filters on it — but guards
+    // against the field being optional on the type).
     const tasksByDay = new Map<string, CalendarTask[]>();
     for (const task of tasks) {
-        const [yy, mm, dd] = task.dueDate.substring(0, 10).split('-').map(Number);
+        const dateVal = task[dateField];
+        if (!dateVal) continue;
+        const [yy, mm, dd] = dateVal.substring(0, 10).split('-').map(Number);
         const key = toDateKey(new Date(yy, mm - 1, dd));
         if (!tasksByDay.has(key)) tasksByDay.set(key, []);
         tasksByDay.get(key)!.push(task);

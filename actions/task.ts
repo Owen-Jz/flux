@@ -491,6 +491,7 @@ export async function updateTask(
         subtasks?: { id?: string; title: string; completed: boolean; createdAt?: string; createdBy?: string | Types.ObjectId | { id?: string; _id?: string } | null }[];
         categoryId?: string | null;
         dueDate?: string | null;
+        scheduledDate?: string | null;
         links?: { id: string; url: string; title: string }[];
     }
 ) {
@@ -570,6 +571,9 @@ export async function updateTask(
     }
     if (data.dueDate !== undefined) {
         task.dueDate = data.dueDate ? new Date(data.dueDate) : undefined;
+    }
+    if (data.scheduledDate !== undefined) {
+        task.scheduledDate = data.scheduledDate ? new Date(data.scheduledDate) : undefined;
     }
     if (data.links !== undefined) {
         task.links = data.links.map((l) => ({
@@ -1654,7 +1658,11 @@ export async function getWorkspaceMembers(workspaceSlug: string) {
 export interface CalendarTask {
     id: string;
     title: string;
-    dueDate: string;           // ISO string
+    /** Workspace calendar positions by this. Optional because the board calendar
+     *  positions by `scheduledDate` instead. */
+    dueDate?: string;          // ISO string
+    /** Per-board calendar positions by this. */
+    scheduledDate?: string;    // ISO string
     status: TaskStatus;
     priority: TaskPriority;
     boardId: string;
@@ -1713,4 +1721,58 @@ export async function updateTaskDueDate(taskId: string, newDate: Date, workspace
     await updateTask(taskId, { dueDate: newDate.toISOString() });
     // updateTask revalidates the workspace root; this additionally invalidates the calendar sub-path.
     revalidatePath(`/${workspaceSlug}/calendar`);
+}
+
+/**
+ * Per-board calendar feed. Mirrors getCalendarTasks but scoped to a single board
+ * and positioned by `scheduledDate` instead of `dueDate`, so board-scheduled items
+ * stay isolated from the workspace calendar (which only ever reads `dueDate`).
+ */
+export async function getBoardCalendarTasks(workspaceSlug: string, boardSlug: string): Promise<CalendarTask[]> {
+    const session = await auth();
+
+    await connectDB();
+
+    const workspace = await Workspace.findOne({ slug: workspaceSlug });
+    if (!workspace) return [];
+
+    const member = session?.user?.id ? isWorkspaceMember(workspace, session.user.id) : null;
+    const hasPublicAccess = workspace.settings?.publicAccess === true;
+    if (!member && !hasPublicAccess) return [];
+
+    // Resolve the single board, enforcing the same visibility rules as the
+    // workspace calendar (RESTRICTED boards are hidden from non-members).
+    const board = await Board.findOne({
+        workspaceId: workspace._id,
+        slug: boardSlug,
+        ...boardVisibilityFilter(session?.user?.id, member),
+    }).select('_id slug').lean();
+    if (!board) return [];
+
+    const tasks = await Task.find({
+        workspaceId: workspace._id,
+        boardId: board._id,
+        scheduledDate: { $exists: true, $ne: null },
+        status: { $ne: 'ARCHIVED' },
+    })
+        .select('_id title scheduledDate status priority boardId createdAt')
+        .lean();
+
+    return tasks.map((t) => ({
+        id: t._id.toString(),
+        title: t.title,
+        scheduledDate: t.scheduledDate!.toISOString(),
+        status: t.status,
+        priority: t.priority,
+        boardId: t.boardId.toString(),
+        boardSlug: board.slug,
+        createdAt: (t.createdAt as Date).toISOString(),
+    }));
+}
+
+export async function updateTaskScheduledDate(taskId: string, newDate: Date): Promise<void> {
+    await updateTask(taskId, { scheduledDate: newDate.toISOString() });
+    // updateTask already revalidates the workspace root, and the board page is
+    // force-dynamic (re-fetches every request), so the per-board calendar at
+    // ?view=calendar picks this up without an extra revalidate.
 }

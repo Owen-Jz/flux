@@ -28,6 +28,9 @@ export interface ITask extends Document {
     }[];
     tags: string[];
     dueDate?: Date;
+    /** Board-calendar date. Independent of `dueDate`: the workspace calendar reads
+     *  `dueDate`, each board's own calendar reads `scheduledDate`. */
+    scheduledDate?: Date;
     links?: { _id: Types.ObjectId; url: string; title: string }[];
     parentTaskId?: Types.ObjectId;
     summary?: string;
@@ -79,6 +82,7 @@ const TaskSchema = new Schema<ITask>(
             ),
         ],
         dueDate: { type: Date },
+        scheduledDate: { type: Date },
         parentTaskId: { type: Schema.Types.ObjectId, ref: 'Task' },
         summary: { type: String },
         referenceUrls: [{ type: String }],
@@ -94,5 +98,8 @@ TaskSchema.index({ boardId: 1, status: 1 });
 
 // Compound index for ordering within a column
 TaskSchema.index({ boardId: 1, status: 1, order: 1 });
+
+// Compound index for the per-board calendar query (tasks on a board by scheduled date)
+TaskSchema.index({ boardId: 1, scheduledDate: 1 });
 
 export const Task: Model<ITask> = mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);
