@@ -259,7 +259,10 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
             url: l.url,
             title: l.title || l.url,
         })),
-        createdAt: task.createdAt.toISOString(),
+        // Fall back to the timestamp embedded in the ObjectId when `createdAt`
+        // is missing (e.g. docs inserted by a loose-schema seed script without
+        // Mongoose timestamps). Prevents a crash on `.toISOString()` of undefined.
+        createdAt: (task.createdAt ?? task._id.getTimestamp()).toISOString(),
     }));
 }
 
@@ -314,8 +317,10 @@ export async function getArchivedTasks(workspaceSlug: string) {
             email: a.email || '',
             image: a.image,
         })),
-        createdAt: task.createdAt.toISOString(),
-        updatedAt: task.updatedAt.toISOString(),
+        // Loose-schema seed inserts may omit timestamps; fall back to the
+        // ObjectId-embedded creation time rather than crashing the render.
+        createdAt: (task.createdAt ?? task._id.getTimestamp()).toISOString(),
+        updatedAt: (task.updatedAt ?? task._id.getTimestamp()).toISOString(),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         comments: (task.comments || []).map((c: any) => {
             const populatedUser = c.userId && typeof c.userId === 'object' && '_id' in c.userId ? c.userId : null;
@@ -1713,7 +1718,10 @@ export async function getCalendarTasks(workspaceSlug: string): Promise<CalendarT
             priority: t.priority,
             boardId: t.boardId.toString(),
             boardSlug: boardSlugMap.get(t.boardId.toString())!,
-            createdAt: (t.createdAt as Date).toISOString(),
+            // Same defensive fallback as getTasks/getBoardCalendarTasks: docs
+            // inserted by a loose-schema seed may omit `createdAt`, so derive it
+            // from the ObjectId rather than crashing the calendar render.
+            createdAt: (t.createdAt ?? t._id.getTimestamp()).toISOString(),
         }));
 }
 
@@ -1766,7 +1774,9 @@ export async function getBoardCalendarTasks(workspaceSlug: string, boardSlug: st
         priority: t.priority,
         boardId: t.boardId.toString(),
         boardSlug: board.slug,
-        createdAt: (t.createdAt as Date).toISOString(),
+        // Same defensive fallback as getTasks: loose-schema seed inserts may omit
+        // `createdAt`, so derive it from the ObjectId rather than crashing.
+        createdAt: (t.createdAt ?? t._id.getTimestamp()).toISOString(),
     }));
 }
 
