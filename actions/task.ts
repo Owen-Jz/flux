@@ -259,7 +259,10 @@ export async function getTasks(workspaceSlug: string, boardSlug: string) {
             url: l.url,
             title: l.title || l.url,
         })),
-        createdAt: task.createdAt.toISOString(),
+        // Fall back to the timestamp embedded in the ObjectId when `createdAt`
+        // is missing (e.g. docs inserted by a loose-schema seed script without
+        // Mongoose timestamps). Prevents a crash on `.toISOString()` of undefined.
+        createdAt: (task.createdAt ?? task._id.getTimestamp()).toISOString(),
     }));
 }
 
@@ -1766,7 +1769,9 @@ export async function getBoardCalendarTasks(workspaceSlug: string, boardSlug: st
         priority: t.priority,
         boardId: t.boardId.toString(),
         boardSlug: board.slug,
-        createdAt: (t.createdAt as Date).toISOString(),
+        // Same defensive fallback as getTasks: loose-schema seed inserts may omit
+        // `createdAt`, so derive it from the ObjectId rather than crashing.
+        createdAt: (t.createdAt ?? t._id.getTimestamp()).toISOString(),
     }));
 }
 
