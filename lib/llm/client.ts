@@ -79,11 +79,32 @@ export class MinimaxClient {
 
     // Project plans are multi-board and the largest single generation — give them
     // plenty of headroom so a big plan never truncates mid-JSON.
-    const llmResponse = await this.callAPI(messages, {
+    const callOptions = {
       maxTokens: request.scale === 'project' ? 8000 : 4000,
-    });
-    const content = llmResponse.choices[0]?.message?.content ?? '';
-    return parseProjectPlanResponse(content, request.scale);
+    };
+
+    // callAPI already retries transient HTTP failures, but a malformed-JSON
+    // sample from the model surfaces as a parse error AFTER a successful HTTP
+    // call and would otherwise fail the whole request one-shot. One fresh
+    // sample resolves the vast majority of these, so retry the generate+parse
+    // pair exactly once before giving up.
+    try {
+      const llmResponse = await this.callAPI(messages, callOptions);
+      const content = llmResponse.choices[0]?.message?.content ?? '';
+      return parseProjectPlanResponse(content, request.scale);
+    } catch (error) {
+      // HTTP-layer and timeout failures were already retried by withRetry —
+      // re-running the full call here would only stack more latency onto an
+      // upstream that is already failing. Only parse failures get a fresh sample.
+      if (error instanceof MinimaxApiError) throw error;
+      if (error instanceof Error && (error.name === 'TypeError' || error.message.includes('timed out'))) throw error;
+      console.log(
+        `LLM plan parse failed (${error instanceof Error ? error.message : String(error)}), retrying with a fresh sample...`
+      );
+      const llmResponse = await this.callAPI(messages, callOptions);
+      const content = llmResponse.choices[0]?.message?.content ?? '';
+      return parseProjectPlanResponse(content, request.scale);
+    }
   }
 
   async planSkeleton(input: SkeletonPromptInput): Promise<BoardSkeletonResponse> {
