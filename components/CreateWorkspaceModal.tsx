@@ -95,7 +95,7 @@ export default function CreateWorkspaceModal({ onClose, onSuccess }: CreateWorks
                         </label>
                         <div className="flex items-center gap-2 p-3 bg-[var(--background)] rounded-lg border border-[var(--border-subtle)]">
                             <span className="text-[var(--text-secondary)] text-base md:text-sm">
-                                flux.com/
+                                fluxboard.site/
                             </span>
                             <input
                                 type="text"

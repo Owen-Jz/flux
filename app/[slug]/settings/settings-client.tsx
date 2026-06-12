@@ -343,7 +343,7 @@ export function SettingsClient({ workspace }: SettingsClientProps) {
                             <label className="mb-1 block text-sm font-medium">Workspace URL</label>
                             <div className="flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] bg-[var(--background-subtle)] p-2 pl-3">
                                 <span className="truncate text-sm text-[var(--text-secondary)]">
-                                    flux.com/<span className="font-medium text-[var(--text-primary)]">{workspace.slug}</span>
+                                    fluxboard.site/<span className="font-medium text-[var(--text-primary)]">{workspace.slug}</span>
                                 </span>
                                 <button
                                     type="button"
