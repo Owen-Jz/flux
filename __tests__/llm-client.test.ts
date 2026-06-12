@@ -279,6 +279,89 @@ describe('MinimaxClient', () => {
     });
   });
 
+  describe('planProject parse retry', () => {
+    // Regression: ISSUE-005 — a malformed-JSON sample from the model failed the
+    // whole plan request one-shot (intermittent 502 'Planning failed' in prod).
+    // Found by /qa on 2026-06-12
+    // Report: .gstack/qa-reports/qa-report-fluxboard-site-2026-06-12.md
+    const validPlanContent = JSON.stringify({
+      title: 'Bakery Website',
+      summary: 'A small marketing site for a bakery.',
+      boards: [
+        {
+          name: 'Planning',
+          description: 'Define scope',
+          tasks: [
+            {
+              title: 'Gather requirements',
+              description: 'Talk to the owner',
+              priority: 'High',
+              estimatedHours: 2,
+            },
+          ],
+        },
+      ],
+    });
+
+    const llmResponseWith = (content: string) => ({
+      ok: true,
+      json: vi.fn().mockResolvedValue({
+        id: 'test-id',
+        choices: [{ message: { content } }],
+      }),
+    });
+
+    const planRequest = {
+      description: 'Build a bakery marketing website',
+      scale: 'project' as const,
+    };
+
+    it('retries once with a fresh sample when the model returns malformed JSON', async () => {
+      const client = new MinimaxClient({ apiKey: 'test-key' });
+
+      vi.mocked(fetch)
+        .mockResolvedValueOnce(llmResponseWith('not valid json at all') as any)
+        .mockResolvedValueOnce(llmResponseWith(validPlanContent) as any);
+
+      const result = await client.planProject(planRequest);
+      expect(result.title).toBe('Bakery Website');
+      expect(result.boards).toHaveLength(1);
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('fails after the second sample also fails to parse', async () => {
+      const client = new MinimaxClient({ apiKey: 'test-key' });
+
+      vi.mocked(fetch).mockResolvedValue(llmResponseWith('still not json') as any);
+
+      await expect(client.planProject(planRequest)).rejects.toThrow(
+        'Failed to parse LLM response as JSON'
+      );
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not re-run the call for timeout errors already retried by the HTTP layer', async () => {
+      vi.useFakeTimers();
+      try {
+        const client = new MinimaxClient({ apiKey: 'test-key' });
+
+        const abortError = new Error('The operation was aborted.');
+        abortError.name = 'AbortError';
+        vi.mocked(fetch).mockRejectedValue(abortError);
+
+        const assertion = expect(client.planProject(planRequest)).rejects.toThrow(
+          'Request timed out after 24 seconds'
+        );
+        await vi.runAllTimersAsync();
+        await assertion;
+        // withRetry's 3 attempts only — no extra parse-level retry on top.
+        expect(fetch).toHaveBeenCalledTimes(3);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
   describe('decomposesTask', () => {
     it('should decompose task and return response', async () => {
       const client = new MinimaxClient({ apiKey: 'test-key' });
