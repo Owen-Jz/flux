@@ -3,6 +3,7 @@ import type { NextAuthConfig } from 'next-auth';
 const publicPaths = new Set([
     '/',
     '/login',
+    '/admin/login',
     '/signup',
     '/reset-password',
     '/verify-email',
