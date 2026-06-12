@@ -15,6 +15,7 @@ import {
     XMarkIcon,
 } from '@heroicons/react/24/outline';
 import { getOnboardingProgress, updateOnboardingProgress, dismissOnboarding, isEligibleForOnboarding } from '@/actions/onboarding';
+import { getBoards } from '@/actions/board';
 import { GuidedSessionModal, GuidedStepId } from './guided-session-modal';
 
 interface OnboardingChecklistProps {
@@ -95,14 +96,15 @@ export function OnboardingChecklist({ workspaceSlug }: OnboardingChecklistProps)
         };
     }, []);
 
-    // Load boards to find first board slug for task creation step
+    // Load boards to find first board slug for task creation step.
+    // Uses the session-authenticated server action — /api/v1 only accepts
+    // API keys, so calling it from the app shell 401s on every page load.
     useEffect(() => {
         if (workspaceSlug && !firstBoardSlug) {
-            fetch(`/api/v1/workspaces/${workspaceSlug}/boards`)
-                .then((res) => res.json())
-                .then((data) => {
-                    if (data.boards && data.boards.length > 0) {
-                        setFirstBoardSlug(data.boards[0].slug);
+            getBoards(workspaceSlug)
+                .then((boards) => {
+                    if (boards.length > 0) {
+                        setFirstBoardSlug(boards[0].slug);
                     }
                 })
                 .catch(console.error);
