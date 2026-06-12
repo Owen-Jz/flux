@@ -109,7 +109,12 @@ export async function POST(request: NextRequest) {
         }
 
         if (trialEndsAt) {
-            sendTrialStartedEmail({ email: user.email, name: user.name }, initialPlan, trialEndsAt);
+            // Same rationale as the OTP send below: `after()` guarantees the
+            // send survives the serverless instance recycling after response.
+            after(() =>
+                sendTrialStartedEmail({ email: user.email, name: user.name }, initialPlan, trialEndsAt)
+                    .catch(console.error)
+            );
         }
 
         // Process any pending workspace invitations
