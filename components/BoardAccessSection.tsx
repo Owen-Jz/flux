@@ -18,6 +18,16 @@ interface WorkspaceMember {
 interface BoardAccessSectionProps {
     workspaceSlug: string;
     boardSlug: string;
+    /**
+     * Pre-loaded workspace roster. When supplied (e.g. the board page already
+     * has it in props), the component skips the `getWorkspaceMembers` round-trip
+     * entirely — only the board's access state is fetched, so the section loads
+     * near-instantly. Omit it (e.g. the sidebar board list) and the roster is
+     * fetched on mount instead.
+     */
+    members?: WorkspaceMember[];
+    /** Current user's id — excluded from the picker since admins always have access. */
+    currentUserId?: string;
 }
 
 /**
@@ -26,10 +36,10 @@ interface BoardAccessSectionProps {
  * members are. Self-contained: loads its own data and saves independently of
  * the surrounding board-details form.
  */
-export default function BoardAccessSection({ workspaceSlug, boardSlug }: BoardAccessSectionProps) {
+export default function BoardAccessSection({ workspaceSlug, boardSlug, members: membersProp, currentUserId }: BoardAccessSectionProps) {
     const [visibility, setVisibility] = useState<Visibility>('WORKSPACE');
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-    const [members, setMembers] = useState<WorkspaceMember[]>([]);
+    const [members, setMembers] = useState<WorkspaceMember[]>(membersProp ?? []);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState('');
@@ -38,9 +48,11 @@ export default function BoardAccessSection({ workspaceSlug, boardSlug }: BoardAc
         let cancelled = false;
         const load = async () => {
             try {
+                // Always need the board's current access state; only fetch the
+                // roster when the parent didn't hand us one.
                 const [access, roster] = await Promise.all([
                     getBoardAccess(workspaceSlug, boardSlug),
-                    getWorkspaceMembers(workspaceSlug),
+                    membersProp ? Promise.resolve(membersProp) : getWorkspaceMembers(workspaceSlug),
                 ]);
                 if (cancelled) return;
                 setVisibility(access.visibility);
@@ -57,7 +69,13 @@ export default function BoardAccessSection({ workspaceSlug, boardSlug }: BoardAc
         return () => {
             cancelled = true;
         };
-    }, [workspaceSlug, boardSlug]);
+    }, [workspaceSlug, boardSlug, membersProp]);
+
+    // The current admin always has access, so listing them in the picker is
+    // noise — drop them from the selectable roster.
+    const selectableMembers = currentUserId
+        ? members.filter((m) => m.id !== currentUserId)
+        : members;
 
     const toggleMember = (id: string) => {
         setSelectedIds((prev) => {
@@ -141,10 +159,10 @@ export default function BoardAccessSection({ workspaceSlug, boardSlug }: BoardAc
                     {/* Member checklist (only when restricted) */}
                     {visibility === 'RESTRICTED' && (
                         <div className="bg-[var(--background-subtle)] border border-[var(--border-subtle)] p-3 rounded-2xl space-y-1 max-h-56 overflow-y-auto custom-scrollbar">
-                            {members.length === 0 ? (
+                            {selectableMembers.length === 0 ? (
                                 <p className="text-sm text-[var(--text-tertiary)] py-4 text-center">No other members to add yet.</p>
                             ) : (
-                                members.map((m) => {
+                                selectableMembers.map((m) => {
                                     const checked = selectedIds.has(m.id);
                                     return (
                                         <button

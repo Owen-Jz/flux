@@ -1673,12 +1673,17 @@ export async function getWorkspaceMembers(workspaceSlug: string) {
         throw new Error('Access denied');
     }
 
-    return workspace.members.map((m: any) => ({
-        id: m.userId._id.toString(),
-        name: m.userId.name,
-        email: m.userId.email,
-        image: m.userId.image,
-    }));
+    // Defensive: a member whose user document was deleted leaves an orphaned
+    // reference that `.populate()` resolves to null. Skip those rather than
+    // throwing on `m.userId._id` — one bad ref must not blank the whole roster.
+    return workspace.members
+        .filter((m: any) => m.userId && m.userId._id)
+        .map((m: any) => ({
+            id: m.userId._id.toString(),
+            name: m.userId.name,
+            email: m.userId.email,
+            image: m.userId.image,
+        }));
 }
 
 export interface CalendarTask {
