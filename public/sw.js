@@ -1,7 +1,11 @@
 /* Flux PWA Service Worker */
-var STATIC_CACHE = 'flux-static-v3';
-var PAGES_CACHE = 'flux-pages-v3';
-var DATA_CACHE = 'flux-data-v3';
+// Cache version bumped v3 -> v4 to evict stale HTML app shells that referenced
+// now-deleted build-hashed chunks. Old PAGES_CACHE entries (cached under the
+// previous stale-while-revalidate strategy) caused ChunkLoadError crashes on
+// the landing page after each deploy; the activate handler purges them.
+var STATIC_CACHE = 'flux-static-v4';
+var PAGES_CACHE = 'flux-pages-v4';
+var DATA_CACHE = 'flux-data-v4';
 var OFFLINE_URL = '/offline';
 
 var STATIC_ASSETS = [
@@ -191,25 +195,29 @@ self.addEventListener('fetch', function(event) {
     return;
   }
 
-  // Stale-while-revalidate: Public pages
+  // Network-first: Public pages (landing, login, signup, single-segment routes)
+  // These HTML documents reference build-hashed JS chunks. Serving a stale
+  // cached shell after a deploy points the browser at chunks that no longer
+  // exist on the current deployment -> 404 -> ChunkLoadError -> the app error
+  // boundary ("Something went wrong"). Always fetch the shell fresh so its chunk
+  // references match the live build; fall back to cache only when offline.
   if (url.pathname === '/' || url.pathname.match(/^\/[^/]+$/)) {
     event.respondWith(
-      caches.match(event.request).then(function(cached) {
-        var networkFetch = fetch(event.request).then(function(response) {
-          if (response.ok && !response.redirected) {
-            var cacheable = response.clone();
-            caches.open(PAGES_CACHE).then(function(cache) {
-              cache.put(event.request, cacheable);
-            });
-          }
-          return response;
-        }).catch(function() {
+      fetch(event.request).then(function(response) {
+        if (response.ok && !response.redirected) {
+          var cacheable = response.clone();
+          caches.open(PAGES_CACHE).then(function(cache) {
+            cache.put(event.request, cacheable);
+          });
+        }
+        return response;
+      }).catch(function() {
+        return caches.match(event.request).then(function(cached) {
           if (cached) return cached;
           return caches.match(OFFLINE_URL).then(function(offline) {
             return offline || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
           });
         });
-        return cached || networkFetch;
       })
     );
     return;
