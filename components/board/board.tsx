@@ -31,7 +31,6 @@ import type { BoardStreamRequest, StreamedTask } from '@/types/ai-plan';
 import { updateTaskPosition, createTask, updateTask, deleteTask, archiveTasks } from '@/actions/task';
 import { updateOnboardingProgress } from '@/actions/onboarding';
 import { InteractiveBoardWalkthrough, dispatchWalkthroughEvent } from '@/components/onboarding/interactive-board-walkthrough';
-import { BoardContextualTooltips } from './board-contextual-tooltips';
 import { CommentsPanel, NotificationsPanel } from './board-activity-panels';
 import { getUnreadActivityCountForBoard } from '@/actions/activity';
 import type { TaskStatus, TaskPriority } from '@/models/Task';
@@ -1192,9 +1191,6 @@ export function Board({
                     }}
                 />
             )}
-
-            {/* Contextual Tooltips for First Board Visit */}
-            <BoardContextualTooltips />
         </div>
     );
 }

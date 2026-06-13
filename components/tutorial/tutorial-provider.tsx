@@ -1,11 +1,35 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { driver, DriveStep } from 'driver.js';
+import { driver, type DriveStep, type Driver } from 'driver.js';
 import 'driver.js/dist/driver.css';
+import './tour.css';
 import { updateTutorialProgress, getTutorialProgress } from '@/actions/tutorial';
 import { updateOnboardingProgress } from '@/actions/onboarding';
+
+/**
+ * Flux product tour.
+ *
+ * A single driver.js-based guided tour for the whole app. It replaces the two
+ * older systems (the route-based driver tour AND the hand-rolled board
+ * contextual tooltips) that used to run at the same time on the board page and
+ * fought each other for the screen.
+ *
+ * What makes this one safe:
+ *  - It never starts while a modal/dialog is open (the old tooltips drew on top
+ *    of dialogs and intercepted the first click). It waits for the screen to be
+ *    clear, then runs.
+ *  - It drops any step whose target isn't actually on screen — so an empty
+ *    board (no task cards) or a mobile layout (sidebar hidden behind the
+ *    hamburger) never gets a spotlight pointing at nothing.
+ *  - It respects `prefers-reduced-motion`.
+ *  - It can be restarted on demand: dispatch `window` event `flux:start-tour`
+ *    (or call `startFluxTour()`), which replays the current page's tour.
+ */
+
+type TourKey = 'hasSeenDashboard' | 'hasSeenBoard' | 'hasSeenSettings';
+type StepName = 'dashboard' | 'board' | 'settings';
 
 interface TutorialState {
     hasSeenWelcome: boolean;
@@ -14,190 +38,317 @@ interface TutorialState {
     hasSeenSettings: boolean;
 }
 
+const STEP_NAME: Record<TourKey, StepName> = {
+    hasSeenDashboard: 'dashboard',
+    hasSeenBoard: 'board',
+    hasSeenSettings: 'settings',
+};
+
+/** Custom event other components can dispatch to (re)start the tour. */
+export const START_TOUR_EVENT = 'flux:start-tour';
+
+/** Programmatic entry point — wire this to a "Take a tour" / help menu item. */
+export function startFluxTour() {
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(START_TOUR_EVENT));
+    }
+}
+
+/** Is an element present AND actually rendered (not display:none / zero-size)? */
+function isVisible(selector: string): boolean {
+    if (typeof document === 'undefined') return false;
+    const el = document.querySelector(selector) as HTMLElement | null;
+    if (!el) return false;
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+        return false;
+    }
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+}
+
+/**
+ * Is a modal/dialog currently open? Flux modals use one of two conventions:
+ * an explicit `role="dialog"`/`aria-modal`, or a Tailwind `fixed inset-0`
+ * overlay at z-index >= 40. We treat either as "screen is busy — don't start".
+ */
+function isModalOpen(): boolean {
+    if (typeof document === 'undefined') return false;
+    if (document.querySelector('[role="dialog"], [aria-modal="true"]')) return true;
+
+    const overlays = document.querySelectorAll<HTMLElement>('.fixed.inset-0');
+    for (const el of Array.from(overlays)) {
+        if (el.className.includes('driver-')) continue; // our own overlay
+        const style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') continue;
+        const z = parseInt(style.zIndex || '0', 10);
+        if (z >= 40) return true;
+    }
+    return false;
+}
+
+function dashboardSteps(): DriveStep[] {
+    return [
+        {
+            element: '#sidebar-workspace-switcher',
+            popover: {
+                title: 'Switch workspaces',
+                description: 'Jump between workspaces or spin up a new one from here.',
+                side: 'bottom',
+                align: 'start',
+            },
+        },
+        {
+            element: '#sidebar-board-list',
+            popover: {
+                title: 'Your boards',
+                description: 'Every project board lives here. Organise work by client, team, or goal.',
+                side: 'right',
+                align: 'start',
+            },
+        },
+        {
+            element: '#board-create-btn',
+            popover: {
+                title: 'Create a board',
+                description: 'Start a new board — or describe your project and let Flux plan it with AI.',
+                side: 'right',
+                align: 'start',
+            },
+        },
+        {
+            element: '#sidebar-nav-team',
+            popover: {
+                title: 'Invite your team',
+                description: 'Add teammates and set who can view or edit each board.',
+                side: 'right',
+                align: 'start',
+            },
+        },
+        {
+            element: '#sidebar-nav-archive',
+            popover: {
+                title: 'Archive',
+                description: 'Closed something too soon? Restore archived tasks and boards here.',
+                side: 'right',
+                align: 'start',
+            },
+        },
+    ];
+}
+
+function boardSteps(): DriveStep[] {
+    return [
+        {
+            element: '#board-header',
+            popover: {
+                title: 'Your board',
+                description: 'Board name, members, and view switches live up here.',
+                side: 'bottom',
+                align: 'start',
+            },
+        },
+        {
+            element: '.board-column',
+            popover: {
+                title: 'Columns are stages',
+                description: 'Tasks flow left to right — Backlog, To Do, In Progress, Review, Done.',
+                side: 'right',
+                align: 'start',
+            },
+        },
+        {
+            element: '.task-card-drag-handle',
+            popover: {
+                title: 'Drag to move',
+                description: 'Grab a task and drop it in another column to change its status.',
+                side: 'right',
+                align: 'start',
+            },
+        },
+        {
+            element: '.task-card-assignees',
+            popover: {
+                title: 'Assign teammates',
+                description: 'Click the assignee area on any task to add or remove people.',
+                side: 'top',
+                align: 'start',
+            },
+        },
+        {
+            element: '.add-task-btn',
+            popover: {
+                title: 'Add a task',
+                description: 'Use the + button to drop a new task straight into a column.',
+                side: 'bottom',
+                align: 'start',
+            },
+        },
+    ];
+}
+
+function settingsSteps(): DriveStep[] {
+    return [
+        {
+            element: '#settings-general',
+            popover: {
+                title: 'Workspace settings',
+                description: 'Rename the workspace and control who can see it.',
+                side: 'right',
+                align: 'start',
+            },
+        },
+        {
+            element: '#settings-danger',
+            popover: {
+                title: 'Danger zone',
+                description: 'Permanently delete this workspace and all of its data.',
+                side: 'top',
+                align: 'start',
+            },
+        },
+    ];
+}
+
+/** Resolve which tour applies to the current route. */
+function resolveTour(pathname: string): { key: TourKey; steps: DriveStep[] } | null {
+    if (pathname.includes('/board/')) {
+        return { key: 'hasSeenBoard', steps: boardSteps() };
+    }
+    if (pathname.includes('/settings')) {
+        return { key: 'hasSeenSettings', steps: settingsSteps() };
+    }
+    // Workspace root (e.g. /acme) — but not the global /dashboard chrome.
+    if (pathname !== '/dashboard') {
+        return { key: 'hasSeenDashboard', steps: dashboardSteps() };
+    }
+    return null;
+}
+
 export function TutorialProvider() {
     const pathname = usePathname();
-    const [progress, setProgress] = useState<TutorialState | null>(null);
-    const driverRef = useRef<any>(null);
-    const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-    const isTourActive = useRef(false);
+    const progressRef = useRef<TutorialState | null>(null);
+    const driverRef = useRef<Driver | null>(null);
+    const startTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+    const waitTimerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+    const runningRef = useRef(false);
 
-    // Fetch initial progress
+    // Load saved progress once.
     useEffect(() => {
-        const fetchProgress = async () => {
-            const data = await getTutorialProgress();
-            if (data) setProgress(data);
+        let active = true;
+        getTutorialProgress().then((data) => {
+            if (active && data) progressRef.current = data;
+        });
+        return () => {
+            active = false;
         };
-        fetchProgress();
     }, []);
 
-    // Handle Route Changes and Tours
     useEffect(() => {
-        if (!progress || isTourActive.current) return;
+        const clearTimers = () => {
+            if (startTimerRef.current) clearTimeout(startTimerRef.current);
+            if (waitTimerRef.current) clearInterval(waitTimerRef.current);
+        };
 
-        // Clean up previous instance just in case
-        if (driverRef.current) {
-            driverRef.current.destroy();
-            driverRef.current = null;
-        }
+        /**
+         * @param force when true (manual restart), ignore the "already seen" flag.
+         */
+        const launch = (force: boolean) => {
+            if (runningRef.current) return;
 
-        let steps: DriveStep[] = [];
-        let tourKey: keyof TutorialState = 'hasSeenWelcome'; // Default
+            const tour = resolveTour(pathname);
+            if (!tour) return;
+            if (!force && progressRef.current?.[tour.key]) return;
 
-        // --- 1. Dashboard Tour ---
-        // Runs on workspace root or dashboard if not seen
-        // Detects if we are on a workspace root page (e.g. /workspace-slug) but NOT board or settings
-        const isWorkspaceRoot = pathname !== '/dashboard' && !pathname.includes('/board/') && !pathname.includes('/settings');
+            // Drop steps whose target isn't on screen (empty board, hidden
+            // mobile sidebar, etc.) so the spotlight never lands on nothing.
+            const steps = tour.steps.filter((s) => typeof s.element === 'string' && isVisible(s.element));
+            if (steps.length === 0) return;
 
-        if (isWorkspaceRoot && !progress.hasSeenDashboard) {
-            tourKey = 'hasSeenDashboard';
-            steps = [
-                {
-                    element: '#sidebar-workspace-switcher',
-                    popover: {
-                        title: 'Workspace Switcher',
-                        description: 'Switch between multiple workspaces or create a new one here.',
-                        side: 'bottom',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: '#sidebar-board-list',
-                    popover: {
-                        title: 'Your Boards',
-                        description: 'Access all your project boards here. Organize tasks by department or project.',
-                        side: 'right',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: '#board-create-btn',
-                    popover: {
-                        title: 'Create Board',
-                        description: 'Click here to create a new board and start organizing tasks.',
-                        side: 'right',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: '#sidebar-nav-team',
-                    popover: {
-                        title: 'Team Management',
-                        description: 'Invite members and manage permissions for your workspace.',
-                        side: 'right',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: '#sidebar-nav-archive',
-                    popover: {
-                        title: 'Archive',
-                        description: 'View and restore archived tasks and boards.',
-                        side: 'right',
-                        align: 'start',
-                    },
-                },
-            ];
-        }
+            const reduceMotion =
+                typeof window !== 'undefined' &&
+                window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-        // --- 2. Board Tour ---
-        else if (pathname.includes('/board/') && !progress.hasSeenBoard) {
-            tourKey = 'hasSeenBoard';
-            steps = [
-                {
-                    element: '#board-header',
-                    popover: {
-                        title: 'Board Header',
-                        description: 'See board details and members here.',
-                        side: 'bottom',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: '.board-column',
-                    popover: {
-                        title: 'Task Columns',
-                        description: 'Tasks are organized in columns. Move them through stages like To Do, In Progress, Done.',
-                        side: 'right',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: '.add-task-btn',
-                    popover: {
-                        title: 'Add New Task',
-                        description: 'Quickly add new tasks to this column.',
-                        side: 'bottom',
-                        align: 'start',
-                    },
-                },
-            ];
-        }
+            // Tear down any prior instance before starting a fresh one.
+            driverRef.current?.destroy();
+            runningRef.current = true;
+            document.body.classList.add('flux-tour-active');
 
-        // --- 3. Settings Tour ---
-        else if (pathname.includes('/settings') && !progress.hasSeenSettings) {
-            tourKey = 'hasSeenSettings';
-            steps = [
-                {
-                    element: '#settings-general',
-                    popover: {
-                        title: 'General Settings',
-                        description: 'Update workspace name and visibility.',
-                        side: 'right',
-                        align: 'start',
-                    },
-                },
-                {
-                    element: '#settings-danger',
-                    popover: {
-                        title: 'Delete Workspace',
-                        description: 'Permanently remove this workspace and all its data if needed.',
-                        side: 'top',
-                        align: 'start',
-                    },
-                },
-            ];
-        }
-
-        // Start the tour if we have steps
-        if (steps.length > 0) {
-            isTourActive.current = true;
-
-            driverRef.current = driver({
+            const obj = driver({
                 showProgress: true,
-                steps: steps,
-                animate: true,
+                progressText: '{{current}} of {{total}}',
+                steps,
+                animate: !reduceMotion,
                 allowClose: true,
-                overlayColor: 'rgba(0,0,0,0.6)',
+                overlayColor: '#000000',
+                overlayOpacity: 0.6,
+                stagePadding: 6,
+                stageRadius: 10,
+                smoothScroll: true,
+                popoverClass: 'flux-tour',
+                nextBtnText: 'Next',
+                prevBtnText: 'Back',
+                doneBtnText: 'Got it',
                 onDestroyStarted: () => {
-                    // Update server state on finish/close
-                    // Even if closed early, we mark as seen to avoid annoyance.
-                    // Or we could check if it was last step.
-                    // For now, mark as seen once started/dismissed.
-                    isTourActive.current = false;
-
-                    // Optimistic update local
-                    setProgress(prev => prev ? ({ ...prev, [tourKey]: true }) : prev);
-
-                    // Update server
-                    let stepName: 'dashboard' | 'board' | 'settings' | 'welcome' = 'welcome';
-                    if (tourKey === 'hasSeenDashboard') stepName = 'dashboard';
-                    if (tourKey === 'hasSeenBoard') stepName = 'board';
-                    if (tourKey === 'hasSeenSettings') stepName = 'settings';
-
-                    updateTutorialProgress(stepName);
-                    // Also track onboarding completion
+                    // Mark seen once dismissed (even early) so it doesn't nag,
+                    // then tear down. Manual restarts re-show it regardless.
+                    runningRef.current = false;
+                    document.body.classList.remove('flux-tour-active');
+                    if (progressRef.current) {
+                        progressRef.current = { ...progressRef.current, [tour.key]: true };
+                    }
+                    updateTutorialProgress(STEP_NAME[tour.key]);
                     updateOnboardingProgress('completedTutorial');
+                    driverRef.current?.destroy();
                 },
             });
 
-            // Delay so the trial prompt is visible before the tutorial starts
-            timeoutRef.current = setTimeout(() => {
-                driverRef.current?.drive();
-            }, 15000);
-            return () => clearTimeout(timeoutRef.current);
-        }
+            driverRef.current = obj;
+            obj.drive();
+        };
 
-    }, [pathname, progress]);
+        /** Wait until no modal is open, then launch. Polls briefly, then gives up. */
+        const launchWhenClear = (force: boolean) => {
+            clearTimers();
+            const tour = resolveTour(pathname);
+            if (!tour) return;
+            if (!force && progressRef.current?.[tour.key]) return;
+
+            let waited = 0;
+            const tryStart = () => {
+                if (!isModalOpen()) {
+                    if (waitTimerRef.current) clearInterval(waitTimerRef.current);
+                    // Small settle so layout/animations finish before measuring.
+                    startTimerRef.current = setTimeout(() => launch(force), 400);
+                    return;
+                }
+                waited += 500;
+                if (waited >= 60000) {
+                    // Modal never closed within a minute — don't badger the user.
+                    if (waitTimerRef.current) clearInterval(waitTimerRef.current);
+                }
+            };
+            // First check on next tick (let the route paint), then poll.
+            startTimerRef.current = setTimeout(tryStart, 600);
+            waitTimerRef.current = setInterval(tryStart, 500);
+        };
+
+        // Auto-run for the current route (first visit only).
+        launchWhenClear(false);
+
+        // Manual restart via custom event (help menu, "Take a tour" button).
+        const onRestart = () => launchWhenClear(true);
+        window.addEventListener(START_TOUR_EVENT, onRestart);
+
+        return () => {
+            clearTimers();
+            window.removeEventListener(START_TOUR_EVENT, onRestart);
+            driverRef.current?.destroy();
+            driverRef.current = null;
+            runningRef.current = false;
+            document.body.classList.remove('flux-tour-active');
+        };
+    }, [pathname]);
 
     return null;
 }

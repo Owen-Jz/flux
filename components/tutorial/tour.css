@@ -1,0 +1,96 @@
+/*
+ * Flux product tour — brand skin for driver.js popovers.
+ * Reuses the app's CSS variables so the tour auto-adapts to light/dark themes.
+ * Scoped to `.flux-tour` (set via driver's popoverClass) so it never leaks
+ * onto any other driver.js instance.
+ */
+
+.driver-popover.flux-tour {
+    background: var(--surface, #ffffff);
+    color: var(--text-primary, #1c1917);
+    border: 1px solid var(--border-subtle, #e7e5e4);
+    border-radius: 16px;
+    box-shadow: var(--shadow-xl, 0 20px 40px -12px rgba(0, 0, 0, 0.25));
+    padding: 20px;
+    max-width: 320px;
+}
+
+.driver-popover.flux-tour .driver-popover-title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text-primary, #1c1917);
+    margin-bottom: 6px;
+}
+
+.driver-popover.flux-tour .driver-popover-description {
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--text-secondary, #57534e);
+}
+
+/* Footer: progress text on the left, buttons on the right */
+.driver-popover.flux-tour .driver-popover-footer {
+    margin-top: 16px;
+    gap: 8px;
+}
+
+.driver-popover.flux-tour .driver-popover-progress-text {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary, #a8a29e);
+    align-self: center;
+}
+
+.driver-popover.flux-tour .driver-popover-navigation-btns button {
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 10px;
+    padding: 7px 14px;
+    text-shadow: none;
+    transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+
+/* Primary action (Next / Got it) */
+.driver-popover.flux-tour .driver-popover-next-btn {
+    background: var(--brand-primary, #7c3aed);
+    color: #ffffff;
+    border: none;
+}
+
+.driver-popover.flux-tour .driver-popover-next-btn:hover {
+    background: var(--brand-primary-hover, #6d28d9);
+    color: #ffffff;
+}
+
+/* Secondary action (Back) */
+.driver-popover.flux-tour .driver-popover-prev-btn {
+    background: transparent;
+    color: var(--text-secondary, #57534e);
+    border: 1px solid var(--border-subtle, #e7e5e4);
+}
+
+.driver-popover.flux-tour .driver-popover-prev-btn:hover {
+    background: var(--background-subtle, #f5f5f4);
+    color: var(--text-primary, #1c1917);
+}
+
+/* Close (×) button */
+.driver-popover.flux-tour .driver-popover-close-btn {
+    color: var(--text-tertiary, #a8a29e);
+    transition: color 0.15s ease;
+}
+
+.driver-popover.flux-tour .driver-popover-close-btn:hover {
+    color: var(--text-primary, #1c1917);
+}
+
+/* Arrow inherits the popover background so it matches in dark mode */
+.driver-popover.flux-tour .driver-popover-arrow {
+    border-color: var(--surface, #ffffff);
+}
+
+/* Tighten the spotlight to feel deliberate, not cavernous */
+.flux-tour-active .driver-overlay {
+    transition: opacity 0.2s ease;
+}
