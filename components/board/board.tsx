@@ -55,6 +55,9 @@ interface BoardProps {
     categories?: { id: string; name: string; color: string }[];
     currentUserId?: string;
     isAdmin?: boolean;
+    /** Full workspace role — threaded into the board-settings modal so its
+     *  admin-only Access tab renders for admins. */
+    userRole?: 'ADMIN' | 'EDITOR' | 'VIEWER' | null;
     hasUnread?: React.ReactNode;
     isInWalkthrough?: boolean;
 }
@@ -98,6 +101,7 @@ export function Board({
     categories = [],
     currentUserId,
     isAdmin = false,
+    userRole = null,
     hasUnread,
     isInWalkthrough = false,
 }: BoardProps) {
@@ -1147,6 +1151,9 @@ export function Board({
                         color: boardColor,
                         categories: localCategories,
                     }}
+                    userRole={userRole}
+                    members={members}
+                    currentUserId={currentUserId}
                     onClose={() => setIsEditingBoard(false)}
                     onCategoriesChange={(updatedCategories) => setLocalCategories(updatedCategories)}
                 />
