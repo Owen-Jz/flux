@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { Providers } from "@/components/providers";
 import { PWAUpdateBanner } from "@/components/pwa/update-banner";
 import { PWAInit } from "@/components/pwa/pwa-init";
@@ -478,6 +479,7 @@ export default function RootLayout({
         <PWAInit />
         <PWAUpdateBanner />
         <PWAInstallPrompt />
+        <Analytics />
       </body>
     </html>
   );
