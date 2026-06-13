@@ -260,6 +260,14 @@ export function TutorialProvider() {
             if (!tour) return;
             if (!force && progressRef.current?.[tour.key]) return;
 
+            // Final guard: a modal may have mounted during the settle delay
+            // (e.g. the "What are you working on?" AI-plan prompt fetches first,
+            // then appears). If so, go back to waiting instead of drawing over it.
+            if (isModalOpen()) {
+                launchWhenClear(force);
+                return;
+            }
+
             // Drop steps whose target isn't on screen (empty board, hidden
             // mobile sidebar, etc.) so the spotlight never lands on nothing.
             const steps = tour.steps.filter((s) => typeof s.element === 'string' && isVisible(s.element));
@@ -315,21 +323,29 @@ export function TutorialProvider() {
             if (!force && progressRef.current?.[tour.key]) return;
 
             let waited = 0;
+            let clearStreak = 0;
             const tryStart = () => {
                 if (!isModalOpen()) {
-                    if (waitTimerRef.current) clearInterval(waitTimerRef.current);
-                    // Small settle so layout/animations finish before measuring.
-                    startTimerRef.current = setTimeout(() => launch(force), 400);
+                    // Require the screen to stay clear across two consecutive
+                    // polls (~1s) before launching, so a modal that mounts a beat
+                    // after its data fetch (e.g. the AI-plan prompt) isn't missed.
+                    clearStreak += 1;
+                    if (clearStreak >= 2) {
+                        if (waitTimerRef.current) clearInterval(waitTimerRef.current);
+                        startTimerRef.current = setTimeout(() => launch(force), 400);
+                    }
                     return;
                 }
+                clearStreak = 0;
                 waited += 500;
                 if (waited >= 60000) {
                     // Modal never closed within a minute — don't badger the user.
                     if (waitTimerRef.current) clearInterval(waitTimerRef.current);
                 }
             };
-            // First check on next tick (let the route paint), then poll.
-            startTimerRef.current = setTimeout(tryStart, 600);
+            // First check after the route paints + the first-run modals have had
+            // a chance to mount, then poll.
+            startTimerRef.current = setTimeout(tryStart, 900);
             waitTimerRef.current = setInterval(tryStart, 500);
         };
 
